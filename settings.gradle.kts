@@ -21,4 +21,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "safecube-android"
 include(":app")
+include(":core:network")
+include(":core:auth")
+include(":core:crypto")
+include(":core:storage")
+include(":feature:auth")
+include(":feature:vault")
+include(":feature:profile")
  

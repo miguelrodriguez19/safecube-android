@@ -38,6 +38,10 @@ android {
 }
 
 dependencies {
+    implementation(project(":feature:auth"))
+    implementation(project(":feature:vault"))
+    implementation(project(":feature:profile"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
