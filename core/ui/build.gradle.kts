@@ -1,9 +1,10 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace = "com.miguelrodriguez19.safecube.feature.vault"
+    namespace = "com.miguelrodriguez19.safecube.core.ui"
     compileSdk {
         version = release(36)
     }
@@ -16,12 +17,8 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-}
 
-dependencies {
-    implementation(project(":core:auth"))
-    implementation(project(":core:crypto"))
-    implementation(project(":core:storage"))
-    implementation(project(":core:ui"))
-    implementation(libs.androidx.core.ktx)
+    buildFeatures {
+        compose = true
+    }
 }

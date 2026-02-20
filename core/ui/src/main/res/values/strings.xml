@@ -1,0 +1,7 @@
+<resources>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="generic_error">Something went wrong</string>
+    <string name="loading">Loading...</string>
+</resources>

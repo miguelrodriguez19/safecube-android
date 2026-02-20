@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 20-02-2026 02:11:50
+Updated: 20-02-2026 02:55:12
 
 ```
 safecube-android/
@@ -11,7 +11,8 @@ safecube-android/
 │   ├── build/... # Skipped Content
 │   ├── src/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
-│   │   │   └── ExampleInstrumentedTest.kt
+│   │   │   ├── ExampleInstrumentedTest.kt
+│   │   │   └── MainActivityComposeTest.kt
 │   │   ├── main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/
 │   │   │   │   ├── ui/theme/
@@ -65,6 +66,16 @@ safecube-android/
 │   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
 │   │   │   ├── java/
+│   │   │   │   ├── com/miguelrodriguez19/safecube/core/crypto/
+│   │   │   │   │   ├── CryptoEngine.kt
+│   │   │   │   │   ├── DecryptionRequest.kt
+│   │   │   │   │   ├── EncryptionRequest.kt
+│   │   │   │   │   ├── EncryptionResult.kt
+│   │   │   │   │   ├── KdfEngine.kt
+│   │   │   │   │   ├── KdfRequest.kt
+│   │   │   │   │   ├── KeyUnwrapRequest.kt
+│   │   │   │   │   ├── KeyWrapping.kt
+│   │   │   │   │   └── KeyWrapRequest.kt
 │   │   │   │   └── .gitkeep
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
@@ -80,22 +91,42 @@ safecube-android/
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/
 │   │   │       └── NetworkClientFactoryTest.kt
 │   │   └── build.gradle.kts
-│   └── storage/
+│   ├── storage/
+│   │   ├── build/... # Skipped Content
+│   │   ├── src/main/
+│   │   │   ├── java/
+│   │   │   │   └── .gitkeep
+│   │   │   └── AndroidManifest.xml
+│   │   └── build.gradle.kts
+│   └── ui/
 │       ├── build/... # Skipped Content
 │       ├── src/main/
-│       │   ├── java/
-│       │   │   └── .gitkeep
+│       │   ├── java/com/miguelrodriguez19/safecube/core/ui/
+│       │   │   ├── components/
+│       │   │   │   └── .gitkeep
+│       │   │   └── theme/
+│       │   │       └── .gitkeep
+│       │   ├── res/
+│       │   │   ├── values/
+│       │   │   │   └── strings.xml
+│       │   │   └── values-es/
+│       │   │       └── strings.xml
 │       │   └── AndroidManifest.xml
 │       └── build.gradle.kts
 ├── docs/
+│   ├── architecture/
+│   │   └── storage_decision.md
 │   ├── package-structure/
 │   │   └── package_structure.md
-│   └── README.md
+│   ├── README.md
+│   └── testing.md
 ├── feature/
 │   ├── auth/
 │   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
 │   │   │   ├── java/
+│   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/
+│   │   │   │   │   └── AuthActionLabel.kt
 │   │   │   │   └── .gitkeep
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
@@ -121,6 +152,8 @@ safecube-android/
 │   └── run-folder-tree.sh
 ├── .gitignore
 ├── build.gradle.kts
+├── gradlew
+├── gradlew.bat
 ├── LICENSE
 └── settings.gradle.kts
 ```

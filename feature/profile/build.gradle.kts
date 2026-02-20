@@ -21,5 +21,6 @@ android {
 dependencies {
     implementation(project(":core:auth"))
     implementation(project(":core:storage"))
+    implementation(project(":core:ui"))
     implementation(libs.androidx.core.ktx)
 }
