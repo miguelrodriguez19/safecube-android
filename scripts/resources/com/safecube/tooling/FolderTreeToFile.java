@@ -34,8 +34,15 @@ public final class FolderTreeToFile {
     private static File outputFile;
 
     private static final Set<String> EXCLUDED_FOLDERS =
-            Set.of(".git", ".idea", "app/build", ".gradle",
-                    ".kotlin", "gradle/wrapper", "scripts/.build");
+            Set.of(".git", ".idea",
+                    "safecube-android/build",
+                    "app/build",
+                    "core/\\w+/build",
+                    "feature/\\w+/build",
+                    ".gradle",
+                    ".kotlin",
+                    "gradle/wrapper",
+                    "scripts/.build");
 
     private static final Set<String> EXCLUDED_FILES =
             Set.of(".+.properties", ".DS_Store");
@@ -169,8 +176,9 @@ public final class FolderTreeToFile {
 
     private static void handleDirectory(
             File dir, String prefix, PrintWriter writer, boolean isLast, String levelIndicator) {
+
         final boolean isExcluded = EXCLUDED_FOLDERS.stream()
-                .anyMatch(suffix -> dir.getAbsolutePath().endsWith(suffix));
+                .anyMatch(suffix -> dir.getAbsolutePath().matches(".*" + suffix + "$"));
 
         if (isExcluded) {
             if (printExcludedFolders) {
@@ -179,9 +187,13 @@ public final class FolderTreeToFile {
             return;
         }
 
-        writer.println(levelIndicator + dir.getName() + "/");
+        String compactName = buildCompactPath(dir);
+        File deepest = getDeepestCompactDir(dir);
+
+        writer.println(levelIndicator + compactName + "/");
+
         String newPrefix = prefix + (isLast ? "    " : "│   ");
-        printFolderTree(dir, newPrefix, writer);
+        printFolderTree(deepest, newPrefix, writer);
     }
 
     private static void handleFile(File file, PrintWriter writer, String levelIndicator) {
@@ -194,6 +206,47 @@ public final class FolderTreeToFile {
             }
         } else {
             writer.println(levelIndicator + file.getName());
+        }
+    }
+
+    private static File getSingleVisibleDirectory(File dir) {
+        File[] children = dir.listFiles();
+        if (children == null) return null;
+
+        List<File> visible = filterVisible(children);
+
+        if (visible.size() != 1) return null;
+
+        File only = visible.get(0);
+        if (!only.isDirectory()) return null;
+
+        boolean excluded = EXCLUDED_FOLDERS.stream()
+                .anyMatch(suffix -> only.getAbsolutePath().matches(".*" + suffix + "$"));
+
+        return excluded ? null : only;
+    }
+
+    private static String buildCompactPath(File dir) {
+        StringBuilder name = new StringBuilder(dir.getName());
+        File current = dir;
+
+        while (true) {
+            File next = getSingleVisibleDirectory(current);
+            if (next == null) break;
+
+            name.append("/").append(next.getName());
+            current = next;
+        }
+        return name.toString();
+    }
+
+    private static File getDeepestCompactDir(File dir) {
+        File current = dir;
+
+        while (true) {
+            File next = getSingleVisibleDirectory(current);
+            if (next == null) return current;
+            current = next;
         }
     }
 
