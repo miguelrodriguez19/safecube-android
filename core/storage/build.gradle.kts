@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.google.devtools.ksp)
+    alias(libs.plugins.hilt.android)
 }
 
 android {
@@ -21,4 +23,7 @@ android {
 dependencies {
     implementation(project(":core:crypto"))
     implementation(libs.androidx.core.ktx)
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 }

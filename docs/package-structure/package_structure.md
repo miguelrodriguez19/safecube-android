@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 20-02-2026 02:55:12
+Updated: 23-02-2026 11:03:30
 
 ```
 safecube-android/
@@ -15,11 +15,17 @@ safecube-android/
 │   │   │   └── MainActivityComposeTest.kt
 │   │   ├── main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/
+│   │   │   │   ├── app/navigation/
+│   │   │   │   │   ├── NavigationWrapper.kt
+│   │   │   │   │   └── Routes.kt
+│   │   │   │   ├── core/
 │   │   │   │   ├── ui/theme/
 │   │   │   │   │   ├── Color.kt
 │   │   │   │   │   ├── Theme.kt
 │   │   │   │   │   └── Type.kt
-│   │   │   │   └── MainActivity.kt
+│   │   │   │   ├── view/core/
+│   │   │   │   ├── MainActivity.kt
+│   │   │   │   └── SafeCubeApp.kt
 │   │   │   ├── res/
 │   │   │   │   ├── drawable/
 │   │   │   │   │   ├── ic_launcher_background.xml
@@ -58,25 +64,25 @@ safecube-android/
 │   ├── auth/
 │   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
-│   │   │   ├── java/
-│   │   │   │   └── .gitkeep
+│   │   │   ├── java/com/miguelrodriguez19/safecube/core/auth/di/
+│   │   │   │   └── AuthModule.kt
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   ├── crypto/
 │   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
-│   │   │   ├── java/
-│   │   │   │   ├── com/miguelrodriguez19/safecube/core/crypto/
-│   │   │   │   │   ├── CryptoEngine.kt
-│   │   │   │   │   ├── DecryptionRequest.kt
-│   │   │   │   │   ├── EncryptionRequest.kt
-│   │   │   │   │   ├── EncryptionResult.kt
-│   │   │   │   │   ├── KdfEngine.kt
-│   │   │   │   │   ├── KdfRequest.kt
-│   │   │   │   │   ├── KeyUnwrapRequest.kt
-│   │   │   │   │   ├── KeyWrapping.kt
-│   │   │   │   │   └── KeyWrapRequest.kt
-│   │   │   │   └── .gitkeep
+│   │   │   ├── java/com/miguelrodriguez19/safecube/core/crypto/
+│   │   │   │   ├── di/
+│   │   │   │   │   └── CryptoModule.kt
+│   │   │   │   ├── CryptoEngine.kt
+│   │   │   │   ├── DecryptionRequest.kt
+│   │   │   │   ├── EncryptionRequest.kt
+│   │   │   │   ├── EncryptionResult.kt
+│   │   │   │   ├── KdfEngine.kt
+│   │   │   │   ├── KdfRequest.kt
+│   │   │   │   ├── KeyUnwrapRequest.kt
+│   │   │   │   ├── KeyWrapping.kt
+│   │   │   │   └── KeyWrapRequest.kt
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   ├── network/
@@ -84,6 +90,8 @@ safecube-android/
 │   │   ├── src/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/network/
+│   │   │   │   │   ├── di/
+│   │   │   │   │   │   └── NetworkModule.kt
 │   │   │   │   │   ├── AuthInterceptorFactory.kt
 │   │   │   │   │   ├── NetworkClientFactory.kt
 │   │   │   │   │   └── NetworkConfig.kt
@@ -94,8 +102,8 @@ safecube-android/
 │   ├── storage/
 │   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
-│   │   │   ├── java/
-│   │   │   │   └── .gitkeep
+│   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/di/
+│   │   │   │   └── StorageModule.kt
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   └── ui/
@@ -118,30 +126,43 @@ safecube-android/
 │   │   └── storage_decision.md
 │   ├── package-structure/
 │   │   └── package_structure.md
+│   ├── roadmap/
+│   │   ├── roadmap--fase-1.md
+│   │   └── roadmap--high-level.md
 │   ├── README.md
 │   └── testing.md
 ├── feature/
 │   ├── auth/
 │   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
-│   │   │   ├── java/
-│   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/
-│   │   │   │   │   └── AuthActionLabel.kt
-│   │   │   │   └── .gitkeep
+│   │   │   ├── java/com/miguelrodriguez19/safecube/feature/auth/
+│   │   │   │   ├── navigation/
+│   │   │   │   ├── screens/
+│   │   │   │   │   ├── LoginScreen.kt
+│   │   │   │   │   ├── PostLoginGateScreen.kt
+│   │   │   │   │   ├── SignupScreen.kt
+│   │   │   │   │   └── WelcomeScreen.kt
+│   │   │   │   └── AuthActionLabel.kt
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   ├── profile/
 │   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
-│   │   │   ├── java/
-│   │   │   │   └── .gitkeep
+│   │   │   ├── java/com/miguelrodriguez19/safecube/feature/profile/navigation/
+│   │   │   │   └── ProfileScreen.kt
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   └── vault/
 │       ├── build/... # Skipped Content
 │       ├── src/main/
-│       │   ├── java/
-│       │   │   └── .gitkeep
+│       │   ├── java/com/miguelrodriguez19/safecube/feature/vault/navigation/
+│       │   │   ├── CreateVaultScreen.kt
+│       │   │   ├── NavigationBar.kt
+│       │   │   ├── RecoveryKeyScreen.kt
+│       │   │   ├── SettingsScreen.kt
+│       │   │   ├── UnlockVaultScreen.kt
+│       │   │   ├── VaultFoldersScreen.kt
+│       │   │   └── VaultScreen.kt
 │       │   └── AndroidManifest.xml
 │       └── build.gradle.kts
 ├── gradle/... # Skipped Content

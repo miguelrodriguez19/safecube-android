@@ -4,4 +4,7 @@
     <string name="action_delete">Delete</string>
     <string name="generic_error">Something went wrong</string>
     <string name="loading">Loading...</string>
+    <string name="vault_label">Vault</string>
+    <string name="folders_label">Folders</string>
+    <string name="settings_label">Settings</string>
 </resources>
