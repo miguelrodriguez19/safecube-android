@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.hilt.android)
 }
 
-
 android {
     namespace = "com.miguelrodriguez19.safecube.core.network"
     compileSdk {
@@ -14,14 +13,16 @@ android {
 
     defaultConfig {
         minSdk = 30
+        buildConfigField("String", "BASE_URL", "\"https://selective-charil-safecube-92eb45c3.koyeb.app/safecube\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        buildConfig = true
     }
 }
 
