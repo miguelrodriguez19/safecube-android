@@ -86,7 +86,7 @@ class NetworkClientFactoryTest {
             baseUrl = server.url("/").toString(),
             isDebug = false,
         )
-        val authInterceptor = AuthInterceptorFactory.bearer { "token-123" }
+        val authInterceptor = AuthInterceptor { "token-123" }
 
         val api = NetworkClientFactory.createService<PingApi>(
             config = config,

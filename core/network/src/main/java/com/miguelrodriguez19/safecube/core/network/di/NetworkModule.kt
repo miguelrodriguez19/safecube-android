@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.core.network.di
 
 import com.miguelrodriguez19.safecube.core.network.ApiService
+import com.miguelrodriguez19.safecube.core.network.AuthInterceptor
 import com.miguelrodriguez19.safecube.core.network.BuildConfig
 import com.miguelrodriguez19.safecube.core.network.NetworkClientFactory
 import com.miguelrodriguez19.safecube.core.network.NetworkConfig
@@ -31,8 +32,10 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         config: NetworkConfig,
+        authInterceptor: AuthInterceptor,
     ): OkHttpClient = NetworkClientFactory.createOkHttpClient(
         config = config,
+        authInterceptor = authInterceptor,
     )
 
     @Provides
