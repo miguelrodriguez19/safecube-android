@@ -19,7 +19,6 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.miguelrodriguez19.safecube.feature.auth.screens.LoginScreen
-import com.miguelrodriguez19.safecube.feature.auth.screens.PostLoginGateScreen
 import com.miguelrodriguez19.safecube.feature.auth.screens.SignupScreen
 import com.miguelrodriguez19.safecube.feature.auth.screens.WelcomeScreen
 import com.miguelrodriguez19.safecube.feature.profile.navigation.ProfileScreen
@@ -32,8 +31,7 @@ import com.miguelrodriguez19.safecube.feature.vault.navigation.VaultScreen
 
 @Composable
 fun NavigationWrapper() {
-    val backStack = rememberNavBackStack(Routes.Welcome)
-    val hasVaultFromBackend = true
+    val backStack = rememberNavBackStack(Routes.Splash)
     val context = LocalContext.current
     val activity = remember(context) { context as? Activity }
     var lastBackPressTimestamp by rememberSaveable { mutableLongStateOf(0L) }
@@ -94,6 +92,7 @@ fun NavigationWrapper() {
 
                 Routes.Welcome,
                 Routes.Login,
+                Routes.Splash,
                 Routes.PostLoginGate,
                 Routes.UnlockVault,
                 Routes.CreateVault,
@@ -103,6 +102,12 @@ fun NavigationWrapper() {
             }
         },
         entryProvider = entryProvider {
+            entry<Routes.Splash> {
+                SplashGateScreen(
+                    onLoggedIn = { replaceCurrent(Routes.PostLoginGate) },
+                    onLoggedOut = { replaceCurrent(Routes.Welcome) },
+                )
+            }
             entry<Routes.Welcome> {
                 WelcomeScreen(
                     onLogin = { setRoot(Routes.Login) },
@@ -112,7 +117,7 @@ fun NavigationWrapper() {
             entry<Routes.Login> {
                 LoginScreen(
                     onSignup = { backStack.add(Routes.Signup) },
-                    onLoginSuccess = { backStack.add(Routes.PostLoginGate) },
+                    onLoginSuccess = { setRoot(Routes.PostLoginGate) },
                 )
             }
             entry<Routes.Signup> {
@@ -154,10 +159,10 @@ fun NavigationWrapper() {
                 UnlockVaultScreen(onApp = { setRoot(Routes.Vault) })
             }
             entry<Routes.PostLoginGate> {
-                PostLoginGateScreen(
-                    hasVaultFromBackend = hasVaultFromBackend,
-                    onVaultFetched = { replaceCurrent(Routes.UnlockVault) },
-                    onVaultMissing = { replaceCurrent(Routes.CreateVault) },
+                PostLoginGateRoute(
+                    onCreateVault = { replaceCurrent(Routes.CreateVault) },
+                    onUnlockVault = { replaceCurrent(Routes.UnlockVault) },
+                    onHome = { setRoot(Routes.Vault) },
                 )
             }
             entry<Routes.Error> { Text("Error") }

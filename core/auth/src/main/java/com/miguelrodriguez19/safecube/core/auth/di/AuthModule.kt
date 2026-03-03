@@ -2,7 +2,9 @@ package com.miguelrodriguez19.safecube.core.auth.di
 
 import com.miguelrodriguez19.safecube.core.auth.SessionManager
 import com.miguelrodriguez19.safecube.core.auth.TokenStorage
+import com.miguelrodriguez19.safecube.core.auth.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.auth.internal.EncryptedTokenStorage
+import com.miguelrodriguez19.safecube.core.auth.internal.FakeVaultSessionManager
 import com.miguelrodriguez19.safecube.core.network.TokenProvider
 import dagger.Binds
 import dagger.Module
@@ -25,4 +27,10 @@ abstract class AuthModule {
     abstract fun bindTokenProvider(
         sessionManager: SessionManager,
     ): TokenProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindVaultSessionManager(
+        fakeVaultSessionManager: FakeVaultSessionManager,
+    ): VaultSessionManager
 }
