@@ -39,3 +39,4 @@ google-services.json
 
 # Tooling build
 /.build/com/safecube/tooling/
+/scripts/.build/com/safecube/tooling/

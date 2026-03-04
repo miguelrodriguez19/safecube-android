@@ -1,241 +1,274 @@
-# FASE 2 — Roadmap (Auth Flow Completo)
+Perfecto. Te dejo la **FASE 2 rehecha** y ya **alineada con OpenAPI Generator**, sustituyendo las tareas obsoletas (`DTOs` + `AuthApi` manuales) y metiendo las nuevas tareas en el punto correcto del flujo. Está basada en tu roadmap actual de Fase 2 , el roadmap alto nivel (Fase 2 = Auth Flow Completo) , el contrato `auth` de OpenAPI (`/auth/register|login|refresh|logout`) , la estrategia de tokens/rotación/logout del slice `auth` , la validación HTTP homogénea (`ErrorResponse`)  y la separación **Login ≠ Vault unlock** .
+
+---
+
+# FASE 2 — Roadmap (Auth Flow Completo) [Actualizado OpenAPI Generator]
 
 ## Objetivo de la fase
 
-Construir el flujo real de **Register/Login/Token storage/Refresh/Logout**, dejando al usuario en
-estado **LoggedInVaultLocked** (autenticado pero con vault todavía bloqueado). Esto está alineado
-con el roadmap móvil y con la separación estricta “Login != Vault unlock” .
+Construir el flujo real de **Register/Login/Token storage/Refresh/Logout**, dejando al usuario en estado **LoggedInVaultLocked** (autenticado pero con vault todavía bloqueado). Esto mantiene la separación estricta **“Login != Vault unlock”** definida en ADR-004.
 
 ## Contrato backend que vamos a implementar en esta fase
 
-Endpoints del slice `auth`:
+Endpoints del slice `auth` (OpenAPI):
 
 * `POST /auth/register`
 * `POST /auth/login`
 * `POST /auth/refresh`
 * `POST /auth/logout`
 
-Reglas clave: refresh token **opaco con rotación obligatoria**, access token JWT corto, logout
-revoca refresh tokens .
+Reglas clave del backend (`auth`):
 
-## Decisiones MVP (para no sobre-ingenierizar)
+* Access token = JWT corto
+* Refresh token = opaco
+* **Rotación obligatoria** en refresh
+* Logout revoca refresh tokens (familia/sesiones activas)
 
-* **Errores HTTP homogéneos**: parsear `ErrorResponse` cuando aplique (400 con `fields`, etc.).
+## Decisiones MVP (cerradas para esta fase)
+
+* **Errores HTTP homogéneos**: mapear formato tipo `ErrorResponse` (`error`, `fields`) a errores de dominio.
+* **OpenAPI Generator = contrato**, no arquitectura.
+* **Usar solo** clases generadas de:
+
+    * `generated...api/*`
+    * `generated...model/*`
+* **No usar**:
+
+    * `generated...infrastructure/ApiClient`
+    * `generated...auth/HttpBearerAuth`
+* **Authorization** la gestiona `AuthInterceptor` (propio).
+* **Refresh automático** lo gestiona `TokenRefreshAuthenticator` (propio).
+* **OkHttpClient/Retrofit** siguen siendo tuyos (via `NetworkClientFactory` / `NetworkModule`), coherente con la base de Fase 1 (`TokenProvider`, `AuthInterceptor`, `NetworkClientFactory`).
 
 ---
 
-# Tasks — Fase 2
+# Tasks — Fase 2 (actualizadas)
 
-# Add Auth DTOs (requests/responses)
+# Configure OpenAPI client integration strategy (contract-only usage)
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero tener DTOs Kotlin alineados con OpenAPI, para serializar/deserializar auth
-sin inventar campos.
+Como developer, quiero definir una estrategia explícita de integración del código generado por OpenAPI, para usar el contrato sin romper la arquitectura de `core:network` y `core:auth`.
 
 ## Context, Functional Description & Goal
 
-Crear los modelos de request/response para `register/login/refresh` según el schema del backend.
+Ya existe infraestructura de red propia (`NetworkClientFactory`, `AuthInterceptor`, `TokenProvider`) y Fase 2 necesita integrar el contrato `auth` generado por OpenAPI sin delegar auth/session en el cliente generado.
+Esta tarea cierra la decisión arquitectónica para evitar implementaciones inconsistentes.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Crear data classes:
+* Documentar y aplicar la decisión de integración:
 
-    * `RegisterAccountRequest(email, password)`
-    * `AuthenticateAccountRequest(email, password)`
-    * `RefreshTokenRequest(refreshToken)`
-    * `RegisterAccountResult(accountId, createdAt)`
-    * `AuthTokensResponse(accessToken, refreshToken, issuedAt)`
-* Asegurar anotaciones/adapter necesarios según el serializer ya configurado en `core:network`.
+    * **Use** `generated...api.AuthControllerApi`
+    * **Use** `generated...model.*` necesarios para auth
+    * **Do not use** `generated...infrastructure.ApiClient`
+    * **Do not use** `generated...auth.HttpBearerAuth`
+* Definir ownership de responsabilidades:
+
+    * `Authorization` header -> `AuthInterceptor`
+    * `401 -> refresh -> retry` -> `TokenRefreshAuthenticator`
+    * construcción de `OkHttpClient`/`Retrofit` -> `core:network`
+* Dejar explícito el punto de creación de `AuthControllerApi` con `Retrofit.Builder(...).client(customOkHttpClient)`.
 
 ### Out of Scope (if applies)
 
-* Implementar llamadas Retrofit/OkHttp.
-* Persistencia de tokens.
-* Lógica de UI/flows.
+* Implementación de `RemoteAuthDataSource`.
+* Wiring de DI completo.
+* Refresh automático real.
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-Schemas en `components/schemas` y endpoints `/auth/*`.
+El contrato `auth` está en OpenAPI y expone los endpoints de register/login/refresh/logout.
 
 ### Acceptance Criteria (ACs)
 
-* Los DTOs compilan y se pueden usar desde `core:network`/`core:auth`.
-* Los campos coinciden con OpenAPI (nombres y tipos).
+* Existe una decisión técnica explícita y aplicada en el roadmap/código (no ambigua).
+* Queda cerrado que el código generado se usa como **contrato**, no como stack HTTP principal.
 
 ---
 
-# Implement AuthApi (Retrofit interface)
+# Restrict generated API usage (Auth-only in Phase 2)
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero una interfaz Retrofit con los endpoints de auth, para poder ejecutar
-register/login/refresh/logout contra backend.
+Como developer, quiero restringir el uso del código generado a `auth` durante Fase 2, para evitar scope creep y mezclar trabajo de `user`/`vault` antes de tiempo.
 
 ## Context, Functional Description & Goal
 
-Implementar `AuthApi` con las rutas y métodos definidos en OpenAPI.
+El generator ya expone APIs de `auth`, `user`, `vault` y `vault-key-material`, pero el objetivo de Fase 2 es **solo auth flow completo**.
+Esta tarea define guardrails de alcance y dependencias.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Crear `AuthApi` con:
+* Declarar regla de fase:
 
-    * `POST /auth/register`
-    * `POST /auth/login`
-    * `POST /auth/refresh`
-    * `POST /auth/logout`
-* Tipar request/response usando DTOs del task #1.
-* Asegurar base URL con el `servers[0].url` del spec (o el mecanismo existente en `NetworkConfig`).
+    * Solo permitido usar `AuthControllerApi` y modelos auth asociados.
+* Declarar explícitamente fuera de Fase 2:
+
+    * `UserProfileControllerApi`
+    * `VaultControllerApi`
+    * `VaultKeyMaterialControllerApi`
+    * modelos de vault/profile/key material
+* Definir regla de imports:
+
+    * `feature/*` no importa `generated.*` directamente
+    * consumo del contrato generado queda encapsulado en `core:auth` y/o `core:network`
 
 ### Out of Scope (if applies)
 
-* Mapping de errores a UI.
-* Refresh automático.
-* Token storage.
+* Refactor de módulos para enforce automático.
+* Lint custom / static analysis rules.
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-`/auth/register|login|refresh` devuelven `200` con body (según spec). `/auth/logout` `200` sin body.
+Aunque OpenAPI incluya endpoints de otros slices, esta fase implementa únicamente `/auth/*`.
 
 ### Acceptance Criteria (ACs)
 
-* La interfaz `AuthApi` está disponible y conectada al `Retrofit` existente.
-* Se puede instanciar desde DI (aunque aún no se use en UI).
+* El roadmap y las tareas de Fase 2 no dependen de APIs de `user` o `vault`.
+* Las implementaciones de Fase 2 usan solo contrato generado de `auth`.
 
 ---
 
-# Add ErrorResponse model + parsing helper
+# Add Auth error mapping (generated HTTP errors -> domain AuthError)
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero parsear errores HTTP de forma homogénea, para manejar validaciones y
-credenciales inválidas sin acoplar la UI al backend.
+Como developer, quiero mapear errores HTTP del contrato generado a errores de dominio estables (`AuthError`), para desacoplar UI y dominio del detalle del backend.
 
 ## Context, Functional Description & Goal
 
-El backend usa un formato uniforme `{ error, fields }` para validación web.
-Necesitamos un modelo `ErrorResponse` y un helper para parsear `errorBody`.
+Antes se planteaba crear un `ErrorResponse` manual; ahora el contrato OpenAPI ya tipa respuestas 400 en varios endpoints (y el backend mantiene formato homogéneo `error` + `fields`).
+La tarea pasa a ser de **mapping**, no de creación de DTO manual.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Crear `ErrorResponse(error: String?, fields: Map<String, String>?)`.
-* Crear helper `ErrorResponseParser.parse(responseBody: String): ErrorResponse?`.
-* Añadir mapping mínimo “safe” (si no parsea, devolver null y tratarlo como error genérico).
+* Crear mapper/helper de errores para `auth`:
+
+    * `400` -> `AuthError.ValidationFailed(fields?)`
+    * `401` -> `AuthError.InvalidCredentials` (o equivalente)
+    * `403` -> `AuthError.Forbidden` / `AuthError.AccountNotActive` (MVP estable)
+    * `409` -> `AuthError.AccountAlreadyExists` (register) / conflict genérico
+    * fallback -> `AuthError.Unknown`
+* Parsing “safe” del body de error (si no parsea, no crashea)
+* Mantener el mapper encapsulado en `core:auth` o `core:network` (según diseño actual)
 
 ### Out of Scope (if applies)
 
-* Catálogo completo de códigos de error por feature.
-* i18n de mensajes.
+* i18n de mensajes UI.
+* Catálogo cross-feature (`user`, `vault`).
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-Estrategia canónica de validación y errores: `ErrorResponse` con `fields` opcional.
+OpenAPI define `400/401/403/409/500` en endpoints auth; backend usa formato homogéneo para errores de validación.
 
 ### Acceptance Criteria (ACs)
 
-* Dado un JSON con `{ "error": "...", "fields": {...} }` el parser devuelve el modelo.
-* Dado un JSON inválido/no esperado, el parser no crashea.
+* El mapper transforma errores HTTP de auth a un modelo de dominio estable.
+* Un body de error inválido/no esperado no rompe el flujo.
 
 ---
 
-# Create RemoteAuthDataSource (thin network wrapper)
+# Create RemoteAuthDataSource (thin network wrapper with generated AuthControllerApi)
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero una capa mínima remota para auth, para aislar Retrofit del repositorio y
-facilitar tests.
+Como developer, quiero una capa remota mínima para auth usando `AuthControllerApi` generado, para aislar Retrofit del repositorio y facilitar tests.
 
 ## Context, Functional Description & Goal
 
-Encapsular llamadas `AuthApi` y devolver resultados tipados (success/error) para que `core:auth` no
-dependa de Retrofit directamente. (Arquitectura actual por módulos).
+El roadmap original hablaba de `AuthApi` manual; con OpenAPI Generator, esta tarea se adapta para encapsular `AuthControllerApi` generado y exponer resultados tipados al repositorio.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Crear `RemoteAuthDataSource` con métodos:
+* Crear `RemoteAuthDataSource` que dependa de `AuthControllerApi` (generado)
+* Métodos:
 
     * `register(request)`
     * `login(request)`
     * `refresh(request)`
     * `logout()`
-* Devolver un resultado tipo `NetworkResult<T>` (o el wrapper existente).
+* Devolver `NetworkResult<T>` (o wrapper existente) preservando:
+
+    * `httpCode`
+    * `body`
+    * `errorBody` (si aplica)
 
 ### Out of Scope (if applies)
 
 * Persistencia de tokens.
 * Session state.
-* UI.
+* Mapping a errores de UI.
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-Las rutas y responses están definidas por OpenAPI.
+El contrato auth proviene de OpenAPI y ya define requests/responses para register/login/refresh/logout.
 
 ### Acceptance Criteria (ACs)
 
-* `RemoteAuthDataSource` compila y se puede usar desde `core:auth`.
-* Los errores HTTP se exponen (code + body/errorBody) sin perder información.
+* `RemoteAuthDataSource` compila y usa `AuthControllerApi` generado.
+* Los errores HTTP se exponen sin pérdida de información útil.
 
 ---
 
-# Implement AuthRepositoryImpl (core:auth)
+# Implement AuthRepositoryImpl (core:auth) using RemoteAuthDataSource
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero un `AuthRepository` real, para que `feature:auth` deje de depender de
-mocks/fakes.
+Como developer, quiero un `AuthRepository` real, para que `feature:auth` deje de depender de mocks/fakes y consuma auth backend de forma estable.
 
 ## Context, Functional Description & Goal
 
-El contrato de sesión del backend define rotación obligatoria de refresh y logout revocando
-sesiones.
-Implementar `AuthRepositoryImpl` usando `RemoteAuthDataSource`.
+El backend define rotación obligatoria de refresh y logout con revocación de sesiones.
+El repositorio se apoya en `RemoteAuthDataSource` + error mapper y no conoce Retrofit directamente (alineado con la base de Fase 1).
 
 ## Steps/Scope
 
 ### In Scope
 
-* Implementar `AuthRepositoryImpl : AuthRepository`:
+* Implementar `AuthRepositoryImpl : AuthRepository`
 
     * `register(email, password)`
     * `login(email, password)`
     * `refresh(refreshToken)`
     * `logout()`
-* Mapear errores a un modelo estable (p.ej. `AuthError.InvalidCredentials`,
-  `AuthError.ValidationFailed(fields)`, etc.) usando `ErrorResponse`.
+* Usar `RemoteAuthDataSource`
+* Mapear errores HTTP a `AuthError` mediante el mapper de auth
+* Mantener contrato consumible por `feature:auth` (sin exponer modelos generated)
 
 ### Out of Scope (if applies)
 
-* Guardar tokens en storage (eso va en tasks separados).
-* Refresh automático (Authenticator).
+* Guardado de tokens en storage.
+* Refresh automático (`Authenticator`).
 * Vault unlock.
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-* `/auth/refresh` siempre devuelve un nuevo par de tokens (rotación).
-* `/auth/logout` revoca sesiones (refresh tokens).
+* `/auth/refresh` rota refresh token y devuelve nuevo par.
+* `/auth/logout` revoca sesiones activas (refresh tokens).
 
 ### Acceptance Criteria (ACs)
 
 * `AuthRepositoryImpl` está cableado y usable desde `feature:auth`.
-* Errores 400 se exponen con `fields` si están presentes.
+* Errores 400/401/403/409 se exponen como `AuthError` estable.
 
 ---
 
@@ -243,41 +276,43 @@ Implementar `AuthRepositoryImpl` usando `RemoteAuthDataSource`.
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero persistir `accessToken` y `refreshToken` de forma segura, para soportar “cold
-start” sin re-login inmediato.
+Como developer, quiero persistir `accessToken` y `refreshToken` de forma segura, para soportar cold start sin re-login inmediato.
 
 ## Context, Functional Description & Goal
 
-En `core:auth` ya existe `TokenStorage` y una implementación `EncryptedTokenStorage`.
-Esta tarea asegura que la implementación sea completa y testeable.
+`core:auth` ya contiene `TokenStorage` y `EncryptedTokenStorage` en el package structure.
+Esta tarea completa la implementación MVP y la deja testeable.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Implementar/terminar `EncryptedTokenStorage`:
+* Implementar/terminar `EncryptedTokenStorage`
 
     * `saveTokens(accessToken, refreshToken, issuedAt)`
-    * `getAccessToken() / getRefreshToken() / getIssuedAt()`
+    * `getAccessToken()`
+    * `getRefreshToken()`
+    * `getIssuedAt()`
     * `clear()`
-* Evitar logs con tokens.
+* Evitar logs con tokens/valores sensibles
+* Asegurar comportamiento consistente en lecturas posteriores
 
 ### Out of Scope (if applies)
 
-* Biometría.
-* Vault keys.
-* Refresh automático.
+* Biometría
+* Vault keys / crypto material
+* Refresh automático
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-Los tokens son los del `AuthTokensResponse`.
+Los tokens persistidos vienen del response de login/refresh (`AuthTokensResponse`).
 
 ### Acceptance Criteria (ACs)
 
-* Persistencia funciona tras cerrar/abrir app (lectura consistente).
-* `clear()` elimina todo y deja el sistema en LoggedOut (cuando se conecte SessionManager).
+* La persistencia funciona tras cerrar/abrir app.
+* `clear()` elimina todo el estado persistido de tokens.
 
 ---
 
@@ -285,128 +320,134 @@ Los tokens son los del `AuthTokensResponse`.
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero un `SessionManager` real que exponga estado por `Flow/StateFlow` y provea
-access token a network, para que navegación y requests se basen en un único source of truth.
+Como developer, quiero un `SessionManager` real que exponga estado por `Flow/StateFlow` y provea access token a network, para que navegación y requests usen un único source of truth.
 
 ## Context, Functional Description & Goal
 
-La app tiene gates de navegación y `TokenProvider` en `core:network`.
-Esta tarea conecta tokens persistidos con el estado de sesión, dejando al usuario en *
-*LoggedInVaultLocked** (login ≠ unlock).
+La arquitectura de Fase 1 ya separaba `TokenProvider` de `AuthInterceptor`; esta tarea conecta `TokenStorage` con `SessionState` y mantiene el estado post-login en `LoggedInVaultLocked`.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Crear `SessionManagerImpl` que use `TokenStorage`.
-* Exponer `sessionState: StateFlow<SessionState>`.
-* Implementar `TokenProvider` para `AuthInterceptor`.
-* Añadir `forceLogout()` que limpie tokens y emita `LoggedOut`.
+* Crear `SessionManagerImpl` usando `TokenStorage`
+* Exponer `sessionState: StateFlow<SessionState>`
+* Implementar `TokenProvider` para `AuthInterceptor`
+* Implementar:
+
+    * `onLoginSuccess(tokens)` (o equivalente)
+    * `forceLogout()` (limpia storage + emite `LoggedOut`)
+* Resolver estado inicial (cold start) leyendo storage
 
 ### Out of Scope (if applies)
 
-* Vault unlock / derivación de keys.
-* Refresh automático (Authenticator).
+* Vault unlock / derivación de claves
+* Refresh automático (`Authenticator`)
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-Separación explícita login vs unlock (ADR-004).
+Login y unlock están separados; en Fase 2 el éxito de auth no desbloquea el vault.
 
 ### Acceptance Criteria (ACs)
 
-* Si hay tokens en storage al arrancar, estado = `LoggedInVaultLocked`.
-* Si no hay tokens, estado = `LoggedOut`.
-* `forceLogout()` limpia storage y actualiza estado.
+* Si hay tokens al arrancar -> `LoggedInVaultLocked`
+* Si no hay tokens -> `LoggedOut`
+* `forceLogout()` limpia storage y actualiza estado
 
 ---
 
-# Add OkHttp TokenRefreshAuthenticator (auto refresh)
+# Add OkHttp TokenRefreshAuthenticator (auto refresh with rotation support)
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero refresh automático de sesión cuando recibo `401`, para que la app sea usable
-sin que el usuario tenga que re-loguearse constantemente.
+Como developer, quiero refresh automático al recibir `401`, para que la app mantenga la sesión sin re-login manual cuando sea posible.
 
 ## Context, Functional Description & Goal
 
-El backend exige **rotación obligatoria** de refresh token; si refresh falla, se fuerza re-login.
+El backend exige refresh token opaco con **rotación obligatoria**; si refresh falla, se debe forzar re-login.
+Esta lógica debe vivir en tu stack (`OkHttp Authenticator`), no en `HttpBearerAuth` generado.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Implementar `TokenRefreshAuthenticator : okhttp3.Authenticator`:
+* Implementar `TokenRefreshAuthenticator : okhttp3.Authenticator`
 
-    * Ante `401`, llamar a `AuthRepository.refresh(refreshToken)`
-    * Persistir nuevos tokens en `TokenStorage`
-    * Reintentar la request con el nuevo `Authorization: Bearer ...`
-* Prevenir carreras: lock/mutex para múltiples 401 simultáneos.
-* Usar un cliente separado para el refresh (para evitar loops del authenticator).
+    * detectar `401`
+    * ejecutar `AuthRepository.refresh(refreshTokenActual)`
+    * persistir nuevos tokens
+    * reintentar request con nuevo `Authorization: Bearer ...`
+* Prevenir carreras (mutex/lock) para múltiples `401`
+* Usar cliente separado para refresh (sin loops de authenticator/interceptor)
+* Si refresh falla (`401`/inválido) -> `SessionManager.forceLogout()`
 
 ### Out of Scope (if applies)
 
-* “Refresh por tiempo” (decodificar JWT `exp`) en MVP.
-* Retries genéricos no relacionados con auth.
+* Refresh proactivo por `exp` del JWT
+* Retry policies no relacionadas con auth
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-Refresh rota siempre y puede fallar con `InvalidCredentials`/401 ⇒ re-login.
+`/auth/refresh` emite nueva sesión y rota refresh token; errores de auth deben degradar a re-login.
 
 ### Acceptance Criteria (ACs)
 
-* Caso 401 -> refresh 200 -> retry 200 funciona.
-* Caso 401 -> refresh 401 -> `SessionManager.forceLogout()` se dispara.
+* Caso `401 -> refresh 200 -> retry 200` funciona
+* Caso `401 -> refresh 401 -> forceLogout()` funciona
 
 ---
 
-# Wire DI for Auth stack (modules)
+# Wire DI for Auth stack (generated AuthControllerApi + custom OkHttp/Retrofit)
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero que DI provea todas las piezas reales de auth, para poder usarlo desde UI sin
-instanciación manual.
+Como developer, quiero que DI provea todas las piezas reales del stack de auth, para usarlo desde UI sin instanciación manual y sin mezclar el cliente generado completo.
 
 ## Context, Functional Description & Goal
 
-Ya existen módulos DI en `core:*`.
-Esta tarea conecta: `AuthApi`, `RemoteAuthDataSource`, `AuthRepositoryImpl`, `TokenStorage`,
-`SessionManagerImpl`, `TokenRefreshAuthenticator`.
+Ya existen módulos DI en `core:*` y piezas de red propias (`NetworkModule`, `NetworkClientFactory`, `AuthInterceptor`, `TokenProvider`).
+Con OpenAPI Generator, esta tarea debe instanciar `AuthControllerApi` generado usando **tu** `OkHttpClient`/`Retrofit`.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Actualizar `NetworkModule` / `AuthModule`:
+* Actualizar `NetworkModule` / `AuthModule` para proveer:
 
-    * Provider de `AuthApi`
-    * Provider de `AuthRepositoryImpl`
-    * Provider de `EncryptedTokenStorage`
-    * Provider de `SessionManagerImpl`
-    * Configurar `OkHttpClient` con:
+    * `AuthControllerApi` (generado)
+    * `RemoteAuthDataSource`
+    * `AuthRepositoryImpl`
+    * `EncryptedTokenStorage`
+    * `SessionManagerImpl`
+    * `TokenRefreshAuthenticator`
+* Configurar `OkHttpClient` con:
 
-        * `AuthInterceptor(TokenProvider)`
-        * `TokenRefreshAuthenticator`
-* Mantener dependencias “hacia abajo” (app/feature -> core).
+    * `AuthInterceptor(TokenProvider)`
+    * `TokenRefreshAuthenticator`
+* Crear `AuthControllerApi` con `Retrofit` propio (no `ApiClient` generado)
+* Mantener dependencias hacia abajo (`app/feature -> core`)
 
 ### Out of Scope (if applies)
 
-* Refactor grande de módulos.
-* Multi-base-url por flavors (si no existe ya).
+* Refactor grande de módulos
+* Multi-base-url por flavors (si no existe ya)
+* Uso de `ApiClient` generado / `HttpBearerAuth` generado
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-Security global bearerAuth en el spec.
+OpenAPI define `bearerAuth`, pero la inyección del header en mobile se resuelve con `AuthInterceptor` propio para soportar refresh automático y control centralizado.
 
 ### Acceptance Criteria (ACs)
 
-* Desde `feature:auth` se puede inyectar `AuthRepository` y `SessionManager`.
-* Requests autenticadas incluyen `Authorization: Bearer <accessToken>` cuando hay sesión.
+* Desde `feature:auth` se puede inyectar `AuthRepository` y `SessionManager`
+* Requests autenticadas usan `Authorization: Bearer <accessToken>` vía interceptor propio
+* `AuthControllerApi` generado se instancia con `Retrofit` propio
 
 ---
 
@@ -414,45 +455,43 @@ Security global bearerAuth en el spec.
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero ViewModels para login/signup con estados de UI, para conectar pantallas a
-auth real sin meter lógica en composables.
+Como developer, quiero ViewModels para login/signup con estados de UI, para conectar pantallas a auth real sin meter lógica en composables.
 
 ## Context, Functional Description & Goal
 
-`feature:auth` ya tiene pantallas, pero falta el wiring real.
-El objetivo es completar el flujo y dejar al usuario autenticado con vault bloqueado (no unlock).
+`feature:auth` ya tiene pantallas y Fase 2 debe completar register/login reales contra backend, dejando al usuario autenticado pero con vault bloqueado.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Crear `LoginViewModel` y `SignupViewModel` (o uno unificado):
+* Crear `LoginViewModel` y `SignupViewModel` (o uno unificado)
 
     * `uiState` con loading/success/error
-    * calls a `AuthRepository.login/register`
-    * en success: persistencia de tokens vía `SessionManager`/`TokenStorage` (según tu diseño
-      actual)
-* Mapear errores comunes:
+    * llamadas a `AuthRepository.login/register`
+    * en success: persistencia de tokens a través de `SessionManager`/`TokenStorage` (según diseño)
+* Mapear errores comunes para UI:
 
-    * 401 -> credenciales inválidas
-    * 409 -> cuenta ya existe (register)
-    * 400 -> `fields`
+    * `401` -> credenciales inválidas
+    * `409` -> cuenta ya existe (register)
+    * `400` -> errores de campos (`fields`)
+    * `403` -> estado de cuenta no apto / forbidded (mensaje MVP)
 
 ### Out of Scope (if applies)
 
-* UX avanzada, animaciones, i18n.
-* Vault unlock.
+* UX avanzada / animaciones / i18n
+* Vault unlock
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-Login/register endpoints y códigos.
+Login y register usan `/auth/login` y `/auth/register`; el backend puede devolver `400/401/403/409` según el caso.
 
 ### Acceptance Criteria (ACs)
 
-* Los ViewModels ejecutan login/register reales y reflejan loading/error.
-* Al éxito, el `SessionState` cambia a `LoggedInVaultLocked`.
+* Los ViewModels ejecutan login/register reales y reflejan loading/error
+* Al éxito, el `SessionState` pasa a `LoggedInVaultLocked`
 
 ---
 
@@ -460,79 +499,98 @@ Login/register endpoints y códigos.
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero que la navegación dependa del estado real de sesión, para que la app enrute
-correctamente entre LoggedOut y LoggedInVaultLocked.
+Como developer, quiero que la navegación dependa del estado real de sesión, para enrutar correctamente entre `LoggedOut` y `LoggedInVaultLocked`.
 
 ## Context, Functional Description & Goal
 
-En `app/navigation` ya existen gates (`NavigationGates.kt`).
-Conectar gates a `SessionManager.sessionState`.
+Fase 2 termina con usuario autenticado pero vault aún bloqueado; la navegación debe reflejar exactamente ese estado.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Actualizar `NavigationGates`/`NavigationWrapper` para observar `SessionState`.
+* Actualizar `NavigationGates` / `NavigationWrapper` para observar `SessionManager.sessionState`
 * Asegurar flujo:
 
     * `LoggedOut` -> Welcome/Login/Signup
     * `LoggedInVaultLocked` -> `PostLoginGateScreen` (o route equivalente)
-* Añadir acción de logout (mínima) que llame `AuthRepository.logout()` y luego
-  `SessionManager.forceLogout()`.
+* Añadir acción de logout mínima:
+
+    * `AuthRepository.logout()`
+    * luego `SessionManager.forceLogout()`
 
 ### Out of Scope (if applies)
 
-* Pantallas de vault unlock reales (Fase 3).
-* Perfil (`/user/profile`) y vault endpoints.
+* Pantallas reales de vault unlock (Fase 3)
+* Endpoints `/user/profile` y `/vault/*`
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-Logout revoca sesiones; el cliente debe limpiar tokens siempre.
+`/auth/logout` revoca sesiones; el cliente debe limpiar estado local siempre tras logout o refresh fallido.
 
 ### Acceptance Criteria (ACs)
 
-* Tras login, se navega a flujo “vault locked”.
-* Tras logout (o refresh fallido), se vuelve a Welcome/Login.
+* Tras login/register exitoso se entra al flujo `vault locked`
+* Tras logout o refresh fallido se vuelve a `LoggedOut`
 
 ---
 
-# Minimal tests: auth contract + refresh flow
+# Minimal tests: auth contract integration + refresh flow (generated APIs/models)
 
 ## Main Story (How, I Want, To)
 
-Como developer, quiero tests mínimos y deterministas, para validar que el stack de auth funciona y
-no se rompe con refactors.
+Como developer, quiero tests mínimos y deterministas, para validar que el stack auth funciona con el contrato generado y no se rompe con refactors.
 
 ## Context, Functional Description & Goal
 
-Backend valida de forma estricta y responde `ErrorResponse` homogéneo.
-Además, refresh rota tokens obligatoriamente.
+Fase 2 introduce contrato generado + refresh automático; hay que cubrir happy paths y degradación a logout cuando refresh falla. El backend además mantiene errores HTTP homogéneos.
 
 ## Steps/Scope
 
 ### In Scope
 
-* Tests con `MockWebServer`:
+* Tests con `MockWebServer` para:
 
-    * `AuthRepositoryImpl` happy-path login/refresh/logout.
-    * Parser de `ErrorResponse`.
-    * Secuencia `401 -> refresh -> retry`.
-* Un test (instrumented o unit, según tu setup) para `EncryptedTokenStorage` (save/read/clear).
+    * `RemoteAuthDataSource` usando `AuthControllerApi` generado
+    * `AuthRepositoryImpl` happy-path (`login/refresh/logout`)
+    * error mapper de auth (`400/401/403/409`)
+    * secuencia `401 -> refresh -> retry`
+* Test de `EncryptedTokenStorage` (`save/read/clear`)
+* Test de `SessionManagerImpl` para estado inicial/cold start y `forceLogout()`
 
 ### Out of Scope (if applies)
 
-* Tests E2E UI (Compose) completos.
-* Tests de vault/crypto.
+* Tests E2E UI completos (Compose)
+* Tests de vault/crypto
+* Tests de `user`/`vault` generated APIs
 
 ## Additional Information and Configuration
 
 ### API Contract and Expected Behavior (if applies)
 
-Basado en OpenAPI endpoints y formato de error.
+Basado en `/auth/*` de OpenAPI y estrategia de tokens/errores del backend.
 
 ### Acceptance Criteria (ACs)
 
-* Los tests pasan en CI/local.
-* Hay cobertura del flujo crítico: refresh + fallback a logout.
+* Tests pasan en local/CI
+* Está cubierto el flujo crítico: refresh con rotación + fallback a logout
+* Los tests usan contrato generado de auth (no DTOs/AuthApi manuales)
+
+---
+
+## Orden de ejecución recomendado (para minimizar bloqueos)
+
+1. Configure OpenAPI client integration strategy
+2. Restrict generated API usage (Auth-only in Phase 2)
+3. Add Auth error mapping (generated HTTP errors -> domain AuthError)
+4. Create RemoteAuthDataSource (thin network wrapper with generated AuthControllerApi)
+5. Implement AuthRepositoryImpl (core:auth) using RemoteAuthDataSource
+6. Finalize EncryptedTokenStorage (MVP)
+7. Implement SessionManagerImpl (session state + TokenProvider)
+8. Add OkHttp TokenRefreshAuthenticator (auto refresh with rotation support)
+9. Wire DI for Auth stack (generated AuthControllerApi + custom OkHttp/Retrofit)
+10. Implement Auth ViewModels (Login + Signup)
+11. Wire Auth screens + navigation gates to real SessionState
+12. Minimal tests: auth contract integration + refresh flow (generated APIs/models)

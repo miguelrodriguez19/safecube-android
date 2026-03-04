@@ -180,10 +180,8 @@ public final class FolderTreeToFile {
         final boolean isExcluded = EXCLUDED_FOLDERS.stream()
                 .anyMatch(suffix -> dir.getAbsolutePath().matches(".*" + suffix + "$"));
 
-        if (isExcluded) {
-            if (printExcludedFolders) {
-                writer.println(levelIndicator + dir.getName() + "/... # Skipped Content");
-            }
+        if (isExcluded && !printExcludedFolders) {
+            writer.println(levelIndicator + dir.getName() + "/... # Skipped Content");
             return;
         }
 
