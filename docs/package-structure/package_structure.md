@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 04-03-2026 03:05:13
+Updated: 04-03-2026 04:37:51
 
 ```
 safecube-android/
@@ -12,6 +12,7 @@ safecube-android/
 ├── .kotlin/... # Skipped Content
 ├── .run/
 │   └── run-folder-tree.run.xml
+├── .vscode/
 ├── app/
 │   ├── build/... # Skipped Content
 │   ├── src/
