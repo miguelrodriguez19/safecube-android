@@ -24,7 +24,7 @@ Terreno preparado.
 
 ---
 
-### 🟢 FASE 1 — Fundaciones Técnicas
+### 🟢 FASE 1 — Fundaciones Técnicas (COMPLETADA)
 
 Antes de UI bonita o features grandes.
 

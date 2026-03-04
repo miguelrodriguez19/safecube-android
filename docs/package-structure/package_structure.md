@@ -1,12 +1,17 @@
 # Package Structure
-Updated: 04-03-2026 12:52:00
+Updated: 04-03-2026 03:05:13
 
 ```
 safecube-android/
+├── .build/com/safecube/tooling/
+│   ├── FolderTreeToFile.class
+│   └── Logger.class
 ├── .git/... # Skipped Content
 ├── .gradle/... # Skipped Content
 ├── .idea/... # Skipped Content
 ├── .kotlin/... # Skipped Content
+├── .run/
+│   └── run-folder-tree.run.xml
 ├── app/
 │   ├── build/... # Skipped Content
 │   ├── src/
@@ -147,6 +152,7 @@ safecube-android/
 │   │   └── package_structure.md
 │   ├── roadmap/
 │   │   ├── roadmap--fase-1.md
+│   │   ├── roadmap--fase-2.md
 │   │   └── roadmap--high-level.md
 │   ├── README.md
 │   └── testing.md
@@ -185,6 +191,7 @@ safecube-android/
 │       │   └── AndroidManifest.xml
 │       └── build.gradle.kts
 ├── gradle/... # Skipped Content
+├── runs/
 ├── scripts/
 │   ├── .build/... # Skipped Content
 │   ├── resources/com/safecube/tooling/

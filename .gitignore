@@ -36,3 +36,6 @@ google-services.json
 
 # Compiler sesions
 .kotlin/sesions/
+
+# Tooling files
+/.build/com/safecube/tooling/
