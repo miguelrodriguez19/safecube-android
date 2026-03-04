@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 04-03-2026 04:37:51
+Updated: 04-03-2026 07:46:29
 
 ```
 safecube-android/
@@ -12,7 +12,6 @@ safecube-android/
 ├── .kotlin/... # Skipped Content
 ├── .run/
 │   └── run-folder-tree.run.xml
-├── .vscode/
 ├── app/
 │   ├── build/... # Skipped Content
 │   ├── src/
@@ -106,6 +105,8 @@ safecube-android/
 │   │   └── build.gradle.kts
 │   ├── network/
 │   │   ├── build/... # Skipped Content
+│   │   ├── openapi/
+│   │   │   └── OpenAPI.json
 │   │   ├── src/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/network/
@@ -119,7 +120,7 @@ safecube-android/
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/
 │   │   │       └── NetworkClientFactoryTest.kt
-│   │   └── build.gradle.kts
+│   │   │   │   └── build.gradle.kts
 │   ├── storage/
 │   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
@@ -131,22 +132,22 @@ safecube-android/
 │   │   │   │   └── SecureItemEntity.kt
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
-│   └── ui/
-│       ├── build/... # Skipped Content
-│       ├── src/main/
-│       │   ├── java/com/miguelrodriguez19/safecube/core/ui/
-│       │   │   ├── components/
-│       │   │   │   └── .gitkeep
-│       │   │   └── theme/
-│       │   │       └── .gitkeep
-│       │   ├── res/
-│       │   │   ├── values/
-│       │   │   │   └── strings.xml
-│       │   │   └── values-es/
-│       │   │       └── strings.xml
-│       │   └── AndroidManifest.xml
-│       └── build.gradle.kts
-├── docs/
+│   ├── ui/
+│   │   ├── build/... # Skipped Content
+│   │   ├── src/main/
+│   │   │   ├── java/com/miguelrodriguez19/safecube/core/ui/
+│   │   │   │   ├── components/
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   └── theme/
+│   │   │   │       └── .gitkeep
+│   │   │   ├── res/
+│   │   │   │   ├── values/
+│   │   │   │   │   └── strings.xml
+│   │   │   │   └── values-es/
+│   │   │   │       └── strings.xml
+│   │   │   └── AndroidManifest.xml
+│   │   └── build.gradle.kts
+│   ├── docs/
 │   ├── architecture/
 │   │   └── storage_decision.md
 │   ├── package-structure/
@@ -192,7 +193,6 @@ safecube-android/
 │       │   └── AndroidManifest.xml
 │       └── build.gradle.kts
 ├── gradle/... # Skipped Content
-├── runs/
 ├── scripts/
 │   ├── .build/... # Skipped Content
 │   ├── resources/com/safecube/tooling/
