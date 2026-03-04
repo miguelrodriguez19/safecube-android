@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 23-02-2026 11:03:30
+Updated: 04-03-2026 12:52:00
 
 ```
 safecube-android/
@@ -16,6 +16,7 @@ safecube-android/
 │   │   ├── main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/
 │   │   │   │   ├── app/navigation/
+│   │   │   │   │   ├── NavigationGates.kt
 │   │   │   │   │   ├── NavigationWrapper.kt
 │   │   │   │   │   └── Routes.kt
 │   │   │   │   ├── core/
@@ -64,8 +65,18 @@ safecube-android/
 │   ├── auth/
 │   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
-│   │   │   ├── java/com/miguelrodriguez19/safecube/core/auth/di/
-│   │   │   │   └── AuthModule.kt
+│   │   │   ├── java/com/miguelrodriguez19/safecube/core/auth/
+│   │   │   │   ├── di/
+│   │   │   │   │   └── AuthModule.kt
+│   │   │   │   ├── internal/
+│   │   │   │   │   ├── EncryptedTokenStorage.kt
+│   │   │   │   │   └── FakeVaultSessionManager.kt
+│   │   │   │   ├── AuthRepository.kt
+│   │   │   │   ├── SessionManager.kt
+│   │   │   │   ├── SessionState.kt
+│   │   │   │   ├── TokenStorage.kt
+│   │   │   │   ├── VaultSessionManager.kt
+│   │   │   │   └── VaultState.kt
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   ├── crypto/
@@ -74,6 +85,8 @@ safecube-android/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/core/crypto/
 │   │   │   │   ├── di/
 │   │   │   │   │   └── CryptoModule.kt
+│   │   │   │   ├── internal/
+│   │   │   │   │   └── FakeCryptoEngine.kt
 │   │   │   │   ├── CryptoEngine.kt
 │   │   │   │   ├── DecryptionRequest.kt
 │   │   │   │   ├── EncryptionRequest.kt
@@ -92,9 +105,11 @@ safecube-android/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/network/
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   └── NetworkModule.kt
-│   │   │   │   │   ├── AuthInterceptorFactory.kt
+│   │   │   │   │   ├── ApiService.kt
+│   │   │   │   │   ├── AuthInterceptor.kt
 │   │   │   │   │   ├── NetworkClientFactory.kt
-│   │   │   │   │   └── NetworkConfig.kt
+│   │   │   │   │   ├── NetworkConfig.kt
+│   │   │   │   │   └── TokenProvider.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/
 │   │   │       └── NetworkClientFactoryTest.kt
@@ -102,8 +117,12 @@ safecube-android/
 │   ├── storage/
 │   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
-│   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/di/
-│   │   │   │   └── StorageModule.kt
+│   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/
+│   │   │   │   ├── di/
+│   │   │   │   │   └── StorageModule.kt
+│   │   │   │   ├── AppDatabase.kt
+│   │   │   │   ├── SecureItemDao.kt
+│   │   │   │   └── SecureItemEntity.kt
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   └── ui/
