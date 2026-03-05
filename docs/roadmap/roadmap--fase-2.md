@@ -89,6 +89,12 @@ El contrato `auth` está en OpenAPI y expone los endpoints de register/login/ref
 * Existe una decisión técnica explícita y aplicada en el roadmap/código (no ambigua).
 * Queda cerrado que el código generado se usa como **contrato**, no como stack HTTP principal.
 
+### Implementation Status (Applied 2026-03-04)
+
+* Decisión documentada en `docs/architecture/openapi-auth-contract-integration.md`.
+* `AuthControllerApi` generado se provee desde `core:network` usando Retrofit/OkHttp propios.
+* `TokenRefreshAuthenticator` queda como owner explícito de 401 (sin refresh real todavía).
+
 ---
 
 # Restrict generated API usage (Auth-only in Phase 2)

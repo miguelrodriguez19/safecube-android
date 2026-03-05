@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 05-03-2026 12:54:08
+Updated: 05-03-2026 01:02:20
 
 ```
 safecube-android/
@@ -38,7 +38,9 @@ safecube-android/
 │   │   │   ├── 3a775472820229a294cc772c48846bd7efdd58
 │   │   │   └── 85d2b06cad004f9dc9188363711eabfad9a93c
 │   │   ├── 01/
+│   │   │   ├── 5eee1bdb1d4e49211ce871426608670d114f9d
 │   │   │   ├── 7499bbb498ae2e9c200e899fe8db172461afa0
+│   │   │   ├── 83e16539ea5c64aa57bb80e45b4c0522a2d77e
 │   │   │   ├── dd60e30db9371389f85358a419dd06e2804110
 │   │   │   └── eebd0c990b21eb0bf8fb25e01d135fec760b63
 │   │   ├── 02/
@@ -50,7 +52,8 @@ safecube-android/
 │   │   │   ├── 4a01ba4eea11b9455534094bf69f0a6180c890
 │   │   │   └── db60c84b78941a89204eebc02fca8a032cfdfc
 │   │   ├── 04/
-│   │   │   └── 1139dfdea857d5d8605ab28487325746335b40
+│   │   │   ├── 1139dfdea857d5d8605ab28487325746335b40
+│   │   │   └── f57d4b7e7280da918524f0667c4f465569b6cf
 │   │   ├── 05/
 │   │   │   ├── 269c9c243fd996ac7b01544eab998ef6970dd5
 │   │   │   └── bfe10a3531cfafc88852f623f9e9f21ebfa15c
@@ -78,6 +81,7 @@ safecube-android/
 │   │   │   ├── c36827f9295cba0a666ef7dac53da0bae43550
 │   │   │   └── c8cc8bdfc7d89a0827c420547f055e81e3f8f0
 │   │   ├── 0c/
+│   │   │   ├── 41d557b0da5f5738371b3b8e50d8dd322f0344
 │   │   │   ├── 529a80fba79f00d435b23a10b71e5295fecce0
 │   │   │   ├── 61322cc43f73fa99cf855d07059d17891f643b
 │   │   │   ├── d77861eeb6e110b843697bea47c856be291b8d
@@ -143,13 +147,16 @@ safecube-android/
 │   │   │   ├── 3bcb5eb9fd7633cb6845b445cac2a09fe8bc93
 │   │   │   ├── 3ffbf46f8cf6633918c1840e9724b7a62195c0
 │   │   │   ├── 8f40a13118e878e29e0bd8534ca18809dc1755
+│   │   │   ├── 98721f5050ac25e33dce918c21ebf469198aa4
 │   │   │   └── d7d2c4fac9669b3ab0c4f9a00ef3e6c050df98
 │   │   ├── 1b/
 │   │   │   ├── 91b9ed5c16399091d90a9880eb85e4f48f6459
 │   │   │   ├── 9a6956b3acdc11f40ce2bb3f6efbd845cc243f
 │   │   │   └── cbb8deb3567e14d5d49a36a8a16349e11f98f8
 │   │   ├── 1c/
+│   │   │   ├── 8c696baa6a26a29aa4e280fdfca6a5cdf6cf0a
 │   │   │   ├── 947456c91e169c6c898edf6ccddaaedbd32662
+│   │   │   ├── a46215b5733c94943828dd16a6f54014ebad27
 │   │   │   └── c349d91fdf64caf342b24b345689d46bda86fb
 │   │   ├── 1d/
 │   │   │   ├── 32a89eb4e719c1d7e60501bea7b601f9e47238
@@ -160,6 +167,7 @@ safecube-android/
 │   │   │   ├── 84302815bd4a4a94e6b48e9ac5ad1030f6c05d
 │   │   │   └── 8d672d17aae5cc55df896f94e2c6bd176a62c8
 │   │   ├── 20/
+│   │   │   ├── 59a97761e342957d427aa1d3e4ac0978c0e5a3
 │   │   │   ├── 623638bfe1bb36d9da83f4f5a370c33b4c678a
 │   │   │   └── be30a4c93a9024372230f00ef1d7333d2db025
 │   │   ├── 21/
@@ -181,6 +189,7 @@ safecube-android/
 │   │   │   └── 9401db2bd18efda41a7e1bde87c753775c3a2e
 │   │   ├── 25/
 │   │   │   ├── 02b431297b83443816f3b61097061fe7ddfbd2
+│   │   │   ├── 12bd1e07b6577c3f13923e16a8f73411ef3841
 │   │   │   ├── 59d026b2d2f5be9b9f5e13898c7b6664a8680a
 │   │   │   └── 7840f0c7c0d1a8defd4b287444aa85d02d380c
 │   │   ├── 26/
@@ -195,6 +204,7 @@ safecube-android/
 │   │   │   ├── d4b77f9f036a47549d47db79c16788749dca10
 │   │   │   └── d99e79882791a17150e9379e82886ab4387c4e
 │   │   ├── 29/
+│   │   │   ├── a1a10edea8f420b782b72ae1e901ee35bf3e1b
 │   │   │   ├── aa2a0b8031820ebc23a8eb1cfc60fd33ee0d6e
 │   │   │   └── fb98e342f6d0e7b166fcebd141c727e1a82b95
 │   │   ├── 2a/
@@ -202,6 +212,7 @@ safecube-android/
 │   │   │   ├── 8a29e9c349313d1848fb1e26b0520fa181b439
 │   │   │   ├── 8a6dc01848b19411780d418e888819060ee518
 │   │   │   ├── a6214549230550bb375e80d5093173e85a3aa1
+│   │   │   ├── ca75e3699df45bdac008297336c3c94d21f31a
 │   │   │   └── d227125b4f3237115b01ab753020ef97ce78e9
 │   │   ├── 2b/
 │   │   │   ├── 068d11462a4b96669193de13a711a3a36220a0
@@ -220,7 +231,8 @@ safecube-android/
 │   │   ├── 2e/
 │   │   │   └── 733ce8688e4fb11d5e658c89b8cfc12d14203d
 │   │   ├── 2f/
-│   │   │   └── 05551d29180d44e88f3848f4acdcc5054fc197
+│   │   │   ├── 05551d29180d44e88f3848f4acdcc5054fc197
+│   │   │   └── 6f5ab102fbf4e4e2f50a3300c73119ac281515
 │   │   ├── 30/
 │   │   │   ├── 66bb1efda44daceae1e9e4307b5d78a46d009f
 │   │   │   ├── 6de0a7c896e091b0f401d3b5eff7129ab83c1f
@@ -233,7 +245,8 @@ safecube-android/
 │   │   │   ├── 5df8d6e2a765a038df3c9e069f574c8ecbf851
 │   │   │   └── 731de198adba3f03f606d3691f3aa3f53bfc67
 │   │   ├── 33/
-│   │   │   └── 6ebd4f9a8eb11392097d25879c3b0db7d35af4
+│   │   │   ├── 6ebd4f9a8eb11392097d25879c3b0db7d35af4
+│   │   │   └── dab1663b36aaf58aa3278d2b0c27c90618b3c5
 │   │   ├── 34/
 │   │   │   ├── 2c3954bd1f74df042516ec21f0f3b5490d6050
 │   │   │   └── fe98c03e8ac9aaa85ff997cb5fe480f144f7da
@@ -246,7 +259,8 @@ safecube-android/
 │   │   │   ├── 11582dcd1bd83f490c55fe19dedae2fa8d1474
 │   │   │   ├── 5810dec85a0106a69e78cacaad8660159e59b1
 │   │   │   ├── b88744023995d434c8ea12d2436f65947ab976
-│   │   │   └── d0b585308aeecb1ebdc191610e6d1c228b4d95
+│   │   │   ├── d0b585308aeecb1ebdc191610e6d1c228b4d95
+│   │   │   └── f362d0f8cb1bc7258fdbe43568f6c1a6b3096f
 │   │   ├── 38/
 │   │   │   ├── 736dd4ae730503d66651d7b1cb62bea5bb0ec1
 │   │   │   ├── caacfff9055494549e665afbcaabf3e1bd3668
@@ -258,6 +272,7 @@ safecube-android/
 │   │   │   └── e565db4cebf53e2bd3d533fc52a65649c0da35
 │   │   ├── 3b/
 │   │   │   ├── 086743faafe8390a7a34fdda0a9a4fdcd2cf6f
+│   │   │   ├── 254f187851f384309e07ea186a4fafd47e2dd4
 │   │   │   ├── 303904b381b720a816577ef3ba300c58dc57bd
 │   │   │   └── d41a2176bfda44d5234a20be71316b18a13ff3
 │   │   ├── 3d/
@@ -276,6 +291,7 @@ safecube-android/
 │   │   │   ├── 673fe39bfaeab7a8369a939e927e370503f127
 │   │   │   └── b5b89550bfdd796ee2b2126451003916a1314b
 │   │   ├── 41/
+│   │   │   ├── 34856e874daa5a3372c1e0671d928c0ee8cf71
 │   │   │   └── 3be9f160b7920cd1729d2f8b4016ba8ba1dfa4
 │   │   ├── 42/
 │   │   │   ├── 022c214b8c47a5d5f9774197529f763d5716a0
@@ -312,6 +328,7 @@ safecube-android/
 │   │   ├── 4b/
 │   │   │   ├── 112e188d47c276882ca69eed511f79f0b7c902
 │   │   │   ├── 3a271914117a60d67f083aef8756c90273a167
+│   │   │   ├── b3afc99d463a600c1620d14be829433a4849eb
 │   │   │   └── d9ed6e8fae3402ac1500711cd93c2a781f16d4
 │   │   ├── 4c/
 │   │   │   ├── 223619ddb60a303eb2a0d249c5ec1f9a99862d
@@ -338,6 +355,7 @@ safecube-android/
 │   │   ├── 51/
 │   │   │   ├── 462696b3f51f954451b73205d181aa6ad76c4f
 │   │   │   ├── 6abe05699b4a4d708524ba0d8a6ebbd734ec1a
+│   │   │   ├── cf7ad634b803bca0435b258ff88a4022b5b8d5
 │   │   │   ├── d9bf9bb7eea0a47fbfee07888b589ed5a90e5d
 │   │   │   ├── df199ac1a74f0c9bfc22e1b8ab9d0cf8a650f5
 │   │   │   └── e0a841aaf13d02e2b83f09021f2689966d4920
@@ -408,6 +426,7 @@ safecube-android/
 │   │   │   └── fc774f9219f029ca25becd3e56d1ace46baeac
 │   │   ├── 64/
 │   │   │   ├── 016f94114b156451ac374b2e21461ba88ca312
+│   │   │   ├── 4eb305888b089758cffb3108f819f9fcfbda94
 │   │   │   ├── 9659d872d5addfd0dbf614c498be4437bfbee7
 │   │   │   └── c38b23e1a9e1afa68069a79541015593038922
 │   │   ├── 65/
@@ -439,6 +458,7 @@ safecube-android/
 │   │   │   ├── ba46dd69a3ca7d8c411d2a78a7cfd3195ee05a
 │   │   │   └── cd64b70006807334933404a5ce053b3f97bf73
 │   │   ├── 6c/
+│   │   │   ├── cc79bb47df7ef77e30c309aa3e645c725329e4
 │   │   │   └── f191a9a51bdfd72ce048d0083901035fe877df
 │   │   ├── 6d/
 │   │   │   ├── 392dbb7df6a22599e0380785bf9871864ef167
@@ -454,6 +474,7 @@ safecube-android/
 │   │   ├── 70/
 │   │   │   ├── 1e3056688cfa577a905027e07fe9186f2b955c
 │   │   │   ├── 43c71a78773f71a7f6100fd84d0b92cf461585
+│   │   │   ├── 5664f17465557f6360d3d8c09d0f1a3d9adfb9
 │   │   │   └── b78ed3473d22c24e016fa67c14f3f47108c21a
 │   │   ├── 71/
 │   │   │   ├── 81bc3b0f4c60006ea3cc40198aa7b1f4d9306e
@@ -486,7 +507,8 @@ safecube-android/
 │   │   │   └── c075fbb0a1fa177e86b4180667d1318ff28128
 │   │   ├── 79/
 │   │   │   ├── 2a67eaa026f986444e914e379eddd4f88598b9
-│   │   │   └── cffb6dbbc30cf169540531dea8a64ae7cea310
+│   │   │   ├── cffb6dbbc30cf169540531dea8a64ae7cea310
+│   │   │   └── f023976526174362d02170ae13608536290523
 │   │   ├── 7a/
 │   │   │   ├── 4cf67c91cb9749fb7d3dd208092764336050c7
 │   │   │   └── b864ce708afbf07ee807157718fec660e3dfd7
@@ -501,6 +523,7 @@ safecube-android/
 │   │   │   ├── 56a8989779ccb53057c9af7971677cd10622f4
 │   │   │   ├── 608e6b10f1cff56611eaef0a19c88be54aa087
 │   │   │   ├── b5ece5e88b1f46a53de59496948ff354ce6229
+│   │   │   ├── c0d0c4820db2e505f59592b20cd2b7199e5323
 │   │   │   ├── c3d80be1315ce5949be53d7cd50bc78449bfb1
 │   │   │   └── d3a3f2308c9efd12d937caa74dda659c6810e8
 │   │   ├── 7e/
@@ -528,6 +551,7 @@ safecube-android/
 │   │   │   ├── 9fc83bb037fa29fff915b7a88e2ee5d1df86c1
 │   │   │   └── c461fbb1cd88297c98a4621db41c74b2762737
 │   │   ├── 84/
+│   │   │   ├── 0e318ffd51f81aeebf9b41772f3b3710f41a70
 │   │   │   ├── 6cbb1a89a6ff3c6a7efcfcfa6364956b1d3f8b
 │   │   │   └── dcfd40e2a28d706ee0db47804579f3e6609747
 │   │   ├── 85/
@@ -597,6 +621,7 @@ safecube-android/
 │   │   │   ├── a4e9e2021c44e5c920edc48ef875c5fc6f1eb8
 │   │   │   └── aa0e4b3aa697368b7e3ea8dac54b5bd87595e8
 │   │   ├── 97/
+│   │   │   ├── 50b09fd8c0b9f29798bfed8240f44b2870f574
 │   │   │   └── dc8b563000c19c3b4a756ccaac7bad55af873d
 │   │   ├── 98/
 │   │   │   ├── 5b626c973bad329b4f5c89d39bcf30819289da
@@ -652,6 +677,7 @@ safecube-android/
 │   │   │   └── c088752dcfd204f483dc073247646e593ec915
 │   │   ├── a6/
 │   │   │   ├── 0e1fab85e63455a0551346e977e4578c239ee2
+│   │   │   ├── 3e9ec9fcec0c4190c308d98ed986375d1a8eab
 │   │   │   └── b0a9639eb680d15f37630a3fa635b002b954ac
 │   │   ├── a7/
 │   │   │   ├── 5028be8da919c9d10ee0123a819ebd75d3ed79
@@ -665,6 +691,7 @@ safecube-android/
 │   │   │   └── 3fb9bd1064bd236279de4b94f56e2a629c68db
 │   │   ├── a9/
 │   │   │   ├── 006689a1971e8dd85d77cf33f8b0234332ffac
+│   │   │   ├── 04e1d79389c8d47c2b0387dfc8d1528fc2ab2b
 │   │   │   └── 5566a74bdcaece1c68c13c8d04f2122fe4af44
 │   │   ├── aa/
 │   │   │   ├── 4128f4f0f2858a89e4394d524a9f8e242a8275
@@ -719,6 +746,7 @@ safecube-android/
 │   │   │   └── ee780a8bf29cd7534c9702ea4133199d51784b
 │   │   ├── b6/
 │   │   │   ├── 261b7acb03fe0fbb657c69fa1615535d7d71de
+│   │   │   ├── 3b4530ec6540a0cae3acc9b50061280e183956
 │   │   │   ├── 62d740a8217c9387eb2492c7d32315a65d1a2a
 │   │   │   ├── 670ef2671c44dc654c7d96d8737076b5326ef4
 │   │   │   ├── ae21979877e86b55707c9e941a9bd258dad9b2
@@ -759,6 +787,7 @@ safecube-android/
 │   │   ├── c0/
 │   │   │   └── 33b6b2e70a2d6993c415f583601bc6745f63fb
 │   │   ├── c1/
+│   │   │   ├── 2324699053fcd9daf90a35d233f3409d8762d4
 │   │   │   └── 7fe8b7670e70395171d7565c77fc112371c15a
 │   │   ├── c2/
 │   │   │   ├── 09e78ecd372343283f4157dcfd918ec5165bb3
@@ -766,7 +795,8 @@ safecube-android/
 │   │   ├── c3/
 │   │   │   ├── 53dc18335e090d21ff968b2027d845d4f467bf
 │   │   │   ├── 9371b434389fe33026d245a0ae9dac8111a16b
-│   │   │   └── 9e4d871595e19bea069b90f747b2a4e4f43875
+│   │   │   ├── 9e4d871595e19bea069b90f747b2a4e4f43875
+│   │   │   └── a8f6715ce46e6efff550d72f5cf0b983f1232f
 │   │   ├── c4/
 │   │   │   └── 7463b44dd5b8cd739c3e1c81185c0a88c9da18
 │   │   ├── c5/
@@ -814,6 +844,7 @@ safecube-android/
 │   │   │   ├── 681b2bc48da48dab5bf2ed13b6614bd3ef4903
 │   │   │   ├── 973c457997cfb876e5b246bc526dc78d8d4b60
 │   │   │   ├── bf42e133ce0f15d7856b8663fa977ea7ec70b3
+│   │   │   ├── c026e8845fccbe3512606d0a019b648763fb35
 │   │   │   └── ec08a04d503f49193429c70b034d63f33a049e
 │   │   ├── d4/
 │   │   │   ├── 22261ea6d2518ee68fb1d659cd0d7caff33b3d
@@ -915,9 +946,11 @@ safecube-android/
 │   │   │   ├── 35331959e307c1dd50fc29c9da8e7a94515742
 │   │   │   └── 4f7f6ebc459511431f5d1d908d4087162482c0
 │   │   ├── f1/
+│   │   │   ├── 021404634755144a7f410d99f75f444f34ad96
 │   │   │   └── 753e3fa3eaeead20694633c6fd75017c849641
 │   │   ├── f2/
-│   │   │   └── 508f88a378ff7a3010b561a0c5683079ef4599
+│   │   │   ├── 508f88a378ff7a3010b561a0c5683079ef4599
+│   │   │   └── 93914585c3ee74e0dbe7faa8c0fab17b7856cf
 │   │   ├── f3/
 │   │   │   ├── 08aacc008bd433a54aa30ff5d10cdeaa183769
 │   │   │   ├── 3b4e953d105b94096c31976e5e46fb75172a44
@@ -7705,16 +7738,18 @@ safecube-android/
 │   │   │   │   │   ├── debug/out/
 │   │   │   │   │   ├── debugAndroidTest/out/
 │   │   │   │   │   └── release/out/
+│   │   │   │   ├── hilt/component_trees/debugUnitTest/
 │   │   │   │   ├── ksp/
 │   │   │   │   │   ├── debug/java/
 │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/network/
 │   │   │   │   │   │   │   ├── di/
-│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideApiServiceFactory.java
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideAuthControllerApiFactory.java
 │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideJsonFactory.java
 │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideNetworkConfigFactory.java
 │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideOkHttpClientFactory.java
 │   │   │   │   │   │   │   │   └── NetworkModule_ProvideRetrofitFactory.java
-│   │   │   │   │   │   │   └── AuthInterceptor_Factory.java
+│   │   │   │   │   │   │   ├── AuthInterceptor_Factory.java
+│   │   │   │   │   │   │   └── TokenRefreshAuthenticator_Factory.java
 │   │   │   │   │   │   └── hilt_aggregated_deps/
 │   │   │   │   │   │       └── _com_miguelrodriguez19_safecube_core_network_di_NetworkModule.java
 │   │   │   │   │   └── release/java/
@@ -7942,16 +7977,13 @@ safecube-android/
 │   │   │   │   │   │   │   │       ├── VaultKeyMaterialResponse$$serializer.class
 │   │   │   │   │   │   │   │       ├── VaultKeyMaterialResponse$Companion.class
 │   │   │   │   │   │   │   │       └── VaultKeyMaterialResponse.class
-│   │   │   │   │   │   │   ├── ApiService.class
 │   │   │   │   │   │   │   ├── AuthInterceptor.class
 │   │   │   │   │   │   │   ├── NetworkClientFactory.class
 │   │   │   │   │   │   │   ├── NetworkConfig.class
-│   │   │   │   │   │   │   └── TokenProvider.class
-│   │   │   │   │   │   ├── META-INF/
-│   │   │   │   │   │   │   └── network.kotlin_module
-│   │   │   │   │   │   └── org/openapitools/client/
-│   │   │   │   │   │       ├── auth/
-│   │   │   │   │   │       └── infrastructure/
+│   │   │   │   │   │   │   ├── TokenProvider.class
+│   │   │   │   │   │   │   └── TokenRefreshAuthenticator.class
+│   │   │   │   │   │   └── META-INF/
+│   │   │   │   │   │       └── network.kotlin_module
 │   │   │   │   │   ├── debugUnitTest/compileDebugUnitTestKotlin/classes/
 │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/network/
 │   │   │   │   │   │   │   ├── NetworkClientFactoryTest.class
@@ -7978,7 +8010,7 @@ safecube-android/
 │   │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/network/
 │   │   │   │   │   │   │   │   ├── di/
 │   │   │   │   │   │   │   │   │   ├── NetworkModule.class
-│   │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideApiServiceFactory.class
+│   │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideAuthControllerApiFactory.class
 │   │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideJsonFactory$InstanceHolder.class
 │   │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideJsonFactory.class
 │   │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideNetworkConfigFactory$InstanceHolder.class
@@ -8080,15 +8112,28 @@ safecube-android/
 │   │   │   │   │   │   │   │   │       ├── VaultKeyMaterialResponse$$serializer.class
 │   │   │   │   │   │   │   │   │       ├── VaultKeyMaterialResponse$Companion.class
 │   │   │   │   │   │   │   │   │       └── VaultKeyMaterialResponse.class
-│   │   │   │   │   │   │   │   ├── ApiService.class
 │   │   │   │   │   │   │   │   ├── AuthInterceptor.class
 │   │   │   │   │   │   │   │   ├── AuthInterceptor_Factory.class
 │   │   │   │   │   │   │   │   ├── BuildConfig.class
 │   │   │   │   │   │   │   │   ├── NetworkClientFactory.class
 │   │   │   │   │   │   │   │   ├── NetworkConfig.class
-│   │   │   │   │   │   │   │   └── TokenProvider.class
+│   │   │   │   │   │   │   │   ├── TokenProvider.class
+│   │   │   │   │   │   │   │   ├── TokenRefreshAuthenticator.class
+│   │   │   │   │   │   │   │   ├── TokenRefreshAuthenticator_Factory$InstanceHolder.class
+│   │   │   │   │   │   │   │   └── TokenRefreshAuthenticator_Factory.class
 │   │   │   │   │   │   │   ├── hilt_aggregated_deps/
 │   │   │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_network_di_NetworkModule.class
+│   │   │   │   │   │   │   └── META-INF/
+│   │   │   │   │   │   │       └── network.kotlin_module
+│   │   │   │   │   │   └── jars/
+│   │   │   │   │   ├── debugUnitTest/transformDebugUnitTestClassesWithAsm/
+│   │   │   │   │   │   ├── dirs/
+│   │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/network/
+│   │   │   │   │   │   │   │   ├── NetworkClientFactoryTest.class
+│   │   │   │   │   │   │   │   ├── PingApi.class
+│   │   │   │   │   │   │   │   ├── PingResponse$$serializer.class
+│   │   │   │   │   │   │   │   ├── PingResponse$Companion.class
+│   │   │   │   │   │   │   │   └── PingResponse.class
 │   │   │   │   │   │   │   └── META-INF/
 │   │   │   │   │   │   │       └── network.kotlin_module
 │   │   │   │   │   │   └── jars/
@@ -8230,6 +8275,130 @@ safecube-android/
 │   │   │   │   ├── generated_proguard_file/
 │   │   │   │   │   ├── debug/mergeDebugGeneratedProguardFiles/
 │   │   │   │   │   └── release/mergeReleaseGeneratedProguardFiles/
+│   │   │   │   ├── hilt/copy/debugUnitTest/
+│   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/network/
+│   │   │   │   │   │   ├── di/
+│   │   │   │   │   │   │   ├── NetworkModule.class
+│   │   │   │   │   │   │   ├── NetworkModule_ProvideAuthControllerApiFactory.class
+│   │   │   │   │   │   │   ├── NetworkModule_ProvideJsonFactory$InstanceHolder.class
+│   │   │   │   │   │   │   ├── NetworkModule_ProvideJsonFactory.class
+│   │   │   │   │   │   │   ├── NetworkModule_ProvideNetworkConfigFactory$InstanceHolder.class
+│   │   │   │   │   │   │   ├── NetworkModule_ProvideNetworkConfigFactory.class
+│   │   │   │   │   │   │   ├── NetworkModule_ProvideOkHttpClientFactory.class
+│   │   │   │   │   │   │   └── NetworkModule_ProvideRetrofitFactory.class
+│   │   │   │   │   │   ├── generated/
+│   │   │   │   │   │   │   ├── api/
+│   │   │   │   │   │   │   │   ├── AuthControllerApi.class
+│   │   │   │   │   │   │   │   ├── UserProfileControllerApi.class
+│   │   │   │   │   │   │   │   ├── VaultControllerApi$DefaultImpls.class
+│   │   │   │   │   │   │   │   ├── VaultControllerApi.class
+│   │   │   │   │   │   │   │   └── VaultKeyMaterialControllerApi.class
+│   │   │   │   │   │   │   ├── auth/
+│   │   │   │   │   │   │   │   └── HttpBearerAuth.class
+│   │   │   │   │   │   │   ├── infrastructure/
+│   │   │   │   │   │   │   │   ├── ApiClient$Companion.class
+│   │   │   │   │   │   │   │   ├── ApiClient.class
+│   │   │   │   │   │   │   │   ├── AtomicBooleanAdapter.class
+│   │   │   │   │   │   │   │   ├── AtomicIntegerAdapter.class
+│   │   │   │   │   │   │   │   ├── AtomicLongAdapter.class
+│   │   │   │   │   │   │   │   ├── BigDecimalAdapter.class
+│   │   │   │   │   │   │   │   ├── BigIntegerAdapter.class
+│   │   │   │   │   │   │   │   ├── CollectionFormats$CSVParams.class
+│   │   │   │   │   │   │   │   ├── CollectionFormats$PIPESParams.class
+│   │   │   │   │   │   │   │   ├── CollectionFormats$SPACEParams.class
+│   │   │   │   │   │   │   │   ├── CollectionFormats$SSVParams.class
+│   │   │   │   │   │   │   │   ├── CollectionFormats$TSVParams.class
+│   │   │   │   │   │   │   │   ├── CollectionFormats.class
+│   │   │   │   │   │   │   │   ├── LocalDateAdapter.class
+│   │   │   │   │   │   │   │   ├── LocalDateTimeAdapter.class
+│   │   │   │   │   │   │   │   ├── OffsetDateTimeAdapter.class
+│   │   │   │   │   │   │   │   ├── Serializer.class
+│   │   │   │   │   │   │   │   ├── StringBuilderAdapter.class
+│   │   │   │   │   │   │   │   ├── URIAdapter.class
+│   │   │   │   │   │   │   │   ├── URLAdapter.class
+│   │   │   │   │   │   │   │   └── UUIDAdapter.class
+│   │   │   │   │   │   │   └── model/
+│   │   │   │   │   │   │       ├── AuthenticateAccountRequest$$serializer.class
+│   │   │   │   │   │   │       ├── AuthenticateAccountRequest$Companion.class
+│   │   │   │   │   │   │       ├── AuthenticateAccountRequest.class
+│   │   │   │   │   │   │       ├── AuthTokensResponse$$serializer.class
+│   │   │   │   │   │   │       ├── AuthTokensResponse$Companion.class
+│   │   │   │   │   │   │       ├── AuthTokensResponse.class
+│   │   │   │   │   │   │       ├── CreateSecureItemRequest$$serializer.class
+│   │   │   │   │   │   │       ├── CreateSecureItemRequest$Companion.class
+│   │   │   │   │   │   │       ├── CreateSecureItemRequest.class
+│   │   │   │   │   │   │       ├── CreateSecureItemResult$$serializer.class
+│   │   │   │   │   │   │       ├── CreateSecureItemResult$Companion.class
+│   │   │   │   │   │   │       ├── CreateSecureItemResult.class
+│   │   │   │   │   │   │       ├── CreateUserProfileRequest$$serializer.class
+│   │   │   │   │   │   │       ├── CreateUserProfileRequest$Companion.class
+│   │   │   │   │   │   │       ├── CreateUserProfileRequest.class
+│   │   │   │   │   │   │       ├── DeleteSecureItemResult$$serializer.class
+│   │   │   │   │   │   │       ├── DeleteSecureItemResult$Companion.class
+│   │   │   │   │   │   │       ├── DeleteSecureItemResult.class
+│   │   │   │   │   │   │       ├── Get400Response$$serializer.class
+│   │   │   │   │   │   │       ├── Get400Response$Companion.class
+│   │   │   │   │   │   │       ├── Get400Response.class
+│   │   │   │   │   │   │       ├── InitVaultKeyMaterialRequest$$serializer.class
+│   │   │   │   │   │   │       ├── InitVaultKeyMaterialRequest$Companion.class
+│   │   │   │   │   │   │       ├── InitVaultKeyMaterialRequest.class
+│   │   │   │   │   │   │       ├── ListSecureItemsResponse$$serializer.class
+│   │   │   │   │   │   │       ├── ListSecureItemsResponse$Companion.class
+│   │   │   │   │   │   │       ├── ListSecureItemsResponse.class
+│   │   │   │   │   │   │       ├── RefreshTokenRequest$$serializer.class
+│   │   │   │   │   │   │       ├── RefreshTokenRequest$Companion.class
+│   │   │   │   │   │   │       ├── RefreshTokenRequest.class
+│   │   │   │   │   │   │       ├── RegisterAccountRequest$$serializer.class
+│   │   │   │   │   │   │       ├── RegisterAccountRequest$Companion.class
+│   │   │   │   │   │   │       ├── RegisterAccountRequest.class
+│   │   │   │   │   │   │       ├── RegisterAccountResult$$serializer.class
+│   │   │   │   │   │   │       ├── RegisterAccountResult$Companion.class
+│   │   │   │   │   │   │       ├── RegisterAccountResult.class
+│   │   │   │   │   │   │       ├── SecureItemResponse$$serializer.class
+│   │   │   │   │   │   │       ├── SecureItemResponse$Companion.class
+│   │   │   │   │   │   │       ├── SecureItemResponse.class
+│   │   │   │   │   │   │       ├── SecureItemSummaryResponse$$serializer.class
+│   │   │   │   │   │   │       ├── SecureItemSummaryResponse$Companion.class
+│   │   │   │   │   │   │       ├── SecureItemSummaryResponse.class
+│   │   │   │   │   │   │       ├── UpdateMaster400Response$$serializer.class
+│   │   │   │   │   │   │       ├── UpdateMaster400Response$Companion.class
+│   │   │   │   │   │   │       ├── UpdateMaster400Response.class
+│   │   │   │   │   │   │       ├── UpdateMasterWrappedKekRequest$$serializer.class
+│   │   │   │   │   │   │       ├── UpdateMasterWrappedKekRequest$Companion.class
+│   │   │   │   │   │   │       ├── UpdateMasterWrappedKekRequest.class
+│   │   │   │   │   │   │       ├── UpdateSecureItemRequest$$serializer.class
+│   │   │   │   │   │   │       ├── UpdateSecureItemRequest$Companion.class
+│   │   │   │   │   │   │       ├── UpdateSecureItemRequest.class
+│   │   │   │   │   │   │       ├── UpdateSecureItemResult$$serializer.class
+│   │   │   │   │   │   │       ├── UpdateSecureItemResult$Companion.class
+│   │   │   │   │   │   │       ├── UpdateSecureItemResult.class
+│   │   │   │   │   │   │       ├── UpdateUserProfileRequest$$serializer.class
+│   │   │   │   │   │   │       ├── UpdateUserProfileRequest$Companion.class
+│   │   │   │   │   │   │       ├── UpdateUserProfileRequest.class
+│   │   │   │   │   │   │       ├── UserProfileResponse$$serializer.class
+│   │   │   │   │   │   │       ├── UserProfileResponse$Companion.class
+│   │   │   │   │   │   │       ├── UserProfileResponse.class
+│   │   │   │   │   │   │       ├── VaultKeyMaterialResponse$$serializer.class
+│   │   │   │   │   │   │       ├── VaultKeyMaterialResponse$Companion.class
+│   │   │   │   │   │   │       └── VaultKeyMaterialResponse.class
+│   │   │   │   │   │   ├── AuthInterceptor.class
+│   │   │   │   │   │   ├── AuthInterceptor_Factory.class
+│   │   │   │   │   │   ├── BuildConfig.class
+│   │   │   │   │   │   ├── NetworkClientFactory.class
+│   │   │   │   │   │   ├── NetworkClientFactoryTest.class
+│   │   │   │   │   │   ├── NetworkConfig.class
+│   │   │   │   │   │   ├── PingApi.class
+│   │   │   │   │   │   ├── PingResponse$$serializer.class
+│   │   │   │   │   │   ├── PingResponse$Companion.class
+│   │   │   │   │   │   ├── PingResponse.class
+│   │   │   │   │   │   ├── TokenProvider.class
+│   │   │   │   │   │   ├── TokenRefreshAuthenticator.class
+│   │   │   │   │   │   ├── TokenRefreshAuthenticator_Factory$InstanceHolder.class
+│   │   │   │   │   │   └── TokenRefreshAuthenticator_Factory.class
+│   │   │   │   │   ├── hilt_aggregated_deps/
+│   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_network_di_NetworkModule.class
+│   │   │   │   │   └── META-INF/
+│   │   │   │   │       └── network.kotlin_module
 │   │   │   │   ├── incremental/
 │   │   │   │   │   ├── debug/packageDebugResources/
 │   │   │   │   │   │   ├── merged.dir/
@@ -8475,6 +8644,7 @@ safecube-android/
 │   │   │   │   │   │   ├── stripped.dir/
 │   │   │   │   │   │   │   │   │   │   │   │   └── merger.xml
 │   │   │   │   │   ├── transformDebugClassesWithAsm/
+│   │   │   │   │   ├── transformDebugUnitTestClassesWithAsm/
 │   │   │   │   │   └── transformReleaseClassesWithAsm/
 │   │   │   │   ├── java_res/
 │   │   │   │   │   ├── debug/processDebugJavaRes/out/
@@ -8485,11 +8655,8 @@ safecube-android/
 │   │   │   │   │   │   │       ├── auth/
 │   │   │   │   │   │   │       ├── infrastructure/
 │   │   │   │   │   │   │       └── model/
-│   │   │   │   │   │   ├── META-INF/
-│   │   │   │   │   │   │   └── network.kotlin_module
-│   │   │   │   │   │   └── org/openapitools/client/
-│   │   │   │   │   │       ├── auth/
-│   │   │   │   │   │       └── infrastructure/
+│   │   │   │   │   │   └── META-INF/
+│   │   │   │   │   │       └── network.kotlin_module
 │   │   │   │   │   ├── debugUnitTest/processDebugUnitTestJavaRes/out/
 │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/network/
 │   │   │   │   │   │   └── META-INF/
@@ -8502,7 +8669,7 @@ safecube-android/
 │   │   │   │   │   ├── debug/compileDebugJavaWithJavac/classes/
 │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/network/
 │   │   │   │   │   │   │   ├── di/
-│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideApiServiceFactory.class
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideAuthControllerApiFactory.class
 │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideJsonFactory$InstanceHolder.class
 │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideJsonFactory.class
 │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideNetworkConfigFactory$InstanceHolder.class
@@ -8510,7 +8677,9 @@ safecube-android/
 │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideOkHttpClientFactory.class
 │   │   │   │   │   │   │   │   └── NetworkModule_ProvideRetrofitFactory.class
 │   │   │   │   │   │   │   ├── AuthInterceptor_Factory.class
-│   │   │   │   │   │   │   └── BuildConfig.class
+│   │   │   │   │   │   │   ├── BuildConfig.class
+│   │   │   │   │   │   │   ├── TokenRefreshAuthenticator_Factory$InstanceHolder.class
+│   │   │   │   │   │   │   └── TokenRefreshAuthenticator_Factory.class
 │   │   │   │   │   │   └── hilt_aggregated_deps/
 │   │   │   │   │   │       └── _com_miguelrodriguez19_safecube_core_network_di_NetworkModule.class
 │   │   │   │   │   ├── debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes/com/miguelrodriguez19/safecube/core/network/test/
@@ -8971,9 +9140,7 @@ safecube-android/
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab.keystream
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab.keystream.len
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab.len
-│   │   │   │   │   │   │   │       ├── internal-name-to-source.tab.values
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab.values.at
-│   │   │   │   │   │   │   │       ├── internal-name-to-source.tab.values.s
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab_i
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab_i.len
 │   │   │   │   │   │   │   │       ├── proto.tab
@@ -9248,12 +9415,13 @@ safecube-android/
 │   │   │   │   │   ├── backups/java/
 │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/network/
 │   │   │   │   │   │   │   ├── di/
-│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideApiServiceFactory.java
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideAuthControllerApiFactory.java
 │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideJsonFactory.java
 │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideNetworkConfigFactory.java
 │   │   │   │   │   │   │   │   ├── NetworkModule_ProvideOkHttpClientFactory.java
 │   │   │   │   │   │   │   │   └── NetworkModule_ProvideRetrofitFactory.java
-│   │   │   │   │   │   │   └── AuthInterceptor_Factory.java
+│   │   │   │   │   │   │   ├── AuthInterceptor_Factory.java
+│   │   │   │   │   │   │   └── TokenRefreshAuthenticator_Factory.java
 │   │   │   │   │   │   └── hilt_aggregated_deps/
 │   │   │   │   │   │       └── _com_miguelrodriguez19_safecube_core_network_di_NetworkModule.java
 │   │   │   │   │   ├── logs/
@@ -9272,6 +9440,37 @@ safecube-android/
 │   │   │   │   │   │   ├── id-to-file.tab.len
 │   │   │   │   │   │   ├── id-to-file.tab.values.at
 │   │   │   │   │   │   ├── id-to-file.tab_i
+│   │   │   │   │   │   ├── id-to-file.tab_i.len
+│   │   │   │   │   │   ├── lookups.tab
+│   │   │   │   │   │   ├── lookups.tab.keystream
+│   │   │   │   │   │   ├── lookups.tab.keystream.len
+│   │   │   │   │   │   ├── lookups.tab.len
+│   │   │   │   │   │   ├── lookups.tab.values.at
+│   │   │   │   │   │   ├── lookups.tab_i
+│   │   │   │   │   │   └── lookups.tab_i.len
+│   │   │   │   │   ├── ap-classpath-entries.bin
+│   │   │   │   │   ├── caches.uptodate
+│   │   │   │   │   ├── classpath-entries.bin
+│   │   │   │   │   ├── classpath-structure.bin
+│   │   │   │   │   ├── sealed
+│   │   │   │   │   ├── sourceToOutputs
+│   │   │   │   │   └── symbols
+│   │   │   │   ├── debugUnitTest/
+│   │   │   │   │   ├── logs/
+│   │   │   │   │   ├── symbolLookups/
+│   │   │   │   │   │   ├── counters.tab
+│   │   │   │   │   │   ├── file-to-id.tab
+│   │   │   │   │   │   ├── file-to-id.tab.keystream
+│   │   │   │   │   │   ├── file-to-id.tab.keystream.len
+│   │   │   │   │   │   ├── file-to-id.tab.len
+│   │   │   │   │   │   ├── file-to-id.tab.values.at
+│   │   │   │   │   │   ├── file-to-id.tab_i
+│   │   │   │   │   │   ├── file-to-id.tab_i.len
+│   │   │   │   │   │   ├── id-to-file.tab
+│   │   │   │   │   │   ├── id-to-file.tab.keystream
+│   │   │   │   │   │   ├── id-to-file.tab.keystream.len
+│   │   │   │   │   │   ├── id-to-file.tab.len
+│   │   │   │   │   │   ├── id-to-file.tab.values.at
 │   │   │   │   │   │   ├── id-to-file.tab_i.len
 │   │   │   │   │   │   ├── lookups.tab
 │   │   │   │   │   │   ├── lookups.tab.keystream
@@ -9387,11 +9586,11 @@ safecube-android/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/network/
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   └── NetworkModule.kt
-│   │   │   │   │   ├── ApiService.kt
 │   │   │   │   │   ├── AuthInterceptor.kt
 │   │   │   │   │   ├── NetworkClientFactory.kt
 │   │   │   │   │   ├── NetworkConfig.kt
-│   │   │   │   │   └── TokenProvider.kt
+│   │   │   │   │   ├── TokenProvider.kt
+│   │   │   │   │   └── TokenRefreshAuthenticator.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/
 │   │   │       └── NetworkClientFactoryTest.kt
@@ -10796,6 +10995,7 @@ safecube-android/
 │   │   └── build.gradle.kts
 │   ├── docs/
 │   ├── architecture/
+│   │   ├── openapi-auth-contract-integration.md
 │   │   └── storage_decision.md
 │   ├── package-structure/
 │   │   └── package_structure.md

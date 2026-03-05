@@ -1,10 +1,11 @@
 package com.miguelrodriguez19.safecube.core.network.di
 
-import com.miguelrodriguez19.safecube.core.network.ApiService
 import com.miguelrodriguez19.safecube.core.network.AuthInterceptor
 import com.miguelrodriguez19.safecube.core.network.BuildConfig
 import com.miguelrodriguez19.safecube.core.network.NetworkClientFactory
 import com.miguelrodriguez19.safecube.core.network.NetworkConfig
+import com.miguelrodriguez19.safecube.core.network.TokenRefreshAuthenticator
+import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,9 +34,11 @@ object NetworkModule {
     fun provideOkHttpClient(
         config: NetworkConfig,
         authInterceptor: AuthInterceptor,
+        tokenRefreshAuthenticator: TokenRefreshAuthenticator,
     ): OkHttpClient = NetworkClientFactory.createOkHttpClient(
         config = config,
         authInterceptor = authInterceptor,
+        authenticator = tokenRefreshAuthenticator,
     )
 
     @Provides
@@ -52,8 +55,9 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideApiService(
+    // Contract-only usage: generated API runs on app-owned Retrofit/OkHttp stack.
+    fun provideAuthControllerApi(
         retrofit: Retrofit,
-    ): ApiService = retrofit.create(ApiService::class.java)
+    ): AuthControllerApi = retrofit.create(AuthControllerApi::class.java)
 
 }

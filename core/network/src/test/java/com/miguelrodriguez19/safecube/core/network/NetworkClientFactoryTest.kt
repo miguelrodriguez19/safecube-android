@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.core.network
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.Authenticator
 import kotlinx.serialization.Serializable
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -72,6 +73,19 @@ class NetworkClientFactoryTest {
 
         assertTrue(debugClient.interceptors.any { it is HttpLoggingInterceptor })
         assertFalse(releaseClient.interceptors.any { it is HttpLoggingInterceptor })
+    }
+
+    @Test
+    fun `createOkHttpClient sets authenticator when provided`() {
+        val config = NetworkConfig(baseUrl = server.url("/").toString())
+        val authenticator = Authenticator { _, _ -> null }
+
+        val client = NetworkClientFactory.createOkHttpClient(
+            config = config,
+            authenticator = authenticator,
+        )
+
+        assertTrue(client.authenticator === authenticator)
     }
 
     @Test

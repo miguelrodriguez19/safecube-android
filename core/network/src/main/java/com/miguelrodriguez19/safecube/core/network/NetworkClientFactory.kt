@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.network
 
 import java.util.concurrent.TimeUnit
 import kotlinx.serialization.json.Json
+import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -18,6 +19,7 @@ object NetworkClientFactory {
     fun createOkHttpClient(
         config: NetworkConfig,
         authInterceptor: Interceptor? = null,
+        authenticator: Authenticator? = null,
     ): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(config.connectTimeoutSeconds, TimeUnit.SECONDS)
@@ -25,6 +27,7 @@ object NetworkClientFactory {
             .writeTimeout(config.writeTimeoutSeconds, TimeUnit.SECONDS)
 
         authInterceptor?.let(builder::addInterceptor)
+        authenticator?.let(builder::authenticator)
 
         if (config.isDebug) {
             builder.addInterceptor(
@@ -41,7 +44,10 @@ object NetworkClientFactory {
         config: NetworkConfig,
         authInterceptor: Interceptor? = null,
         json: Json = createJson(),
-        okHttpClient: OkHttpClient = createOkHttpClient(config, authInterceptor),
+        okHttpClient: OkHttpClient = createOkHttpClient(
+            config = config,
+            authInterceptor = authInterceptor,
+        ),
     ): Retrofit = Retrofit.Builder()
         .baseUrl(config.baseUrl)
         .client(okHttpClient)
