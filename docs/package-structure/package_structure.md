@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 05-03-2026 01:47:10
+Updated: 05-03-2026 01:58:55
 
 ```
 safecube-android/
@@ -38,6 +38,7 @@ safecube-android/
 │   │   │   ├── 3a775472820229a294cc772c48846bd7efdd58
 │   │   │   └── 85d2b06cad004f9dc9188363711eabfad9a93c
 │   │   ├── 01/
+│   │   │   ├── 0bff67b9d1b7576159bd13f4aafe5934d6b3e4
 │   │   │   ├── 5eee1bdb1d4e49211ce871426608670d114f9d
 │   │   │   ├── 7499bbb498ae2e9c200e899fe8db172461afa0
 │   │   │   ├── 83e16539ea5c64aa57bb80e45b4c0522a2d77e
@@ -53,6 +54,7 @@ safecube-android/
 │   │   │   └── db60c84b78941a89204eebc02fca8a032cfdfc
 │   │   ├── 04/
 │   │   │   ├── 1139dfdea857d5d8605ab28487325746335b40
+│   │   │   ├── 405d8688d57d7f69bb3111c5c6f72460beebed
 │   │   │   └── f57d4b7e7280da918524f0667c4f465569b6cf
 │   │   ├── 05/
 │   │   │   ├── 269c9c243fd996ac7b01544eab998ef6970dd5
@@ -75,6 +77,7 @@ safecube-android/
 │   │   │   ├── c069386c6e4f53f02c04b0ac0eed69b7ae6ce5
 │   │   │   └── dd842aec2b5a57784c43973573f2c0d172e21e
 │   │   ├── 0a/
+│   │   │   ├── 1dd475a2da796e3c56468e5c3632ab4f7c794f
 │   │   │   ├── 3b95d7519b589a1e80157bb91ef43fd3482f12
 │   │   │   ├── 5a4ec9eb7ef4769c1071255f7b0c413456a2d6
 │   │   │   └── cc9c14291a7fe692b2e807e64692cfeb9ce00c
@@ -109,6 +112,7 @@ safecube-android/
 │   │   ├── 10/
 │   │   │   ├── 468b2e1116249c036be9eb1309ac3ea2ce9b9a
 │   │   │   ├── 68f05cbcc4285a690247054af12c619406daf7
+│   │   │   ├── 97fb19bc6ad8f28a3e3fcd43fd87133d45fea1
 │   │   │   └── c46deb58dfac668602a24ac83b5062d14bc2ae
 │   │   ├── 11/
 │   │   │   ├── 5cb396107ce1970b6ffd33026a1b336bf81893
@@ -122,6 +126,7 @@ safecube-android/
 │   │   ├── 13/
 │   │   │   ├── 044597ae73290e479a56c977bdfe1935a30707
 │   │   │   ├── 705f70ae4972f00d872981534d1499f60b02c7
+│   │   │   ├── c5a50bdc7387359698acce579f7e0b18b1abeb
 │   │   │   └── efc8d1a60da3479e1b35d16404c8b5e8891569
 │   │   ├── 14/
 │   │   │   └── e74024fc96d9151b9cf7d08a01c99127e4b2c8
@@ -134,6 +139,7 @@ safecube-android/
 │   │   │   ├── 3c72738c7d4ba9d0650101be4f8f5b015e57fd
 │   │   │   ├── 7ba919e8a36e0c03b4a333201192a1ddf8dac9
 │   │   │   ├── 8004e46ac7ded0fa8c5d23397b3fad29db506a
+│   │   │   ├── 81343baa4691335b5bd30b97fd91353a2b6aca
 │   │   │   ├── a75efc8c4bfe00ad7c7978a1af00ef2dfa7eaf
 │   │   │   └── b14f5da9e2fcd6f3f38cc9e584cef2f3c90ebe
 │   │   ├── 17/
@@ -144,6 +150,7 @@ safecube-android/
 │   │   │   ├── 318bec5606eb601a449bbf68dab1765c773fd5
 │   │   │   └── ffeca3207621abf16d8a6b014a785d181a45e0
 │   │   ├── 19/
+│   │   │   ├── 5c58325fa2ca527edb20972d025ef9e6cbfc9d
 │   │   │   ├── 74b7b8224c700086a4d48e7e75bb8590eb71cb
 │   │   │   ├── 80fbf71cd9eeb1d3e44057f2adac9e1fabebb2
 │   │   │   └── b425d29eb7b3cf03f412de05ab1e7487a0f4b2
@@ -200,6 +207,7 @@ safecube-android/
 │   │   │   └── 7840f0c7c0d1a8defd4b287444aa85d02d380c
 │   │   ├── 26/
 │   │   │   ├── 1cc5925eeb23ebfe5eb8db0dc76513f0b552c4
+│   │   │   ├── 6f031937b724be4c5995cfcd4480b7cdee1703
 │   │   │   └── 9dde2be53f4eb6cd1277dbe25344dc3c7dd9ff
 │   │   ├── 27/
 │   │   │   ├── 759b48ce49142bae6783895103fc6dc73aaeaf
@@ -243,7 +251,8 @@ safecube-android/
 │   │   ├── 30/
 │   │   │   ├── 66bb1efda44daceae1e9e4307b5d78a46d009f
 │   │   │   ├── 6de0a7c896e091b0f401d3b5eff7129ab83c1f
-│   │   │   └── 9ff6fb344fb654144a10eb59b23a87ffdea37e
+│   │   │   ├── 9ff6fb344fb654144a10eb59b23a87ffdea37e
+│   │   │   └── caf89991ec161a9c22985438312a3855805f19
 │   │   ├── 31/
 │   │   │   ├── 3bc44067c5725e0b0beaa663279e0fc576383e
 │   │   │   ├── 435ef8d24d5bf544b9d326cf5952566c5cb013
@@ -301,6 +310,7 @@ safecube-android/
 │   │   │   ├── 673fe39bfaeab7a8369a939e927e370503f127
 │   │   │   └── b5b89550bfdd796ee2b2126451003916a1314b
 │   │   ├── 41/
+│   │   │   ├── 09f13ba85cf556a9055c9b072d1220fe34f493
 │   │   │   ├── 34856e874daa5a3372c1e0671d928c0ee8cf71
 │   │   │   ├── 3be9f160b7920cd1729d2f8b4016ba8ba1dfa4
 │   │   │   └── 446a7ba6138cc2e3c591cfd0a61d19902954e0
@@ -336,7 +346,8 @@ safecube-android/
 │   │   │   └── b3f9109f6d7de2f302d2fbd8cea34cfe958354
 │   │   ├── 4a/
 │   │   │   ├── 0b87cb016471e9525d38e7ed4e47927b790311
-│   │   │   └── 283b9c2384638a6f812831712d5bd2026185f8
+│   │   │   ├── 283b9c2384638a6f812831712d5bd2026185f8
+│   │   │   └── 2fd661ec895b786affc09bff233d5ce451e071
 │   │   ├── 4b/
 │   │   │   ├── 112e188d47c276882ca69eed511f79f0b7c902
 │   │   │   ├── 3a271914117a60d67f083aef8756c90273a167
@@ -450,6 +461,7 @@ safecube-android/
 │   │   │   └── c38b23e1a9e1afa68069a79541015593038922
 │   │   ├── 65/
 │   │   │   ├── 4570b2c2988bf78df9da650dd85721140df726
+│   │   │   ├── 51da1dbaff8bb82b5ec88bbbc837d55e86ff00
 │   │   │   ├── acf75dc55a8b9dee74c994cb10e974c65a60e3
 │   │   │   └── c6ecf8c9b215f593e58b544a4c36ed45ebdd1d
 │   │   ├── 66/
@@ -493,6 +505,7 @@ safecube-android/
 │   │   │   └── 8b3555b69b26aabeaef93acd72a8898df44db4
 │   │   ├── 70/
 │   │   │   ├── 1e3056688cfa577a905027e07fe9186f2b955c
+│   │   │   ├── 42af0809609a57205aae47794045ca1a17e4a7
 │   │   │   ├── 43c71a78773f71a7f6100fd84d0b92cf461585
 │   │   │   ├── 5664f17465557f6360d3d8c09d0f1a3d9adfb9
 │   │   │   └── b78ed3473d22c24e016fa67c14f3f47108c21a
@@ -503,6 +516,7 @@ safecube-android/
 │   │   ├── 72/
 │   │   │   └── 70cd3f73cdd43f15ce2dd7fce28a24b0c6f4a4
 │   │   ├── 73/
+│   │   │   ├── 746c1e739ecba9e71bb332a4a3e21791a42ee8
 │   │   │   ├── 8cdb43eb7f1dcbcc03e7724aff6395f80b1591
 │   │   │   └── b18d67c5777e523720a8f09bed8a0a3d7b6196
 │   │   ├── 74/
@@ -569,6 +583,7 @@ safecube-android/
 │   │   │   └── fb518c8532c606b48b07428bbfeb0022b2b2d7
 │   │   ├── 83/
 │   │   │   ├── 016ca46d185787231370e17aa5d7e4a5a5cc31
+│   │   │   ├── 620deebbc072ec41f54368bd7251862a1b476e
 │   │   │   ├── 6b20a15f85ba62cf15cd9ac7e3c32e8a5e3a1d
 │   │   │   ├── 6ec4e3246574479d046d5651cf6ea2a8f7fdb2
 │   │   │   ├── 742fbd3facab1d9de2a42943b83d860b8eac4d
@@ -584,10 +599,12 @@ safecube-android/
 │   │   │   ├── 3fbf1ded8e52d482f871e23b197788ff1a5522
 │   │   │   └── c3024d0309f6a63877965549679d2c692c36d6
 │   │   ├── 87/
-│   │   │   └── 5e0c35f38c02757cdd9980027cdb50a6bec712
+│   │   │   ├── 5e0c35f38c02757cdd9980027cdb50a6bec712
+│   │   │   └── dc9d9cf0a93426b8110a4efa73a9580e9a3712
 │   │   ├── 88/
 │   │   │   └── e089c6ca471eb6c11426c1011b352a7bcb9d46
 │   │   ├── 89/
+│   │   │   ├── 814540b70126b04212f87c6d2cc252bdb62c0f
 │   │   │   ├── 9eb4d14d6faad330e6c154ef4b4a942a3cbe46
 │   │   │   └── fbf3f666f01cc2c40839d52bce155eabc6cf5a
 │   │   ├── 8a/
@@ -607,7 +624,8 @@ safecube-android/
 │   │   │   └── d4315d83350e48ffdb3c27b0e15c72a338d93b
 │   │   ├── 8e/
 │   │   │   ├── 135b73d1a8b22edc8f01142f44846d875d110d
-│   │   │   └── 88d9253475a32b9a150dcdd15bc5184a0ac758
+│   │   │   ├── 88d9253475a32b9a150dcdd15bc5184a0ac758
+│   │   │   └── ba9bf0d2493c2a25b14e93f739bf7fef91e50f
 │   │   ├── 8f/
 │   │   │   ├── 5953683d1b1322b20a8e1eba72e41a742d653f
 │   │   │   ├── 632273893ccc4cd240735ef27bb097aaec3052
@@ -622,6 +640,7 @@ safecube-android/
 │   │   ├── 91/
 │   │   │   ├── 26ae37cbc3587421d6889eadd1d91fbf1994d4
 │   │   │   ├── 9fcb2c40c7668bb70e7314ed1e4a45b382f8b0
+│   │   │   ├── a75679dd13939b80684f7188782528ae60f20b
 │   │   │   └── dc1f23229c2dddcff8c824423e37e2ae64dd13
 │   │   ├── 92/
 │   │   │   ├── 87f5083623b375139afb391af71cc533a7dd37
@@ -670,6 +689,7 @@ safecube-android/
 │   │   │   └── 2a513ab4257552a3ba794c725b25020d609626
 │   │   ├── 9d/
 │   │   │   ├── 0f93e0e9877695934cb73a2c82829b53c568ee
+│   │   │   ├── 317d578a2b5e5e9029863ebc736e3da5c9bc70
 │   │   │   ├── 3726736f16e9ff475ecb0cb89e5c0d4980881d
 │   │   │   ├── 6a9270d7eafcc02fd054779e8ccd86bbe3b533
 │   │   │   ├── d12428a5821df8fdd1a93b61ba35be30e399f7
@@ -682,6 +702,7 @@ safecube-android/
 │   │   ├── 9f/
 │   │   │   ├── 3457cb5b86c657b9ff08f5a1cf062013688526
 │   │   │   ├── 7faf1cc8b801bfa7f603e789de9169b4af91ca
+│   │   │   ├── 9dc17208b01ca7e875717a51e480fab6c2c4c6
 │   │   │   ├── b206c634820ece0ca17afa2dd69dd68f9c4d3a
 │   │   │   └── f8304dee9d7a33f9736597ed42d458045ded5e
 │   │   ├── a0/
@@ -726,6 +747,7 @@ safecube-android/
 │   │   │   └── 5566a74bdcaece1c68c13c8d04f2122fe4af44
 │   │   ├── aa/
 │   │   │   ├── 4128f4f0f2858a89e4394d524a9f8e242a8275
+│   │   │   ├── 4b3f3272f9e2177cf2ad57bde342df6391b797
 │   │   │   ├── 50b12437123a158992b0ebdff9da113fd44747
 │   │   │   ├── 7d6427e6fa1074b79ccd52ef67ac15c5637e85
 │   │   │   └── a16c4e2f856a1a2ea7ebed0f28a84cc3b4d18f
@@ -817,7 +839,8 @@ safecube-android/
 │   │   │   ├── 3c973619b21826761deeafb2045e637c10910e
 │   │   │   └── fddd501f69d5707e6d6bd2218168aba652be9c
 │   │   ├── c0/
-│   │   │   └── 33b6b2e70a2d6993c415f583601bc6745f63fb
+│   │   │   ├── 33b6b2e70a2d6993c415f583601bc6745f63fb
+│   │   │   └── a5c201f23518f6a4f50ed2a565ab147963997c
 │   │   ├── c1/
 │   │   │   ├── 2324699053fcd9daf90a35d233f3409d8762d4
 │   │   │   └── 7fe8b7670e70395171d7565c77fc112371c15a
@@ -862,10 +885,13 @@ safecube-android/
 │   │   │   └── 8b225eae4150ea320b01965726a9096996e17d
 │   │   ├── cc/
 │   │   │   ├── 1ead347de59abe8ad7b5fba2c91f9bbdee9c97
+│   │   │   ├── 82cc6b932833c91e80dbc56c6c1b2703ec1ec7
 │   │   │   ├── 947c56799598205b8fb518f3ba95843c1bab71
 │   │   │   ├── 95c278643e3b8b258ece899e2b8cb0c64fc209
+│   │   │   ├── cb0a7612ff3e148995c89afb1c272a45a111a2
 │   │   │   └── ce9ec1a7bc26c6a08a95c5e01b291bcdfaaeed
 │   │   ├── cd/
+│   │   │   ├── 38837e7db5bad7d7332b38eb3d983e71fa5928
 │   │   │   └── 818a34cc887ee81f764205a1d7bb4b9401b11d
 │   │   ├── ce/
 │   │   │   ├── 0f3d7207c51291334762bc8a7db029d13fe0dd
@@ -890,6 +916,7 @@ safecube-android/
 │   │   │   ├── 22261ea6d2518ee68fb1d659cd0d7caff33b3d
 │   │   │   ├── 4a4b1774a4fdc036549a56140de7aa8d90218f
 │   │   │   ├── 7eb1dd758aa4c3dea1cec28922cc1387dc4550
+│   │   │   ├── 90afd18f72b78803b4dbb454737e3616ebe6e3
 │   │   │   └── cc38db1c159ac5fe4e4866528285c73c57191b
 │   │   ├── d5/
 │   │   │   ├── 140f99b720cd7f81050c7f3b46512a53b798d9
@@ -936,6 +963,7 @@ safecube-android/
 │   │   │   └── fce98b245dddcf9156835c8eda629f806b94e4
 │   │   ├── e1/
 │   │   │   ├── 091afee82e38ca85f3b18710e5a52318d5b547
+│   │   │   ├── 14e1ed02b472426fb09d9a2a17169f91a9294f
 │   │   │   ├── 4311e981eec932b968f5280c6fcd6b8db4953d
 │   │   │   ├── 55b0e96df8f978ac7e63af9ff7f7958fbd8d0b
 │   │   │   └── a04ce17639c0b3d4644732cdf10039153e6fc4
@@ -977,13 +1005,15 @@ safecube-android/
 │   │   │   ├── 15ee3632737085367f9a75615977abe9802f84
 │   │   │   └── e74a09e5afa30157287b7686f671a36a31d735
 │   │   ├── ec/
-│   │   │   └── bfd7d9948adfb1ecc1393d830a7c30e0de4ec0
+│   │   │   ├── bfd7d9948adfb1ecc1393d830a7c30e0de4ec0
+│   │   │   └── f161bcb908f2636f9c3d244c8a7587d032d193
 │   │   ├── ed/
 │   │   │   ├── 1003672430ba53a3e1a3f24d2226f77c42d084
 │   │   │   ├── b68f6bf74ab749f59e4563c2f35adcf0eb34b3
 │   │   │   └── f97026b5fe82b096d3db52955390e2726a2710
 │   │   ├── ee/
-│   │   │   └── 74ea35eb2029e9f4896f1eb16f03bde264cc12
+│   │   │   ├── 74ea35eb2029e9f4896f1eb16f03bde264cc12
+│   │   │   └── 9fd8b9111fcacbcace39a8ef8770d7eefdc958
 │   │   ├── ef/
 │   │   │   └── 1fc1792b6c01c912602562956522b076d6e559
 │   │   ├── f0/
@@ -5087,6 +5117,7 @@ safecube-android/
 │   │   │   │   │   │   │   │   ├── EncryptedTokenStorage_Factory.java
 │   │   │   │   │   │   │   │   └── FakeVaultSessionManager_Factory.java
 │   │   │   │   │   │   │   ├── AuthErrorMapper_Factory.java
+│   │   │   │   │   │   │   ├── RemoteAuthDataSource_Factory.java
 │   │   │   │   │   │   │   └── SessionManager_Factory.java
 │   │   │   │   │   │   └── hilt_aggregated_deps/
 │   │   │   │   │   │       └── _com_miguelrodriguez19_safecube_core_auth_di_AuthModule.java
@@ -5164,6 +5195,16 @@ safecube-android/
 │   │   │   │   │   │   │   ├── AuthErrorMapper.class
 │   │   │   │   │   │   │   ├── AuthOperation.class
 │   │   │   │   │   │   │   ├── AuthRepository.class
+│   │   │   │   │   │   │   ├── NetworkResult$Failure.class
+│   │   │   │   │   │   │   ├── NetworkResult$HttpError.class
+│   │   │   │   │   │   │   ├── NetworkResult$Success.class
+│   │   │   │   │   │   │   ├── NetworkResult.class
+│   │   │   │   │   │   │   ├── RemoteAuthDataSource$execute$1.class
+│   │   │   │   │   │   │   ├── RemoteAuthDataSource$login$2.class
+│   │   │   │   │   │   │   ├── RemoteAuthDataSource$logout$2.class
+│   │   │   │   │   │   │   ├── RemoteAuthDataSource$refresh$2.class
+│   │   │   │   │   │   │   ├── RemoteAuthDataSource$register$2.class
+│   │   │   │   │   │   │   ├── RemoteAuthDataSource.class
 │   │   │   │   │   │   │   ├── SessionManager.class
 │   │   │   │   │   │   │   ├── SessionState$LoggedIn.class
 │   │   │   │   │   │   │   ├── SessionState$LoggedOut.class
@@ -5179,7 +5220,12 @@ safecube-android/
 │   │   │   │   │   │       └── auth.kotlin_module
 │   │   │   │   │   ├── debugUnitTest/compileDebugUnitTestKotlin/classes/
 │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/auth/
-│   │   │   │   │   │   │   └── AuthErrorMapperTest.class
+│   │   │   │   │   │   │   ├── AuthErrorMapperTest.class
+│   │   │   │   │   │   │   ├── FakeAuthControllerApi.class
+│   │   │   │   │   │   │   ├── RemoteAuthDataSourceTest$login returns success result preserving code and body$1.class
+│   │   │   │   │   │   │   ├── RemoteAuthDataSourceTest$refresh wraps transport exceptions into failure result$1.class
+│   │   │   │   │   │   │   ├── RemoteAuthDataSourceTest$register returns http error preserving code and error body$1.class
+│   │   │   │   │   │   │   └── RemoteAuthDataSourceTest.class
 │   │   │   │   │   │   └── META-INF/
 │   │   │   │   │   │       └── auth.kotlin_module
 │   │   │   │   │   └── release/compileReleaseKotlin/classes/
@@ -5231,6 +5277,17 @@ safecube-android/
 │   │   │   │   │   │   │   │   ├── AuthErrorMapper_Factory.class
 │   │   │   │   │   │   │   │   ├── AuthOperation.class
 │   │   │   │   │   │   │   │   ├── AuthRepository.class
+│   │   │   │   │   │   │   │   ├── NetworkResult$Failure.class
+│   │   │   │   │   │   │   │   ├── NetworkResult$HttpError.class
+│   │   │   │   │   │   │   │   ├── NetworkResult$Success.class
+│   │   │   │   │   │   │   │   ├── NetworkResult.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$execute$1.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$login$2.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$logout$2.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$refresh$2.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$register$2.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource_Factory.class
 │   │   │   │   │   │   │   │   ├── SessionManager.class
 │   │   │   │   │   │   │   │   ├── SessionManager_Factory.class
 │   │   │   │   │   │   │   │   ├── SessionState$LoggedIn.class
@@ -5251,7 +5308,12 @@ safecube-android/
 │   │   │   │   │   ├── debugUnitTest/transformDebugUnitTestClassesWithAsm/
 │   │   │   │   │   │   ├── dirs/
 │   │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/auth/
-│   │   │   │   │   │   │   │   └── AuthErrorMapperTest.class
+│   │   │   │   │   │   │   │   ├── AuthErrorMapperTest.class
+│   │   │   │   │   │   │   │   ├── FakeAuthControllerApi.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSourceTest$login returns success result preserving code and body$1.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSourceTest$refresh wraps transport exceptions into failure result$1.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSourceTest$register returns http error preserving code and error body$1.class
+│   │   │   │   │   │   │   │   └── RemoteAuthDataSourceTest.class
 │   │   │   │   │   │   │   └── META-INF/
 │   │   │   │   │   │   │       └── auth.kotlin_module
 │   │   │   │   │   │   └── jars/
@@ -5412,6 +5474,22 @@ safecube-android/
 │   │   │   │   │   │   ├── AuthErrorMapperTest.class
 │   │   │   │   │   │   ├── AuthOperation.class
 │   │   │   │   │   │   ├── AuthRepository.class
+│   │   │   │   │   │   ├── FakeAuthControllerApi.class
+│   │   │   │   │   │   ├── NetworkResult$Failure.class
+│   │   │   │   │   │   ├── NetworkResult$HttpError.class
+│   │   │   │   │   │   ├── NetworkResult$Success.class
+│   │   │   │   │   │   ├── NetworkResult.class
+│   │   │   │   │   │   ├── RemoteAuthDataSource$execute$1.class
+│   │   │   │   │   │   ├── RemoteAuthDataSource$login$2.class
+│   │   │   │   │   │   ├── RemoteAuthDataSource$logout$2.class
+│   │   │   │   │   │   ├── RemoteAuthDataSource$refresh$2.class
+│   │   │   │   │   │   ├── RemoteAuthDataSource$register$2.class
+│   │   │   │   │   │   ├── RemoteAuthDataSource.class
+│   │   │   │   │   │   ├── RemoteAuthDataSource_Factory.class
+│   │   │   │   │   │   ├── RemoteAuthDataSourceTest$login returns success result preserving code and body$1.class
+│   │   │   │   │   │   ├── RemoteAuthDataSourceTest$refresh wraps transport exceptions into failure result$1.class
+│   │   │   │   │   │   ├── RemoteAuthDataSourceTest$register returns http error preserving code and error body$1.class
+│   │   │   │   │   │   ├── RemoteAuthDataSourceTest.class
 │   │   │   │   │   │   ├── SessionManager.class
 │   │   │   │   │   │   ├── SessionManager_Factory.class
 │   │   │   │   │   │   ├── SessionState$LoggedIn.class
@@ -5701,6 +5779,7 @@ safecube-android/
 │   │   │   │   │   │   │   │   └── FakeVaultSessionManager_Factory.class
 │   │   │   │   │   │   │   ├── AuthErrorMapper_Factory$InstanceHolder.class
 │   │   │   │   │   │   │   ├── AuthErrorMapper_Factory.class
+│   │   │   │   │   │   │   ├── RemoteAuthDataSource_Factory.class
 │   │   │   │   │   │   │   └── SessionManager_Factory.class
 │   │   │   │   │   │   └── hilt_aggregated_deps/
 │   │   │   │   │   │       └── _com_miguelrodriguez19_safecube_core_auth_di_AuthModule.class
@@ -6193,7 +6272,21 @@ safecube-android/
 │   │   │   │   │   │   │   │       ├── source-to-classes.tab.len
 │   │   │   │   │   │   │   │       ├── source-to-classes.tab.values.at
 │   │   │   │   │   │   │   │       ├── source-to-classes.tab_i
-│   │   │   │   │   │   │   │       └── source-to-classes.tab_i.len
+│   │   │   │   │   │   │   │       ├── source-to-classes.tab_i.len
+│   │   │   │   │   │   │   │       ├── subtypes.tab
+│   │   │   │   │   │   │   │       ├── subtypes.tab.keystream
+│   │   │   │   │   │   │   │       ├── subtypes.tab.keystream.len
+│   │   │   │   │   │   │   │       ├── subtypes.tab.len
+│   │   │   │   │   │   │   │       ├── subtypes.tab.values.at
+│   │   │   │   │   │   │   │       ├── subtypes.tab_i
+│   │   │   │   │   │   │   │       ├── subtypes.tab_i.len
+│   │   │   │   │   │   │   │       ├── supertypes.tab
+│   │   │   │   │   │   │   │       ├── supertypes.tab.keystream
+│   │   │   │   │   │   │   │       ├── supertypes.tab.keystream.len
+│   │   │   │   │   │   │   │       ├── supertypes.tab.len
+│   │   │   │   │   │   │   │       ├── supertypes.tab.values.at
+│   │   │   │   │   │   │   │       ├── supertypes.tab_i
+│   │   │   │   │   │   │   │       └── supertypes.tab_i.len
 │   │   │   │   │   │   │   └── lookups/
 │   │   │   │   │   │   │       ├── counters.tab
 │   │   │   │   │   │   │       ├── file-to-id.tab
@@ -6208,6 +6301,7 @@ safecube-android/
 │   │   │   │   │   │   │       ├── id-to-file.tab.keystream.len
 │   │   │   │   │   │   │       ├── id-to-file.tab.len
 │   │   │   │   │   │   │       ├── id-to-file.tab.values.at
+│   │   │   │   │   │   │       ├── id-to-file.tab_i
 │   │   │   │   │   │   │       ├── id-to-file.tab_i.len
 │   │   │   │   │   │   │       ├── lookups.tab
 │   │   │   │   │   │   │       ├── lookups.tab.keystream
@@ -6337,6 +6431,7 @@ safecube-android/
 │   │   │   │   │   │   │   │   ├── EncryptedTokenStorage_Factory.java
 │   │   │   │   │   │   │   │   └── FakeVaultSessionManager_Factory.java
 │   │   │   │   │   │   │   ├── AuthErrorMapper_Factory.java
+│   │   │   │   │   │   │   ├── RemoteAuthDataSource_Factory.java
 │   │   │   │   │   │   │   └── SessionManager_Factory.java
 │   │   │   │   │   │   └── hilt_aggregated_deps/
 │   │   │   │   │   │       └── _com_miguelrodriguez19_safecube_core_auth_di_AuthModule.java
@@ -6387,6 +6482,7 @@ safecube-android/
 │   │   │   │   │   │   ├── id-to-file.tab.keystream.len
 │   │   │   │   │   │   ├── id-to-file.tab.len
 │   │   │   │   │   │   ├── id-to-file.tab.values.at
+│   │   │   │   │   │   ├── id-to-file.tab_i
 │   │   │   │   │   │   ├── id-to-file.tab_i.len
 │   │   │   │   │   │   ├── lookups.tab
 │   │   │   │   │   │   ├── lookups.tab.keystream
@@ -6465,7 +6561,8 @@ safecube-android/
 │   │   │   │   │   └── index.html
 │   │   │   │   └── tests/testDebugUnitTest/
 │   │   │   │       ├── classes/
-│   │   │   │       │   └── com.miguelrodriguez19.safecube.core.auth.AuthErrorMapperTest.html
+│   │   │   │       │   ├── com.miguelrodriguez19.safecube.core.auth.AuthErrorMapperTest.html
+│   │   │   │       │   └── com.miguelrodriguez19.safecube.core.auth.RemoteAuthDataSourceTest.html
 │   │   │   │       ├── css/
 │   │   │   │       │   ├── base-style.css
 │   │   │   │       │   └── style.css
@@ -6479,7 +6576,8 @@ safecube-android/
 │   │   │   │   │   ├── output.bin
 │   │   │   │   │   ├── output.bin.idx
 │   │   │   │   │   └── results.bin
-│   │   │   │   └── TEST-com.miguelrodriguez19.safecube.core.auth.AuthErrorMapperTest.xml
+│   │   │   │   ├── TEST-com.miguelrodriguez19.safecube.core.auth.AuthErrorMapperTest.xml
+│   │   │   │   └── TEST-com.miguelrodriguez19.safecube.core.auth.RemoteAuthDataSourceTest.xml
 │   │   │   └── tmp/
 │   │   │       ├── compileDebugJavaWithJavac/
 │   │   │       │   ├── compileTransaction/
@@ -6506,6 +6604,8 @@ safecube-android/
 │   │   │   │   │   ├── AuthErrorMapper.kt
 │   │   │   │   │   ├── AuthOperation.kt
 │   │   │   │   │   ├── AuthRepository.kt
+│   │   │   │   │   ├── NetworkResult.kt
+│   │   │   │   │   ├── RemoteAuthDataSource.kt
 │   │   │   │   │   ├── SessionManager.kt
 │   │   │   │   │   ├── SessionState.kt
 │   │   │   │   │   ├── TokenStorage.kt
@@ -6513,7 +6613,8 @@ safecube-android/
 │   │   │   │   │   └── VaultState.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/auth/
-│   │   │       └── AuthErrorMapperTest.kt
+│   │   │       ├── AuthErrorMapperTest.kt
+│   │   │       └── RemoteAuthDataSourceTest.kt
 │   │   └── build.gradle.kts
 │   ├── crypto/
 │   │   ├── build/

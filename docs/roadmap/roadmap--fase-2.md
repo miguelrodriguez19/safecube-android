@@ -250,6 +250,13 @@ El contrato auth proviene de OpenAPI y ya define requests/responses para registe
 * `RemoteAuthDataSource` compila y usa `AuthControllerApi` generado.
 * Los errores HTTP se exponen sin pérdida de información útil.
 
+### Implementation Status (Applied 2026-03-04)
+
+* `RemoteAuthDataSource` creado en `core:auth`, dependiente de `AuthControllerApi` generado.
+* Métodos implementados: `register`, `login`, `refresh`, `logout`.
+* `NetworkResult<T>` agregado para preservar `httpCode`, `body`, `errorBody` y fallos de transporte.
+* Tests unitarios agregados para success, http error y transport failure.
+
 ---
 
 # Implement AuthRepositoryImpl (core:auth) using RemoteAuthDataSource
