@@ -1,5 +1,7 @@
 package com.miguelrodriguez19.safecube.core.auth.di
 
+import com.miguelrodriguez19.safecube.core.auth.AuthRepository
+import com.miguelrodriguez19.safecube.core.auth.AuthRepositoryImpl
 import com.miguelrodriguez19.safecube.core.auth.SessionManager
 import com.miguelrodriguez19.safecube.core.auth.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.VaultSessionManager
@@ -15,6 +17,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class AuthModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        authRepositoryImpl: AuthRepositoryImpl,
+    ): AuthRepository
 
     @Binds
     @Singleton

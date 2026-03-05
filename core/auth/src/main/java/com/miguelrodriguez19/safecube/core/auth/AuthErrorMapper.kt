@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.core.auth
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -65,7 +66,7 @@ class AuthErrorMapper @Inject constructor() {
         )
     }
 
-    private fun kotlinx.serialization.json.JsonElement?.extractString(): String? =
+    private fun JsonElement?.extractString(): String? =
         (this as? JsonPrimitive)?.contentOrNull
 
     private data class ParsedErrorBody(
