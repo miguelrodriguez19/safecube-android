@@ -192,6 +192,18 @@ OpenAPI define `400/401/403/409/500` en endpoints auth; backend usa formato homo
 * El mapper transforma errores HTTP de auth a un modelo de dominio estable.
 * Un body de error inválido/no esperado no rompe el flujo.
 
+### Implementation Status (Applied 2026-03-04)
+
+* `AuthError` definido como modelo de dominio estable en `core:auth`.
+* `AuthErrorMapper` implementado con parsing defensivo de `error` y `fields`.
+* Mapeo explícito aplicado:
+  * `400` -> `ValidationFailed(fields?, message?)`
+  * `401` -> `InvalidCredentials`
+  * `403` -> `Forbidden`
+  * `409` -> `AccountAlreadyExists` (signup) / `Conflict` (resto)
+  * fallback -> `Unknown`
+* Tests unitarios agregados para códigos y parseo inválido.
+
 ---
 
 # Create RemoteAuthDataSource (thin network wrapper with generated AuthControllerApi)
