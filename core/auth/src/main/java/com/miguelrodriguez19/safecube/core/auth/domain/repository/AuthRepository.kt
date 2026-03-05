@@ -1,4 +1,8 @@
-package com.miguelrodriguez19.safecube.core.auth
+package com.miguelrodriguez19.safecube.core.auth.domain.repository
+
+import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
+import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
+import com.miguelrodriguez19.safecube.core.auth.domain.model.RegisteredAccount
 
 interface AuthRepository {
     suspend fun register(

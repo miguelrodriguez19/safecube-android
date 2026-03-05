@@ -1,5 +1,7 @@
-package com.miguelrodriguez19.safecube.core.auth
+package com.miguelrodriguez19.safecube.core.auth.data.mapper
 
+import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
+import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthOperation
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

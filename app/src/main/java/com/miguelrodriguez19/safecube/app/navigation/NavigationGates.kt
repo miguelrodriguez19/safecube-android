@@ -14,9 +14,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.miguelrodriguez19.safecube.core.auth.SessionManager
-import com.miguelrodriguez19.safecube.core.auth.VaultSessionManager
-import com.miguelrodriguez19.safecube.core.auth.VaultState
+import com.miguelrodriguez19.safecube.core.auth.domain.model.VaultState
+import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
+import com.miguelrodriguez19.safecube.core.auth.domain.vault.VaultSessionManager
 import com.miguelrodriguez19.safecube.feature.auth.screens.PostLoginGateScreen
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn

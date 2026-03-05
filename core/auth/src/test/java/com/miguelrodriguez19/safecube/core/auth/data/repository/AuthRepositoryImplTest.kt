@@ -1,5 +1,11 @@
-package com.miguelrodriguez19.safecube.core.auth
+package com.miguelrodriguez19.safecube.core.auth.data.repository
 
+import com.miguelrodriguez19.safecube.core.auth.data.mapper.AuthErrorMapper
+import com.miguelrodriguez19.safecube.core.auth.data.remote.RemoteAuthDataSource
+import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
+import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
+import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
+import com.miguelrodriguez19.safecube.core.auth.domain.model.RegisteredAccount
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthenticateAccountRequest

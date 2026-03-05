@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.auth
+package com.miguelrodriguez19.safecube.core.auth.data.remote
 
 sealed interface NetworkResult<out T> {
     data class Success<T>(

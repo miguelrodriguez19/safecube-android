@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.auth
+package com.miguelrodriguez19.safecube.core.auth.domain.model
 
 import java.time.OffsetDateTime
 import java.util.UUID

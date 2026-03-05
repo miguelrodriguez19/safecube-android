@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.auth
+package com.miguelrodriguez19.safecube.core.auth.domain.repository
 
 import java.time.OffsetDateTime
 

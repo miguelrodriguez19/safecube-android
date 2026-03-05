@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.auth
+package com.miguelrodriguez19.safecube.core.auth.data.remote
 
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse

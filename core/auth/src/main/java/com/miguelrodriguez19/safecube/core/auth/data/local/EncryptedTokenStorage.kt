@@ -1,8 +1,8 @@
-package com.miguelrodriguez19.safecube.core.auth.internal
+package com.miguelrodriguez19.safecube.core.auth.data.local
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import com.miguelrodriguez19.safecube.core.auth.TokenStorage
+import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import java.time.OffsetDateTime
 import javax.inject.Inject
 import javax.inject.Singleton

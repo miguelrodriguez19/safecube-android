@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.auth
+package com.miguelrodriguez19.safecube.core.auth.domain.model
 
 sealed interface AuthResult<out T> {
     data class Success<T>(

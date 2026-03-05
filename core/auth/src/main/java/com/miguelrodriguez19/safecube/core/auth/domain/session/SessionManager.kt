@@ -1,5 +1,7 @@
-package com.miguelrodriguez19.safecube.core.auth
+package com.miguelrodriguez19.safecube.core.auth.domain.session
 
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
+import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.network.TokenProvider
 import javax.inject.Inject
 import javax.inject.Singleton

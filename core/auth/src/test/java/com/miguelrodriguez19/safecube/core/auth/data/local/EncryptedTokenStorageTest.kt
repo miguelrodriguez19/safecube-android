@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.auth.internal
+package com.miguelrodriguez19.safecube.core.auth.data.local
 
 import android.content.SharedPreferences
 import java.time.OffsetDateTime

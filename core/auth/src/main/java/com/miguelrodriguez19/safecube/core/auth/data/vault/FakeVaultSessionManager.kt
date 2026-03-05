@@ -1,7 +1,7 @@
-package com.miguelrodriguez19.safecube.core.auth.internal
+package com.miguelrodriguez19.safecube.core.auth.data.vault
 
-import com.miguelrodriguez19.safecube.core.auth.VaultSessionManager
-import com.miguelrodriguez19.safecube.core.auth.VaultState
+import com.miguelrodriguez19.safecube.core.auth.domain.model.VaultState
+import com.miguelrodriguez19.safecube.core.auth.domain.vault.VaultSessionManager
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow

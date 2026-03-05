@@ -1,5 +1,6 @@
-package com.miguelrodriguez19.safecube.core.auth
+package com.miguelrodriguez19.safecube.core.auth.domain.vault
 
+import com.miguelrodriguez19.safecube.core.auth.domain.model.VaultState
 import kotlinx.coroutines.flow.Flow
 
 interface VaultSessionManager {
