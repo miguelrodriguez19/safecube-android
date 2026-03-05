@@ -142,6 +142,13 @@ Aunque OpenAPI incluya endpoints de otros slices, esta fase implementa únicamen
 * El roadmap y las tareas de Fase 2 no dependen de APIs de `user` o `vault`.
 * Las implementaciones de Fase 2 usan solo contrato generado de `auth`.
 
+### Implementation Status (Applied 2026-03-04)
+
+* Restricción cerrada en arquitectura: `docs/architecture/openapi-auth-contract-integration.md`.
+* En runtime solo se provee `AuthControllerApi` generado desde `core:network`.
+* `UserProfileControllerApi`, `VaultControllerApi`, `VaultKeyMaterialControllerApi` quedan fuera de uso en Fase 2.
+* `feature/*` sin imports directos a `generated.*` (consumo encapsulado en `core:network`/`core:auth`).
+
 ---
 
 # Add Auth error mapping (generated HTTP errors -> domain AuthError)
