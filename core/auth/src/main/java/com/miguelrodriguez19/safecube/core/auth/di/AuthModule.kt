@@ -11,6 +11,7 @@ import com.miguelrodriguez19.safecube.core.auth.data.vault.FakeVaultSessionManag
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
+import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManagerImpl
 import com.miguelrodriguez19.safecube.core.auth.domain.vault.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.network.TokenProvider
 import dagger.Binds
@@ -39,8 +40,14 @@ abstract class AuthModule {
 
     @Binds
     @Singleton
+    abstract fun bindSessionManager(
+        sessionManagerImpl: SessionManagerImpl,
+    ): SessionManager
+
+    @Binds
+    @Singleton
     abstract fun bindTokenProvider(
-        sessionManager: SessionManager,
+        sessionManagerImpl: SessionManagerImpl,
     ): TokenProvider
 
     @Binds
