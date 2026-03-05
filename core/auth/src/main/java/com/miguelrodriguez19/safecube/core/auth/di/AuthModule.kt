@@ -7,6 +7,7 @@ import androidx.security.crypto.MasterKey
 import com.miguelrodriguez19.safecube.core.auth.data.local.EncryptedTokenPrefs
 import com.miguelrodriguez19.safecube.core.auth.data.local.EncryptedTokenStorage
 import com.miguelrodriguez19.safecube.core.auth.data.repository.AuthRepositoryImpl
+import com.miguelrodriguez19.safecube.core.auth.data.session.AuthTokenRefreshHandler
 import com.miguelrodriguez19.safecube.core.auth.data.vault.FakeVaultSessionManager
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
@@ -14,6 +15,7 @@ import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManagerImpl
 import com.miguelrodriguez19.safecube.core.auth.domain.vault.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.network.TokenProvider
+import com.miguelrodriguez19.safecube.core.network.TokenRefreshHandler
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -49,6 +51,12 @@ abstract class AuthModule {
     abstract fun bindTokenProvider(
         sessionManagerImpl: SessionManagerImpl,
     ): TokenProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindTokenRefreshHandler(
+        authTokenRefreshHandler: AuthTokenRefreshHandler,
+    ): TokenRefreshHandler
 
     @Binds
     @Singleton

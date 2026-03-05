@@ -146,7 +146,10 @@ class AuthRepositoryImplTest {
     private fun repositoryWithApi(
         authControllerApi: AuthControllerApi,
     ): AuthRepositoryImpl = AuthRepositoryImpl(
-        remoteAuthDataSource = RemoteAuthDataSource(authControllerApi),
+        remoteAuthDataSource = RemoteAuthDataSource(
+            authControllerApi = authControllerApi,
+            refreshAuthControllerApi = authControllerApi,
+        ),
         authErrorMapper = mapper,
     )
 }

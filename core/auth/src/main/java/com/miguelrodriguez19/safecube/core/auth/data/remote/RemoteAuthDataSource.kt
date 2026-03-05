@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.core.auth.data.remote
 
+import com.miguelrodriguez19.safecube.core.network.di.RefreshAuthApi
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthenticateAccountRequest
@@ -14,6 +15,7 @@ import retrofit2.Response
 @Singleton
 class RemoteAuthDataSource @Inject constructor(
     private val authControllerApi: AuthControllerApi,
+    @param:RefreshAuthApi private val refreshAuthControllerApi: AuthControllerApi,
 ) {
     suspend fun register(
         request: RegisterAccountRequest,
@@ -25,7 +27,7 @@ class RemoteAuthDataSource @Inject constructor(
 
     suspend fun refresh(
         request: RefreshTokenRequest,
-    ): NetworkResult<AuthTokensResponse> = execute { authControllerApi.refresh(request) }
+    ): NetworkResult<AuthTokensResponse> = execute { refreshAuthControllerApi.refresh(request) }
 
     suspend fun logout(): NetworkResult<Unit> = execute { authControllerApi.logout() }
 

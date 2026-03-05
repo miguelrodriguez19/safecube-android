@@ -55,9 +55,38 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @RefreshOkHttpClient
+    fun provideRefreshOkHttpClient(
+        config: NetworkConfig,
+    ): OkHttpClient = NetworkClientFactory.createOkHttpClient(
+        config = config,
+    )
+
+    @Provides
+    @Singleton
+    @RefreshRetrofit
+    fun provideRefreshRetrofit(
+        config: NetworkConfig,
+        json: Json,
+        @RefreshOkHttpClient refreshOkHttpClient: OkHttpClient,
+    ): Retrofit = NetworkClientFactory.createRetrofit(
+        config = config,
+        json = json,
+        okHttpClient = refreshOkHttpClient,
+    )
+
+    @Provides
+    @Singleton
     // Contract-only usage: generated API runs on app-owned Retrofit/OkHttp stack.
     fun provideAuthControllerApi(
         retrofit: Retrofit,
     ): AuthControllerApi = retrofit.create(AuthControllerApi::class.java)
+
+    @Provides
+    @Singleton
+    @RefreshAuthApi
+    fun provideRefreshAuthControllerApi(
+        @RefreshRetrofit refreshRetrofit: Retrofit,
+    ): AuthControllerApi = refreshRetrofit.create(AuthControllerApi::class.java)
 
 }

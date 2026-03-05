@@ -25,6 +25,7 @@ class RemoteAuthDataSourceTest {
             authControllerApi = FakeAuthControllerApi(
                 loginResponse = Response.success(expectedBody),
             ),
+            refreshAuthControllerApi = FakeAuthControllerApi(),
         )
 
         val result = dataSource.login(
@@ -53,6 +54,7 @@ class RemoteAuthDataSourceTest {
                     errorJson.toResponseBody("application/json".toMediaType()),
                 ),
             ),
+            refreshAuthControllerApi = FakeAuthControllerApi(),
         )
 
         val result = dataSource.register(
@@ -75,7 +77,8 @@ class RemoteAuthDataSourceTest {
     @Test
     fun `refresh wraps transport exceptions into failure result`() = runBlocking {
         val dataSource = RemoteAuthDataSource(
-            authControllerApi = FakeAuthControllerApi(
+            authControllerApi = FakeAuthControllerApi(),
+            refreshAuthControllerApi = FakeAuthControllerApi(
                 refreshThrowable = IllegalStateException("network down"),
             ),
         )
