@@ -1,9 +1,12 @@
 package com.miguelrodriguez19.safecube.core.network
 
+import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
+import java.time.OffsetDateTime
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.Authenticator
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.Serializable
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -110,6 +113,25 @@ class NetworkClientFactoryTest {
         val request = server.takeRequest()
 
         assertEquals("Bearer token-123", request.getHeader("Authorization"))
+    }
+
+    @Test
+    fun `createJson parses generated OffsetDateTime fields`() {
+        val json = NetworkClientFactory.createJson()
+        val issuedAtRaw = "2026-03-06T12:11:35.524804768Z"
+        val payload = """
+            {
+              "accessToken":"access-token",
+              "refreshToken":"refresh-token",
+              "issuedAt":"$issuedAtRaw"
+            }
+        """.trimIndent()
+
+        val parsed = json.decodeFromString<AuthTokensResponse>(payload)
+
+        assertEquals("access-token", parsed.accessToken)
+        assertEquals("refresh-token", parsed.refreshToken)
+        assertEquals(OffsetDateTime.parse(issuedAtRaw), parsed.issuedAt)
     }
 }
 

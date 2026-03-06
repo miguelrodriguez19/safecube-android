@@ -83,6 +83,7 @@ class LoginViewModel @Inject constructor(
                         state.copy(
                             isLoading = false,
                             loginSucceeded = true,
+
                         )
                     }
                 }

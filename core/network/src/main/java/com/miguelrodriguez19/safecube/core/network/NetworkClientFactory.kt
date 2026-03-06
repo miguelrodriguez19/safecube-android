@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.core.network
 
+import com.miguelrodriguez19.safecube.core.network.generated.infrastructure.Serializer
 import java.util.concurrent.TimeUnit
 import kotlinx.serialization.json.Json
 import okhttp3.Authenticator
@@ -11,7 +12,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 object NetworkClientFactory {
-    fun createJson(): Json = Json {
+    fun createJson(): Json = Json(Serializer.kotlinxSerializationJson) {
         ignoreUnknownKeys = true
         explicitNulls = false
     }

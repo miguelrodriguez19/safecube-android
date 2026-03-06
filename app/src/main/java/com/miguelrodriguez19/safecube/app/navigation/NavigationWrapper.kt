@@ -147,13 +147,13 @@ fun NavigationWrapper() {
             entry<Routes.Login> {
                 LoginScreen(
                     onSignup = { backStack.add(Routes.Signup) },
-                    onLoginSuccess = { },
+                    onLoginSuccess = { setRoot(Routes.PostLoginGate) },
                 )
             }
             entry<Routes.Signup> {
                 SignupScreen(
                     onLogin = { setRoot(Routes.Login) },
-                    onSignupSuccess = { },
+                    onSignupSuccess = { setRoot(Routes.PostLoginGate) },
                 )
             }
             entry<Routes.Vault> {
