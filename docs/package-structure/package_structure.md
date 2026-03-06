@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 06-03-2026 12:21:23
+Updated: 06-03-2026 01:06:51
 
 ```
 safecube-android/
@@ -100,6 +100,7 @@ safecube-android/
 │   │   │   └── db5763fb34fb7f8b5d9fda0780bc83b12189fc
 │   │   ├── 0b/
 │   │   │   ├── 11b6a6d637bdb09f6f448b77bf630ecf463dc5
+│   │   │   ├── 1b7840c10c046d537b1b67dc84b19f88632667
 │   │   │   ├── 4311d275e1a82cf64c8f518129ac531149f427
 │   │   │   ├── 4ad92696fb520d38b4a7c64eb6e3344743faf1
 │   │   │   ├── 4e84bd6003347d2e9c8c61e96da643a4613431
@@ -155,6 +156,7 @@ safecube-android/
 │   │   │   └── efc8d1a60da3479e1b35d16404c8b5e8891569
 │   │   ├── 14/
 │   │   │   ├── 774c1d3a22ced3d0139b1fbb0cb34445edf4a5
+│   │   │   ├── b183b8b7dde5274b6e4ebaf0517c7419abf8fb
 │   │   │   └── e74024fc96d9151b9cf7d08a01c99127e4b2c8
 │   │   ├── 15/
 │   │   │   ├── 5867a98a04f0c74e0fd73d09a7848a581cb677
@@ -201,6 +203,7 @@ safecube-android/
 │   │   ├── 1c/
 │   │   │   ├── 88bb093d8f70b13443780c7be60969941b34f0
 │   │   │   ├── 8c696baa6a26a29aa4e280fdfca6a5cdf6cf0a
+│   │   │   ├── 929d9c0ead0e1053f55498ff8c0dd314804558
 │   │   │   ├── 947456c91e169c6c898edf6ccddaaedbd32662
 │   │   │   ├── a46215b5733c94943828dd16a6f54014ebad27
 │   │   │   └── c349d91fdf64caf342b24b345689d46bda86fb
@@ -256,7 +259,8 @@ safecube-android/
 │   │   │   ├── 7d417bf7a9cbd103e0de58be5562557e6c28ea
 │   │   │   ├── 8ba063cf44d09f83451748f5cfe6d2e31cb09a
 │   │   │   ├── d4b6dd3d2e8f1722781d526be1e9a9ec683f10
-│   │   │   └── e8afb31ee1fe2c5c9dc68495db9c59d0c6c9ce
+│   │   │   ├── e8afb31ee1fe2c5c9dc68495db9c59d0c6c9ce
+│   │   │   └── ee8836d30a1fbdecd12a3e9e8a08849484afcc
 │   │   ├── 28/
 │   │   │   ├── 05b80e99fc0eb268241744f6ff51ae59ab9da5
 │   │   │   ├── 0784de6e64e61ba50b789e1e93b89f1f5918c2
@@ -277,6 +281,7 @@ safecube-android/
 │   │   ├── 2b/
 │   │   │   ├── 068d11462a4b96669193de13a711a3a36220a0
 │   │   │   ├── 393eb5d46a49955564f35ba0915c81f502be73
+│   │   │   ├── 7a63a3ad95381ddbdcdda79e6e25638cf1b8dc
 │   │   │   ├── 8768270dcc5339367e7a73fa4d0f4e8a08e9b7
 │   │   │   ├── 8a3770648d64ea06f49f0b5780febd5acb10b0
 │   │   │   ├── 917bc3046670cb713b1f7841d769aa9f23a1d1
@@ -309,7 +314,8 @@ safecube-android/
 │   │   │   ├── 6de0a7c896e091b0f401d3b5eff7129ab83c1f
 │   │   │   ├── 9ff6fb344fb654144a10eb59b23a87ffdea37e
 │   │   │   ├── caf89991ec161a9c22985438312a3855805f19
-│   │   │   └── d004acb60d0b4574af3f02e13bf5224bd5c6a8
+│   │   │   ├── d004acb60d0b4574af3f02e13bf5224bd5c6a8
+│   │   │   └── e2d440f68ced182d804a1b334cbb5f0c13a668
 │   │   ├── 31/
 │   │   │   ├── 3bc44067c5725e0b0beaa663279e0fc576383e
 │   │   │   ├── 435ef8d24d5bf544b9d326cf5952566c5cb013
@@ -317,6 +323,7 @@ safecube-android/
 │   │   ├── 32/
 │   │   │   ├── 5df8d6e2a765a038df3c9e069f574c8ecbf851
 │   │   │   ├── 731de198adba3f03f606d3691f3aa3f53bfc67
+│   │   │   ├── c11a61b23dc980bc502904c617f66a240bf82a
 │   │   │   └── f9e261a456cfc87c359f4489a04566851cea78
 │   │   ├── 33/
 │   │   │   ├── 3266289044b4e9ac6ed82f86929be27097d37f
@@ -354,6 +361,7 @@ safecube-android/
 │   │   │   └── e565db4cebf53e2bd3d533fc52a65649c0da35
 │   │   ├── 3b/
 │   │   │   ├── 086743faafe8390a7a34fdda0a9a4fdcd2cf6f
+│   │   │   ├── 1c6a01eba7a9b8e1684437f684f0936b5aeb35
 │   │   │   ├── 254f187851f384309e07ea186a4fafd47e2dd4
 │   │   │   ├── 303904b381b720a816577ef3ba300c58dc57bd
 │   │   │   └── d41a2176bfda44d5234a20be71316b18a13ff3
@@ -374,6 +382,7 @@ safecube-android/
 │   │   │   └── 814bd93cec8dd8bae7416a347170b7ecb43c26
 │   │   ├── 40/
 │   │   │   ├── 0efe43dbbbd4875ebc3d24fe8abb546db2441a
+│   │   │   ├── 241334bef43080347ecfac33e773264077540f
 │   │   │   ├── 3cd590db9d2f284e76d9d36b15ce59a4b0472e
 │   │   │   ├── 401a71a93c4828a1ce306766344e5a8d254fa2
 │   │   │   ├── 673fe39bfaeab7a8369a939e927e370503f127
@@ -390,6 +399,7 @@ safecube-android/
 │   │   │   ├── 15726271a8776c1e75cb0aa0381e878810eaa9
 │   │   │   ├── 843b6946e69af99a8720a42b17bd005f8b9a87
 │   │   │   ├── afabfd2abebf31384ca7797186a27a4b7dbee8
+│   │   │   ├── dbe3f21dccb71ecf3f2e8b05407d1f3919c791
 │   │   │   └── f0bdf00ea208684bfe52306ec38d1a72cfa52d
 │   │   ├── 43/
 │   │   │   ├── 2252e0295c0199c60fe2796c5ed4e27ee68322
@@ -414,6 +424,7 @@ safecube-android/
 │   │   ├── 48/
 │   │   │   ├── 1bb434814107eb79d7a30b676d344b0df2f8ce
 │   │   │   ├── 3f8a2dab042e4add92524702e0df83f094f4fd
+│   │   │   ├── 46350ce728beed61fc8ebd87fb39ddc0aee6e7
 │   │   │   ├── b0f85bcf1f29b432aea0191719445334b8bd6d
 │   │   │   ├── e735128fb896aa72f73f2a599b63e587ed71f8
 │   │   │   ├── f659f5413578b4f59703f30ead651ae7dc7354
@@ -449,6 +460,7 @@ safecube-android/
 │   │   ├── 4d/
 │   │   │   ├── 252647017a64741c1a5732b0f050eaee511961
 │   │   │   ├── 5b833e0b5cc5738fe6e43724c90d54f5077acf
+│   │   │   ├── 757536a684b8c19bd177bac809e9c851c11459
 │   │   │   ├── ab7956caad44e984a08dac1314272b2b77f07e
 │   │   │   ├── b75b6c9d34845d823248c6a52396619e4c47ec
 │   │   │   ├── d0dcff2e7c7965a6da6fccf208446fe967350b
@@ -504,6 +516,7 @@ safecube-android/
 │   │   │   ├── 105b7f3e1ec1a9effc724a81b74ce1f056ce4d
 │   │   │   ├── 2a98e802821bc79153c1a68ab6be8ab91cbb7f
 │   │   │   ├── 62f2c42cd259277d61fb21736b2771bfd55750
+│   │   │   ├── 965dc1d1d1e36fddd05a634e1f295538fd1e41
 │   │   │   ├── c6ee6f9d7834e15321428306749a37795f11a1
 │   │   │   ├── c723afb9cce67ee03b6d66e722b0f9fdb40cb9
 │   │   │   ├── c855f8de2753b789b99f19aea2711395123836
@@ -640,6 +653,7 @@ safecube-android/
 │   │   │   ├── 42af0809609a57205aae47794045ca1a17e4a7
 │   │   │   ├── 43c71a78773f71a7f6100fd84d0b92cf461585
 │   │   │   ├── 5664f17465557f6360d3d8c09d0f1a3d9adfb9
+│   │   │   ├── 60695b59ba78bb739cc908492e8fa10f6d84da
 │   │   │   └── b78ed3473d22c24e016fa67c14f3f47108c21a
 │   │   ├── 71/
 │   │   │   ├── 2b071f1e7c9281477941dcfce8c81ff17dd1cb
@@ -669,7 +683,8 @@ safecube-android/
 │   │   │   ├── 86dc46621a547ba4ca3ab8945d7fa0c52b70b6
 │   │   │   └── e5f9702473cbf94dbaf96bea8443bf98ae41f9
 │   │   ├── 77/
-│   │   │   └── 1a71b598ed4ea33b3a66273923aab29fc5970e
+│   │   │   ├── 1a71b598ed4ea33b3a66273923aab29fc5970e
+│   │   │   └── 386c2183b4be8324cff58a863d46c69a9ff2fb
 │   │   ├── 78/
 │   │   │   ├── 0bd20e6239498f4418f2558a8680d0685070b3
 │   │   │   ├── 263618959a9ae9a00e153ea8ce0dbab42ad207
@@ -703,8 +718,10 @@ safecube-android/
 │   │   │   ├── c3d80be1315ce5949be53d7cd50bc78449bfb1
 │   │   │   └── d3a3f2308c9efd12d937caa74dda659c6810e8
 │   │   ├── 7e/
+│   │   │   ├── 14ea1951c6a6e78bd491727813e729bb8a19e2
 │   │   │   ├── 24cb8ec0ecaf333f470e3a38b83177a0dd5adb
-│   │   │   └── c1db6861966dc582c1789447212857ffad5c26
+│   │   │   ├── c1db6861966dc582c1789447212857ffad5c26
+│   │   │   └── e3a50e26eb35b68c005ead760b941320885c18
 │   │   ├── 7f/
 │   │   │   ├── 1b5c2b4324279733ec55748f016af1a98c1bd3
 │   │   │   ├── 2751fa96430d592378c19f56ed9dfcd86f360d
@@ -742,11 +759,14 @@ safecube-android/
 │   │   │   ├── 6cbb1a89a6ff3c6a7efcfcfa6364956b1d3f8b
 │   │   │   └── dcfd40e2a28d706ee0db47804579f3e6609747
 │   │   ├── 85/
+│   │   │   ├── 21c77f81c466d9e60ef89f48f0937a51cad773
 │   │   │   └── 9246310aa33d46d04c77ea04abb2d3e08e9c77
 │   │   ├── 86/
+│   │   │   ├── 2f55b2c71aac8e05c50281e19da92eef149d52
 │   │   │   ├── 3fbf1ded8e52d482f871e23b197788ff1a5522
 │   │   │   └── c3024d0309f6a63877965549679d2c692c36d6
 │   │   ├── 87/
+│   │   │   ├── 1a9910f52c4ba6515a9a8649694448046215d4
 │   │   │   ├── 5e0c35f38c02757cdd9980027cdb50a6bec712
 │   │   │   ├── 9b62d893387ae787cf224f08b7cc6f694ab65e
 │   │   │   ├── a6dadcf28672ff38188e20b6ccefab2d9ab550
@@ -773,7 +793,8 @@ safecube-android/
 │   │   │   └── ee680d56efc9904a1faa591ad80310b0a1d269
 │   │   ├── 8c/
 │   │   │   ├── 2bca619972e10b647cfc3655f70fa8e58bc356
-│   │   │   └── 3891aea5a1e9caf470ab6924ea15e0c7c1b618
+│   │   │   ├── 3891aea5a1e9caf470ab6924ea15e0c7c1b618
+│   │   │   └── c83099a3508125913331d082f9d03cb0b1842e
 │   │   ├── 8d/
 │   │   │   ├── 2cf7d7230001c6be25309f124de0f97900f2a2
 │   │   │   ├── 3286a6c7daa320bc30ac3e601305eade75a532
@@ -828,6 +849,7 @@ safecube-android/
 │   │   ├── 95/
 │   │   │   ├── 08dc1c52b56500f993d080507fad945444f6e2
 │   │   │   ├── 2aa8fdb10cd152334babb9a16d5d2b3c7e02e7
+│   │   │   ├── 2aee61410e26ccbbb11128f6042d751e8b3545
 │   │   │   ├── 369e53680b440cef4cf459454d494d9918e3c9
 │   │   │   ├── 7d39918159d8302a94a33fd2207dc01d87d5e2
 │   │   │   └── 8df6a1a0772034a5e1a240deb08393e92a4c62
@@ -858,13 +880,16 @@ safecube-android/
 │   │   │   └── d82b82e0c177c0dfa61ea80b7f2fb53e631320
 │   │   ├── 9b/
 │   │   │   ├── 168896e301b3c3016bee7423b67fb440c1ce7c
+│   │   │   ├── 3465f761efc835080fb29bb0f8ef3be5e272aa
 │   │   │   ├── 910b71debe3ec39a498df5ed1829383372e813
 │   │   │   ├── b03c1a6bfc3b6074ef918c3f959ec8373c6171
 │   │   │   └── c902157fdffec4d6f1a5f06376be72f3062844
 │   │   ├── 9c/
 │   │   │   ├── 0f20fdf603ce93ba8ace77229a7ec15eb0fd4f
+│   │   │   ├── 28b832e53f8e9c7fffe312e815fd42a18fec7c
 │   │   │   ├── 2a513ab4257552a3ba794c725b25020d609626
-│   │   │   └── 4726997dc06e6c5567db272b9a2a1862c760aa
+│   │   │   ├── 4726997dc06e6c5567db272b9a2a1862c760aa
+│   │   │   └── a4fa0125c7dfd813f4d185b16a8ff792598792
 │   │   ├── 9d/
 │   │   │   ├── 0f93e0e9877695934cb73a2c82829b53c568ee
 │   │   │   ├── 317d578a2b5e5e9029863ebc736e3da5c9bc70
@@ -879,6 +904,7 @@ safecube-android/
 │   │   ├── 9e/
 │   │   │   ├── 09de06f2dfa85f89946dc55c8541e92efde2df
 │   │   │   ├── cd117b4b016aca1d43a6f613236eabba3c9cb1
+│   │   │   ├── d41ca6aba98834caf55cab2772bd38311d7d8a
 │   │   │   ├── e9997b0b4726e57c27b2f7b21462b604ff8a88
 │   │   │   ├── edca26a27d25a06aa888dba767f9e90cea0407
 │   │   │   └── fadd00c77571509f1f5cef799d02f5f120b9b8
@@ -893,6 +919,7 @@ safecube-android/
 │   │   │   ├── 0d29bfca58bf016d46ab436340598a3f83334c
 │   │   │   ├── 1b5de7c76b8c11d515b640a9e010f5d3272616
 │   │   │   ├── 364cd71b6e9fa7bf6969a0a77709ce47b9dd99
+│   │   │   ├── ad6dcf0c7aae05e484c3c5a564e11edddc020d
 │   │   │   └── eaa5916cf78d45970b2fa11d6d7d7d3186d0cb
 │   │   ├── a1/
 │   │   │   ├── 54faec9a78106adb734963cf8e629a927cd6b8
@@ -905,6 +932,7 @@ safecube-android/
 │   │   ├── a3/
 │   │   │   ├── 71ad66bb24e81c0f8a714349b8c246447d0e8c
 │   │   │   ├── 762d3e7c8d46e363bf93f888a543c636cf54e9
+│   │   │   ├── 8a59ed87ec9e46f6063bab322002ccea25ef39
 │   │   │   ├── c3fcb53fffa70b7ae326ffaed67e4192913112
 │   │   │   └── de34961096076e3ad578310142d8e33859d1bb
 │   │   ├── a4/
@@ -971,6 +999,7 @@ safecube-android/
 │   │   │   ├── 1d4f1c070cc39f60ddfe6c8a8e25907124d98a
 │   │   │   ├── 418d80187ea2c8f161d7c1eae9f96e2392c05c
 │   │   │   ├── 99004b2d5171152519915cac69f46ee31fecf8
+│   │   │   ├── ac2a8ce832cd8bbba3c9aa558fece0a71d6b2c
 │   │   │   ├── de61f9accdc6beadda1f10b9ecf3deb7f6cc54
 │   │   │   ├── de97bf1845fc360110cfcb84e0c57cb3fdfb83
 │   │   │   └── eb3932e37800a67a69fd7c0c2dab83bdf873cd
@@ -978,6 +1007,7 @@ safecube-android/
 │   │   │   ├── 8e732a262059c37da6f505fa1e98bc7d33a30e
 │   │   │   └── a96dde1a3192b0873a6fc10f971454f56dd573
 │   │   ├── b0/
+│   │   │   ├── 267d1bbab5023ad384cbcc3aa5707a73900d29
 │   │   │   ├── 39be7537667fc0e1a5aca26962a2bf40b58052
 │   │   │   ├── 3ce8fec3bdb69e2664241f99dc05b75cd24d10
 │   │   │   ├── 4b8b57a762e4f21fcd2856d3517e541f7fab9c
@@ -1002,9 +1032,11 @@ safecube-android/
 │   │   │   └── 9f0035a8cdf50079111f3d147e11e9082ae55e
 │   │   ├── b4/
 │   │   │   ├── 22dc79fc7c117229ff1bbb8bd3344c31195cbc
+│   │   │   ├── 6f9143c2f0dce2faf3c1be95628a86ce247b59
 │   │   │   ├── c86e07d49fde11dd657c89166ee3028bd175f7
 │   │   │   └── dec1d1d928978672427e163975f8554de20b2c
 │   │   ├── b5/
+│   │   │   ├── 490df8bd79bf32083d09cf9439ff92f5ff0a61
 │   │   │   ├── 7a440c8759969cd3de20525a002318b272c979
 │   │   │   ├── 7befe9d13a1b542cadf1ac5bc0989525143aed
 │   │   │   ├── e584c1be7fa8e623ec35d1a6858820d3277163
@@ -1028,7 +1060,8 @@ safecube-android/
 │   │   │   ├── 29231d96de92a857342f24dad1103f6a2a77e9
 │   │   │   ├── 41e7fe63adbf68bd5b3493c6e46d1fc7f3d45e
 │   │   │   ├── 8f1102486a99fc0dc1e13a1e62de8f077b3c37
-│   │   │   └── a4dcb425d0e951019a78fe848621858022699b
+│   │   │   ├── a4dcb425d0e951019a78fe848621858022699b
+│   │   │   └── c57a3defd8d99ca82bf32732af64fda83a8fda
 │   │   ├── b9/
 │   │   │   └── 2424f5c207efb3ab6af32e725c2f86cdd7fcf7
 │   │   ├── ba/
@@ -1041,6 +1074,7 @@ safecube-android/
 │   │   │   ├── 5374598d0495937d06f688facedf2967513368
 │   │   │   ├── 6babf4b9ff93876877623375d415f998cebc98
 │   │   │   ├── 6ca4f55f3120a9d49ddae3e111535c0c523c3b
+│   │   │   ├── 922eb870b0a6047e14f55d30072865ef439d73
 │   │   │   ├── b9ef480e92891a1168c89ea8e96c3a8311737d
 │   │   │   └── ca6b42f410d20a51be3cb96ab09b55023472db
 │   │   ├── bc/
@@ -1148,6 +1182,7 @@ safecube-android/
 │   │   │   └── f362d9c5caecd0de67b467749529199f17f160
 │   │   ├── cf/
 │   │   │   ├── 4289bdcad61254c2abb457701a9b93c48e5a54
+│   │   │   ├── 7a79e32340c58bc68bd29f50422920a6698540
 │   │   │   ├── aa2c35bcf6d0c254746bf072af8d9ce3714faa
 │   │   │   └── d9b9feda76e46d4de0b840f05ac87105db10d2
 │   │   ├── d0/
@@ -1191,6 +1226,7 @@ safecube-android/
 │   │   │   ├── 22b7a001390a3cc010fb810cb08560c3c9d7be
 │   │   │   ├── 38557215e1afb7443227133a56bbcb5370ba1a
 │   │   │   ├── 50550cf022bbf9e5352910ac1a11700db1d617
+│   │   │   ├── 793dad3ee38efa81de91f6c87099ab8134466b
 │   │   │   ├── 7bd805d0f1dc0b1c13da5204f3a5cd35ed1640
 │   │   │   └── a08ca03f0fc7f09df17af5cc5368b5fe062157
 │   │   ├── d9/
@@ -1213,10 +1249,12 @@ safecube-android/
 │   │   │   ├── 3fa238d0a4d405fe2f7675265321f784507e24
 │   │   │   ├── 40aa305fe966ffd94a0f362552782c86d1936d
 │   │   │   ├── 5ecceb0790aae37c1b17b6cb39dadfb5605215
+│   │   │   ├── 834a31476aad773c10f81c530c95ec35013516
 │   │   │   ├── 8ca4f407991a2e64a9cbda3f8ab179ed581618
 │   │   │   ├── 9d6ee1b1df8e12971a8d5306bd9edeb30da2bf
 │   │   │   └── c4f0c588dd7c41dedba7353e2c310d3fe52c39
 │   │   ├── de/
+│   │   │   ├── 201a14ec1fc1aa0a763dae63245b35226801f5
 │   │   │   ├── c737ddd6da11cbe4ae9b7d21d1250282bf2e80
 │   │   │   ├── d3ad584105fe9bca60b45b5f45cec11803408e
 │   │   │   ├── da2018e9e39365ecc457e069ff7590095befd6
@@ -1274,7 +1312,8 @@ safecube-android/
 │   │   │   ├── 510455c9c7df89742ed78e253d10f772d6adbc
 │   │   │   ├── a1f0271166a2067e444a990b7aa4e463700a71
 │   │   │   ├── b510ce62094af4af21ebcd24a3329b8b68085d
-│   │   │   └── c5c75ec9ae8e0461c31a9c01896f374531f7ee
+│   │   │   ├── c5c75ec9ae8e0461c31a9c01896f374531f7ee
+│   │   │   └── d273bef0cecc6e5523ead9a0cf6fbb4791562b
 │   │   ├── e9/
 │   │   │   ├── 0e46beb8b910893153ce03a6b0bef3478c223e
 │   │   │   └── e13190f9b5d4ec3af2aa49deef29305da06fa7
@@ -1282,7 +1321,8 @@ safecube-android/
 │   │   │   ├── 24b74e8f59ce57e1987b0f23ab088c7ad4a185
 │   │   │   ├── 6d2a2ff5831f80f7efc40ff51583c5871e32fd
 │   │   │   ├── a21e8939167cff77a30e44963765d3fb704f66
-│   │   │   └── f13ea38070e787d5cd3b8a0d640346a99be992
+│   │   │   ├── f13ea38070e787d5cd3b8a0d640346a99be992
+│   │   │   └── fa1e95c4bbf78750eb21d6edadecc875deee80
 │   │   ├── eb/
 │   │   │   ├── 15ee3632737085367f9a75615977abe9802f84
 │   │   │   └── e74a09e5afa30157287b7686f671a36a31d735
@@ -1350,6 +1390,7 @@ safecube-android/
 │   │   │   └── fda15810e657399907e099fbaa611d21dbcad0
 │   │   ├── f9/
 │   │   │   ├── 531c6c16dc22e57254aee2392a0478797e4dae
+│   │   │   ├── 570ebcc7316dce1d18024ec4157b68185afb2f
 │   │   │   ├── 63c94d4119c15ccf00f1e92a93aeb05cec55d6
 │   │   │   ├── 851c11021ece98b770753532ceb4e96aa16018
 │   │   │   └── fe0f5ecfaa8c4b977d1e9a039a0ca47adef68a
@@ -1360,6 +1401,7 @@ safecube-android/
 │   │   │   ├── 632dbb36aac3a39468001f2b3465a76018dbf4
 │   │   │   └── 9f00dc558ebfc53ba0f7a89d98a438d31e3495
 │   │   ├── fe/
+│   │   │   ├── 109124e641e426c10dd82a8e062af6a1217742
 │   │   │   ├── 2ab95df2445337e4814f9e3c5b54c8bad8d6d8
 │   │   │   ├── 67540d2f32e7cb6ab811f0cdef0f3b9cfe7105
 │   │   │   ├── e26bf6a4b1471a24916d65ce983bed3599ae06
@@ -1529,14 +1571,18 @@ safecube-android/
 │   │   │   │   │   └── annotationProcessors.json
 │   │   │   │   └── release/javaPreCompileRelease/
 │   │   │   │       └── annotationProcessors.json
-│   │   │   ├── apk/release/
-│   │   │   │   ├── baselineProfiles/
-│   │   │   │   │   ├── 0/
-│   │   │   │   │   │   └── app-release.dm
-│   │   │   │   │   └── 1/
-│   │   │   │   │       └── app-release.dm
-│   │   │   │   ├── app-release.apk
-│   │   │   │   └── output-metadata.json
+│   │   │   ├── apk/
+│   │   │   │   ├── debug/
+│   │   │   │   │   ├── app-debug.apk
+│   │   │   │   │   └── output-metadata.json
+│   │   │   │   └── release/
+│   │   │   │       ├── baselineProfiles/
+│   │   │   │       │   ├── 0/
+│   │   │   │       │   │   └── app-release.dm
+│   │   │   │       │   └── 1/
+│   │   │   │       │       └── app-release.dm
+│   │   │   │       ├── app-release.apk
+│   │   │   │       └── output-metadata.json
 │   │   │   ├── apk_for_local_test/debugUnitTest/packageDebugUnitTestForUnitTest/
 │   │   │   │   └── apk-for-local-test.ap_
 │   │   │   ├── apk_ide_redirect_file/
@@ -1566,22 +1612,23 @@ safecube-android/
 │   │   │   │   │   │   │   ├── ComposableSingletons$NavigationWrapperKt.class
 │   │   │   │   │   │   │   ├── NavigationGatesEntryPoint.class
 │   │   │   │   │   │   │   ├── NavigationGatesKt$PostLoginGateRoute$1$1.class
-│   │   │   │   │   │   │   ├── NavigationGatesKt$SplashGateScreen$1$1.class
 │   │   │   │   │   │   │   ├── NavigationGatesKt.class
 │   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$$inlined$entryProvider$default$1.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$1.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$10.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$11.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$12.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$13.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$2.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$3.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$4.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$5.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$6.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$7.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$8.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$9.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$1$1.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$2$6$5$1$1.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$1.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$10.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$11.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$12.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$13.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$2.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$3.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$4.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$5.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$6.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$7.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$8.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$9.class
 │   │   │   │   │   │   │   ├── NavigationWrapperKt.class
 │   │   │   │   │   │   │   ├── Routes$App.class
 │   │   │   │   │   │   │   ├── Routes$CreateVault.class
@@ -1687,6 +1734,7 @@ safecube-android/
 │   │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewCBuilder.class
 │   │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewCImpl.class
 │   │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCBuilder.class
+│   │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCImpl$SwitchingProvider.class
 │   │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCImpl.class
 │   │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewWithFragmentCBuilder.class
 │   │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewWithFragmentCImpl.class
@@ -1732,22 +1780,23 @@ safecube-android/
 │   │   │   │   │       │   │   │   ├── ComposableSingletons$NavigationWrapperKt.class
 │   │   │   │   │       │   │   │   ├── NavigationGatesEntryPoint.class
 │   │   │   │   │       │   │   │   ├── NavigationGatesKt$PostLoginGateRoute$1$1.class
-│   │   │   │   │       │   │   │   ├── NavigationGatesKt$SplashGateScreen$1$1.class
 │   │   │   │   │       │   │   │   ├── NavigationGatesKt.class
 │   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$$inlined$entryProvider$default$1.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$1.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$10.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$11.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$12.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$13.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$2.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$3.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$4.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$5.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$6.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$7.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$8.class
-│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$9.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$1$1.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$2$6$5$1$1.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$1.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$10.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$11.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$12.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$13.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$2.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$3.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$4.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$5.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$6.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$7.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$8.class
+│   │   │   │   │       │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$9.class
 │   │   │   │   │       │   │   │   ├── NavigationWrapperKt.class
 │   │   │   │   │       │   │   │   ├── Routes$App.class
 │   │   │   │   │       │   │   │   ├── Routes$CreateVault.class
@@ -1785,13 +1834,17 @@ safecube-android/
 │   │   │   │   │       │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewCBuilder.class
 │   │   │   │   │       │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewCImpl.class
 │   │   │   │   │       │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCBuilder.class
+│   │   │   │   │       │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCImpl$SwitchingProvider.class
 │   │   │   │   │       │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCImpl.class
 │   │   │   │   │       │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewWithFragmentCBuilder.class
 │   │   │   │   │       │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewWithFragmentCImpl.class
 │   │   │   │   │       │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC.class
+│   │   │   │   │       │   │   ├── Hilt_MainActivity$1.class
+│   │   │   │   │       │   │   ├── Hilt_MainActivity.class
 │   │   │   │   │       │   │   ├── Hilt_SafeCubeApp$1.class
 │   │   │   │   │       │   │   ├── Hilt_SafeCubeApp.class
 │   │   │   │   │       │   │   ├── MainActivity.class
+│   │   │   │   │       │   │   ├── MainActivity_GeneratedInjector.class
 │   │   │   │   │       │   │   ├── SafeCubeApp.class
 │   │   │   │   │       │   │   ├── SafeCubeApp_ComponentTreeDeps.class
 │   │   │   │   │       │   │   ├── SafeCubeApp_GeneratedInjector.class
@@ -1825,6 +1878,7 @@ safecube-android/
 │   │   │   │   │       │   │       └── _com_miguelrodriguez19_safecube_SafeCubeApp.class
 │   │   │   │   │       │   ├── hilt_aggregated_deps/
 │   │   │   │   │       │   │   ├── _com_miguelrodriguez19_safecube_app_navigation_NavigationGatesEntryPoint.class
+│   │   │   │   │       │   │   ├── _com_miguelrodriguez19_safecube_MainActivity_GeneratedInjector.class
 │   │   │   │   │       │   │   └── _com_miguelrodriguez19_safecube_SafeCubeApp_GeneratedInjector.class
 │   │   │   │   │       │   └── META-INF/
 │   │   │   │   │       │       └── app.kotlin_module
@@ -2119,7 +2173,6 @@ safecube-android/
 │   │   │   │   │   │   ├── 11/
 │   │   │   │   │   │   │   └── classes.dex
 │   │   │   │   │   │   ├── 12/
-│   │   │   │   │   │   │   └── classes.dex
 │   │   │   │   │   │   ├── 13/
 │   │   │   │   │   │   │   └── classes.dex
 │   │   │   │   │   │   ├── 14/
@@ -2127,6 +2180,7 @@ safecube-android/
 │   │   │   │   │   │   ├── 15/
 │   │   │   │   │   │   │   └── classes.dex
 │   │   │   │   │   │   ├── 2/
+│   │   │   │   │   │   │   └── classes.dex
 │   │   │   │   │   │   ├── 3/
 │   │   │   │   │   │   │   └── classes.dex
 │   │   │   │   │   │   ├── 4/
@@ -2240,22 +2294,23 @@ safecube-android/
 │   │   │   │   │   │   │   ├── ComposableSingletons$NavigationWrapperKt.class
 │   │   │   │   │   │   │   ├── NavigationGatesEntryPoint.class
 │   │   │   │   │   │   │   ├── NavigationGatesKt$PostLoginGateRoute$1$1.class
-│   │   │   │   │   │   │   ├── NavigationGatesKt$SplashGateScreen$1$1.class
 │   │   │   │   │   │   │   ├── NavigationGatesKt.class
 │   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$$inlined$entryProvider$default$1.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$1.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$10.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$11.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$12.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$13.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$2.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$3.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$4.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$5.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$6.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$7.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$8.class
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$9.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$1$1.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$2$6$5$1$1.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$1.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$10.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$11.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$12.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$13.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$2.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$3.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$4.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$5.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$6.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$7.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$8.class
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$9.class
 │   │   │   │   │   │   │   ├── NavigationWrapperKt.class
 │   │   │   │   │   │   │   ├── Routes$App.class
 │   │   │   │   │   │   │   ├── Routes$CreateVault.class
@@ -2278,13 +2333,17 @@ safecube-android/
 │   │   │   │   │   │   │   ├── ThemeKt.class
 │   │   │   │   │   │   │   └── TypeKt.class
 │   │   │   │   │   │   ├── ComposableSingletons$MainActivityKt.class
+│   │   │   │   │   │   ├── Hilt_MainActivity$1.class
+│   │   │   │   │   │   ├── Hilt_MainActivity.class
 │   │   │   │   │   │   ├── MainActivity.class
+│   │   │   │   │   │   ├── MainActivity_GeneratedInjector.class
 │   │   │   │   │   │   ├── SafeCubeApp.class
 │   │   │   │   │   │   └── SafeCubeApp_GeneratedInjector.class
 │   │   │   │   │   ├── dagger/hilt/internal/aggregatedroot/codegen/
 │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_SafeCubeApp.class
 │   │   │   │   │   ├── hilt_aggregated_deps/
 │   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_app_navigation_NavigationGatesEntryPoint.class
+│   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_MainActivity_GeneratedInjector.class
 │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_SafeCubeApp_GeneratedInjector.class
 │   │   │   │   │   └── META-INF/
 │   │   │   │   │       └── app.kotlin_module
@@ -2545,117 +2604,125 @@ safecube-android/
 │   │   │   │   │       │   │   │   │   │       └── merger.xml
 │   │   │   │   ├── debug-mergeJavaRes/
 │   │   │   │   │   ├── zip-cache/
-│   │   │   │   │   │   ├── ++ZYGmX2t7PcjH7eKxKYFw==
-│   │   │   │   │   │   ├── +eU8kOrWgxkVut8FhvQiCg==
-│   │   │   │   │   │   ├── 0J0gESDGG0jpKBjLRYms6w==
-│   │   │   │   │   │   ├── 1dVspu7M8ilj+uS86NsPxg==
-│   │   │   │   │   │   ├── 1eYbv8AVCsFds8pZdrvyNQ==
-│   │   │   │   │   │   ├── 2bipfkPr24JOzseeEIvjTQ==
-│   │   │   │   │   │   ├── 2y60ryomedBWnO2ITFGPhg==
-│   │   │   │   │   │   ├── 3pP3fid38Gh8K0Xoj_1yYw==
-│   │   │   │   │   │   ├── 3u2W6299ZrshJK2NXCvClg==
-│   │   │   │   │   │   ├── 4h13cllF+_EMcXA6RYVBfA==
-│   │   │   │   │   │   ├── 4nEYOlmgEF4IopAQ1B+Ubg==
-│   │   │   │   │   │   ├── 5UuZj3k26dAKy6BKs51O1A==
+│   │   │   │   │   │   ├── +93wgdudnVbcz6Vpq1Bmpw==
+│   │   │   │   │   │   ├── +Gc+28N6Slaqq0Eth5KX0w==
+│   │   │   │   │   │   ├── +UVrKIegnwl76NcJBia4SA==
+│   │   │   │   │   │   ├── 0c5wBeaMrLg0wq+WU_CMgw==
+│   │   │   │   │   │   ├── 0CFAtwRqtutk0lcd_2uNgA==
+│   │   │   │   │   │   ├── 0dR+C_N8reLPZEulfxaojg==
+│   │   │   │   │   │   ├── 0GkcNcUYXgSAVgximCL05w==
+│   │   │   │   │   │   ├── 0jH1DcFL+8av9Dr0+hc7Dw==
+│   │   │   │   │   │   ├── 1QcUzdw_WkJTsIVMtdZc6A==
+│   │   │   │   │   │   ├── 2JEVMZu8x1llO9ssixtaFA==
+│   │   │   │   │   │   ├── 4_8P0GKwSs+TXLQ0d4BjaA==
+│   │   │   │   │   │   ├── 4L7UyKeA+0buyRyCkA0B+g==
+│   │   │   │   │   │   ├── 59iCFrv8prAaCFtHTOiYAg==
+│   │   │   │   │   │   ├── 5INZI0BRf2fdjy1AwI6sOQ==
+│   │   │   │   │   │   ├── 61Gmvz46kdazu+mdE07I8A==
 │   │   │   │   │   │   ├── 6hq_wBfy576OvQ7Ltxg+tg==
-│   │   │   │   │   │   ├── 7SiTtV0jVc5dXOcnYI1bcw==
-│   │   │   │   │   │   ├── 81bcqTwCddaIWco6Z4Z9JQ==
-│   │   │   │   │   │   ├── 8oZONRvLXaibdslAixfcdg==
+│   │   │   │   │   │   ├── 6XZCgOIWI2nYgy4atCjXuA==
+│   │   │   │   │   │   ├── 8535TI5B1xwykJQOUXZyoA==
+│   │   │   │   │   │   ├── 86iweKFWpCZoRG2hYrQ48g==
+│   │   │   │   │   │   ├── 8QcZyO+DsGRkMc4RpadXkw==
+│   │   │   │   │   │   ├── 9ryarHKv+bQhVqoDJxBIDg==
 │   │   │   │   │   │   ├── _9A+2_1saeePWzMn2y3kmg==
 │   │   │   │   │   │   ├── _hdAXZS0wZVQGsNJYelpuw==
-│   │   │   │   │   │   ├── _ikKWBbuKfXw3I6kzB8HvA==
-│   │   │   │   │   │   ├── a1VeJCaoGk9HEivUFqeOYA==
-│   │   │   │   │   │   ├── A9cSZB1LTcw+_9i9O4+zqw==
-│   │   │   │   │   │   ├── AiKYedT3UhqfVakOtA2Ymw==
+│   │   │   │   │   │   ├── _Y3lIMjYj+2Ck+JU0lhNmQ==
+│   │   │   │   │   │   ├── a3trSbu93pyynT_vB3Bi6w==
+│   │   │   │   │   │   ├── ADBQ7VgOATnth2ITl4cy2Q==
+│   │   │   │   │   │   ├── aHD_Y0qiX6GMqYHixzzCOA==
 │   │   │   │   │   │   ├── AKkDhYjaYnHuz28PrQcoAA==
+│   │   │   │   │   │   ├── AnpPQ_1X3z8UyH9izLuiig==
 │   │   │   │   │   │   ├── Aum8RyvyKLwxGsZvF8wZew==
+│   │   │   │   │   │   ├── ax+RbrYfert5x_t6KQUUvg==
 │   │   │   │   │   │   ├── AxrFpzc1Dc8H2NFDSV+5hA==
-│   │   │   │   │   │   ├── AZ5lE7_tYWTc7mKB7cesZg==
 │   │   │   │   │   │   ├── B081BuIDaWSo5McNdeDOlg==
-│   │   │   │   │   │   ├── bDLGO34isE9c2h76dKH_dQ==
+│   │   │   │   │   │   ├── B292_OLvjEtQDUaSJAeBBA==
+│   │   │   │   │   │   ├── B6SBag2RMbaXJ47IXId3FQ==
 │   │   │   │   │   │   ├── BIO8B+IR6k405DzX3KVLfg==
 │   │   │   │   │   │   ├── Bm73fd+UlT40_EQ4AfhIpQ==
-│   │   │   │   │   │   ├── bML+DqklEZ+AsUXscK_DcA==
-│   │   │   │   │   │   ├── BZh6gprMraiQS8cVYC8eqg==
-│   │   │   │   │   │   ├── cobes8m6Hk9o89fLDICO4Q==
+│   │   │   │   │   │   ├── bYtjcgINiTsCBc4iYMsfdw==
+│   │   │   │   │   │   ├── CC47IvTMLh6R0NObCo9PQA==
+│   │   │   │   │   │   ├── cGHdpTa1eipgt2JEPQA9mA==
+│   │   │   │   │   │   ├── CVYSIk3lGwoRQFM8PLNS7Q==
+│   │   │   │   │   │   ├── D2FD61uOyk5WJEJjLEpguw==
+│   │   │   │   │   │   ├── d3XwO0QVQVfn0AB+s_IRIQ==
 │   │   │   │   │   │   ├── DkA7dGodUL1SSxlq0HVAdA==
-│   │   │   │   │   │   ├── dqTa20w+iEjsA_EAE3eC4Q==
-│   │   │   │   │   │   ├── e34hP4DrupmSi_OLHoAavw==
+│   │   │   │   │   │   ├── DLEpe2Mjkm+KRKA0eEsh1g==
+│   │   │   │   │   │   ├── e4SIdhzRGvwyOasAdfDz+Q==
 │   │   │   │   │   │   ├── eAb6b17AoioR+wuvsUlXUg==
+│   │   │   │   │   │   ├── eo72a0LYG46CGMqKhsX+Aw==
+│   │   │   │   │   │   ├── ermsf0wjMH38O+TvT5BQVQ==
+│   │   │   │   │   │   ├── eUgMcV_HWgtj1JunUWKlpA==
 │   │   │   │   │   │   ├── fbJN1jTpNAQTBDjunGpNNw==
-│   │   │   │   │   │   ├── fddcPQt+X0rwj1u0rasLjQ==
-│   │   │   │   │   │   ├── FdRh4F1RmW0ZLDuB2MlFrA==
-│   │   │   │   │   │   ├── FEsY314cXOuwQTw3HxBKKw==
-│   │   │   │   │   │   ├── FGu9faub7ac3ItftqKwXqw==
-│   │   │   │   │   │   ├── fo6z1aMqVMDTYAmMB2GVzw==
-│   │   │   │   │   │   ├── FyiJWPkrgrwBc9ZSwusQnA==
+│   │   │   │   │   │   ├── fDtM3pEviDDkzZVXRGGNIQ==
+│   │   │   │   │   │   ├── fGUjAhR0tv4ZzRzqomzFfg==
 │   │   │   │   │   │   ├── G1tS68HjVeiWmUxbawaJPA==
-│   │   │   │   │   │   ├── gcynXIsM8n5S7Zg+JbHBzg==
-│   │   │   │   │   │   ├── GeACj+sZn3H_sjbh9z2KFw==
+│   │   │   │   │   │   ├── G9sILjDfdByCFNgt1Y26nw==
 │   │   │   │   │   │   ├── gMUj5N1rwbVTZNnhBOwS4w==
-│   │   │   │   │   │   ├── GPZ3hPyjYQtqHVVbO98aJA==
-│   │   │   │   │   │   ├── HVpgb4AbOhpJ2Je5_Nmzvw==
-│   │   │   │   │   │   ├── irnRya5fxH2vYBDba_+Lyw==
-│   │   │   │   │   │   ├── IxZ3r7b5eOyncEz6+ALO8w==
-│   │   │   │   │   │   ├── iyHVm7BA1YcKVopQ02mrOg==
-│   │   │   │   │   │   ├── JcTSvixFZnXWcWZkXLJZlQ==
-│   │   │   │   │   │   ├── jcx91LYtRSSylx3FqtmsSw==
-│   │   │   │   │   │   ├── jDGSIyhwljJd1DKRysktgA==
-│   │   │   │   │   │   ├── KAatZja1KJrgZKJehZOIZA==
-│   │   │   │   │   │   ├── KJ62grue6PFfapE8wOP5PA==
-│   │   │   │   │   │   ├── KJ9nMJZHLreafzyVvUvT1Q==
-│   │   │   │   │   │   ├── kKPfGcYe+SWk3HkVWX3hLg==
-│   │   │   │   │   │   ├── kR+fYNMsWmdHYKd570bNeQ==
+│   │   │   │   │   │   ├── GVD_KRwaOA8YN+6Rj05LRg==
+│   │   │   │   │   │   ├── GzFFFALL6wvtqE_oSUjKmg==
+│   │   │   │   │   │   ├── h_znAohV5T5bjnM7MYaguA==
+│   │   │   │   │   │   ├── HhIJn2uvgwGIDKHcFziIWQ==
+│   │   │   │   │   │   ├── i9JGmlYVxJ9f5mj_zHJE4g==
+│   │   │   │   │   │   ├── iWo9nRx7bTY9N_rVt5L5uQ==
+│   │   │   │   │   │   ├── j9dtEk+5Ad_st_Op9zZZUQ==
+│   │   │   │   │   │   ├── jN16NflpRLF4Wax11IsNgw==
+│   │   │   │   │   │   ├── jNrTN_yRhb+wKrWy0hymyw==
+│   │   │   │   │   │   ├── JX8eYHLa1vMwi38eaxWypw==
+│   │   │   │   │   │   ├── KthDupNcsy7OyYwN8MDqTA==
 │   │   │   │   │   │   ├── Kws7Ph2jc1f3d_ecLLw8yA==
-│   │   │   │   │   │   ├── L1_U19drPeYAOf5OUEH5pA==
 │   │   │   │   │   │   ├── lAMrcFGaTpaTmTGFdijIAQ==
-│   │   │   │   │   │   ├── LLpvg+2FGanbanSL7+AOGg==
-│   │   │   │   │   │   ├── LNt3hjLZ01T1hFqRX95Mww==
-│   │   │   │   │   │   ├── LrpPxC80P19GLVnwX_SXyg==
-│   │   │   │   │   │   ├── LZ58n4Oq3_BpyNQ4dA75Eg==
+│   │   │   │   │   │   ├── lGzxpYHBHncPP1fJ_A3IHg==
+│   │   │   │   │   │   ├── LknY04nvcVyh6FzDNwVawA==
 │   │   │   │   │   │   ├── m7ifgdNNq+vMZDPtmarc1Q==
-│   │   │   │   │   │   ├── mCrrONfKJ8D0TPM+BrBC+w==
 │   │   │   │   │   │   ├── MGjkoJZVhVbQnzYuPyFT2g==
 │   │   │   │   │   │   ├── MnSEDLpPhH5KrtR32crNcA==
 │   │   │   │   │   │   ├── N4JbPtX00mbgf1JBj8hLpA==
 │   │   │   │   │   │   ├── nmLHxSDr+xCoxOdocCTtnA==
-│   │   │   │   │   │   ├── nNnABVdIqbuBQTX_5Q7A5Q==
-│   │   │   │   │   │   ├── nZmeJWlo+8w2GZE9JVXkNA==
-│   │   │   │   │   │   ├── oebJKCN25ui3SjFc6SEViw==
-│   │   │   │   │   │   ├── OGmjon7NzrEtEFf3ZeqiXQ==
-│   │   │   │   │   │   ├── oX2L7paC_Xb5Zc3A+LmXnA==
-│   │   │   │   │   │   ├── pruEkOEQmabGaufVaz4OYQ==
-│   │   │   │   │   │   ├── pRY76KU5StwLo498u8zFlw==
-│   │   │   │   │   │   ├── PSo0SzzlB5g53H70D8Nsqw==
-│   │   │   │   │   │   ├── qLOeJgBb4XAopiocjvOoPA==
-│   │   │   │   │   │   ├── qlr5sAceP9eHkOvExf4xXw==
+│   │   │   │   │   │   ├── nywDu0_7ASXufLA0c2d1fg==
+│   │   │   │   │   │   ├── ObPrCUbVzrf0FUJUcey8Gw==
+│   │   │   │   │   │   ├── Ors7HjB1K1nkHKl2GvxoVQ==
+│   │   │   │   │   │   ├── ou5+FCcva01M8Aqz69wgUw==
+│   │   │   │   │   │   ├── P78eVHH_3HjrMO9YMNWsPQ==
+│   │   │   │   │   │   ├── pp5TJ6I4MdHNMvkxyBrIMA==
+│   │   │   │   │   │   ├── PSS7+XOgD4Ov0CBWz7CnRA==
+│   │   │   │   │   │   ├── pVqq3lVWPGFYSvaki7eFjA==
+│   │   │   │   │   │   ├── QtglxOl650MZlmOSCL8BmQ==
+│   │   │   │   │   │   ├── qWyKtPoMPCKkcgB1m8vD5A==
 │   │   │   │   │   │   ├── QzzfJ0RNNRj0tK7tKwAIHw==
-│   │   │   │   │   │   ├── RGz+pyX57SWpawlfzWqw+w==
-│   │   │   │   │   │   ├── rJNtyKWG6wNPH3yX5TJOjQ==
-│   │   │   │   │   │   ├── rwVdPbkFuNQzAySC0toqTQ==
-│   │   │   │   │   │   ├── SfpbELK6Ns4ZtRuf40S+vg==
-│   │   │   │   │   │   ├── SfYWWgymQvAfJ8ZrfXkj6A==
+│   │   │   │   │   │   ├── R4HeGjE2cenpXOYm3XUrWQ==
+│   │   │   │   │   │   ├── Rm_F56g4jIPNL1e+ZgfyeQ==
+│   │   │   │   │   │   ├── SAwSrLShTLWB6TuY_jduxg==
 │   │   │   │   │   │   ├── spa6dzh8I6t5tS8vRvQphg==
-│   │   │   │   │   │   ├── SVp+x2IW5trMlVHyl6JKpA==
-│   │   │   │   │   │   ├── Tfr9alzGPmJZyNdGAJ34_A==
-│   │   │   │   │   │   ├── uop6mUhhuMQPXlyq25GWOg==
-│   │   │   │   │   │   ├── uy9KNfQai52a_U_lWEfkEQ==
-│   │   │   │   │   │   ├── uz0U9XSEd9wjJai9Af6uJw==
+│   │   │   │   │   │   ├── t7aqMB0wpSMKxoPQQeJD+g==
+│   │   │   │   │   │   ├── T9grW7tirEuyVL+Sbj7zpA==
+│   │   │   │   │   │   ├── tif28Wj09_PFXnQzvcvAKA==
+│   │   │   │   │   │   ├── ufiin5IOuRIKS6DCAzYt+Q==
+│   │   │   │   │   │   ├── UuEYWJYq6qNjcUrS9hITjQ==
+│   │   │   │   │   │   ├── uzYYU+cqPauq62K5Om3VGw==
 │   │   │   │   │   │   ├── v1FFNCoEO5or6_tvb1ZiNA==
 │   │   │   │   │   │   ├── V8DxNbbYWglX3HsdJ5bXKg==
-│   │   │   │   │   │   ├── VsaW2m59uIx1BcQSyPbjzA==
-│   │   │   │   │   │   ├── Vt0qPs9UjtEXIy6Mn6Z2cA==
+│   │   │   │   │   │   ├── VqHxtnOITs0RN25f9d+uVQ==
+│   │   │   │   │   │   ├── vtdq+PlY6KkknfTwN_xKww==
 │   │   │   │   │   │   ├── VTxpne0LDFl4QbPnqb9LBg==
+│   │   │   │   │   │   ├── VypekRXkn83qiUvP34kOiA==
 │   │   │   │   │   │   ├── vzeix2EeVN_FlAoHcQVwTw==
-│   │   │   │   │   │   ├── wfyzDzPNHrWUcZ2nnHY0aQ==
-│   │   │   │   │   │   ├── Wo9tb4IoRx_Bg20yuchD2w==
-│   │   │   │   │   │   ├── WyDzmK8eAXtfYHcSqQMo6Q==
-│   │   │   │   │   │   ├── XHX9OWCcrnT0GNWceYvbHQ==
-│   │   │   │   │   │   ├── XJ1PEoDvFDoM2eoSEGht7g==
+│   │   │   │   │   │   ├── W34nWqtHTh200zG5g0HeXw==
+│   │   │   │   │   │   ├── wc12TVQ1u_aCiGd5eubBdw==
+│   │   │   │   │   │   ├── WGh8Pd_Z1pbXlDcVQUCJKQ==
+│   │   │   │   │   │   ├── WX6fnGnnR1X_XOiw+aIiXA==
+│   │   │   │   │   │   ├── Wy5HKI2_XS9dka97SYsqyg==
+│   │   │   │   │   │   ├── xaR9OHRwc05D6GmV_GoB2w==
+│   │   │   │   │   │   ├── Xf3KD0Q6Bq5BZCddlOhfDg==
+│   │   │   │   │   │   ├── xfbOlav_J+Kr0JGdfNeJuA==
+│   │   │   │   │   │   ├── xLOl_b0RBDdFH1FulqxJWg==
+│   │   │   │   │   │   ├── XogEhnVcV4K1WEFWkT55sg==
 │   │   │   │   │   │   ├── Xt6D_upDD6F2CVblQbGQSQ==
-│   │   │   │   │   │   ├── yqvuQ1lcf0Zf_6rhnCBnMw==
-│   │   │   │   │   │   ├── ZM9HFrNLU61QUDonCrDJWg==
-│   │   │   │   │   │   └── ZoNGFjMrJJFr5GkYqx8JWA==
+│   │   │   │   │   │   ├── yesPzl9V2uwO1ayvCtm4VQ==
+│   │   │   │   │   │   ├── YHKxga_jLmI5sG7DYGprWQ==
+│   │   │   │   │   │   ├── zLD2EyWNp3+slhuV+3THYQ==
+│   │   │   │   │   │   └── Zw6YBwjPNStX4BV2x_K_Bg==
 │   │   │   │   │   └── merge-state
 │   │   │   │   ├── debugAndroidTest/
 │   │   │   │   │   ├── mergeDebugAndroidTestResources/
@@ -3227,11 +3294,15 @@ safecube-android/
 │   │   │   ├── javac/
 │   │   │   │   ├── debug/compileDebugJavaWithJavac/classes/
 │   │   │   │   │   ├── com/miguelrodriguez19/safecube/
+│   │   │   │   │   │   ├── Hilt_MainActivity$1.class
+│   │   │   │   │   │   ├── Hilt_MainActivity.class
+│   │   │   │   │   │   ├── MainActivity_GeneratedInjector.class
 │   │   │   │   │   │   └── SafeCubeApp_GeneratedInjector.class
 │   │   │   │   │   ├── dagger/hilt/internal/aggregatedroot/codegen/
 │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_SafeCubeApp.class
 │   │   │   │   │   └── hilt_aggregated_deps/
 │   │   │   │   │       ├── _com_miguelrodriguez19_safecube_app_navigation_NavigationGatesEntryPoint.class
+│   │   │   │   │       ├── _com_miguelrodriguez19_safecube_MainActivity_GeneratedInjector.class
 │   │   │   │   │       └── _com_miguelrodriguez19_safecube_SafeCubeApp_GeneratedInjector.class
 │   │   │   │   └── release/compileReleaseJavaWithJavac/classes/
 │   │   │   │       ├── com/miguelrodriguez19/safecube/
@@ -4353,22 +4424,23 @@ safecube-android/
 │   │   │   │   │   │   │   ├── ComposableSingletons$NavigationWrapperKt.dex
 │   │   │   │   │   │   │   ├── NavigationGatesEntryPoint.dex
 │   │   │   │   │   │   │   ├── NavigationGatesKt$PostLoginGateRoute$1$1.dex
-│   │   │   │   │   │   │   ├── NavigationGatesKt$SplashGateScreen$1$1.dex
 │   │   │   │   │   │   │   ├── NavigationGatesKt.dex
 │   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$$inlined$entryProvider$default$1.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$1.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$10.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$11.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$12.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$13.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$2.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$3.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$4.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$5.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$6.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$7.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$8.dex
-│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$4$$inlined$entry$default$9.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$1$1.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$2$6$5$1$1.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$1.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$10.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$11.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$12.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$13.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$2.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$3.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$4.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$5.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$6.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$7.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$8.dex
+│   │   │   │   │   │   │   ├── NavigationWrapperKt$NavigationWrapper$lambda$9$$inlined$entry$default$9.dex
 │   │   │   │   │   │   │   ├── NavigationWrapperKt.dex
 │   │   │   │   │   │   │   ├── Routes$App.dex
 │   │   │   │   │   │   │   ├── Routes$CreateVault.dex
@@ -4406,13 +4478,17 @@ safecube-android/
 │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewCBuilder.dex
 │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewCImpl.dex
 │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCBuilder.dex
+│   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCImpl$SwitchingProvider.dex
 │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCImpl.dex
 │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewWithFragmentCBuilder.dex
 │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewWithFragmentCImpl.dex
 │   │   │   │   │   │   ├── DaggerSafeCubeApp_HiltComponents_SingletonC.dex
+│   │   │   │   │   │   ├── Hilt_MainActivity$1.dex
+│   │   │   │   │   │   ├── Hilt_MainActivity.dex
 │   │   │   │   │   │   ├── Hilt_SafeCubeApp$1.dex
 │   │   │   │   │   │   ├── Hilt_SafeCubeApp.dex
 │   │   │   │   │   │   ├── MainActivity.dex
+│   │   │   │   │   │   ├── MainActivity_GeneratedInjector.dex
 │   │   │   │   │   │   ├── SafeCubeApp.dex
 │   │   │   │   │   │   ├── SafeCubeApp_ComponentTreeDeps.dex
 │   │   │   │   │   │   ├── SafeCubeApp_GeneratedInjector.dex
@@ -4446,13 +4522,14 @@ safecube-android/
 │   │   │   │   │   │       └── _com_miguelrodriguez19_safecube_SafeCubeApp.dex
 │   │   │   │   │   ├── hilt_aggregated_deps/
 │   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_app_navigation_NavigationGatesEntryPoint.dex
+│   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_MainActivity_GeneratedInjector.dex
 │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_SafeCubeApp_GeneratedInjector.dex
-│   │   │   │   │   ├── 98aad08d7d784ef9607104cdbdc250cbc8a27f2e3d33431a21c654efe2cd2ed8_0.jar
-│   │   │   │   │   ├── 98aad08d7d784ef9607104cdbdc250cbc8a27f2e3d33431a21c654efe2cd2ed8_1.jar
-│   │   │   │   │   ├── 98aad08d7d784ef9607104cdbdc250cbc8a27f2e3d33431a21c654efe2cd2ed8_2.jar
-│   │   │   │   │   ├── 98aad08d7d784ef9607104cdbdc250cbc8a27f2e3d33431a21c654efe2cd2ed8_3.jar
-│   │   │   │   │   ├── 98aad08d7d784ef9607104cdbdc250cbc8a27f2e3d33431a21c654efe2cd2ed8_4.jar
-│   │   │   │   │   └── 98aad08d7d784ef9607104cdbdc250cbc8a27f2e3d33431a21c654efe2cd2ed8_5.jar
+│   │   │   │   │   ├── 1afb9f5687761ff8c11cdcfd7e3dd0e2b42b3f28ac1ef80d64560e52a91930e2_0.jar
+│   │   │   │   │   ├── 1afb9f5687761ff8c11cdcfd7e3dd0e2b42b3f28ac1ef80d64560e52a91930e2_1.jar
+│   │   │   │   │   ├── 1afb9f5687761ff8c11cdcfd7e3dd0e2b42b3f28ac1ef80d64560e52a91930e2_2.jar
+│   │   │   │   │   ├── 1afb9f5687761ff8c11cdcfd7e3dd0e2b42b3f28ac1ef80d64560e52a91930e2_3.jar
+│   │   │   │   │   ├── 1afb9f5687761ff8c11cdcfd7e3dd0e2b42b3f28ac1ef80d64560e52a91930e2_4.jar
+│   │   │   │   │   └── 1afb9f5687761ff8c11cdcfd7e3dd0e2b42b3f28ac1ef80d64560e52a91930e2_5.jar
 │   │   │   │   └── debugAndroidTest/dexBuilderDebugAndroidTest/out/
 │   │   │   │       ├── com/miguelrodriguez19/safecube/
 │   │   │   │       │   ├── ComposableSingletons$MainActivityComposeTestKt.dex
@@ -5117,57 +5194,55 @@ safecube-android/
 │   │       ├── hiltJavaCompileDebug/
 │   │       │   ├── compileTransaction/
 │   │       │   │   ├── backup-dir/
-│   │       │   │   │   ├── _com_miguelrodriguez19_safecube_SafeCubeApp.class2
-│   │       │   │   │   ├── _com_miguelrodriguez19_safecube_SafeCubeApp_GeneratedInjector.class3
-│   │       │   │   │   └── SafeCubeApp_GeneratedInjector.class1
 │   │       │   │   └── stash-dir/
-│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ActivityCBuilder.class.uniqueId38
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ActivityCBuilder.class.uniqueId39
 │   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ActivityCImpl.class.uniqueId8
 │   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ActivityRetainedCBuilder.class.uniqueId9
-│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ActivityRetainedCImpl$SwitchingProvider.class.uniqueId20
-│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ActivityRetainedCImpl.class.uniqueId43
-│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$Builder.class.uniqueId44
-│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$FragmentCBuilder.class.uniqueId30
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ActivityRetainedCImpl$SwitchingProvider.class.uniqueId21
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ActivityRetainedCImpl.class.uniqueId44
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$Builder.class.uniqueId45
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$FragmentCBuilder.class.uniqueId31
 │   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$FragmentCImpl.class.uniqueId2
 │   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ServiceCBuilder.class.uniqueId11
-│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ServiceCImpl.class.uniqueId27
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ServiceCImpl.class.uniqueId28
 │   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$SingletonCImpl$SwitchingProvider.class.uniqueId16
-│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$SingletonCImpl.class.uniqueId46
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$SingletonCImpl.class.uniqueId47
 │   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewCBuilder.class.uniqueId3
-│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewCImpl.class.uniqueId36
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewCImpl.class.uniqueId37
 │   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCBuilder.class.uniqueId0
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCImpl$SwitchingProvider.class.uniqueId20
 │   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewModelCImpl.class.uniqueId7
 │   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewWithFragmentCBuilder.class.uniqueId10
 │   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC$ViewWithFragmentCImpl.class.uniqueId15
-│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC.class.uniqueId29
-│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC.java.uniqueId45
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC.class.uniqueId30
+│   │       │   │       ├── DaggerSafeCubeApp_HiltComponents_SingletonC.java.uniqueId46
 │   │       │   │       ├── Hilt_SafeCubeApp$1.class.uniqueId13
 │   │       │   │       ├── Hilt_SafeCubeApp.class.uniqueId6
-│   │       │   │       ├── Hilt_SafeCubeApp.java.uniqueId40
+│   │       │   │       ├── Hilt_SafeCubeApp.java.uniqueId41
 │   │       │   │       ├── SafeCubeApp_HiltComponents$ActivityC$Builder.class.uniqueId19
 │   │       │   │       ├── SafeCubeApp_HiltComponents$ActivityC.class.uniqueId17
 │   │       │   │       ├── SafeCubeApp_HiltComponents$ActivityCBuilderModule.class.uniqueId12
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ActivityRetainedC$Builder.class.uniqueId34
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ActivityRetainedC.class.uniqueId22
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ActivityRetainedCBuilderModule.class.uniqueId37
-│   │       │   │       ├── SafeCubeApp_HiltComponents$FragmentC$Builder.class.uniqueId28
-│   │       │   │       ├── SafeCubeApp_HiltComponents$FragmentC.class.uniqueId42
-│   │       │   │       ├── SafeCubeApp_HiltComponents$FragmentCBuilderModule.class.uniqueId35
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ActivityRetainedC$Builder.class.uniqueId35
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ActivityRetainedC.class.uniqueId23
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ActivityRetainedCBuilderModule.class.uniqueId38
+│   │       │   │       ├── SafeCubeApp_HiltComponents$FragmentC$Builder.class.uniqueId29
+│   │       │   │       ├── SafeCubeApp_HiltComponents$FragmentC.class.uniqueId43
+│   │       │   │       ├── SafeCubeApp_HiltComponents$FragmentCBuilderModule.class.uniqueId36
 │   │       │   │       ├── SafeCubeApp_HiltComponents$ServiceC$Builder.class.uniqueId14
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ServiceC.class.uniqueId31
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ServiceCBuilderModule.class.uniqueId23
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ServiceC.class.uniqueId32
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ServiceCBuilderModule.class.uniqueId24
 │   │       │   │       ├── SafeCubeApp_HiltComponents$SingletonC.class.uniqueId5
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewC$Builder.class.uniqueId32
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewC$Builder.class.uniqueId33
 │   │       │   │       ├── SafeCubeApp_HiltComponents$ViewC.class.uniqueId18
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewCBuilderModule.class.uniqueId33
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewCBuilderModule.class.uniqueId34
 │   │       │   │       ├── SafeCubeApp_HiltComponents$ViewModelC$Builder.class.uniqueId1
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewModelC.class.uniqueId25
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewModelCBuilderModule.class.uniqueId41
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewModelC.class.uniqueId26
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewModelCBuilderModule.class.uniqueId42
 │   │       │   │       ├── SafeCubeApp_HiltComponents$ViewWithFragmentC$Builder.class.uniqueId4
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewWithFragmentC.class.uniqueId26
-│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewWithFragmentCBuilderModule.class.uniqueId24
-│   │       │   │       ├── SafeCubeApp_HiltComponents.class.uniqueId39
-│   │       │   │       └── SafeCubeApp_HiltComponents.java.uniqueId21
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewWithFragmentC.class.uniqueId27
+│   │       │   │       ├── SafeCubeApp_HiltComponents$ViewWithFragmentCBuilderModule.class.uniqueId25
+│   │       │   │       ├── SafeCubeApp_HiltComponents.class.uniqueId40
+│   │       │   │       └── SafeCubeApp_HiltComponents.java.uniqueId22
 │   │       │   └── previous-compilation-data.bin
 │   │       ├── hiltJavaCompileRelease/
 │   │       │   ├── compileTransaction/
@@ -5420,6 +5495,89 @@ safecube-android/
 │   │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_auth_di_AuthModule.dex
 │   │   │   │   │   │   └── desugar_graph.bin
 │   │   │   │   │   └── results.bin
+│   │   │   │   ├── e73465f5959a6a863b44f4808563c674/
+│   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/auth/
+│   │   │   │   │   │   │   ├── data/
+│   │   │   │   │   │   │   │   ├── local/
+│   │   │   │   │   │   │   │   │   ├── EncryptedTokenPrefs.dex
+│   │   │   │   │   │   │   │   │   ├── EncryptedTokenStorage$Companion.dex
+│   │   │   │   │   │   │   │   │   ├── EncryptedTokenStorage.dex
+│   │   │   │   │   │   │   │   │   └── EncryptedTokenStorage_Factory.dex
+│   │   │   │   │   │   │   │   ├── mapper/
+│   │   │   │   │   │   │   │   │   ├── AuthErrorMapper$ParsedErrorBody.dex
+│   │   │   │   │   │   │   │   │   ├── AuthErrorMapper.dex
+│   │   │   │   │   │   │   │   │   ├── AuthErrorMapper_Factory$InstanceHolder.dex
+│   │   │   │   │   │   │   │   │   └── AuthErrorMapper_Factory.dex
+│   │   │   │   │   │   │   │   ├── remote/
+│   │   │   │   │   │   │   │   │   ├── NetworkResult$Failure.dex
+│   │   │   │   │   │   │   │   │   ├── NetworkResult$HttpError.dex
+│   │   │   │   │   │   │   │   │   ├── NetworkResult$Success.dex
+│   │   │   │   │   │   │   │   │   ├── NetworkResult.dex
+│   │   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$execute$1.dex
+│   │   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$login$2.dex
+│   │   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$logout$2.dex
+│   │   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$refresh$2.dex
+│   │   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$register$2.dex
+│   │   │   │   │   │   │   │   │   ├── RemoteAuthDataSource.dex
+│   │   │   │   │   │   │   │   │   └── RemoteAuthDataSource_Factory.dex
+│   │   │   │   │   │   │   │   ├── repository/
+│   │   │   │   │   │   │   │   │   ├── AuthRepositoryImpl$login$1.dex
+│   │   │   │   │   │   │   │   │   ├── AuthRepositoryImpl$logout$1.dex
+│   │   │   │   │   │   │   │   │   ├── AuthRepositoryImpl$refresh$1.dex
+│   │   │   │   │   │   │   │   │   ├── AuthRepositoryImpl$register$1.dex
+│   │   │   │   │   │   │   │   │   ├── AuthRepositoryImpl.dex
+│   │   │   │   │   │   │   │   │   └── AuthRepositoryImpl_Factory.dex
+│   │   │   │   │   │   │   │   ├── session/
+│   │   │   │   │   │   │   │   │   ├── AuthTokenRefreshHandler$Companion.dex
+│   │   │   │   │   │   │   │   │   ├── AuthTokenRefreshHandler$refreshAccessToken$1.dex
+│   │   │   │   │   │   │   │   │   ├── AuthTokenRefreshHandler.dex
+│   │   │   │   │   │   │   │   │   └── AuthTokenRefreshHandler_Factory.dex
+│   │   │   │   │   │   │   │   └── vault/
+│   │   │   │   │   │   │   │       ├── FakeVaultSessionManager.dex
+│   │   │   │   │   │   │   │       ├── FakeVaultSessionManager_Factory$InstanceHolder.dex
+│   │   │   │   │   │   │   │       └── FakeVaultSessionManager_Factory.dex
+│   │   │   │   │   │   │   ├── di/
+│   │   │   │   │   │   │   │   ├── AuthModule$Companion.dex
+│   │   │   │   │   │   │   │   ├── AuthModule.dex
+│   │   │   │   │   │   │   │   └── AuthModule_Companion_ProvideEncryptedTokenPrefsFactory.dex
+│   │   │   │   │   │   │   └── domain/
+│   │   │   │   │   │   │       ├── model/
+│   │   │   │   │   │   │       │   ├── AuthError$AccountAlreadyExists.dex
+│   │   │   │   │   │   │       │   ├── AuthError$AccountNotActive.dex
+│   │   │   │   │   │   │       │   ├── AuthError$Conflict.dex
+│   │   │   │   │   │   │       │   ├── AuthError$Forbidden.dex
+│   │   │   │   │   │   │       │   ├── AuthError$InvalidCredentials.dex
+│   │   │   │   │   │   │       │   ├── AuthError$Unknown.dex
+│   │   │   │   │   │   │       │   ├── AuthError$ValidationFailed.dex
+│   │   │   │   │   │   │       │   ├── AuthError.dex
+│   │   │   │   │   │   │       │   ├── AuthOperation.dex
+│   │   │   │   │   │   │       │   ├── AuthResult$Error.dex
+│   │   │   │   │   │   │       │   ├── AuthResult$Success.dex
+│   │   │   │   │   │   │       │   ├── AuthResult.dex
+│   │   │   │   │   │   │       │   ├── AuthTokens.dex
+│   │   │   │   │   │   │       │   ├── RegisteredAccount.dex
+│   │   │   │   │   │   │       │   ├── SessionState$LoggedInVaultLocked.dex
+│   │   │   │   │   │   │       │   ├── SessionState$LoggedOut.dex
+│   │   │   │   │   │   │       │   ├── SessionState.dex
+│   │   │   │   │   │   │       │   ├── VaultState$Locked.dex
+│   │   │   │   │   │   │       │   ├── VaultState$NotInitialized.dex
+│   │   │   │   │   │   │       │   ├── VaultState$Unknown.dex
+│   │   │   │   │   │   │       │   ├── VaultState$Unlocked.dex
+│   │   │   │   │   │   │       │   └── VaultState.dex
+│   │   │   │   │   │   │       ├── repository/
+│   │   │   │   │   │   │       │   ├── AuthRepository.dex
+│   │   │   │   │   │   │       │   └── TokenStorage.dex
+│   │   │   │   │   │   │       ├── session/
+│   │   │   │   │   │   │       │   ├── SessionManager.dex
+│   │   │   │   │   │   │       │   ├── SessionManagerImpl.dex
+│   │   │   │   │   │   │       │   └── SessionManagerImpl_Factory.dex
+│   │   │   │   │   │   │       └── vault/
+│   │   │   │   │   │   │           └── VaultSessionManager.dex
+│   │   │   │   │   │   ├── hilt_aggregated_deps/
+│   │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_auth_di_AuthModule.dex
+│   │   │   │   │   │   └── desugar_graph.bin
+│   │   │   │   │   └── results.bin
 │   │   │   │   ├── f5024833c8f5061585ecdb3f93a64e61/
 │   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
 │   │   │   │   │   │   └── desugar_graph.bin
@@ -5614,10 +5772,9 @@ safecube-android/
 │   │   │   │   │   │   │   │       ├── FakeAuthRepository.class
 │   │   │   │   │   │   │   │       ├── FakeSessionManager.class
 │   │   │   │   │   │   │   │       └── FakeTokenStorage.class
-│   │   │   │   │   │   │   ├── domain/session/
-│   │   │   │   │   │   │   │   ├── FakeTokenStorage.class
-│   │   │   │   │   │   │   │   └── SessionManagerImplTest.class
-│   │   │   │   │   │   │   └── internal/
+│   │   │   │   │   │   │   └── domain/session/
+│   │   │   │   │   │   │       ├── FakeTokenStorage.class
+│   │   │   │   │   │   │       └── SessionManagerImplTest.class
 │   │   │   │   │   │   └── META-INF/
 │   │   │   │   │   │       └── auth.kotlin_module
 │   │   │   │   │   └── release/compileReleaseKotlin/classes/
@@ -5964,42 +6121,41 @@ safecube-android/
 │   │   │   │   │   │   │   ├── AuthModule$Companion.class
 │   │   │   │   │   │   │   ├── AuthModule.class
 │   │   │   │   │   │   │   └── AuthModule_Companion_ProvideEncryptedTokenPrefsFactory.class
-│   │   │   │   │   │   ├── domain/
-│   │   │   │   │   │   │   ├── model/
-│   │   │   │   │   │   │   │   ├── AuthError$AccountAlreadyExists.class
-│   │   │   │   │   │   │   │   ├── AuthError$AccountNotActive.class
-│   │   │   │   │   │   │   │   ├── AuthError$Conflict.class
-│   │   │   │   │   │   │   │   ├── AuthError$Forbidden.class
-│   │   │   │   │   │   │   │   ├── AuthError$InvalidCredentials.class
-│   │   │   │   │   │   │   │   ├── AuthError$Unknown.class
-│   │   │   │   │   │   │   │   ├── AuthError$ValidationFailed.class
-│   │   │   │   │   │   │   │   ├── AuthError.class
-│   │   │   │   │   │   │   │   ├── AuthOperation.class
-│   │   │   │   │   │   │   │   ├── AuthResult$Error.class
-│   │   │   │   │   │   │   │   ├── AuthResult$Success.class
-│   │   │   │   │   │   │   │   ├── AuthResult.class
-│   │   │   │   │   │   │   │   ├── AuthTokens.class
-│   │   │   │   │   │   │   │   ├── RegisteredAccount.class
-│   │   │   │   │   │   │   │   ├── SessionState$LoggedInVaultLocked.class
-│   │   │   │   │   │   │   │   ├── SessionState$LoggedOut.class
-│   │   │   │   │   │   │   │   ├── SessionState.class
-│   │   │   │   │   │   │   │   ├── VaultState$Locked.class
-│   │   │   │   │   │   │   │   ├── VaultState$NotInitialized.class
-│   │   │   │   │   │   │   │   ├── VaultState$Unknown.class
-│   │   │   │   │   │   │   │   ├── VaultState$Unlocked.class
-│   │   │   │   │   │   │   │   └── VaultState.class
-│   │   │   │   │   │   │   ├── repository/
-│   │   │   │   │   │   │   │   ├── AuthRepository.class
-│   │   │   │   │   │   │   │   └── TokenStorage.class
-│   │   │   │   │   │   │   ├── session/
-│   │   │   │   │   │   │   │   ├── FakeTokenStorage.class
-│   │   │   │   │   │   │   │   ├── SessionManager.class
-│   │   │   │   │   │   │   │   ├── SessionManagerImpl.class
-│   │   │   │   │   │   │   │   ├── SessionManagerImpl_Factory.class
-│   │   │   │   │   │   │   │   └── SessionManagerImplTest.class
-│   │   │   │   │   │   │   └── vault/
-│   │   │   │   │   │   │       └── VaultSessionManager.class
-│   │   │   │   │   │   └── internal/
+│   │   │   │   │   │   └── domain/
+│   │   │   │   │   │       ├── model/
+│   │   │   │   │   │       │   ├── AuthError$AccountAlreadyExists.class
+│   │   │   │   │   │       │   ├── AuthError$AccountNotActive.class
+│   │   │   │   │   │       │   ├── AuthError$Conflict.class
+│   │   │   │   │   │       │   ├── AuthError$Forbidden.class
+│   │   │   │   │   │       │   ├── AuthError$InvalidCredentials.class
+│   │   │   │   │   │       │   ├── AuthError$Unknown.class
+│   │   │   │   │   │       │   ├── AuthError$ValidationFailed.class
+│   │   │   │   │   │       │   ├── AuthError.class
+│   │   │   │   │   │       │   ├── AuthOperation.class
+│   │   │   │   │   │       │   ├── AuthResult$Error.class
+│   │   │   │   │   │       │   ├── AuthResult$Success.class
+│   │   │   │   │   │       │   ├── AuthResult.class
+│   │   │   │   │   │       │   ├── AuthTokens.class
+│   │   │   │   │   │       │   ├── RegisteredAccount.class
+│   │   │   │   │   │       │   ├── SessionState$LoggedInVaultLocked.class
+│   │   │   │   │   │       │   ├── SessionState$LoggedOut.class
+│   │   │   │   │   │       │   ├── SessionState.class
+│   │   │   │   │   │       │   ├── VaultState$Locked.class
+│   │   │   │   │   │       │   ├── VaultState$NotInitialized.class
+│   │   │   │   │   │       │   ├── VaultState$Unknown.class
+│   │   │   │   │   │       │   ├── VaultState$Unlocked.class
+│   │   │   │   │   │       │   └── VaultState.class
+│   │   │   │   │   │       ├── repository/
+│   │   │   │   │   │       │   ├── AuthRepository.class
+│   │   │   │   │   │       │   └── TokenStorage.class
+│   │   │   │   │   │       ├── session/
+│   │   │   │   │   │       │   ├── FakeTokenStorage.class
+│   │   │   │   │   │       │   ├── SessionManager.class
+│   │   │   │   │   │       │   ├── SessionManagerImpl.class
+│   │   │   │   │   │       │   ├── SessionManagerImpl_Factory.class
+│   │   │   │   │   │       │   └── SessionManagerImplTest.class
+│   │   │   │   │   │       └── vault/
+│   │   │   │   │   │           └── VaultSessionManager.class
 │   │   │   │   │   ├── hilt_aggregated_deps/
 │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_auth_di_AuthModule.class
 │   │   │   │   │   └── META-INF/
@@ -6277,8 +6433,7 @@ safecube-android/
 │   │   │   │   │   │   │   │   ├── remote/
 │   │   │   │   │   │   │   │   ├── repository/
 │   │   │   │   │   │   │   │   └── session/
-│   │   │   │   │   │   │   ├── domain/session/
-│   │   │   │   │   │   │   └── internal/
+│   │   │   │   │   │   │   └── domain/session/
 │   │   │   │   │   │   └── META-INF/
 │   │   │   │   │   │       └── auth.kotlin_module
 │   │   │   │   │   └── release/processReleaseJavaRes/out/
@@ -6570,66 +6725,82 @@ safecube-android/
 │   │   │   │   │   └── release/packageReleaseResources/
 │   │   │   │   ├── runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/
 │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/auth/
+│   │   │   │   │   │   ├── data/
+│   │   │   │   │   │   │   ├── local/
+│   │   │   │   │   │   │   │   ├── EncryptedTokenPrefs.class
+│   │   │   │   │   │   │   │   ├── EncryptedTokenStorage$Companion.class
+│   │   │   │   │   │   │   │   ├── EncryptedTokenStorage.class
+│   │   │   │   │   │   │   │   └── EncryptedTokenStorage_Factory.class
+│   │   │   │   │   │   │   ├── mapper/
+│   │   │   │   │   │   │   │   ├── AuthErrorMapper$ParsedErrorBody.class
+│   │   │   │   │   │   │   │   ├── AuthErrorMapper.class
+│   │   │   │   │   │   │   │   ├── AuthErrorMapper_Factory$InstanceHolder.class
+│   │   │   │   │   │   │   │   └── AuthErrorMapper_Factory.class
+│   │   │   │   │   │   │   ├── remote/
+│   │   │   │   │   │   │   │   ├── NetworkResult$Failure.class
+│   │   │   │   │   │   │   │   ├── NetworkResult$HttpError.class
+│   │   │   │   │   │   │   │   ├── NetworkResult$Success.class
+│   │   │   │   │   │   │   │   ├── NetworkResult.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$execute$1.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$login$2.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$logout$2.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$refresh$2.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource$register$2.class
+│   │   │   │   │   │   │   │   ├── RemoteAuthDataSource.class
+│   │   │   │   │   │   │   │   └── RemoteAuthDataSource_Factory.class
+│   │   │   │   │   │   │   ├── repository/
+│   │   │   │   │   │   │   │   ├── AuthRepositoryImpl$login$1.class
+│   │   │   │   │   │   │   │   ├── AuthRepositoryImpl$logout$1.class
+│   │   │   │   │   │   │   │   ├── AuthRepositoryImpl$refresh$1.class
+│   │   │   │   │   │   │   │   ├── AuthRepositoryImpl$register$1.class
+│   │   │   │   │   │   │   │   ├── AuthRepositoryImpl.class
+│   │   │   │   │   │   │   │   └── AuthRepositoryImpl_Factory.class
+│   │   │   │   │   │   │   ├── session/
+│   │   │   │   │   │   │   │   ├── AuthTokenRefreshHandler$Companion.class
+│   │   │   │   │   │   │   │   ├── AuthTokenRefreshHandler$refreshAccessToken$1.class
+│   │   │   │   │   │   │   │   ├── AuthTokenRefreshHandler.class
+│   │   │   │   │   │   │   │   └── AuthTokenRefreshHandler_Factory.class
+│   │   │   │   │   │   │   └── vault/
+│   │   │   │   │   │   │       ├── FakeVaultSessionManager.class
+│   │   │   │   │   │   │       ├── FakeVaultSessionManager_Factory$InstanceHolder.class
+│   │   │   │   │   │   │       └── FakeVaultSessionManager_Factory.class
 │   │   │   │   │   │   ├── di/
 │   │   │   │   │   │   │   ├── AuthModule$Companion.class
 │   │   │   │   │   │   │   ├── AuthModule.class
 │   │   │   │   │   │   │   └── AuthModule_Companion_ProvideEncryptedTokenPrefsFactory.class
-│   │   │   │   │   │   ├── internal/
-│   │   │   │   │   │   │   ├── EncryptedTokenPrefs.class
-│   │   │   │   │   │   │   ├── EncryptedTokenStorage$Companion.class
-│   │   │   │   │   │   │   ├── EncryptedTokenStorage.class
-│   │   │   │   │   │   │   ├── EncryptedTokenStorage_Factory.class
-│   │   │   │   │   │   │   ├── FakeVaultSessionManager.class
-│   │   │   │   │   │   │   ├── FakeVaultSessionManager_Factory$InstanceHolder.class
-│   │   │   │   │   │   │   └── FakeVaultSessionManager_Factory.class
-│   │   │   │   │   │   ├── AuthError$AccountAlreadyExists.class
-│   │   │   │   │   │   ├── AuthError$AccountNotActive.class
-│   │   │   │   │   │   ├── AuthError$Conflict.class
-│   │   │   │   │   │   ├── AuthError$Forbidden.class
-│   │   │   │   │   │   ├── AuthError$InvalidCredentials.class
-│   │   │   │   │   │   ├── AuthError$Unknown.class
-│   │   │   │   │   │   ├── AuthError$ValidationFailed.class
-│   │   │   │   │   │   ├── AuthError.class
-│   │   │   │   │   │   ├── AuthErrorMapper$ParsedErrorBody.class
-│   │   │   │   │   │   ├── AuthErrorMapper.class
-│   │   │   │   │   │   ├── AuthErrorMapper_Factory$InstanceHolder.class
-│   │   │   │   │   │   ├── AuthErrorMapper_Factory.class
-│   │   │   │   │   │   ├── AuthOperation.class
-│   │   │   │   │   │   ├── AuthRepository.class
-│   │   │   │   │   │   ├── AuthRepositoryImpl$login$1.class
-│   │   │   │   │   │   ├── AuthRepositoryImpl$logout$1.class
-│   │   │   │   │   │   ├── AuthRepositoryImpl$refresh$1.class
-│   │   │   │   │   │   ├── AuthRepositoryImpl$register$1.class
-│   │   │   │   │   │   ├── AuthRepositoryImpl.class
-│   │   │   │   │   │   ├── AuthRepositoryImpl_Factory.class
-│   │   │   │   │   │   ├── AuthResult$Error.class
-│   │   │   │   │   │   ├── AuthResult$Success.class
-│   │   │   │   │   │   ├── AuthResult.class
-│   │   │   │   │   │   ├── AuthTokens.class
-│   │   │   │   │   │   ├── NetworkResult$Failure.class
-│   │   │   │   │   │   ├── NetworkResult$HttpError.class
-│   │   │   │   │   │   ├── NetworkResult$Success.class
-│   │   │   │   │   │   ├── NetworkResult.class
-│   │   │   │   │   │   ├── RegisteredAccount.class
-│   │   │   │   │   │   ├── RemoteAuthDataSource$execute$1.class
-│   │   │   │   │   │   ├── RemoteAuthDataSource$login$2.class
-│   │   │   │   │   │   ├── RemoteAuthDataSource$logout$2.class
-│   │   │   │   │   │   ├── RemoteAuthDataSource$refresh$2.class
-│   │   │   │   │   │   ├── RemoteAuthDataSource$register$2.class
-│   │   │   │   │   │   ├── RemoteAuthDataSource.class
-│   │   │   │   │   │   ├── RemoteAuthDataSource_Factory.class
-│   │   │   │   │   │   ├── SessionManager.class
-│   │   │   │   │   │   ├── SessionManager_Factory.class
-│   │   │   │   │   │   ├── SessionState$LoggedIn.class
-│   │   │   │   │   │   ├── SessionState$LoggedOut.class
-│   │   │   │   │   │   ├── SessionState.class
-│   │   │   │   │   │   ├── TokenStorage.class
-│   │   │   │   │   │   ├── VaultSessionManager.class
-│   │   │   │   │   │   ├── VaultState$Locked.class
-│   │   │   │   │   │   ├── VaultState$NotInitialized.class
-│   │   │   │   │   │   ├── VaultState$Unknown.class
-│   │   │   │   │   │   ├── VaultState$Unlocked.class
-│   │   │   │   │   │   └── VaultState.class
+│   │   │   │   │   │   └── domain/
+│   │   │   │   │   │       ├── model/
+│   │   │   │   │   │       │   ├── AuthError$AccountAlreadyExists.class
+│   │   │   │   │   │       │   ├── AuthError$AccountNotActive.class
+│   │   │   │   │   │       │   ├── AuthError$Conflict.class
+│   │   │   │   │   │       │   ├── AuthError$Forbidden.class
+│   │   │   │   │   │       │   ├── AuthError$InvalidCredentials.class
+│   │   │   │   │   │       │   ├── AuthError$Unknown.class
+│   │   │   │   │   │       │   ├── AuthError$ValidationFailed.class
+│   │   │   │   │   │       │   ├── AuthError.class
+│   │   │   │   │   │       │   ├── AuthOperation.class
+│   │   │   │   │   │       │   ├── AuthResult$Error.class
+│   │   │   │   │   │       │   ├── AuthResult$Success.class
+│   │   │   │   │   │       │   ├── AuthResult.class
+│   │   │   │   │   │       │   ├── AuthTokens.class
+│   │   │   │   │   │       │   ├── RegisteredAccount.class
+│   │   │   │   │   │       │   ├── SessionState$LoggedInVaultLocked.class
+│   │   │   │   │   │       │   ├── SessionState$LoggedOut.class
+│   │   │   │   │   │       │   ├── SessionState.class
+│   │   │   │   │   │       │   ├── VaultState$Locked.class
+│   │   │   │   │   │       │   ├── VaultState$NotInitialized.class
+│   │   │   │   │   │       │   ├── VaultState$Unknown.class
+│   │   │   │   │   │       │   ├── VaultState$Unlocked.class
+│   │   │   │   │   │       │   └── VaultState.class
+│   │   │   │   │   │       ├── repository/
+│   │   │   │   │   │       │   ├── AuthRepository.class
+│   │   │   │   │   │       │   └── TokenStorage.class
+│   │   │   │   │   │       ├── session/
+│   │   │   │   │   │       │   ├── SessionManager.class
+│   │   │   │   │   │       │   ├── SessionManagerImpl.class
+│   │   │   │   │   │       │   └── SessionManagerImpl_Factory.class
+│   │   │   │   │   │       └── vault/
+│   │   │   │   │   │           └── VaultSessionManager.class
 │   │   │   │   │   ├── hilt_aggregated_deps/
 │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_auth_di_AuthModule.class
 │   │   │   │   │   └── META-INF/
@@ -6816,9 +6987,7 @@ safecube-android/
 │   │   │   │   │   │   │   │       ├── proto.tab.keystream
 │   │   │   │   │   │   │   │       ├── proto.tab.keystream.len
 │   │   │   │   │   │   │   │       ├── proto.tab.len
-│   │   │   │   │   │   │   │       ├── proto.tab.values
 │   │   │   │   │   │   │   │       ├── proto.tab.values.at
-│   │   │   │   │   │   │   │       ├── proto.tab.values.s
 │   │   │   │   │   │   │   │       ├── proto.tab_i
 │   │   │   │   │   │   │   │       ├── proto.tab_i.len
 │   │   │   │   │   │   │   │       ├── source-to-classes.tab
@@ -7162,10 +7331,6 @@ safecube-android/
 │   │   │       │   ├── compileTransaction/
 │   │   │       │   │   ├── backup-dir/
 │   │   │       │   │   └── stash-dir/
-│   │   │       │   │       ├── AuthModule_Companion_ProvideEncryptedTokenPrefsFactory.class.uniqueId1
-│   │   │       │   │       ├── AuthRepositoryImpl_Factory.class.uniqueId3
-│   │   │       │   │       ├── RemoteAuthDataSource_Factory.class.uniqueId0
-│   │   │       │   │       └── SessionManagerImpl_Factory.class.uniqueId2
 │   │   │       │   └── previous-compilation-data.bin
 │   │   │       ├── compileReleaseJavaWithJavac/
 │   │   │       │   ├── compileTransaction/
@@ -7355,6 +7520,28 @@ safecube-android/
 │   │   │   │   │   └── results.bin
 │   │   │   │   ├── a298670def383a296453c63d7bb5d1af/
 │   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│   │   │   │   │   │   └── desugar_graph.bin
+│   │   │   │   │   └── results.bin
+│   │   │   │   ├── cc6a50ca470342569a194e177c43316e/
+│   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/crypto/
+│   │   │   │   │   │   │   ├── di/
+│   │   │   │   │   │   │   │   └── CryptoModule.dex
+│   │   │   │   │   │   │   ├── internal/
+│   │   │   │   │   │   │   │   ├── FakeCryptoEngine.dex
+│   │   │   │   │   │   │   │   ├── FakeCryptoEngine_Factory$InstanceHolder.dex
+│   │   │   │   │   │   │   │   └── FakeCryptoEngine_Factory.dex
+│   │   │   │   │   │   │   ├── CryptoEngine.dex
+│   │   │   │   │   │   │   ├── DecryptionRequest.dex
+│   │   │   │   │   │   │   ├── EncryptionRequest.dex
+│   │   │   │   │   │   │   ├── EncryptionResult.dex
+│   │   │   │   │   │   │   ├── KdfEngine.dex
+│   │   │   │   │   │   │   ├── KdfRequest.dex
+│   │   │   │   │   │   │   ├── KeyUnwrapRequest.dex
+│   │   │   │   │   │   │   ├── KeyWrapping.dex
+│   │   │   │   │   │   │   └── KeyWrapRequest.dex
+│   │   │   │   │   │   ├── hilt_aggregated_deps/
+│   │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_crypto_di_CryptoModule.dex
 │   │   │   │   │   │   └── desugar_graph.bin
 │   │   │   │   │   └── results.bin
 │   │   │   │   ├── d77fe5e285631bdc1235d63e8b93aa5e/
@@ -8708,6 +8895,136 @@ safecube-android/
 │   │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_network_di_NetworkModule.dex
 │   │   │   │   │   │   └── desugar_graph.bin
 │   │   │   │   │   └── results.bin
+│   │   │   │   ├── 9bf4a2e6fc8da1df13b31a85e15568f1/
+│   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/network/
+│   │   │   │   │   │   │   ├── di/
+│   │   │   │   │   │   │   │   ├── NetworkModule.dex
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideAuthControllerApiFactory.dex
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideJsonFactory$InstanceHolder.dex
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideJsonFactory.dex
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideNetworkConfigFactory$InstanceHolder.dex
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideNetworkConfigFactory.dex
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideOkHttpClientFactory.dex
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideRefreshAuthControllerApiFactory.dex
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideRefreshOkHttpClientFactory.dex
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideRefreshRetrofitFactory.dex
+│   │   │   │   │   │   │   │   ├── NetworkModule_ProvideRetrofitFactory.dex
+│   │   │   │   │   │   │   │   ├── RefreshAuthApi.dex
+│   │   │   │   │   │   │   │   ├── RefreshOkHttpClient.dex
+│   │   │   │   │   │   │   │   ├── RefreshRetrofit.dex
+│   │   │   │   │   │   │   │   └── TokenRefreshOptionalBindingModule.dex
+│   │   │   │   │   │   │   ├── generated/
+│   │   │   │   │   │   │   │   ├── api/
+│   │   │   │   │   │   │   │   │   ├── AuthControllerApi.dex
+│   │   │   │   │   │   │   │   │   ├── UserProfileControllerApi.dex
+│   │   │   │   │   │   │   │   │   ├── VaultControllerApi$DefaultImpls.dex
+│   │   │   │   │   │   │   │   │   ├── VaultControllerApi.dex
+│   │   │   │   │   │   │   │   │   └── VaultKeyMaterialControllerApi.dex
+│   │   │   │   │   │   │   │   ├── auth/
+│   │   │   │   │   │   │   │   │   └── HttpBearerAuth.dex
+│   │   │   │   │   │   │   │   ├── infrastructure/
+│   │   │   │   │   │   │   │   │   ├── ApiClient$Companion.dex
+│   │   │   │   │   │   │   │   │   ├── ApiClient.dex
+│   │   │   │   │   │   │   │   │   ├── AtomicBooleanAdapter.dex
+│   │   │   │   │   │   │   │   │   ├── AtomicIntegerAdapter.dex
+│   │   │   │   │   │   │   │   │   ├── AtomicLongAdapter.dex
+│   │   │   │   │   │   │   │   │   ├── BigDecimalAdapter.dex
+│   │   │   │   │   │   │   │   │   ├── BigIntegerAdapter.dex
+│   │   │   │   │   │   │   │   │   ├── CollectionFormats$CSVParams.dex
+│   │   │   │   │   │   │   │   │   ├── CollectionFormats$PIPESParams.dex
+│   │   │   │   │   │   │   │   │   ├── CollectionFormats$SPACEParams.dex
+│   │   │   │   │   │   │   │   │   ├── CollectionFormats$SSVParams.dex
+│   │   │   │   │   │   │   │   │   ├── CollectionFormats$TSVParams.dex
+│   │   │   │   │   │   │   │   │   ├── CollectionFormats.dex
+│   │   │   │   │   │   │   │   │   ├── LocalDateAdapter.dex
+│   │   │   │   │   │   │   │   │   ├── LocalDateTimeAdapter.dex
+│   │   │   │   │   │   │   │   │   ├── OffsetDateTimeAdapter.dex
+│   │   │   │   │   │   │   │   │   ├── Serializer.dex
+│   │   │   │   │   │   │   │   │   ├── StringBuilderAdapter.dex
+│   │   │   │   │   │   │   │   │   ├── URIAdapter.dex
+│   │   │   │   │   │   │   │   │   ├── URLAdapter.dex
+│   │   │   │   │   │   │   │   │   └── UUIDAdapter.dex
+│   │   │   │   │   │   │   │   └── model/
+│   │   │   │   │   │   │   │       ├── AuthenticateAccountRequest$$serializer.dex
+│   │   │   │   │   │   │   │       ├── AuthenticateAccountRequest$Companion.dex
+│   │   │   │   │   │   │   │       ├── AuthenticateAccountRequest.dex
+│   │   │   │   │   │   │   │       ├── AuthTokensResponse$$serializer.dex
+│   │   │   │   │   │   │   │       ├── AuthTokensResponse$Companion.dex
+│   │   │   │   │   │   │   │       ├── AuthTokensResponse.dex
+│   │   │   │   │   │   │   │       ├── CreateSecureItemRequest$$serializer.dex
+│   │   │   │   │   │   │   │       ├── CreateSecureItemRequest$Companion.dex
+│   │   │   │   │   │   │   │       ├── CreateSecureItemRequest.dex
+│   │   │   │   │   │   │   │       ├── CreateSecureItemResult$$serializer.dex
+│   │   │   │   │   │   │   │       ├── CreateSecureItemResult$Companion.dex
+│   │   │   │   │   │   │   │       ├── CreateSecureItemResult.dex
+│   │   │   │   │   │   │   │       ├── CreateUserProfileRequest$$serializer.dex
+│   │   │   │   │   │   │   │       ├── CreateUserProfileRequest$Companion.dex
+│   │   │   │   │   │   │   │       ├── CreateUserProfileRequest.dex
+│   │   │   │   │   │   │   │       ├── DeleteSecureItemResult$$serializer.dex
+│   │   │   │   │   │   │   │       ├── DeleteSecureItemResult$Companion.dex
+│   │   │   │   │   │   │   │       ├── DeleteSecureItemResult.dex
+│   │   │   │   │   │   │   │       ├── Get400Response$$serializer.dex
+│   │   │   │   │   │   │   │       ├── Get400Response$Companion.dex
+│   │   │   │   │   │   │   │       ├── Get400Response.dex
+│   │   │   │   │   │   │   │       ├── InitVaultKeyMaterialRequest$$serializer.dex
+│   │   │   │   │   │   │   │       ├── InitVaultKeyMaterialRequest$Companion.dex
+│   │   │   │   │   │   │   │       ├── InitVaultKeyMaterialRequest.dex
+│   │   │   │   │   │   │   │       ├── ListSecureItemsResponse$$serializer.dex
+│   │   │   │   │   │   │   │       ├── ListSecureItemsResponse$Companion.dex
+│   │   │   │   │   │   │   │       ├── ListSecureItemsResponse.dex
+│   │   │   │   │   │   │   │       ├── RefreshTokenRequest$$serializer.dex
+│   │   │   │   │   │   │   │       ├── RefreshTokenRequest$Companion.dex
+│   │   │   │   │   │   │   │       ├── RefreshTokenRequest.dex
+│   │   │   │   │   │   │   │       ├── RegisterAccountRequest$$serializer.dex
+│   │   │   │   │   │   │   │       ├── RegisterAccountRequest$Companion.dex
+│   │   │   │   │   │   │   │       ├── RegisterAccountRequest.dex
+│   │   │   │   │   │   │   │       ├── RegisterAccountResult$$serializer.dex
+│   │   │   │   │   │   │   │       ├── RegisterAccountResult$Companion.dex
+│   │   │   │   │   │   │   │       ├── RegisterAccountResult.dex
+│   │   │   │   │   │   │   │       ├── SecureItemResponse$$serializer.dex
+│   │   │   │   │   │   │   │       ├── SecureItemResponse$Companion.dex
+│   │   │   │   │   │   │   │       ├── SecureItemResponse.dex
+│   │   │   │   │   │   │   │       ├── SecureItemSummaryResponse$$serializer.dex
+│   │   │   │   │   │   │   │       ├── SecureItemSummaryResponse$Companion.dex
+│   │   │   │   │   │   │   │       ├── SecureItemSummaryResponse.dex
+│   │   │   │   │   │   │   │       ├── UpdateMaster400Response$$serializer.dex
+│   │   │   │   │   │   │   │       ├── UpdateMaster400Response$Companion.dex
+│   │   │   │   │   │   │   │       ├── UpdateMaster400Response.dex
+│   │   │   │   │   │   │   │       ├── UpdateMasterWrappedKekRequest$$serializer.dex
+│   │   │   │   │   │   │   │       ├── UpdateMasterWrappedKekRequest$Companion.dex
+│   │   │   │   │   │   │   │       ├── UpdateMasterWrappedKekRequest.dex
+│   │   │   │   │   │   │   │       ├── UpdateSecureItemRequest$$serializer.dex
+│   │   │   │   │   │   │   │       ├── UpdateSecureItemRequest$Companion.dex
+│   │   │   │   │   │   │   │       ├── UpdateSecureItemRequest.dex
+│   │   │   │   │   │   │   │       ├── UpdateSecureItemResult$$serializer.dex
+│   │   │   │   │   │   │   │       ├── UpdateSecureItemResult$Companion.dex
+│   │   │   │   │   │   │   │       ├── UpdateSecureItemResult.dex
+│   │   │   │   │   │   │   │       ├── UpdateUserProfileRequest$$serializer.dex
+│   │   │   │   │   │   │   │       ├── UpdateUserProfileRequest$Companion.dex
+│   │   │   │   │   │   │   │       ├── UpdateUserProfileRequest.dex
+│   │   │   │   │   │   │   │       ├── UserProfileResponse$$serializer.dex
+│   │   │   │   │   │   │   │       ├── UserProfileResponse$Companion.dex
+│   │   │   │   │   │   │   │       ├── UserProfileResponse.dex
+│   │   │   │   │   │   │   │       ├── VaultKeyMaterialResponse$$serializer.dex
+│   │   │   │   │   │   │   │       ├── VaultKeyMaterialResponse$Companion.dex
+│   │   │   │   │   │   │   │       └── VaultKeyMaterialResponse.dex
+│   │   │   │   │   │   │   ├── AuthInterceptor.dex
+│   │   │   │   │   │   │   ├── AuthInterceptor_Factory.dex
+│   │   │   │   │   │   │   ├── BuildConfig.dex
+│   │   │   │   │   │   │   ├── NetworkClientFactory.dex
+│   │   │   │   │   │   │   ├── NetworkConfig.dex
+│   │   │   │   │   │   │   ├── TokenProvider.dex
+│   │   │   │   │   │   │   ├── TokenRefreshAuthenticator$authenticate$refreshedAccessToken$1.dex
+│   │   │   │   │   │   │   ├── TokenRefreshAuthenticator$Companion.dex
+│   │   │   │   │   │   │   ├── TokenRefreshAuthenticator.dex
+│   │   │   │   │   │   │   ├── TokenRefreshAuthenticator_Factory.dex
+│   │   │   │   │   │   │   └── TokenRefreshHandler.dex
+│   │   │   │   │   │   ├── hilt_aggregated_deps/
+│   │   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_core_network_di_NetworkModule.dex
+│   │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_network_di_TokenRefreshOptionalBindingModule.dex
+│   │   │   │   │   │   └── desugar_graph.bin
+│   │   │   │   │   └── results.bin
 │   │   │   │   ├── cf8d304c5f88a6557cbf9260965acfc1/
 │   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
 │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/network/
@@ -10019,7 +10336,14 @@ safecube-android/
 │   │   │   │   │   │   │   ├── NetworkModule_ProvideNetworkConfigFactory$InstanceHolder.class
 │   │   │   │   │   │   │   ├── NetworkModule_ProvideNetworkConfigFactory.class
 │   │   │   │   │   │   │   ├── NetworkModule_ProvideOkHttpClientFactory.class
-│   │   │   │   │   │   │   └── NetworkModule_ProvideRetrofitFactory.class
+│   │   │   │   │   │   │   ├── NetworkModule_ProvideRefreshAuthControllerApiFactory.class
+│   │   │   │   │   │   │   ├── NetworkModule_ProvideRefreshOkHttpClientFactory.class
+│   │   │   │   │   │   │   ├── NetworkModule_ProvideRefreshRetrofitFactory.class
+│   │   │   │   │   │   │   ├── NetworkModule_ProvideRetrofitFactory.class
+│   │   │   │   │   │   │   ├── RefreshAuthApi.class
+│   │   │   │   │   │   │   ├── RefreshOkHttpClient.class
+│   │   │   │   │   │   │   ├── RefreshRetrofit.class
+│   │   │   │   │   │   │   └── TokenRefreshOptionalBindingModule.class
 │   │   │   │   │   │   ├── generated/
 │   │   │   │   │   │   │   ├── api/
 │   │   │   │   │   │   │   │   ├── AuthControllerApi.class
@@ -10121,11 +10445,14 @@ safecube-android/
 │   │   │   │   │   │   ├── NetworkClientFactory.class
 │   │   │   │   │   │   ├── NetworkConfig.class
 │   │   │   │   │   │   ├── TokenProvider.class
+│   │   │   │   │   │   ├── TokenRefreshAuthenticator$authenticate$refreshedAccessToken$1.class
+│   │   │   │   │   │   ├── TokenRefreshAuthenticator$Companion.class
 │   │   │   │   │   │   ├── TokenRefreshAuthenticator.class
-│   │   │   │   │   │   ├── TokenRefreshAuthenticator_Factory$InstanceHolder.class
-│   │   │   │   │   │   └── TokenRefreshAuthenticator_Factory.class
+│   │   │   │   │   │   ├── TokenRefreshAuthenticator_Factory.class
+│   │   │   │   │   │   └── TokenRefreshHandler.class
 │   │   │   │   │   ├── hilt_aggregated_deps/
-│   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_network_di_NetworkModule.class
+│   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_core_network_di_NetworkModule.class
+│   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_network_di_TokenRefreshOptionalBindingModule.class
 │   │   │   │   │   └── META-INF/
 │   │   │   │   │       └── network.kotlin_module
 │   │   │   │   ├── runtime_library_classes_jar/
@@ -10652,17 +10979,17 @@ safecube-android/
 │   │   │       │   ├── compileTransaction/
 │   │   │       │   │   ├── backup-dir/
 │   │   │       │   │   └── stash-dir/
-│   │   │       │   │       ├── NetworkModule_ProvideAuthControllerApiFactory.class.uniqueId3
-│   │   │       │   │       ├── NetworkModule_ProvideJsonFactory$InstanceHolder.class.uniqueId9
+│   │   │       │   │       ├── BuildConfig.class.uniqueId9
+│   │   │       │   │       ├── NetworkModule_ProvideAuthControllerApiFactory.class.uniqueId2
+│   │   │       │   │       ├── NetworkModule_ProvideJsonFactory$InstanceHolder.class.uniqueId8
 │   │   │       │   │       ├── NetworkModule_ProvideJsonFactory.class.uniqueId10
-│   │   │       │   │       ├── NetworkModule_ProvideNetworkConfigFactory$InstanceHolder.class.uniqueId6
-│   │   │       │   │       ├── NetworkModule_ProvideNetworkConfigFactory.class.uniqueId8
+│   │   │       │   │       ├── NetworkModule_ProvideNetworkConfigFactory$InstanceHolder.class.uniqueId5
+│   │   │       │   │       ├── NetworkModule_ProvideNetworkConfigFactory.class.uniqueId7
 │   │   │       │   │       ├── NetworkModule_ProvideOkHttpClientFactory.class.uniqueId0
-│   │   │       │   │       ├── NetworkModule_ProvideRefreshAuthControllerApiFactory.class.uniqueId4
+│   │   │       │   │       ├── NetworkModule_ProvideRefreshAuthControllerApiFactory.class.uniqueId3
 │   │   │       │   │       ├── NetworkModule_ProvideRefreshOkHttpClientFactory.class.uniqueId1
-│   │   │       │   │       ├── NetworkModule_ProvideRefreshRetrofitFactory.class.uniqueId7
-│   │   │       │   │       ├── NetworkModule_ProvideRetrofitFactory.class.uniqueId5
-│   │   │       │   │       └── TokenRefreshAuthenticator_Factory.class.uniqueId2
+│   │   │       │   │       ├── NetworkModule_ProvideRefreshRetrofitFactory.class.uniqueId6
+│   │   │       │   │       └── NetworkModule_ProvideRetrofitFactory.class.uniqueId4
 │   │   │       │   └── previous-compilation-data.bin
 │   │   │       ├── compileReleaseJavaWithJavac/
 │   │   │       │   └── previous-compilation-data.bin
@@ -10692,6 +11019,24 @@ safecube-android/
 │   ├── storage/
 │   │   ├── build/
 │   │   │   ├── .transforms/
+│   │   │   │   ├── 0395d0ceafc0dbdf010f930bddc52c7d/
+│   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/core/storage/
+│   │   │   │   │   │   │   ├── di/
+│   │   │   │   │   │   │   │   ├── StorageModule.dex
+│   │   │   │   │   │   │   │   ├── StorageModule_ProvideAppDatabaseFactory.dex
+│   │   │   │   │   │   │   │   └── StorageModule_ProvideSecureItemDaoFactory.dex
+│   │   │   │   │   │   │   ├── AppDatabase.dex
+│   │   │   │   │   │   │   ├── AppDatabase_Impl$createOpenDelegate$_openDelegate$1.dex
+│   │   │   │   │   │   │   ├── AppDatabase_Impl.dex
+│   │   │   │   │   │   │   ├── SecureItemDao.dex
+│   │   │   │   │   │   │   ├── SecureItemDao_Impl$Companion.dex
+│   │   │   │   │   │   │   ├── SecureItemDao_Impl.dex
+│   │   │   │   │   │   │   └── SecureItemEntity.dex
+│   │   │   │   │   │   ├── hilt_aggregated_deps/
+│   │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_core_storage_di_StorageModule.dex
+│   │   │   │   │   │   └── desugar_graph.bin
+│   │   │   │   │   └── results.bin
 │   │   │   │   ├── 1735c218071b5e3ea028b947d94817ac/
 │   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
 │   │   │   │   │   │   └── desugar_graph.bin
@@ -11911,6 +12256,10 @@ safecube-android/
 │   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
 │   │   │   │   │   │   └── desugar_graph.bin
 │   │   │   │   │   └── results.bin
+│   │   │   │   ├── d10bcc84b089704b065acbe265ec0912/
+│   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│   │   │   │   │   │   └── desugar_graph.bin
+│   │   │   │   │   └── results.bin
 │   │   │   │   ├── d2b08568d2e0c63847ebd148c9660cd8/
 │   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
 │   │   │   │   │   │   └── desugar_graph.bin
@@ -11977,11 +12326,8 @@ safecube-android/
 │   │   │   │   │   └── release/mergeReleaseGeneratedProguardFiles/
 │   │   │   │   ├── incremental/
 │   │   │   │   │   ├── debug/packageDebugResources/
-│   │   │   │   │   │   ├── merged.dir/
-│   │   │   │   │   │   │   ├── values/
-│   │   │   │   │   │   │   │   └── values.xml
-│   │   │   │   │   │   │   └── values-es/
-│   │   │   │   │   │   │       └── values-es.xml
+│   │   │   │   │   │   ├── merged.dir/values/
+│   │   │   │   │   │   │   └── values.xml
 │   │   │   │   │   │   ├── stripped.dir/
 │   │   │   │   │   │   │   │   │   │   │   │   └── merger.xml
 │   │   │   │   │   ├── debug-mergeJavaRes/
@@ -12199,6 +12545,62 @@ safecube-android/
 │   │   │   │   │   └── results.bin
 │   │   │   │   ├── 9be2ca84e046104ac13d24383f836449/
 │   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│   │   │   │   │   │   └── desugar_graph.bin
+│   │   │   │   │   └── results.bin
+│   │   │   │   ├── b1879aa5a6a79658019647b2a7e9398b/
+│   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/
+│   │   │   │   │   │   │   ├── presentation/
+│   │   │   │   │   │   │   │   ├── login/
+│   │   │   │   │   │   │   │   │   ├── LoginUiState.dex
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel$login$3.dex
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel.dex
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_Factory.dex
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules$BindsModule.dex
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules$KeyModule.dex
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules.dex
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_BindsModule_Binds_LazyMapKey.dex
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey.dex
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.dex
+│   │   │   │   │   │   │   │   │   └── LoginViewModel_HiltModules_KeyModule_ProvideFactory.dex
+│   │   │   │   │   │   │   │   ├── signup/
+│   │   │   │   │   │   │   │   │   ├── SignupUiState.dex
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel$loginAfterSignup$1.dex
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel$signup$3.dex
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel.dex
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_Factory.dex
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules$BindsModule.dex
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules$KeyModule.dex
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules.dex
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules_BindsModule_Binds_LazyMapKey.dex
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules_KeyModule_Provide_LazyMapKey.dex
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.dex
+│   │   │   │   │   │   │   │   │   └── SignupViewModel_HiltModules_KeyModule_ProvideFactory.dex
+│   │   │   │   │   │   │   │   ├── AuthUiError.dex
+│   │   │   │   │   │   │   │   └── AuthUiErrorMapper.dex
+│   │   │   │   │   │   │   ├── screens/
+│   │   │   │   │   │   │   │   ├── ComposableSingletons$LoginScreenKt.dex
+│   │   │   │   │   │   │   │   ├── ComposableSingletons$SignupScreenKt.dex
+│   │   │   │   │   │   │   │   ├── ComposableSingletons$WelcomeScreenKt.dex
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$1$1.dex
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$1$1.dex
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$3$1.dex
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$6$1.dex
+│   │   │   │   │   │   │   │   ├── LoginScreenKt.dex
+│   │   │   │   │   │   │   │   ├── PostLoginGateScreenKt.dex
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$1$1.dex
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$1$1.dex
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$3$1.dex
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$5$1.dex
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$8$1.dex
+│   │   │   │   │   │   │   │   ├── SignupScreenKt.dex
+│   │   │   │   │   │   │   │   └── WelcomeScreenKt.dex
+│   │   │   │   │   │   │   └── AuthActionLabelKt.dex
+│   │   │   │   │   │   ├── hilt_aggregated_deps/
+│   │   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule.dex
+│   │   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule.dex
+│   │   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule.dex
+│   │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule.dex
 │   │   │   │   │   │   └── desugar_graph.bin
 │   │   │   │   │   └── results.bin
 │   │   │   │   ├── daa3276f273338cde9de5bf4def18d11/
@@ -12744,8 +13146,17 @@ safecube-android/
 │   │   │   │   │   └── transformDebugClassesWithAsm/
 │   │   │   │   ├── java_res/
 │   │   │   │   │   ├── debug/processDebugJavaRes/out/
-│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/screens/
+│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/
+│   │   │   │   │   │   │   ├── presentation/
+│   │   │   │   │   │   │   │   ├── login/
+│   │   │   │   │   │   │   │   └── signup/
+│   │   │   │   │   │   │   └── screens/
 │   │   │   │   │   │   └── META-INF/
+│   │   │   │   │   │       ├── proguard/
+│   │   │   │   │   │       │   ├── com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule_LazyClassKeys.pro
+│   │   │   │   │   │       │   ├── com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule_LazyClassKeys.pro
+│   │   │   │   │   │       │   ├── com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule_LazyClassKeys.pro
+│   │   │   │   │   │       │   └── com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule_LazyClassKeys.pro
 │   │   │   │   │   │       └── auth.kotlin_module
 │   │   │   │   │   └── release/processReleaseJavaRes/out/
 │   │   │   │   │       ├── com/miguelrodriguez19/safecube/feature/auth/screens/
@@ -13026,16 +13437,63 @@ safecube-android/
 │   │   │   │   │   └── release/packageReleaseResources/
 │   │   │   │   ├── runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/
 │   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/
+│   │   │   │   │   │   ├── presentation/
+│   │   │   │   │   │   │   ├── login/
+│   │   │   │   │   │   │   │   ├── LoginUiState.class
+│   │   │   │   │   │   │   │   ├── LoginViewModel$login$3.class
+│   │   │   │   │   │   │   │   ├── LoginViewModel.class
+│   │   │   │   │   │   │   │   ├── LoginViewModel_Factory.class
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules$BindsModule.class
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules$KeyModule.class
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules.class
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_BindsModule_Binds_LazyMapKey.class
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class
+│   │   │   │   │   │   │   │   └── LoginViewModel_HiltModules_KeyModule_ProvideFactory.class
+│   │   │   │   │   │   │   ├── signup/
+│   │   │   │   │   │   │   │   ├── SignupUiState.class
+│   │   │   │   │   │   │   │   ├── SignupViewModel$loginAfterSignup$1.class
+│   │   │   │   │   │   │   │   ├── SignupViewModel$signup$3.class
+│   │   │   │   │   │   │   │   ├── SignupViewModel.class
+│   │   │   │   │   │   │   │   ├── SignupViewModel_Factory.class
+│   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules$BindsModule.class
+│   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules$KeyModule.class
+│   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules.class
+│   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules_BindsModule_Binds_LazyMapKey.class
+│   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class
+│   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class
+│   │   │   │   │   │   │   │   └── SignupViewModel_HiltModules_KeyModule_ProvideFactory.class
+│   │   │   │   │   │   │   ├── AuthUiError.class
+│   │   │   │   │   │   │   └── AuthUiErrorMapper.class
 │   │   │   │   │   │   ├── screens/
 │   │   │   │   │   │   │   ├── ComposableSingletons$LoginScreenKt.class
 │   │   │   │   │   │   │   ├── ComposableSingletons$SignupScreenKt.class
 │   │   │   │   │   │   │   ├── ComposableSingletons$WelcomeScreenKt.class
+│   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$1$1.class
+│   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$1$1.class
+│   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$3$1.class
+│   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$6$1.class
 │   │   │   │   │   │   │   ├── LoginScreenKt.class
 │   │   │   │   │   │   │   ├── PostLoginGateScreenKt.class
+│   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$1$1.class
+│   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$1$1.class
+│   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$3$1.class
+│   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$5$1.class
+│   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$8$1.class
 │   │   │   │   │   │   │   ├── SignupScreenKt.class
 │   │   │   │   │   │   │   └── WelcomeScreenKt.class
 │   │   │   │   │   │   └── AuthActionLabelKt.class
+│   │   │   │   │   ├── hilt_aggregated_deps/
+│   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule.class
+│   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule.class
+│   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule.class
+│   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule.class
 │   │   │   │   │   └── META-INF/
+│   │   │   │   │       ├── proguard/
+│   │   │   │   │       │   ├── com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule_LazyClassKeys.pro
+│   │   │   │   │       │   ├── com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule_LazyClassKeys.pro
+│   │   │   │   │       │   ├── com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule_LazyClassKeys.pro
+│   │   │   │   │       │   └── com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule_LazyClassKeys.pro
 │   │   │   │   │       └── auth.kotlin_module
 │   │   │   │   ├── runtime_library_classes_jar/
 │   │   │   │   │   ├── debug/bundleLibRuntimeToJarDebug/
@@ -13099,6 +13557,13 @@ safecube-android/
 │   │   │   │   │   │   │   │       ├── class-fq-name-to-source.tab.values.at
 │   │   │   │   │   │   │   │       ├── class-fq-name-to-source.tab_i
 │   │   │   │   │   │   │   │       ├── class-fq-name-to-source.tab_i.len
+│   │   │   │   │   │   │   │       ├── constants.tab
+│   │   │   │   │   │   │   │       ├── constants.tab.keystream
+│   │   │   │   │   │   │   │       ├── constants.tab.keystream.len
+│   │   │   │   │   │   │   │       ├── constants.tab.len
+│   │   │   │   │   │   │   │       ├── constants.tab.values.at
+│   │   │   │   │   │   │   │       ├── constants.tab_i
+│   │   │   │   │   │   │   │       ├── constants.tab_i.len
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab.keystream
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab.keystream.len
@@ -13330,22 +13795,14 @@ safecube-android/
 │   │   │       ├── compileTransaction/
 │   │   │       │   ├── backup-dir/
 │   │   │       │   └── stash-dir/
-│   │   │       │       ├── LoginViewModel_Factory.class.uniqueId8
+│   │   │       │       ├── LoginViewModel_Factory.class.uniqueId1
 │   │   │       │       ├── LoginViewModel_HiltModules$BindsModule.class.uniqueId4
 │   │   │       │       ├── LoginViewModel_HiltModules$KeyModule.class.uniqueId2
 │   │   │       │       ├── LoginViewModel_HiltModules.class.uniqueId0
 │   │   │       │       ├── LoginViewModel_HiltModules_BindsModule_Binds_LazyMapKey.class.uniqueId3
-│   │   │       │       ├── LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class.uniqueId12
-│   │   │       │       ├── LoginViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class.uniqueId6
-│   │   │       │       ├── LoginViewModel_HiltModules_KeyModule_ProvideFactory.class.uniqueId15
-│   │   │       │       ├── SignupViewModel_Factory.class.uniqueId1
-│   │   │       │       ├── SignupViewModel_HiltModules$BindsModule.class.uniqueId7
-│   │   │       │       ├── SignupViewModel_HiltModules$KeyModule.class.uniqueId13
-│   │   │       │       ├── SignupViewModel_HiltModules.class.uniqueId10
-│   │   │       │       ├── SignupViewModel_HiltModules_BindsModule_Binds_LazyMapKey.class.uniqueId11
-│   │   │       │       ├── SignupViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class.uniqueId5
-│   │   │       │       ├── SignupViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class.uniqueId9
-│   │   │       │       └── SignupViewModel_HiltModules_KeyModule_ProvideFactory.class.uniqueId14
+│   │   │       │       ├── LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class.uniqueId5
+│   │   │       │       ├── LoginViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class.uniqueId7
+│   │   │       │       └── LoginViewModel_HiltModules_KeyModule_ProvideFactory.class.uniqueId6
 │   │   │       └── previous-compilation-data.bin
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/feature/auth/
@@ -13410,6 +13867,13 @@ safecube-android/
 │   │   │   │   │   └── results.bin
 │   │   │   │   ├── 95daba623d34eb9a150169212835a73c/
 │   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│   │   │   │   │   │   └── desugar_graph.bin
+│   │   │   │   │   └── results.bin
+│   │   │   │   ├── bd4e6dbc3ae7cbaba1801656792c1308/
+│   │   │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/profile/navigation/
+│   │   │   │   │   │   │   ├── ComposableSingletons$ProfileScreenKt.dex
+│   │   │   │   │   │   │   └── ProfileScreenKt.dex
 │   │   │   │   │   │   └── desugar_graph.bin
 │   │   │   │   │   └── results.bin
 │   │   │   │   ├── c0dded6f7048e0c55957804820e88d9f/
@@ -14364,6 +14828,26 @@ safecube-android/
 │       │   │   │   └── results.bin
 │       │   │   ├── 717e4635debfdeaec981353de4ee428f/
 │       │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│       │   │   │   │   └── desugar_graph.bin
+│       │   │   │   └── results.bin
+│       │   │   ├── 72280f5996d1531a3797eba465c283f2/
+│       │   │   │   ├── transformed/bundleLibRuntimeToDirDebug/
+│       │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/vault/navigation/
+│       │   │   │   │   │   ├── AppTab.dex
+│       │   │   │   │   │   ├── ComposableSingletons$CreateVaultScreenKt.dex
+│       │   │   │   │   │   ├── ComposableSingletons$NavigationBarKt.dex
+│       │   │   │   │   │   ├── ComposableSingletons$RecoveryKeyScreenKt.dex
+│       │   │   │   │   │   ├── ComposableSingletons$SettingsScreenKt.dex
+│       │   │   │   │   │   ├── ComposableSingletons$UnlockVaultScreenKt.dex
+│       │   │   │   │   │   ├── ComposableSingletons$VaultFoldersScreenKt.dex
+│       │   │   │   │   │   ├── ComposableSingletons$VaultScreenKt.dex
+│       │   │   │   │   │   ├── CreateVaultScreenKt.dex
+│       │   │   │   │   │   ├── NavigationBarKt.dex
+│       │   │   │   │   │   ├── RecoveryKeyScreenKt.dex
+│       │   │   │   │   │   ├── SettingsScreenKt.dex
+│       │   │   │   │   │   ├── UnlockVaultScreenKt.dex
+│       │   │   │   │   │   ├── VaultFoldersScreenKt.dex
+│       │   │   │   │   │   └── VaultScreenKt.dex
 │       │   │   │   │   └── desugar_graph.bin
 │       │   │   │   └── results.bin
 │       │   │   ├── b93a3d365ed35f5435e3f8772b2903e6/

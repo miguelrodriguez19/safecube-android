@@ -8,6 +8,7 @@ import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
+import javax.inject.Provider
 import java.time.OffsetDateTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +31,7 @@ class AuthTokenRefreshHandlerTest {
         )
         val sessionManager = FakeSessionManager()
         val handler = AuthTokenRefreshHandler(
-            authRepository = FakeAuthRepository(
+            authRepositoryProvider = authRepositoryProvider(
                 refreshResult = AuthResult.Success(newTokens),
             ),
             tokenStorage = tokenStorage,
@@ -51,7 +52,7 @@ class AuthTokenRefreshHandlerTest {
     fun `refresh auth failure forces logout`() = runBlocking {
         val sessionManager = FakeSessionManager()
         val handler = AuthTokenRefreshHandler(
-            authRepository = FakeAuthRepository(
+            authRepositoryProvider = authRepositoryProvider(
                 refreshResult = AuthResult.Error(AuthError.InvalidCredentials),
             ),
             tokenStorage = FakeTokenStorage(refreshToken = "current-refresh"),
@@ -70,7 +71,7 @@ class AuthTokenRefreshHandlerTest {
     fun `refresh transport failure does not force logout`() = runBlocking {
         val sessionManager = FakeSessionManager()
         val handler = AuthTokenRefreshHandler(
-            authRepository = FakeAuthRepository(
+            authRepositoryProvider = authRepositoryProvider(
                 refreshResult = AuthResult.Error(
                     AuthError.Unknown(
                         code = null,
@@ -88,6 +89,12 @@ class AuthTokenRefreshHandlerTest {
 
         assertNull(refreshedAccessToken)
         assertEquals(0, sessionManager.forceLogoutCalls)
+    }
+
+    private fun authRepositoryProvider(
+        refreshResult: AuthResult<AuthTokens>,
+    ): Provider<AuthRepository> = Provider {
+        FakeAuthRepository(refreshResult = refreshResult)
     }
 }
 

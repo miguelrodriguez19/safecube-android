@@ -22,7 +22,7 @@ android {
         buildConfigField(
             "String",
             "BASE_URL",
-            "\"https://selective-charil-safecube-92eb45c3.koyeb.app/safecube\""
+            "\"https://selective-charil-safecube-92eb45c3.koyeb.app/safecube/\""
         )
     }
 

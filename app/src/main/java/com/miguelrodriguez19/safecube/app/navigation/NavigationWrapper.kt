@@ -9,15 +9,19 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
 import com.miguelrodriguez19.safecube.feature.auth.screens.LoginScreen
 import com.miguelrodriguez19.safecube.feature.auth.screens.SignupScreen
 import com.miguelrodriguez19.safecube.feature.auth.screens.WelcomeScreen
@@ -28,15 +32,28 @@ import com.miguelrodriguez19.safecube.feature.vault.navigation.SettingsScreen
 import com.miguelrodriguez19.safecube.feature.vault.navigation.UnlockVaultScreen
 import com.miguelrodriguez19.safecube.feature.vault.navigation.VaultFoldersScreen
 import com.miguelrodriguez19.safecube.feature.vault.navigation.VaultScreen
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.launch
 
 @Composable
 fun NavigationWrapper() {
     val backStack = rememberNavBackStack(Routes.Splash)
     val context = LocalContext.current
     val activity = remember(context) { context as? Activity }
+    val entryPoint = remember(context) {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            NavigationGatesEntryPoint::class.java,
+        )
+    }
+    val authRepository = remember(entryPoint) { entryPoint.authRepository() }
+    val sessionManager = remember(entryPoint) { entryPoint.sessionManager() }
+    val sessionState by sessionManager.sessionState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
     var lastBackPressTimestamp by rememberSaveable { mutableLongStateOf(0L) }
 
     fun setRoot(route: Routes) {
+        if (backStack.size == 1 && backStack.lastOrNull() == route) return
         while (backStack.isNotEmpty()) {
             backStack.removeLastOrNull()
         }
@@ -55,6 +72,22 @@ fun NavigationWrapper() {
         }
         if (backStack.lastOrNull() != Routes.Vault) {
             backStack.add(Routes.Vault)
+        }
+    }
+
+    LaunchedEffect(sessionState) {
+        when (sessionState) {
+            SessionState.LoggedOut -> {
+                if (backStack.lastOrNull() !in LOGGED_OUT_ROUTES) {
+                    setRoot(Routes.Welcome)
+                }
+            }
+
+            SessionState.LoggedInVaultLocked -> {
+                if (backStack.lastOrNull() in PRE_AUTH_ROUTES) {
+                    setRoot(Routes.PostLoginGate)
+                }
+            }
         }
     }
 
@@ -103,10 +136,7 @@ fun NavigationWrapper() {
         },
         entryProvider = entryProvider {
             entry<Routes.Splash> {
-                SplashGateScreen(
-                    onLoggedIn = { replaceCurrent(Routes.PostLoginGate) },
-                    onLoggedOut = { replaceCurrent(Routes.Welcome) },
-                )
+                SplashGateScreen()
             }
             entry<Routes.Welcome> {
                 WelcomeScreen(
@@ -117,13 +147,13 @@ fun NavigationWrapper() {
             entry<Routes.Login> {
                 LoginScreen(
                     onSignup = { backStack.add(Routes.Signup) },
-                    onLoginSuccess = { setRoot(Routes.PostLoginGate) },
+                    onLoginSuccess = { },
                 )
             }
             entry<Routes.Signup> {
                 SignupScreen(
                     onLogin = { setRoot(Routes.Login) },
-                    onSignupSuccess = { setRoot(Routes.Login) },
+                    onSignupSuccess = { },
                 )
             }
             entry<Routes.Vault> {
@@ -146,7 +176,12 @@ fun NavigationWrapper() {
                     onVaultFolders = { backStack.add(Routes.VaultFolders) },
                     onSettings = { },
                     onProfile = { backStack.add(Routes.Profile) },
-                    onLogout = { backStack.add(Routes.Login) },
+                    onLogout = {
+                        coroutineScope.launch {
+                            authRepository.logout()
+                            sessionManager.forceLogout()
+                        }
+                    },
                 )
             }
             entry<Routes.Profile> {
@@ -199,3 +234,16 @@ fun NavigationWrapper() {
         },
     )
 }
+
+private val PRE_AUTH_ROUTES = setOf(
+    Routes.Splash,
+    Routes.Welcome,
+    Routes.Login,
+    Routes.Signup,
+)
+
+private val LOGGED_OUT_ROUTES = setOf(
+    Routes.Welcome,
+    Routes.Login,
+    Routes.Signup,
+)

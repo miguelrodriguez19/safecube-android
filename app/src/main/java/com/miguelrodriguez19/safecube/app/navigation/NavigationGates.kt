@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
 import com.miguelrodriguez19.safecube.core.auth.domain.vault.VaultSessionManager
@@ -24,21 +25,7 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 
 @Composable
-fun SplashGateScreen(
-    onLoggedIn: () -> Unit,
-    onLoggedOut: () -> Unit,
-) {
-    val entryPoint = rememberNavigationGatesEntryPoint()
-    val sessionManager = remember(entryPoint) { entryPoint.sessionManager() }
-
-    LaunchedEffect(Unit) {
-        if (sessionManager.isLoggedIn()) {
-            onLoggedIn()
-        } else {
-            onLoggedOut()
-        }
-    }
-
+fun SplashGateScreen() {
     LoadingGateScreen(message = "Loading session...")
 }
 
@@ -93,6 +80,7 @@ private fun rememberNavigationGatesEntryPoint(): NavigationGatesEntryPoint {
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface NavigationGatesEntryPoint {
+    fun authRepository(): AuthRepository
     fun sessionManager(): SessionManager
     fun vaultSessionManager(): VaultSessionManager
 }

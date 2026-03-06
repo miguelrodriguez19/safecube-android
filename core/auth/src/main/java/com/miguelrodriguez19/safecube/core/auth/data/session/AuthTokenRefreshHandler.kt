@@ -7,11 +7,12 @@ import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
 import com.miguelrodriguez19.safecube.core.network.TokenRefreshHandler
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Singleton
 class AuthTokenRefreshHandler @Inject constructor(
-    private val authRepository: AuthRepository,
+    private val authRepositoryProvider: Provider<AuthRepository>,
     private val tokenStorage: TokenStorage,
     private val sessionManager: SessionManager,
 ) : TokenRefreshHandler {
@@ -33,7 +34,7 @@ class AuthTokenRefreshHandler @Inject constructor(
                 return null
             }
 
-        return when (val refreshResult = authRepository.refresh(refreshToken)) {
+        return when (val refreshResult = authRepositoryProvider.get().refresh(refreshToken)) {
             is AuthResult.Success -> {
                 sessionManager.onLoginSuccess(refreshResult.data)
                 refreshResult.data.accessToken
