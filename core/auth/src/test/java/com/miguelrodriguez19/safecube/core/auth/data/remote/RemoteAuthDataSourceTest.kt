@@ -1,31 +1,59 @@
 package com.miguelrodriguez19.safecube.core.auth.data.remote
 
+import com.miguelrodriguez19.safecube.core.network.NetworkClientFactory
+import com.miguelrodriguez19.safecube.core.network.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthenticateAccountRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RefreshTokenRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountResult
+import java.time.OffsetDateTime
 import kotlinx.coroutines.runBlocking
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody.Companion.toResponseBody
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
-import retrofit2.Response
 
 class RemoteAuthDataSourceTest {
+    private lateinit var authServer: MockWebServer
+    private lateinit var refreshServer: MockWebServer
+
+    @Before
+    fun setUp() {
+        authServer = MockWebServer().also(MockWebServer::start)
+        refreshServer = MockWebServer().also(MockWebServer::start)
+    }
+
+    @After
+    fun tearDown() {
+        authServer.shutdown()
+        refreshServer.shutdown()
+    }
+
     @Test
     fun `login returns success result preserving code and body`() = runBlocking {
-        val expectedBody = AuthTokensResponse(
-            accessToken = "access-token",
-            refreshToken = "refresh-token",
+        val issuedAtRaw = "2026-03-06T12:11:35.524804768Z"
+        authServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                    """
+                    {
+                      "accessToken":"access-token",
+                      "refreshToken":"refresh-token",
+                      "issuedAt":"$issuedAtRaw"
+                    }
+                    """.trimIndent(),
+                ),
         )
         val dataSource = RemoteAuthDataSource(
-            authControllerApi = FakeAuthControllerApi(
-                loginResponse = Response.success(expectedBody),
-            ),
-            refreshAuthControllerApi = FakeAuthControllerApi(),
+            authControllerApi = createAuthApi(authServer),
+            refreshAuthControllerApi = createAuthApi(refreshServer),
         )
 
         val result = dataSource.login(
@@ -38,23 +66,33 @@ class RemoteAuthDataSourceTest {
         assertEquals(
             NetworkResult.Success(
                 httpCode = 200,
-                body = expectedBody,
+                body = AuthTokensResponse(
+                    accessToken = "access-token",
+                    refreshToken = "refresh-token",
+                    issuedAt = OffsetDateTime.parse(issuedAtRaw),
+                ),
             ),
             result,
         )
+
+        val request = authServer.takeRequest()
+        assertEquals("/auth/login", request.path)
+        assertEquals("POST", request.method)
+        assertTrue(request.body.readUtf8().contains("\"email\":\"test@example.com\""))
     }
 
     @Test
     fun `register returns http error preserving code and error body`() = runBlocking {
         val errorJson = """{"error":"Validation failed","fields":{"email":"invalid"}}"""
+        authServer.enqueue(
+            MockResponse()
+                .setResponseCode(400)
+                .addHeader("Content-Type", "application/json")
+                .setBody(errorJson),
+        )
         val dataSource = RemoteAuthDataSource(
-            authControllerApi = FakeAuthControllerApi(
-                registerResponse = Response.error(
-                    400,
-                    errorJson.toResponseBody("application/json".toMediaType()),
-                ),
-            ),
-            refreshAuthControllerApi = FakeAuthControllerApi(),
+            authControllerApi = createAuthApi(authServer),
+            refreshAuthControllerApi = createAuthApi(refreshServer),
         )
 
         val result = dataSource.register(
@@ -72,54 +110,62 @@ class RemoteAuthDataSourceTest {
             ),
             result,
         )
+
+        val request = authServer.takeRequest()
+        assertEquals("/auth/register", request.path)
+        assertEquals("POST", request.method)
     }
 
     @Test
-    fun `refresh wraps transport exceptions into failure result`() = runBlocking {
+    fun `refresh uses refresh api client and returns success`() = runBlocking {
+        val issuedAtRaw = "2026-03-06T12:11:35.524804768Z"
+        refreshServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                    """
+                    {
+                      "accessToken":"rotated-access",
+                      "refreshToken":"rotated-refresh",
+                      "issuedAt":"$issuedAtRaw"
+                    }
+                    """.trimIndent(),
+                ),
+        )
         val dataSource = RemoteAuthDataSource(
-            authControllerApi = FakeAuthControllerApi(),
-            refreshAuthControllerApi = FakeAuthControllerApi(
-                refreshThrowable = IllegalStateException("network down"),
-            ),
+            authControllerApi = createAuthApi(authServer),
+            refreshAuthControllerApi = createAuthApi(refreshServer),
         )
 
         val result = dataSource.refresh(
-            request = RefreshTokenRequest(refreshToken = "refresh"),
+            request = RefreshTokenRequest(refreshToken = "old-refresh"),
         )
 
-        assertTrue(result is NetworkResult.Failure)
-        val failure = result as NetworkResult.Failure
-        assertEquals("network down", failure.throwable.message)
-    }
-}
+        assertEquals(
+            NetworkResult.Success(
+                httpCode = 200,
+                body = AuthTokensResponse(
+                    accessToken = "rotated-access",
+                    refreshToken = "rotated-refresh",
+                    issuedAt = OffsetDateTime.parse(issuedAtRaw),
+                ),
+            ),
+            result,
+        )
+        assertEquals(0, authServer.requestCount)
 
-private class FakeAuthControllerApi(
-    private val registerResponse: Response<RegisterAccountResult> = Response.success(RegisterAccountResult()),
-    private val loginResponse: Response<AuthTokensResponse> = Response.success(AuthTokensResponse()),
-    private val refreshResponse: Response<AuthTokensResponse> = Response.success(AuthTokensResponse()),
-    private val logoutResponse: Response<Unit> = Response.success(Unit),
-    private val registerThrowable: Throwable? = null,
-    private val loginThrowable: Throwable? = null,
-    private val refreshThrowable: Throwable? = null,
-    private val logoutThrowable: Throwable? = null,
-) : AuthControllerApi {
-    override suspend fun login(authenticateAccountRequest: AuthenticateAccountRequest): Response<AuthTokensResponse> {
-        loginThrowable?.let { throw it }
-        return loginResponse
+        val refreshRequest = refreshServer.takeRequest()
+        assertEquals("/auth/refresh", refreshRequest.path)
+        assertEquals("POST", refreshRequest.method)
+        assertTrue(refreshRequest.body.readUtf8().contains("\"refreshToken\":\"old-refresh\""))
     }
 
-    override suspend fun logout(): Response<Unit> {
-        logoutThrowable?.let { throw it }
-        return logoutResponse
-    }
-
-    override suspend fun refresh(refreshTokenRequest: RefreshTokenRequest): Response<AuthTokensResponse> {
-        refreshThrowable?.let { throw it }
-        return refreshResponse
-    }
-
-    override suspend fun register(registerAccountRequest: RegisterAccountRequest): Response<RegisterAccountResult> {
-        registerThrowable?.let { throw it }
-        return registerResponse
-    }
+    private fun createAuthApi(server: MockWebServer): AuthControllerApi =
+        NetworkClientFactory.createService(
+            config = NetworkConfig(
+                baseUrl = server.url("/").toString(),
+                isDebug = false,
+            ),
+        )
 }

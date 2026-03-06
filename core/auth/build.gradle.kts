@@ -33,4 +33,5 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.okhttp)
+    testImplementation(libs.okhttp.mockwebserver)
 }

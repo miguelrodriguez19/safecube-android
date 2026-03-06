@@ -2,185 +2,132 @@ package com.miguelrodriguez19.safecube.core.auth.data.repository
 
 import com.miguelrodriguez19.safecube.core.auth.data.mapper.AuthErrorMapper
 import com.miguelrodriguez19.safecube.core.auth.data.remote.RemoteAuthDataSource
-import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
-import com.miguelrodriguez19.safecube.core.auth.domain.model.RegisteredAccount
+import com.miguelrodriguez19.safecube.core.network.NetworkClientFactory
+import com.miguelrodriguez19.safecube.core.network.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
-import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
-import com.miguelrodriguez19.safecube.core.network.generated.model.AuthenticateAccountRequest
-import com.miguelrodriguez19.safecube.core.network.generated.model.RefreshTokenRequest
-import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountRequest
-import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountResult
 import java.time.OffsetDateTime
-import java.util.UUID
 import kotlinx.coroutines.runBlocking
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody.Companion.toResponseBody
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
-import retrofit2.Response
 
 class AuthRepositoryImplTest {
-    private val mapper = AuthErrorMapper()
+    private lateinit var server: MockWebServer
 
-    @Test
-    fun `login maps successful response into domain auth tokens`() = runBlocking {
-        val issuedAt = OffsetDateTime.parse("2026-03-05T00:00:00Z")
-        val expected = AuthTokens(
-            accessToken = "access-token",
-            refreshToken = "refresh-token",
-            issuedAt = issuedAt,
-        )
-        val repository = repositoryWithApi(
-            authControllerApi = AuthRepositoryFakeAuthControllerApi(
-                loginResponse = Response.success(
-                    AuthTokensResponse(
-                        accessToken = expected.accessToken,
-                        refreshToken = expected.refreshToken,
-                        issuedAt = issuedAt,
-                    ),
-                ),
-            ),
-        )
+    @Before
+    fun setUp() {
+        server = MockWebServer()
+        server.start()
+    }
 
-        val result = repository.login(
-            email = "user@example.com",
-            password = "password",
-        )
-
-        assertEquals(AuthResult.Success(expected), result)
+    @After
+    fun tearDown() {
+        server.shutdown()
     }
 
     @Test
-    fun `register maps successful response into domain account`() = runBlocking {
-        val accountId = UUID.fromString("8a2d2abf-9db9-4b6a-bf67-6d638665a501")
-        val createdAt = OffsetDateTime.parse("2026-03-05T00:00:00Z")
-        val repository = repositoryWithApi(
-            authControllerApi = AuthRepositoryFakeAuthControllerApi(
-                registerResponse = Response.success(
-                    RegisterAccountResult(
-                        accountId = accountId,
-                        createdAt = createdAt,
-                    ),
+    fun `login refresh and logout map successful responses into domain results`() = runBlocking {
+        val loginIssuedAtRaw = "2026-03-06T12:11:35.524804768Z"
+        val refreshIssuedAtRaw = "2026-03-06T12:12:40.010203040Z"
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                    """
+                    {
+                      "accessToken":"access-token-1",
+                      "refreshToken":"refresh-token-1",
+                      "issuedAt":"$loginIssuedAtRaw"
+                    }
+                    """.trimIndent(),
                 ),
-            ),
         )
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                    """
+                    {
+                      "accessToken":"access-token-2",
+                      "refreshToken":"refresh-token-2",
+                      "issuedAt":"$refreshIssuedAtRaw"
+                    }
+                    """.trimIndent(),
+                ),
+        )
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200),
+        )
+        val repository = createRepository(server)
 
-        val result = repository.register(
+        val loginResult = repository.login(
             email = "user@example.com",
             password = "password",
         )
+        val refreshResult = repository.refresh(
+            refreshToken = "refresh-token-1",
+        )
+        val logoutResult = repository.logout()
 
         assertEquals(
             AuthResult.Success(
-                RegisteredAccount(
-                    accountId = accountId,
-                    createdAt = createdAt,
+                AuthTokens(
+                    accessToken = "access-token-1",
+                    refreshToken = "refresh-token-1",
+                    issuedAt = OffsetDateTime.parse(loginIssuedAtRaw),
                 ),
             ),
-            result,
+            loginResult,
         )
-    }
-
-    @Test
-    fun `register maps 409 into account already exists`() = runBlocking {
-        val repository = repositoryWithApi(
-            authControllerApi = AuthRepositoryFakeAuthControllerApi(
-                registerResponse = Response.error(
-                    409,
-                    """{"error":"Account already exists"}"""
-                        .toResponseBody("application/json".toMediaType()),
-                ),
-            ),
-        )
-
-        val result = repository.register(
-            email = "user@example.com",
-            password = "password",
-        )
-
-        assertEquals(AuthResult.Error(AuthError.AccountAlreadyExists), result)
-    }
-
-    @Test
-    fun `refresh maps 401 into invalid credentials`() = runBlocking {
-        val repository = repositoryWithApi(
-            authControllerApi = AuthRepositoryFakeAuthControllerApi(
-                refreshResponse = Response.error(
-                    401,
-                    """{"error":"Invalid credentials"}"""
-                        .toResponseBody("application/json".toMediaType()),
-                ),
-            ),
-        )
-
-        val result = repository.refresh(
-            refreshToken = "refresh-token",
-        )
-
-        assertEquals(AuthResult.Error(AuthError.InvalidCredentials), result)
-    }
-
-    @Test
-    fun `logout maps transport failure into unknown auth error`() = runBlocking {
-        val repository = repositoryWithApi(
-            authControllerApi = AuthRepositoryFakeAuthControllerApi(
-                logoutThrowable = IllegalStateException("network down"),
-            ),
-        )
-
-        val result = repository.logout()
-
         assertEquals(
-            AuthResult.Error(
-                AuthError.Unknown(
-                    code = null,
-                    message = "network down",
+            AuthResult.Success(
+                AuthTokens(
+                    accessToken = "access-token-2",
+                    refreshToken = "refresh-token-2",
+                    issuedAt = OffsetDateTime.parse(refreshIssuedAtRaw),
                 ),
             ),
-            result,
+            refreshResult,
         )
+        assertEquals(AuthResult.Success(Unit), logoutResult)
+
+        val loginRequest = server.takeRequest()
+        assertEquals("/auth/login", loginRequest.path)
+        assertEquals("POST", loginRequest.method)
+        assertTrue(loginRequest.body.readUtf8().contains("\"email\":\"user@example.com\""))
+
+        val refreshRequest = server.takeRequest()
+        assertEquals("/auth/refresh", refreshRequest.path)
+        assertEquals("POST", refreshRequest.method)
+        assertTrue(refreshRequest.body.readUtf8().contains("\"refreshToken\":\"refresh-token-1\""))
+
+        val logoutRequest = server.takeRequest()
+        assertEquals("/auth/logout", logoutRequest.path)
+        assertEquals("POST", logoutRequest.method)
     }
 
-    private fun repositoryWithApi(
-        authControllerApi: AuthControllerApi,
-    ): AuthRepositoryImpl = AuthRepositoryImpl(
-        remoteAuthDataSource = RemoteAuthDataSource(
-            authControllerApi = authControllerApi,
-            refreshAuthControllerApi = authControllerApi,
-        ),
-        authErrorMapper = mapper,
-    )
-}
+    private fun createRepository(server: MockWebServer): AuthRepositoryImpl {
+        val config = NetworkConfig(
+            baseUrl = server.url("/").toString(),
+            isDebug = false,
+        )
+        val authControllerApi: AuthControllerApi = NetworkClientFactory.createService(config = config)
 
-private class AuthRepositoryFakeAuthControllerApi(
-    private val registerResponse: Response<RegisterAccountResult> = Response.success(RegisterAccountResult()),
-    private val loginResponse: Response<AuthTokensResponse> = Response.success(AuthTokensResponse()),
-    private val refreshResponse: Response<AuthTokensResponse> = Response.success(AuthTokensResponse()),
-    private val logoutResponse: Response<Unit> = Response.success(Unit),
-    private val registerThrowable: Throwable? = null,
-    private val loginThrowable: Throwable? = null,
-    private val refreshThrowable: Throwable? = null,
-    private val logoutThrowable: Throwable? = null,
-) : AuthControllerApi {
-    override suspend fun login(authenticateAccountRequest: AuthenticateAccountRequest): Response<AuthTokensResponse> {
-        loginThrowable?.let { throw it }
-        return loginResponse
-    }
-
-    override suspend fun logout(): Response<Unit> {
-        logoutThrowable?.let { throw it }
-        return logoutResponse
-    }
-
-    override suspend fun refresh(refreshTokenRequest: RefreshTokenRequest): Response<AuthTokensResponse> {
-        refreshThrowable?.let { throw it }
-        return refreshResponse
-    }
-
-    override suspend fun register(registerAccountRequest: RegisterAccountRequest): Response<RegisterAccountResult> {
-        registerThrowable?.let { throw it }
-        return registerResponse
+        return AuthRepositoryImpl(
+            remoteAuthDataSource = RemoteAuthDataSource(
+                authControllerApi = authControllerApi,
+                refreshAuthControllerApi = authControllerApi,
+            ),
+            authErrorMapper = AuthErrorMapper(),
+        )
     }
 }

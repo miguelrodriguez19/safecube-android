@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 06-03-2026 10:23:31
+Updated: 06-03-2026 11:40:57
 
 ```
 safecube-android/
@@ -163,6 +163,7 @@ safecube-android/
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/
 │   │   │       ├── NetworkClientFactoryTest.kt
+│   │   │       ├── TokenRefreshAuthenticatorFlowTest.kt
 │   │   │       └── TokenRefreshAuthenticatorTest.kt
 │   │   │   │   └── build.gradle.kts
 │   ├── storage/
@@ -200,6 +201,7 @@ safecube-android/
 │   ├── roadmap/
 │   │   ├── roadmap--fase-1.md
 │   │   ├── roadmap--fase-2.md
+│   │   ├── roadmap--fase-3.md
 │   │   └── roadmap--high-level.md
 │   ├── README.md
 │   └── testing.md
