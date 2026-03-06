@@ -33,4 +33,4 @@ mkdir -p "${BUILD_DIR}"
 javac -d "${BUILD_DIR}" "${JAVA_FILE}"
 
 # Run
-java -cp "${BUILD_DIR}" "${JAVA_PACKAGE}.${JAVA_CLASS}" "${PROJECT_ROOT}" "${OUTPUT_TARGET}" "true" "false" "true"
+java -cp "${BUILD_DIR}" "${JAVA_PACKAGE}.${JAVA_CLASS}" "${PROJECT_ROOT}" "${OUTPUT_TARGET}" "true" "false" "false"
