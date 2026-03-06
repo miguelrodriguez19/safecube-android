@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 05-03-2026 02:25:33
+Updated: 06-03-2026 12:21:23
 
 ```
 safecube-android/
@@ -35,11 +35,13 @@ safecube-android/
 │   │   └── HEAD
 │   ├── objects/
 │   │   ├── 00/
+│   │   │   ├── 0be5ed4dfbbe001316cf391de7f61765b7a09c
 │   │   │   ├── 3a775472820229a294cc772c48846bd7efdd58
 │   │   │   ├── 4b015dac637a14c0561c9835d41e71aa6e3f88
 │   │   │   └── 85d2b06cad004f9dc9188363711eabfad9a93c
 │   │   ├── 01/
 │   │   │   ├── 0bff67b9d1b7576159bd13f4aafe5934d6b3e4
+│   │   │   ├── 0e2178ab976e6d26251ce698c4597557349d24
 │   │   │   ├── 197a93d84146fa20ce9ef973b4c68d53dbd4ef
 │   │   │   ├── 5eee1bdb1d4e49211ce871426608670d114f9d
 │   │   │   ├── 7499bbb498ae2e9c200e899fe8db172461afa0
@@ -94,7 +96,8 @@ safecube-android/
 │   │   │   ├── 3b95d7519b589a1e80157bb91ef43fd3482f12
 │   │   │   ├── 5a4ec9eb7ef4769c1071255f7b0c413456a2d6
 │   │   │   ├── 81f42d13ade8b3003f3402f363c0dab9ea83b4
-│   │   │   └── cc9c14291a7fe692b2e807e64692cfeb9ce00c
+│   │   │   ├── cc9c14291a7fe692b2e807e64692cfeb9ce00c
+│   │   │   └── db5763fb34fb7f8b5d9fda0780bc83b12189fc
 │   │   ├── 0b/
 │   │   │   ├── 11b6a6d637bdb09f6f448b77bf630ecf463dc5
 │   │   │   ├── 4311d275e1a82cf64c8f518129ac531149f427
@@ -142,6 +145,8 @@ safecube-android/
 │   │   │   └── 89f7a620e266dfe73e0822e3ef90e3d58b4627
 │   │   ├── 12/
 │   │   │   ├── 17e928894cecf247fd980964e5e9f7fad16e4e
+│   │   │   ├── 4caceeb382d9ece6f3c59fbfbc401b6cd5f176
+│   │   │   ├── 68046001ecdd77edc64c40334d4afbb75cf5c7
 │   │   │   └── e06860941a1e76a4ade377689514bed72c8756
 │   │   ├── 13/
 │   │   │   ├── 044597ae73290e479a56c977bdfe1935a30707
@@ -159,6 +164,7 @@ safecube-android/
 │   │   │   └── de52fd9254fd13a8dccca1970967ae22432115
 │   │   ├── 16/
 │   │   │   ├── 3c72738c7d4ba9d0650101be4f8f5b015e57fd
+│   │   │   ├── 58868f13ea46019065f9e833dabfc1ed0db47f
 │   │   │   ├── 75ae08056ca4517194b7a9a54950ff4e6e2e50
 │   │   │   ├── 7ba919e8a36e0c03b4a333201192a1ddf8dac9
 │   │   │   ├── 8004e46ac7ded0fa8c5d23397b3fad29db506a
@@ -219,7 +225,8 @@ safecube-android/
 │   │   ├── 21/
 │   │   │   ├── 47475c59302e1c127ef510c5ada1b9c41e8293
 │   │   │   ├── 806fc9a4d5f2a227859d9be151d1edcfa093b4
-│   │   │   └── 96139d35ea871f7c512dbe23a8e27b490ddfa1
+│   │   │   ├── 96139d35ea871f7c512dbe23a8e27b490ddfa1
+│   │   │   └── ea6ded3d98e6493b44661f6624e93589f62c07
 │   │   ├── 22/
 │   │   │   ├── 57eefb499b2e6853d44660d2738c09191028cf
 │   │   │   ├── 614134fa20d1def99d614e47f536d3fb457274
@@ -251,6 +258,7 @@ safecube-android/
 │   │   │   ├── d4b6dd3d2e8f1722781d526be1e9a9ec683f10
 │   │   │   └── e8afb31ee1fe2c5c9dc68495db9c59d0c6c9ce
 │   │   ├── 28/
+│   │   │   ├── 05b80e99fc0eb268241744f6ff51ae59ab9da5
 │   │   │   ├── 0784de6e64e61ba50b789e1e93b89f1f5918c2
 │   │   │   ├── 4efff0aa80a5f9f0d817ee7af2b63791c19388
 │   │   │   ├── d4b77f9f036a47549d47db79c16788749dca10
@@ -269,8 +277,10 @@ safecube-android/
 │   │   ├── 2b/
 │   │   │   ├── 068d11462a4b96669193de13a711a3a36220a0
 │   │   │   ├── 393eb5d46a49955564f35ba0915c81f502be73
+│   │   │   ├── 8768270dcc5339367e7a73fa4d0f4e8a08e9b7
 │   │   │   ├── 8a3770648d64ea06f49f0b5780febd5acb10b0
-│   │   │   └── 917bc3046670cb713b1f7841d769aa9f23a1d1
+│   │   │   ├── 917bc3046670cb713b1f7841d769aa9f23a1d1
+│   │   │   └── d665193421c4a38adc14dde893629884ad670b
 │   │   ├── 2c/
 │   │   │   ├── 034bddff580de4088f042e841e1b32fbda2bda
 │   │   │   ├── 06fec36ab9af05bcbe066a5a57ff43ca80c469
@@ -281,6 +291,7 @@ safecube-android/
 │   │   │   ├── 43098f91366216bc8586e5d91c15bcb675cfd6
 │   │   │   ├── 46e142548e6201d127d6a57c5f687c1bdcd4a6
 │   │   │   ├── 9585ee2216cf1f0ba0b463d0946658665090ea
+│   │   │   ├── a8a75690d1f5cf166585e9e785c5ba0fea5d70
 │   │   │   ├── aa75f158751560e13ef3ac2f2192dda3556eb3
 │   │   │   └── b41d4278368ceb3c729518456bc842a746f713
 │   │   ├── 2e/
@@ -288,9 +299,11 @@ safecube-android/
 │   │   ├── 2f/
 │   │   │   ├── 01c7e29f096a4f448b0a409fd128893c70522b
 │   │   │   ├── 05551d29180d44e88f3848f4acdcc5054fc197
+│   │   │   ├── 0f0e5285d1e7bb23fc43e8d7832ed8ce245e97
 │   │   │   ├── 6f5ab102fbf4e4e2f50a3300c73119ac281515
 │   │   │   └── c5470f7dc7ba4215654726eb212c109f50663e
 │   │   ├── 30/
+│   │   │   ├── 4572733c55ee1620ead54c6cef8915ca974b83
 │   │   │   ├── 45f6d884ca4c2c6afe6658243f1a77356c1736
 │   │   │   ├── 66bb1efda44daceae1e9e4307b5d78a46d009f
 │   │   │   ├── 6de0a7c896e091b0f401d3b5eff7129ab83c1f
@@ -369,6 +382,7 @@ safecube-android/
 │   │   │   ├── 09f13ba85cf556a9055c9b072d1220fe34f493
 │   │   │   ├── 34856e874daa5a3372c1e0671d928c0ee8cf71
 │   │   │   ├── 3be9f160b7920cd1729d2f8b4016ba8ba1dfa4
+│   │   │   ├── 3d3d9d944e0e30a929b0c2f582e6f6f35fd86d
 │   │   │   ├── 446a7ba6138cc2e3c591cfd0a61d19902954e0
 │   │   │   └── 9261c61d4d1bbc3bb1716161ee8ae61d2cadf6
 │   │   ├── 42/
@@ -378,12 +392,15 @@ safecube-android/
 │   │   │   ├── afabfd2abebf31384ca7797186a27a4b7dbee8
 │   │   │   └── f0bdf00ea208684bfe52306ec38d1a72cfa52d
 │   │   ├── 43/
+│   │   │   ├── 2252e0295c0199c60fe2796c5ed4e27ee68322
 │   │   │   ├── 2a92886e05b0880b21099f6723f3e651216227
 │   │   │   ├── be47b7f048be98141101ecf3e98db9e387b551
 │   │   │   └── cd24aa6f1e517e155427de65489dcc87ca40a4
 │   │   ├── 44/
 │   │   │   ├── 744dbd0b95ca7f089778eb3cf7758e1bc32274
 │   │   │   └── a9e957117a46709016738b30bb2b61890111c7
+│   │   ├── 45/
+│   │   │   └── bfdee89d81d3d830f51a74da34beb7589db7f8
 │   │   ├── 46/
 │   │   │   ├── 123c8a05f7c8ae0d069692786b4f3b1a0648d7
 │   │   │   ├── 2e56032a63cb8e293ac5dcacdf86ab0f3d1746
@@ -439,6 +456,8 @@ safecube-android/
 │   │   │   └── f925582478cf0d469c4cff9a4bb50859f3230a
 │   │   ├── 4e/
 │   │   │   ├── 1fdac17375a22bfb0465ca9ed6edaf239eef5c
+│   │   │   ├── 3e2bf4683ab609adb0b292191a9918853e48bc
+│   │   │   ├── 99400084396aacc049c194558e1384c69d0f43
 │   │   │   ├── c50203ac15eb0b6070972d5184779681cd6820
 │   │   │   └── e45daa93093303208b62887ea3b0043dddb939
 │   │   ├── 4f/
@@ -453,6 +472,7 @@ safecube-android/
 │   │   │   ├── 52c37779a7b6b979e04296525ef4b9fabcbd09
 │   │   │   └── de07959361eadaf06a17be556adf6b45da3255
 │   │   ├── 51/
+│   │   │   ├── 14cff664eabf675455296bab8708c8ca2a9b93
 │   │   │   ├── 462696b3f51f954451b73205d181aa6ad76c4f
 │   │   │   ├── 6abe05699b4a4d708524ba0d8a6ebbd734ec1a
 │   │   │   ├── cf7ad634b803bca0435b258ff88a4022b5b8d5
@@ -465,6 +485,7 @@ safecube-android/
 │   │   │   ├── cf5717eb80aebeac655ed2efed3feb8c6f3ac5
 │   │   │   └── d68a9e9611c5b1865d33ca9e498368e503fc14
 │   │   ├── 53/
+│   │   │   ├── 097acf59f769a8c33e184e4921570a17d95e77
 │   │   │   ├── 25a4326c3d0a7667d457412d25e3af85bf9716
 │   │   │   ├── 2f67a15c21bfaf0665307356e8630861c65163
 │   │   │   ├── 483786500134f8d9c0839fb746985393b9d779
@@ -480,10 +501,12 @@ safecube-android/
 │   │   │   ├── 3cc7ca5a58abf1f88137811e439cf996447284
 │   │   │   └── 523a175b6d39393c59b72f21b33e905c9af9a9
 │   │   ├── 55/
+│   │   │   ├── 105b7f3e1ec1a9effc724a81b74ce1f056ce4d
 │   │   │   ├── 2a98e802821bc79153c1a68ab6be8ab91cbb7f
 │   │   │   ├── 62f2c42cd259277d61fb21736b2771bfd55750
 │   │   │   ├── c6ee6f9d7834e15321428306749a37795f11a1
 │   │   │   ├── c723afb9cce67ee03b6d66e722b0f9fdb40cb9
+│   │   │   ├── c855f8de2753b789b99f19aea2711395123836
 │   │   │   └── f714f79be63192c5e0f5ad5a8a823161cf7f7e
 │   │   ├── 56/
 │   │   │   ├── 0b6f0a475464dcb88521578da51d4f99dee784
@@ -499,6 +522,7 @@ safecube-android/
 │   │   ├── 5a/
 │   │   │   └── 6ae7dbe31f4311b240de61a09e39c985361a5b
 │   │   ├── 5b/
+│   │   │   ├── 205119313d528b03eec3a91a194dd9f111f0c8
 │   │   │   ├── 65268553d0c465994d7bd6b7d09dd8119957d3
 │   │   │   ├── 742344dd8cdfbe8bc64e69a5bd57190646cc43
 │   │   │   ├── 9964787d2903355d740a0a96ecb84a0f44ae8a
@@ -520,6 +544,7 @@ safecube-android/
 │   │   │   ├── 0a10d2d9bfe93baa962e4b3373d5349145da6e
 │   │   │   ├── 1d72a13f6ad6eed9f21200a83c6ae03bc8defe
 │   │   │   ├── 2b1de3601ed3008d04171d44080bc388740ae9
+│   │   │   ├── 719ba369231b69192e98b4f1ac1263655f90c7
 │   │   │   ├── 74d0d299c55df0c91c93ebaafee3db0eeaf050
 │   │   │   └── e68495fc1799f5df172d873ab97df771dabf7b
 │   │   ├── 60/
@@ -574,10 +599,12 @@ safecube-android/
 │   │   ├── 69/
 │   │   │   ├── 2e3a0e5c7e07ef2fba9a460da46c454fbfa599
 │   │   │   ├── 6540c281c3bcab054289866631e98f9600c7ec
+│   │   │   ├── cc717414de7f9b59fe27ab32f40151222f65de
 │   │   │   ├── e2e0a6305e571d0532ced9288e2158bd65ee93
 │   │   │   └── e303eaf137eab3417486535a201a29cd36e723
 │   │   ├── 6a/
 │   │   │   ├── 2cab254cea01c256879a5e844f7f46d5a517a2
+│   │   │   ├── d81052ed1b31df41d99b33bf704b1b307d97c2
 │   │   │   └── e98632dff77dddef8b6b1191008524f0ad93eb
 │   │   ├── 6b/
 │   │   │   ├── 2c567943ab916ecc2714c4e24b9f936760706a
@@ -621,12 +648,14 @@ safecube-android/
 │   │   │   ├── cf285af0134ff4cacaf26ea16fa5154c0fd3b1
 │   │   │   └── e7dae0de8b35ff44db239f3eab1b189e41fba4
 │   │   ├── 72/
-│   │   │   └── 70cd3f73cdd43f15ce2dd7fce28a24b0c6f4a4
+│   │   │   ├── 70cd3f73cdd43f15ce2dd7fce28a24b0c6f4a4
+│   │   │   └── e15142803b0058346fc5b621bd1363f7346c77
 │   │   ├── 73/
 │   │   │   ├── 3099cab76ca3907ad1fc80990736d921c31a2c
 │   │   │   ├── 746c1e739ecba9e71bb332a4a3e21791a42ee8
 │   │   │   ├── 8cdb43eb7f1dcbcc03e7724aff6395f80b1591
-│   │   │   └── b18d67c5777e523720a8f09bed8a0a3d7b6196
+│   │   │   ├── b18d67c5777e523720a8f09bed8a0a3d7b6196
+│   │   │   └── b89798b4f0dd8fbb2ec0adbe8b0f49f8e1d67d
 │   │   ├── 74/
 │   │   │   ├── 5545c707b9f2f9fee1fb1bfa5c653a59dfd9b9
 │   │   │   ├── 618f25c88a1da1b774dfc9c82b650b6521f0fc
@@ -662,7 +691,8 @@ safecube-android/
 │   │   │   ├── 32e49b6571fdc299a3e9cba89fa4218ccf1790
 │   │   │   ├── 35d9e327ac21e62f233575209892368180279d
 │   │   │   ├── 5e7945557d357e8b07a20fea03c9489ffa3aba
-│   │   │   └── 689ee27698e40807c7aa1b474df8166a164f76
+│   │   │   ├── 689ee27698e40807c7aa1b474df8166a164f76
+│   │   │   └── 6e0ce2362b9653ec19502328639eb982cc5cc9
 │   │   ├── 7c/
 │   │   │   ├── 262462995e07d753e232ff3b19a20c3f5657f4
 │   │   │   ├── 47d2811f2db1aba31e8d6d0b25d179eaf7318e
@@ -677,6 +707,7 @@ safecube-android/
 │   │   │   └── c1db6861966dc582c1789447212857ffad5c26
 │   │   ├── 7f/
 │   │   │   ├── 1b5c2b4324279733ec55748f016af1a98c1bd3
+│   │   │   ├── 2751fa96430d592378c19f56ed9dfcd86f360d
 │   │   │   ├── 4e061b657f340e82074e4f16026bd97a7de92b
 │   │   │   ├── 99c3b3e52715a6933ecb6539f2b2351008c5e9
 │   │   │   ├── 9c6fb7a56d4194ea47c9df1b8fa323b5d161b4
@@ -686,7 +717,9 @@ safecube-android/
 │   │   │   ├── 54a4a10773eb09ad9a9f62c8e3584a5018e87b
 │   │   │   └── 5c905499e73c9f5c681b235d6358efa4a7914b
 │   │   ├── 81/
+│   │   │   ├── 1f7a3401187031507764ab1b7e944487d1409c
 │   │   │   ├── 359f630299bd4ede38337a313dc3ef77f8e1c3
+│   │   │   ├── 79154d30cd7fb654feebeadbf724d87bffbc3d
 │   │   │   └── 8d172c19554ad8d889966a779500380a0524b2
 │   │   ├── 82/
 │   │   │   ├── 083f49c785dc851403b018a22fc61ad2ba689d
@@ -731,6 +764,7 @@ safecube-android/
 │   │   │   └── fbf3f666f01cc2c40839d52bce155eabc6cf5a
 │   │   ├── 8a/
 │   │   │   ├── 33154c123abe4ed221f6b873169cdcd7ab980f
+│   │   │   ├── 362c15a9d882c9751a43b2fb223df1f9d2751f
 │   │   │   ├── 3ffe078f4b283acdcc560ec40755dbbca21085
 │   │   │   └── 7dd2bbcdb241a465fe10da39ea55887d87731c
 │   │   ├── 8b/
@@ -825,8 +859,10 @@ safecube-android/
 │   │   ├── 9b/
 │   │   │   ├── 168896e301b3c3016bee7423b67fb440c1ce7c
 │   │   │   ├── 910b71debe3ec39a498df5ed1829383372e813
-│   │   │   └── b03c1a6bfc3b6074ef918c3f959ec8373c6171
+│   │   │   ├── b03c1a6bfc3b6074ef918c3f959ec8373c6171
+│   │   │   └── c902157fdffec4d6f1a5f06376be72f3062844
 │   │   ├── 9c/
+│   │   │   ├── 0f20fdf603ce93ba8ace77229a7ec15eb0fd4f
 │   │   │   ├── 2a513ab4257552a3ba794c725b25020d609626
 │   │   │   └── 4726997dc06e6c5567db272b9a2a1862c760aa
 │   │   ├── 9d/
@@ -844,12 +880,14 @@ safecube-android/
 │   │   │   ├── 09de06f2dfa85f89946dc55c8541e92efde2df
 │   │   │   ├── cd117b4b016aca1d43a6f613236eabba3c9cb1
 │   │   │   ├── e9997b0b4726e57c27b2f7b21462b604ff8a88
-│   │   │   └── edca26a27d25a06aa888dba767f9e90cea0407
+│   │   │   ├── edca26a27d25a06aa888dba767f9e90cea0407
+│   │   │   └── fadd00c77571509f1f5cef799d02f5f120b9b8
 │   │   ├── 9f/
 │   │   │   ├── 3457cb5b86c657b9ff08f5a1cf062013688526
 │   │   │   ├── 7faf1cc8b801bfa7f603e789de9169b4af91ca
 │   │   │   ├── 9dc17208b01ca7e875717a51e480fab6c2c4c6
 │   │   │   ├── b206c634820ece0ca17afa2dd69dd68f9c4d3a
+│   │   │   ├── c0fe15af0ab32303cb8b5f97918aeb5cfed306
 │   │   │   └── f8304dee9d7a33f9736597ed42d458045ded5e
 │   │   ├── a0/
 │   │   │   ├── 0d29bfca58bf016d46ab436340598a3f83334c
@@ -866,6 +904,7 @@ safecube-android/
 │   │   │   └── 9ee59df6555f663bc35e2de7b5299f6860aeb2
 │   │   ├── a3/
 │   │   │   ├── 71ad66bb24e81c0f8a714349b8c246447d0e8c
+│   │   │   ├── 762d3e7c8d46e363bf93f888a543c636cf54e9
 │   │   │   ├── c3fcb53fffa70b7ae326ffaed67e4192913112
 │   │   │   └── de34961096076e3ad578310142d8e33859d1bb
 │   │   ├── a4/
@@ -915,7 +954,8 @@ safecube-android/
 │   │   │   └── c7f1866a320a1608c8bd6115050513424277b4
 │   │   ├── ab/
 │   │   │   ├── c256945bcdd3ab4dfac7135ca747e6c887516c
-│   │   │   └── dfcbeb96fede929e71379182dfc539d84b11cf
+│   │   │   ├── dfcbeb96fede929e71379182dfc539d84b11cf
+│   │   │   └── ed7f9521c68ad087b2b669a23d0f330a2d0323
 │   │   ├── ac/
 │   │   │   ├── 88ad6d9d74db0fbcf64b53471c6ae6dee79186
 │   │   │   ├── b503556ede88d9114b3b56f2eaf36531c2cb46
@@ -957,6 +997,7 @@ safecube-android/
 │   │   │   ├── f82a84e32ab0e2c3a24330053f2e47997b7ae8
 │   │   │   └── f881b7ba36d4c5d1a7a3228fa7467c096cbfbd
 │   │   ├── b3/
+│   │   │   ├── 0d2f30cc5bda2d09dfb61362b0aecfb215cf1f
 │   │   │   ├── 2e71b8ab2d02996a5051ec76f065a4b9458aa5
 │   │   │   └── 9f0035a8cdf50079111f3d147e11e9082ae55e
 │   │   ├── b4/
@@ -983,6 +1024,7 @@ safecube-android/
 │   │   │   ├── e71eeca68a4850181b973ed4a5baa0b1adaadd
 │   │   │   └── fe870f371a6d593a593264cef5630c40a99437
 │   │   ├── b8/
+│   │   │   ├── 1ae510b545394fb3dec1b6a139a421a02ce613
 │   │   │   ├── 29231d96de92a857342f24dad1103f6a2a77e9
 │   │   │   ├── 41e7fe63adbf68bd5b3493c6e46d1fc7f3d45e
 │   │   │   ├── 8f1102486a99fc0dc1e13a1e62de8f077b3c37
@@ -996,6 +1038,7 @@ safecube-android/
 │   │   │   ├── 7dbde255717f10143325b65992d95ba155bfe3
 │   │   │   └── f3268064527bfa1f45a66d3c5ce0083e52df7a
 │   │   ├── bb/
+│   │   │   ├── 5374598d0495937d06f688facedf2967513368
 │   │   │   ├── 6babf4b9ff93876877623375d415f998cebc98
 │   │   │   ├── 6ca4f55f3120a9d49ddae3e111535c0c523c3b
 │   │   │   ├── b9ef480e92891a1168c89ea8e96c3a8311737d
@@ -1008,6 +1051,7 @@ safecube-android/
 │   │   │   └── df8a5c5c36a0973ba6219e9b53683e902accbf
 │   │   ├── bd/
 │   │   │   ├── 4832b569689e476e7f2641290c5cf22105bc7a
+│   │   │   ├── 65d55adff2b9ad109bde6d5248de69e95f4b81
 │   │   │   ├── 7ceb60c34167a477c062485fd551a273ea7ab5
 │   │   │   └── f5003bdf590e1bed18bf23d30b0bf0a5af0dc6
 │   │   ├── be/
@@ -1055,6 +1099,7 @@ safecube-android/
 │   │   │   └── d79e374f28edb2d44b9a26edf4749771e094d8
 │   │   ├── c6/
 │   │   │   ├── 454b97efc6fc57dae87344275e93a1658607f6
+│   │   │   ├── 5f0fbfc1fba8010ffd468aa1f22d3481012edd
 │   │   │   ├── 6f6b751fe6f47fc193f6549b0ef2146d5ff0af
 │   │   │   ├── f6abbe9365d60070dd91d87b04e9627dc8f3f9
 │   │   │   └── f801f9695cbd771a3acc1c15d59dad51970f35
@@ -1099,8 +1144,10 @@ safecube-android/
 │   │   ├── ce/
 │   │   │   ├── 0f3d7207c51291334762bc8a7db029d13fe0dd
 │   │   │   ├── cd71c2f38a3cdb37e179b65d7cb14422cb2355
-│   │   │   └── e2bc1a9a9037f1b14e9d98e4cacb401630f8ab
+│   │   │   ├── e2bc1a9a9037f1b14e9d98e4cacb401630f8ab
+│   │   │   └── f362d9c5caecd0de67b467749529199f17f160
 │   │   ├── cf/
+│   │   │   ├── 4289bdcad61254c2abb457701a9b93c48e5a54
 │   │   │   ├── aa2c35bcf6d0c254746bf072af8d9ce3714faa
 │   │   │   └── d9b9feda76e46d4de0b840f05ac87105db10d2
 │   │   ├── d0/
@@ -1117,7 +1164,9 @@ safecube-android/
 │   │   │   ├── c026e8845fccbe3512606d0a019b648763fb35
 │   │   │   └── ec08a04d503f49193429c70b034d63f33a049e
 │   │   ├── d3/
-│   │   │   └── 67025798bf81e26e0131ef90f859bd4737ba50
+│   │   │   ├── 4706088cfea9a5d2182149e27e5b8d0393678b
+│   │   │   ├── 67025798bf81e26e0131ef90f859bd4737ba50
+│   │   │   └── ea654d9c734cb8db6e88b2cb0a4809ecb67e72
 │   │   ├── d4/
 │   │   │   ├── 22261ea6d2518ee68fb1d659cd0d7caff33b3d
 │   │   │   ├── 4a4b1774a4fdc036549a56140de7aa8d90218f
@@ -1203,8 +1252,10 @@ safecube-android/
 │   │   │   ├── 4e97dff495ad4807a5dde33c3b003c2dd2485e
 │   │   │   └── 58d44d0944e4f1743077631cf0121c9fd22cc5
 │   │   ├── e5/
+│   │   │   ├── 16b9150fe779555e6705291b339f2d391c12b4
 │   │   │   ├── 36ad5fdd29c24d0089dab9e860ea4a5fac38b7
 │   │   │   ├── 3fdada67272c5b14fc7e8d7accaeaecc0831b9
+│   │   │   ├── 6ac0833f25105f2edbd5ebd8bdf9d6704ffe32
 │   │   │   ├── c86e67c2ea821306abefc36316c241cea146b1
 │   │   │   └── f64d2afbef2e0fe2db6854696bb3dad6e9bd8e
 │   │   ├── e6/
@@ -1215,6 +1266,7 @@ safecube-android/
 │   │   │   ├── 9de29bb2d1d6434b8b29ae775ad8c2e48c5391
 │   │   │   └── e5e8529502eac0ced71f031bd7b1ced38c0b79
 │   │   ├── e7/
+│   │   │   ├── 0d5b4897efcc0ead41cd1d0050e0d7e7db4358
 │   │   │   ├── 7ca383c5d1dc1d95934a5f127f5b7e74e6814a
 │   │   │   ├── 7e8b25dd2fa7e07fbed8a4e9170e163fccb688
 │   │   │   └── 9e3e4209b4806bd335f1b30b6dbd769cbba30c
@@ -1269,6 +1321,7 @@ safecube-android/
 │   │   │   ├── 3b4e953d105b94096c31976e5e46fb75172a44
 │   │   │   └── c3e438a1e341bb958068125d4f7b11867cb47b
 │   │   ├── f4/
+│   │   │   ├── 6167422d904f64e2a1f415abaec681f26a43b5
 │   │   │   ├── c79097b13bef11dc78725d26f8ea8a5ca804a7
 │   │   │   ├── d83ddaa08bc01dc32c7e7bba89f9eb284c0d65
 │   │   │   ├── e788b3331266015c9f5e4cf7e8eca74fc2bf8b
@@ -1289,6 +1342,7 @@ safecube-android/
 │   │   │   ├── a46273e73188334807be5329a496091a9cf4a8
 │   │   │   └── c599314396227e45e2ef3e0fbbf56099866104
 │   │   ├── f8/
+│   │   │   ├── 4e145326aade38def0e69aa7914184e8756c4a
 │   │   │   ├── 63af818cca563aef3849c42f98dcd44c56c21f
 │   │   │   ├── 97dc777fde85efaf2378d2a9943c606c987883
 │   │   │   ├── c26b179990d144590789fefa67c8bcbae6cc89
@@ -1303,7 +1357,8 @@ safecube-android/
 │   │   │   ├── 673edde33b9287336138ead67d2f9c75f8b123
 │   │   │   └── 8aa90fefe374583f3916c6f9f84944593bb2a2
 │   │   ├── fc/
-│   │   │   └── 632dbb36aac3a39468001f2b3465a76018dbf4
+│   │   │   ├── 632dbb36aac3a39468001f2b3465a76018dbf4
+│   │   │   └── 9f00dc558ebfc53ba0f7a89d98a438d31e3495
 │   │   ├── fe/
 │   │   │   ├── 2ab95df2445337e4814f9e3c5b54c8bad8d6d8
 │   │   │   ├── 67540d2f32e7cb6ab811f0cdef0f3b9cfe7105
@@ -1311,6 +1366,7 @@ safecube-android/
 │   │   │   └── e61e61e70599a0f3a74680652e60fa8f67679d
 │   │   ├── ff/
 │   │   │   ├── 69a712d80432d2881866b303467591cb18bcb3
+│   │   │   ├── a615f37ec19ab2375ae7c01b2083c7dd638ad9
 │   │   │   └── d59cea50f55f17aff55a768b28f2adb40c7932
 │   │   ├── info/
 │   │   └── pack/
@@ -1426,11 +1482,14 @@ safecube-android/
 │   │   │   ├── ksp/
 │   │   │   │   ├── debug/java/
 │   │   │   │   │   ├── com/miguelrodriguez19/safecube/
+│   │   │   │   │   │   ├── Hilt_MainActivity.java
+│   │   │   │   │   │   ├── MainActivity_GeneratedInjector.java
 │   │   │   │   │   │   └── SafeCubeApp_GeneratedInjector.java
 │   │   │   │   │   ├── dagger/hilt/internal/aggregatedroot/codegen/
 │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_SafeCubeApp.java
 │   │   │   │   │   └── hilt_aggregated_deps/
 │   │   │   │   │       ├── _com_miguelrodriguez19_safecube_app_navigation_NavigationGatesEntryPoint.java
+│   │   │   │   │       ├── _com_miguelrodriguez19_safecube_MainActivity_GeneratedInjector.java
 │   │   │   │   │       └── _com_miguelrodriguez19_safecube_SafeCubeApp_GeneratedInjector.java
 │   │   │   │   └── release/java/
 │   │   │   │       ├── com/miguelrodriguez19/safecube/
@@ -4879,11 +4938,14 @@ safecube-android/
 │   │   │   ├── debug/
 │   │   │   │   ├── backups/java/
 │   │   │   │   │   ├── com/miguelrodriguez19/safecube/
+│   │   │   │   │   │   ├── Hilt_MainActivity.java
+│   │   │   │   │   │   ├── MainActivity_GeneratedInjector.java
 │   │   │   │   │   │   └── SafeCubeApp_GeneratedInjector.java
 │   │   │   │   │   ├── dagger/hilt/internal/aggregatedroot/codegen/
 │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_SafeCubeApp.java
 │   │   │   │   │   └── hilt_aggregated_deps/
 │   │   │   │   │       ├── _com_miguelrodriguez19_safecube_app_navigation_NavigationGatesEntryPoint.java
+│   │   │   │   │       ├── _com_miguelrodriguez19_safecube_MainActivity_GeneratedInjector.java
 │   │   │   │   │       └── _com_miguelrodriguez19_safecube_SafeCubeApp_GeneratedInjector.java
 │   │   │   │   ├── logs/
 │   │   │   │   ├── symbolLookups/
@@ -6652,9 +6714,7 @@ safecube-android/
 │   │   │   │   │   │   │   │       ├── proto.tab.keystream
 │   │   │   │   │   │   │   │       ├── proto.tab.keystream.len
 │   │   │   │   │   │   │   │       ├── proto.tab.len
-│   │   │   │   │   │   │   │       ├── proto.tab.values
 │   │   │   │   │   │   │   │       ├── proto.tab.values.at
-│   │   │   │   │   │   │   │       ├── proto.tab.values.s
 │   │   │   │   │   │   │   │       ├── proto.tab_i
 │   │   │   │   │   │   │   │       ├── proto.tab_i.len
 │   │   │   │   │   │   │   │       ├── source-to-classes.tab
@@ -6938,7 +6998,6 @@ safecube-android/
 │   │   │   │   │   │   │   ├── di/
 │   │   │   │   │   │   │   │   └── AuthModule_Companion_ProvideEncryptedTokenPrefsFactory.java
 │   │   │   │   │   │   │   └── domain/session/
-│   │   │   │   │   │   │       ├── SessionManager_Factory.java
 │   │   │   │   │   │   │       └── SessionManagerImpl_Factory.java
 │   │   │   │   │   │   └── hilt_aggregated_deps/
 │   │   │   │   │   │       └── _com_miguelrodriguez19_safecube_core_auth_di_AuthModule.java
@@ -12156,6 +12215,32 @@ safecube-android/
 │   │   │   │       │   └── desugar_graph.bin
 │   │   │   │       └── results.bin
 │   │   │   ├── generated/
+│   │   │   │   ├── ap_generated_sources/debug/out/
+│   │   │   │   ├── ksp/debug/
+│   │   │   │   │   ├── java/
+│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/presentation/
+│   │   │   │   │   │   │   ├── login/
+│   │   │   │   │   │   │   │   ├── LoginViewModel_Factory.java
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules.java
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_BindsModule_Binds_LazyMapKey.java
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey.java
+│   │   │   │   │   │   │   │   └── LoginViewModel_HiltModules_KeyModule_ProvideFactory.java
+│   │   │   │   │   │   │   └── signup/
+│   │   │   │   │   │   │       ├── SignupViewModel_Factory.java
+│   │   │   │   │   │   │       ├── SignupViewModel_HiltModules.java
+│   │   │   │   │   │   │       ├── SignupViewModel_HiltModules_BindsModule_Binds_LazyMapKey.java
+│   │   │   │   │   │   │       ├── SignupViewModel_HiltModules_KeyModule_Provide_LazyMapKey.java
+│   │   │   │   │   │   │       └── SignupViewModel_HiltModules_KeyModule_ProvideFactory.java
+│   │   │   │   │   │   └── hilt_aggregated_deps/
+│   │   │   │   │   │       ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule.java
+│   │   │   │   │   │       ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule.java
+│   │   │   │   │   │       ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule.java
+│   │   │   │   │   │       └── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule.java
+│   │   │   │   │   └── resources/META-INF/proguard/
+│   │   │   │   │       ├── com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule_LazyClassKeys.pro
+│   │   │   │   │       ├── com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule_LazyClassKeys.pro
+│   │   │   │   │       ├── com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule_LazyClassKeys.pro
+│   │   │   │   │       └── com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule_LazyClassKeys.pro
 │   │   │   │   ├── res/pngs/
 │   │   │   │   │   ├── debug/
 │   │   │   │   │   └── release/
@@ -12204,12 +12289,33 @@ safecube-android/
 │   │   │   │   ├── built_in_kotlinc/
 │   │   │   │   │   ├── debug/compileDebugKotlin/classes/
 │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/
+│   │   │   │   │   │   │   ├── presentation/
+│   │   │   │   │   │   │   │   ├── login/
+│   │   │   │   │   │   │   │   │   ├── LoginUiState.class
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel$login$3.class
+│   │   │   │   │   │   │   │   │   └── LoginViewModel.class
+│   │   │   │   │   │   │   │   ├── signup/
+│   │   │   │   │   │   │   │   │   ├── SignupUiState.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel$loginAfterSignup$1.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel$signup$3.class
+│   │   │   │   │   │   │   │   │   └── SignupViewModel.class
+│   │   │   │   │   │   │   │   ├── AuthUiError.class
+│   │   │   │   │   │   │   │   └── AuthUiErrorMapper.class
 │   │   │   │   │   │   │   ├── screens/
 │   │   │   │   │   │   │   │   ├── ComposableSingletons$LoginScreenKt.class
 │   │   │   │   │   │   │   │   ├── ComposableSingletons$SignupScreenKt.class
 │   │   │   │   │   │   │   │   ├── ComposableSingletons$WelcomeScreenKt.class
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$1$1.class
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$1$1.class
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$3$1.class
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$6$1.class
 │   │   │   │   │   │   │   │   ├── LoginScreenKt.class
 │   │   │   │   │   │   │   │   ├── PostLoginGateScreenKt.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$1$1.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$1$1.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$3$1.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$5$1.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$8$1.class
 │   │   │   │   │   │   │   │   ├── SignupScreenKt.class
 │   │   │   │   │   │   │   │   └── WelcomeScreenKt.class
 │   │   │   │   │   │   │   └── AuthActionLabelKt.class
@@ -12228,6 +12334,68 @@ safecube-android/
 │   │   │   │   │       │   └── AuthActionLabelKt.class
 │   │   │   │   │       └── META-INF/
 │   │   │   │   │           └── auth.kotlin_module
+│   │   │   │   ├── classes/debug/transformDebugClassesWithAsm/
+│   │   │   │   │   ├── dirs/
+│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/
+│   │   │   │   │   │   │   ├── presentation/
+│   │   │   │   │   │   │   │   ├── login/
+│   │   │   │   │   │   │   │   │   ├── LoginUiState.class
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel$login$3.class
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel.class
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_Factory.class
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules$BindsModule.class
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules$KeyModule.class
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules.class
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_BindsModule_Binds_LazyMapKey.class
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class
+│   │   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class
+│   │   │   │   │   │   │   │   │   └── LoginViewModel_HiltModules_KeyModule_ProvideFactory.class
+│   │   │   │   │   │   │   │   ├── signup/
+│   │   │   │   │   │   │   │   │   ├── SignupUiState.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel$loginAfterSignup$1.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel$signup$3.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_Factory.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules$BindsModule.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules$KeyModule.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules_BindsModule_Binds_LazyMapKey.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class
+│   │   │   │   │   │   │   │   │   ├── SignupViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class
+│   │   │   │   │   │   │   │   │   └── SignupViewModel_HiltModules_KeyModule_ProvideFactory.class
+│   │   │   │   │   │   │   │   ├── AuthUiError.class
+│   │   │   │   │   │   │   │   └── AuthUiErrorMapper.class
+│   │   │   │   │   │   │   ├── screens/
+│   │   │   │   │   │   │   │   ├── ComposableSingletons$LoginScreenKt.class
+│   │   │   │   │   │   │   │   ├── ComposableSingletons$SignupScreenKt.class
+│   │   │   │   │   │   │   │   ├── ComposableSingletons$WelcomeScreenKt.class
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$1$1.class
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$1$1.class
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$3$1.class
+│   │   │   │   │   │   │   │   ├── LoginScreenKt$LoginScreen$2$1$6$1.class
+│   │   │   │   │   │   │   │   ├── LoginScreenKt.class
+│   │   │   │   │   │   │   │   ├── PostLoginGateScreenKt.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$1$1.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$1$1.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$3$1.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$5$1.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt$SignupScreen$2$1$8$1.class
+│   │   │   │   │   │   │   │   ├── SignupScreenKt.class
+│   │   │   │   │   │   │   │   └── WelcomeScreenKt.class
+│   │   │   │   │   │   │   └── AuthActionLabelKt.class
+│   │   │   │   │   │   ├── hilt_aggregated_deps/
+│   │   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule.class
+│   │   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule.class
+│   │   │   │   │   │   │   ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule.class
+│   │   │   │   │   │   │   └── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule.class
+│   │   │   │   │   │   └── META-INF/
+│   │   │   │   │   │       ├── proguard/
+│   │   │   │   │   │       │   ├── com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule_LazyClassKeys.pro
+│   │   │   │   │   │       │   ├── com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule_LazyClassKeys.pro
+│   │   │   │   │   │       │   ├── com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule_LazyClassKeys.pro
+│   │   │   │   │   │       │   └── com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule_LazyClassKeys.pro
+│   │   │   │   │   │       └── auth.kotlin_module
+│   │   │   │   │   └── jars/
 │   │   │   │   ├── compile_and_runtime_r_class_jar/
 │   │   │   │   │   ├── debugAndroidTest/processDebugAndroidTestResources/
 │   │   │   │   │   │   └── R.jar
@@ -12569,10 +12737,11 @@ safecube-android/
 │   │   │   │   │   │   │   ├── androidResources
 │   │   │   │   │   │   │   └── javaResources0
 │   │   │   │   │   │   └── dex-renamer-state.txt
-│   │   │   │   │   └── release/packageReleaseResources/
-│   │   │   │   │       ├── merged.dir/
-│   │   │   │   │       ├── stripped.dir/
-│   │   │   │   │       │   │   │   │   │       └── merger.xml
+│   │   │   │   │   ├── release/packageReleaseResources/
+│   │   │   │   │   │   ├── merged.dir/
+│   │   │   │   │   │   ├── stripped.dir/
+│   │   │   │   │   │   │   │   │   │   │   │   └── merger.xml
+│   │   │   │   │   └── transformDebugClassesWithAsm/
 │   │   │   │   ├── java_res/
 │   │   │   │   │   ├── debug/processDebugJavaRes/out/
 │   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/screens/
@@ -12582,6 +12751,31 @@ safecube-android/
 │   │   │   │   │       ├── com/miguelrodriguez19/safecube/feature/auth/screens/
 │   │   │   │   │       └── META-INF/
 │   │   │   │   │           └── auth.kotlin_module
+│   │   │   │   ├── javac/debug/compileDebugJavaWithJavac/classes/
+│   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/presentation/
+│   │   │   │   │   │   ├── login/
+│   │   │   │   │   │   │   ├── LoginViewModel_Factory.class
+│   │   │   │   │   │   │   ├── LoginViewModel_HiltModules$BindsModule.class
+│   │   │   │   │   │   │   ├── LoginViewModel_HiltModules$KeyModule.class
+│   │   │   │   │   │   │   ├── LoginViewModel_HiltModules.class
+│   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_BindsModule_Binds_LazyMapKey.class
+│   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class
+│   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class
+│   │   │   │   │   │   │   └── LoginViewModel_HiltModules_KeyModule_ProvideFactory.class
+│   │   │   │   │   │   └── signup/
+│   │   │   │   │   │       ├── SignupViewModel_Factory.class
+│   │   │   │   │   │       ├── SignupViewModel_HiltModules$BindsModule.class
+│   │   │   │   │   │       ├── SignupViewModel_HiltModules$KeyModule.class
+│   │   │   │   │   │       ├── SignupViewModel_HiltModules.class
+│   │   │   │   │   │       ├── SignupViewModel_HiltModules_BindsModule_Binds_LazyMapKey.class
+│   │   │   │   │   │       ├── SignupViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class
+│   │   │   │   │   │       ├── SignupViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class
+│   │   │   │   │   │       └── SignupViewModel_HiltModules_KeyModule_ProvideFactory.class
+│   │   │   │   │   └── hilt_aggregated_deps/
+│   │   │   │   │       ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule.class
+│   │   │   │   │       ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule.class
+│   │   │   │   │       ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule.class
+│   │   │   │   │       └── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule.class
 │   │   │   │   ├── library_and_local_jars_jni/debug/copyDebugJniLibsProjectAndLocalJars/jni/
 │   │   │   │   ├── library_art_profile/
 │   │   │   │   │   ├── debug/prepareDebugArtProfile/
@@ -12891,6 +13085,20 @@ safecube-android/
 │   │   │   │   │   │   │   │   └── source-to-output.tab_i.len
 │   │   │   │   │   │   │   ├── jvm/
 │   │   │   │   │   │   │   │   └── kotlin/
+│   │   │   │   │   │   │   │       ├── class-attributes.tab
+│   │   │   │   │   │   │   │       ├── class-attributes.tab.keystream
+│   │   │   │   │   │   │   │       ├── class-attributes.tab.keystream.len
+│   │   │   │   │   │   │   │       ├── class-attributes.tab.len
+│   │   │   │   │   │   │   │       ├── class-attributes.tab.values.at
+│   │   │   │   │   │   │   │       ├── class-attributes.tab_i
+│   │   │   │   │   │   │   │       ├── class-attributes.tab_i.len
+│   │   │   │   │   │   │   │       ├── class-fq-name-to-source.tab
+│   │   │   │   │   │   │   │       ├── class-fq-name-to-source.tab.keystream
+│   │   │   │   │   │   │   │       ├── class-fq-name-to-source.tab.keystream.len
+│   │   │   │   │   │   │   │       ├── class-fq-name-to-source.tab.len
+│   │   │   │   │   │   │   │       ├── class-fq-name-to-source.tab.values.at
+│   │   │   │   │   │   │   │       ├── class-fq-name-to-source.tab_i
+│   │   │   │   │   │   │   │       ├── class-fq-name-to-source.tab_i.len
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab.keystream
 │   │   │   │   │   │   │   │       ├── internal-name-to-source.tab.keystream.len
@@ -12918,7 +13126,21 @@ safecube-android/
 │   │   │   │   │   │   │   │       ├── source-to-classes.tab.len
 │   │   │   │   │   │   │   │       ├── source-to-classes.tab.values.at
 │   │   │   │   │   │   │   │       ├── source-to-classes.tab_i
-│   │   │   │   │   │   │   │       └── source-to-classes.tab_i.len
+│   │   │   │   │   │   │   │       ├── source-to-classes.tab_i.len
+│   │   │   │   │   │   │   │       ├── subtypes.tab
+│   │   │   │   │   │   │   │       ├── subtypes.tab.keystream
+│   │   │   │   │   │   │   │       ├── subtypes.tab.keystream.len
+│   │   │   │   │   │   │   │       ├── subtypes.tab.len
+│   │   │   │   │   │   │   │       ├── subtypes.tab.values.at
+│   │   │   │   │   │   │   │       ├── subtypes.tab_i
+│   │   │   │   │   │   │   │       ├── subtypes.tab_i.len
+│   │   │   │   │   │   │   │       ├── supertypes.tab
+│   │   │   │   │   │   │   │       ├── supertypes.tab.keystream
+│   │   │   │   │   │   │   │       ├── supertypes.tab.keystream.len
+│   │   │   │   │   │   │   │       ├── supertypes.tab.len
+│   │   │   │   │   │   │   │       ├── supertypes.tab.values.at
+│   │   │   │   │   │   │   │       ├── supertypes.tab_i
+│   │   │   │   │   │   │   │       └── supertypes.tab_i.len
 │   │   │   │   │   │   │   └── lookups/
 │   │   │   │   │   │   │       ├── counters.tab
 │   │   │   │   │   │   │       ├── file-to-id.tab
@@ -13027,6 +13249,63 @@ safecube-android/
 │   │   │   │       ├── classpath-snapshot/
 │   │   │   │       │   └── shrunk-classpath-snapshot.bin
 │   │   │   │       └── local-state/
+│   │   │   ├── kspCaches/debug/
+│   │   │   │   ├── backups/
+│   │   │   │   │   ├── java/
+│   │   │   │   │   │   ├── com/miguelrodriguez19/safecube/feature/auth/presentation/
+│   │   │   │   │   │   │   ├── login/
+│   │   │   │   │   │   │   │   ├── LoginViewModel_Factory.java
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules.java
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_BindsModule_Binds_LazyMapKey.java
+│   │   │   │   │   │   │   │   ├── LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey.java
+│   │   │   │   │   │   │   │   └── LoginViewModel_HiltModules_KeyModule_ProvideFactory.java
+│   │   │   │   │   │   │   └── signup/
+│   │   │   │   │   │   │       ├── SignupViewModel_Factory.java
+│   │   │   │   │   │   │       ├── SignupViewModel_HiltModules.java
+│   │   │   │   │   │   │       ├── SignupViewModel_HiltModules_BindsModule_Binds_LazyMapKey.java
+│   │   │   │   │   │   │       ├── SignupViewModel_HiltModules_KeyModule_Provide_LazyMapKey.java
+│   │   │   │   │   │   │       └── SignupViewModel_HiltModules_KeyModule_ProvideFactory.java
+│   │   │   │   │   │   └── hilt_aggregated_deps/
+│   │   │   │   │   │       ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule.java
+│   │   │   │   │   │       ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule.java
+│   │   │   │   │   │       ├── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule.java
+│   │   │   │   │   │       └── _com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule.java
+│   │   │   │   │   └── resources/META-INF/proguard/
+│   │   │   │   │       ├── com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_BindsModule_LazyClassKeys.pro
+│   │   │   │   │       ├── com_miguelrodriguez19_safecube_feature_auth_presentation_login_LoginViewModel_HiltModules_KeyModule_LazyClassKeys.pro
+│   │   │   │   │       ├── com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_BindsModule_LazyClassKeys.pro
+│   │   │   │   │       └── com_miguelrodriguez19_safecube_feature_auth_presentation_signup_SignupViewModel_HiltModules_KeyModule_LazyClassKeys.pro
+│   │   │   │   ├── logs/
+│   │   │   │   ├── symbolLookups/
+│   │   │   │   │   ├── counters.tab
+│   │   │   │   │   ├── file-to-id.tab
+│   │   │   │   │   ├── file-to-id.tab.keystream
+│   │   │   │   │   ├── file-to-id.tab.keystream.len
+│   │   │   │   │   ├── file-to-id.tab.len
+│   │   │   │   │   ├── file-to-id.tab.values.at
+│   │   │   │   │   ├── file-to-id.tab_i
+│   │   │   │   │   ├── file-to-id.tab_i.len
+│   │   │   │   │   ├── id-to-file.tab
+│   │   │   │   │   ├── id-to-file.tab.keystream
+│   │   │   │   │   ├── id-to-file.tab.keystream.len
+│   │   │   │   │   ├── id-to-file.tab.len
+│   │   │   │   │   ├── id-to-file.tab.values.at
+│   │   │   │   │   ├── id-to-file.tab_i
+│   │   │   │   │   ├── id-to-file.tab_i.len
+│   │   │   │   │   ├── lookups.tab
+│   │   │   │   │   ├── lookups.tab.keystream
+│   │   │   │   │   ├── lookups.tab.keystream.len
+│   │   │   │   │   ├── lookups.tab.len
+│   │   │   │   │   ├── lookups.tab.values.at
+│   │   │   │   │   ├── lookups.tab_i
+│   │   │   │   │   └── lookups.tab_i.len
+│   │   │   │   ├── ap-classpath-entries.bin
+│   │   │   │   ├── caches.uptodate
+│   │   │   │   ├── classpath-entries.bin
+│   │   │   │   ├── classpath-structure.bin
+│   │   │   │   ├── sealed
+│   │   │   │   ├── sourceToOutputs
+│   │   │   │   └── symbols
 │   │   │   ├── outputs/
 │   │   │   │   ├── aar/
 │   │   │   │   │   └── auth-debug.aar
@@ -13040,22 +13319,52 @@ safecube-android/
 │   │   │   │   └── logs/
 │   │   │   │       ├── manifest-merger-debug-report.txt
 │   │   │   │       └── manifest-merger-release-report.txt
-│   │   │   └── reports/androidTests/connected/debug/
-│   │   │       ├── css/
-│   │   │       │   ├── base-style.css
-│   │   │       │   └── style.css
-│   │   │       ├── js/
-│   │   │       │   └── report.js
-│   │   │       └── index.html
+│   │   │   ├── reports/androidTests/connected/debug/
+│   │   │   │   ├── css/
+│   │   │   │   │   ├── base-style.css
+│   │   │   │   │   └── style.css
+│   │   │   │   ├── js/
+│   │   │   │   │   └── report.js
+│   │   │   │   └── index.html
+│   │   │   └── tmp/compileDebugJavaWithJavac/
+│   │   │       ├── compileTransaction/
+│   │   │       │   ├── backup-dir/
+│   │   │       │   └── stash-dir/
+│   │   │       │       ├── LoginViewModel_Factory.class.uniqueId8
+│   │   │       │       ├── LoginViewModel_HiltModules$BindsModule.class.uniqueId4
+│   │   │       │       ├── LoginViewModel_HiltModules$KeyModule.class.uniqueId2
+│   │   │       │       ├── LoginViewModel_HiltModules.class.uniqueId0
+│   │   │       │       ├── LoginViewModel_HiltModules_BindsModule_Binds_LazyMapKey.class.uniqueId3
+│   │   │       │       ├── LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class.uniqueId12
+│   │   │       │       ├── LoginViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class.uniqueId6
+│   │   │       │       ├── LoginViewModel_HiltModules_KeyModule_ProvideFactory.class.uniqueId15
+│   │   │       │       ├── SignupViewModel_Factory.class.uniqueId1
+│   │   │       │       ├── SignupViewModel_HiltModules$BindsModule.class.uniqueId7
+│   │   │       │       ├── SignupViewModel_HiltModules$KeyModule.class.uniqueId13
+│   │   │       │       ├── SignupViewModel_HiltModules.class.uniqueId10
+│   │   │       │       ├── SignupViewModel_HiltModules_BindsModule_Binds_LazyMapKey.class.uniqueId11
+│   │   │       │       ├── SignupViewModel_HiltModules_KeyModule_Provide_LazyMapKey.class.uniqueId5
+│   │   │       │       ├── SignupViewModel_HiltModules_KeyModule_ProvideFactory$InstanceHolder.class.uniqueId9
+│   │   │       │       └── SignupViewModel_HiltModules_KeyModule_ProvideFactory.class.uniqueId14
+│   │   │       └── previous-compilation-data.bin
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/feature/auth/
 │   │   │   │   ├── navigation/
+│   │   │   │   ├── presentation/
+│   │   │   │   │   ├── login/
+│   │   │   │   │   │   ├── LoginUiState.kt
+│   │   │   │   │   │   └── LoginViewModel.kt
+│   │   │   │   │   ├── signup/
+│   │   │   │   │   │   ├── SignupUiState.kt
+│   │   │   │   │   │   └── SignupViewModel.kt
+│   │   │   │   │   └── AuthUiErrorMapper.kt
 │   │   │   │   ├── screens/
 │   │   │   │   │   ├── LoginScreen.kt
 │   │   │   │   │   ├── PostLoginGateScreen.kt
 │   │   │   │   │   ├── SignupScreen.kt
 │   │   │   │   │   └── WelcomeScreen.kt
 │   │   │   │   └── AuthActionLabel.kt
+│   │   │   ├── res/values/
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   ├── profile/

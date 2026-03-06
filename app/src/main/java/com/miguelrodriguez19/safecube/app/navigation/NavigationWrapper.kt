@@ -121,7 +121,10 @@ fun NavigationWrapper() {
                 )
             }
             entry<Routes.Signup> {
-                SignupScreen(onLogin = { setRoot(Routes.Login) })
+                SignupScreen(
+                    onLogin = { setRoot(Routes.Login) },
+                    onSignupSuccess = { setRoot(Routes.Login) },
+                )
             }
             entry<Routes.Vault> {
                 VaultScreen(

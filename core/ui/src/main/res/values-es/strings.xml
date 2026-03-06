@@ -4,4 +4,17 @@
     <string name="action_delete">Eliminar</string>
     <string name="generic_error">Algo salio mal</string>
     <string name="loading">Cargando...</string>
+    <string name="email_is_required">El correo es obligatorio</string>
+    <string name="password_is_required">La contrasena es obligatoria</string>
+    <string name="confirm_password_is_required">Confirmar contrasena es obligatorio</string>
+    <string name="passwords_do_not_match">Las contrasenas no coinciden</string>
+
+    <string name="auth_error_validation_failed">Revisa los campos marcados</string>
+    <string name="auth_error_invalid_credentials">Correo o contrasena invalidos</string>
+    <string name="auth_error_forbidden">Tu cuenta no puede realizar esta operacion ahora</string>
+    <string name="auth_error_account_exists">Ya existe una cuenta con este correo</string>
+    <string name="auth_error_conflict">El estado de la cuenta esta en conflicto. Intentalo de nuevo</string>
+    <string name="auth_error_email_invalid">Formato de correo invalido</string>
+    <string name="auth_error_password_invalid">Formato de contrasena invalido</string>
+    <string name="auth_error_confirm_password_invalid">Valor de confirmacion de contrasena invalido</string>
 </resources>
