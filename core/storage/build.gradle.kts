@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.hilt.android)
+    alias(libs.plugins.kotlinx.kover)
 }
 
 android {
@@ -17,6 +18,28 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
+kover {
+    reports {
+        filters {
+            excludes {
+                classes(
+                    "*.BuildConfig",
+                    "*_Factory*",
+                    "*_MembersInjector*",
+                    "*_HiltModules*",
+                    "*_HiltComponents*",
+                    "*_Impl",
+                    "*Dao_Impl*",
+                    "*Database_Impl*",
+                    "*ComposableSingletons*",
+                    "*.di.*",
+                    "*generated*"
+                )
+            }
+        }
     }
 }
 

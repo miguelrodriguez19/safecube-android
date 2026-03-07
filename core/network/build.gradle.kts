@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.openapi.generator)
+    alias(libs.plugins.kotlinx.kover)
 }
 
 val openApiOutput = layout.buildDirectory.dir("generated/openapi")
@@ -71,6 +72,28 @@ tasks.named<GenerateTask>("openApiGenerate") {
 
 tasks.named("preBuild") {
     dependsOn("openApiGenerate")
+}
+
+kover {
+    reports {
+        filters {
+            excludes {
+                classes(
+                    "*.BuildConfig",
+                    "*_Factory*",
+                    "*_MembersInjector*",
+                    "*_HiltModules*",
+                    "*_HiltComponents*",
+                    "*_Impl",
+                    "*Dao_Impl*",
+                    "*Database_Impl*",
+                    "*ComposableSingletons*",
+                    "*.di.*",
+                    "*generated*"
+                )
+            }
+        }
+    }
 }
 
 dependencies {

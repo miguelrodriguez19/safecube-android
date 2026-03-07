@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 07-03-2026 01:31:28
+Updated: 07-03-2026 03:10:59
 
 ```
 safecube-android/
@@ -7,7 +7,8 @@ safecube-android/
 │   ├── FolderTreeToFile.class
 │   └── Logger.class
 ├── .run/
-│   └── run-folder-tree.run.xml
+│   ├── run-folder-tree.run.xml
+│   └── verifyCoverage.run.xml
 ├── app/
 │   ├── src/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
