@@ -18,16 +18,18 @@ import static com.safecube.tooling.Logger.logInfo;
 
 /**
  * Command line usage: <br>
- * FolderTreeToFile [rootDir] [outputPath]
- *    [printFiles=true]
- *    [printExcludedFiles=false]
- *    [printExcludedFolders=false]
+ * FolderTreeToFile root=<dir> output=<file>
+ *                  [printFiles=true]
+ *                  [printExcludedFiles=false]
+ *                  [printSkippedContentLabel=true]
+ *                  [printExcludedFolders=false]
  */
 public final class FolderTreeToFile {
 
     // Defaults
     private static boolean printFiles = true;
     private static boolean printExcludedFiles = false;
+    private static boolean printSkippedContentLabel = true;
     private static boolean printExcludedFolders = false;
 
     private static File rootDir;
@@ -37,15 +39,16 @@ public final class FolderTreeToFile {
             Set.of(".git", ".idea",
                     "safecube-android/build",
                     "app/build",
-                    "core/\\w+/build",
+                    "core/(?!network)\\w+/build",
+                    "core/network/build/(?!generated($|/openapi($|/src($|.*)))).*",
                     "feature/\\w+/build",
                     ".gradle",
-                    ".kotlin",
+                    "\\.kotlin",
                     "gradle/wrapper",
                     "scripts/.build");
 
     private static final Set<String> EXCLUDED_FILES =
-            Set.of(".+.properties", ".DS_Store");
+            Set.of(".+.properties", ".DS_Store", "ApiClient.kt", "HttpBearerAuth.kt");
 
     private FolderTreeToFile() {
         // utility class
@@ -62,20 +65,38 @@ public final class FolderTreeToFile {
     // ---------------------------------------------------------------------------
 
     private static void parseArgs(String[] args) {
-        if (args.length < 2) {
-            exitWithUsage("ERR :: Missing required arguments");
+
+        Map<String, String> params = parseKeyValueArgs(args);
+
+        rootDir = Optional.ofNullable(params.get("root"))
+                .map(File::new)
+                .map(File::getAbsoluteFile)
+                .orElseThrow(() -> new IllegalArgumentException("Missing root parameter"));
+
+        outputFile = Optional.ofNullable(params.get("output"))
+                .map(FolderTreeToFile::resolveOutputFile)
+                .orElseThrow(() -> new IllegalArgumentException("Missing output parameter"));
+
+        printFiles = Boolean.parseBoolean(params.getOrDefault("printFiles", "true"));
+        printExcludedFiles = Boolean.parseBoolean(params.getOrDefault("printExcludedFiles", "false"));
+        printSkippedContentLabel = Boolean.parseBoolean(params.getOrDefault("printSkippedContentLabel", "true"));
+        printExcludedFolders = Boolean.parseBoolean(params.getOrDefault("printExcludedFolders", "false"));
+    }
+
+    private static Map<String, String> parseKeyValueArgs(String[] args) {
+        Map<String, String> map = new java.util.HashMap<>();
+
+        for (String arg : args) {
+            if (!arg.contains("=")) {
+                logError("Invalid argument: " + arg + " (expected key=value)");
+                continue;
+            }
+
+            String[] parts = arg.split("=", 2);
+            map.put(parts[0], parts[1]);
         }
 
-        rootDir = new File(args[0]).getAbsoluteFile();
-        outputFile = resolveOutputFile(args[1]);
-
-        if (args.length > 2) printFiles = Boolean.parseBoolean(args[2]);
-        if (args.length > 3) printExcludedFiles = Boolean.parseBoolean(args[3]);
-        if (args.length > 4) printExcludedFolders = Boolean.parseBoolean(args[4]);
-
-        if (args.length > 5) {
-            logError("WARN :: %d arguments provided; only 5 are used%n".formatted(args.length));
-        }
+        return map;
     }
 
     private static File resolveOutputFile(String path) {
@@ -85,10 +106,14 @@ public final class FolderTreeToFile {
 
     private static void exitWithUsage(String message) {
         logError(message);
-        logError(
-                "Usage:\n"
-                        + "  FolderTreeToFile <rootDir> <outputPath> [printFiles=true] "
-                        + "[printExcludedFiles=false] [printExcludedFolders=false]");
+        logError("""
+                Usage:
+                  FolderTreeToFile root=<dir> output=<file>
+                                   [printFiles=true]
+                                   [printExcludedFiles=false]
+                                   [printSkippedContentLabel=true]
+                                   [printExcludedFolders=false]
+                """);
         System.exit(1);
     }
 
@@ -146,13 +171,12 @@ public final class FolderTreeToFile {
             File item = visibleItems.get(i);
             boolean isLast = i == visibleItems.size() - 1;
 
-            writer.print(prefix);
             String levelIndicator = isLast ? "└── " : "├── ";
 
             if (item.isDirectory()) {
                 handleDirectory(item, prefix, writer, isLast, levelIndicator);
             } else {
-                handleFile(item, writer, levelIndicator);
+                handleFile(item, prefix, writer, levelIndicator);
             }
         }
     }
@@ -181,29 +205,27 @@ public final class FolderTreeToFile {
                 .anyMatch(suffix -> dir.getAbsolutePath().matches(".*" + suffix + "$"));
 
         if (isExcluded && !printExcludedFolders) {
-            writer.println(levelIndicator + dir.getName() + "/... # Skipped Content");
+            if (printSkippedContentLabel) {
+                writer.println(prefix + levelIndicator + dir.getName() + "/... # Skipped Content");
+            }
             return;
         }
 
         String compactName = buildCompactPath(dir);
         File deepest = getDeepestCompactDir(dir);
 
-        writer.println(levelIndicator + compactName + "/");
+        writer.println(prefix + levelIndicator + compactName + "/");
 
         String newPrefix = prefix + (isLast ? "    " : "│   ");
         printFolderTree(deepest, newPrefix, writer);
     }
 
-    private static void handleFile(File file, PrintWriter writer, String levelIndicator) {
+    private static void handleFile(File file, String prefix, PrintWriter writer, String levelIndicator) {
         final boolean isExcluded = EXCLUDED_FILES.stream()
                 .anyMatch(pattern -> file.getName().matches(pattern));
 
-        if (isExcluded) {
-            if (printExcludedFiles) {
-                writer.println(levelIndicator + file.getName());
-            }
-        } else {
-            writer.println(levelIndicator + file.getName());
+        if (!isExcluded || printExcludedFiles) {
+            writer.println(prefix + levelIndicator + file.getName());
         }
     }
 
@@ -256,7 +278,8 @@ public final class FolderTreeToFile {
 
 class Logger {
 
-    private Logger() {}
+    private Logger() {
+    }
 
     static void logInfo(String message) {
         System.out.println(message);

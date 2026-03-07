@@ -1,19 +1,14 @@
 # Package Structure
-Updated: 07-03-2026 12:21:10
+Updated: 07-03-2026 01:31:28
 
 ```
 safecube-android/
 ├── .build/com/safecube/tooling/
 │   ├── FolderTreeToFile.class
 │   └── Logger.class
-├── .git/... # Skipped Content
-├── .gradle/... # Skipped Content
-├── .idea/... # Skipped Content
-├── .kotlin/... # Skipped Content
 ├── .run/
 │   └── run-folder-tree.run.xml
 ├── app/
-│   ├── build/... # Skipped Content
 │   ├── src/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
 │   │   │   ├── ExampleInstrumentedTest.kt
@@ -65,10 +60,8 @@ safecube-android/
 │   ├── .gitignore
 │   ├── build.gradle.kts
 │   └── proguard-rules.pro
-├── build/... # Skipped Content
 ├── core/
 │   ├── auth/
-│   │   ├── build/... # Skipped Content
 │   │   ├── src/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/auth/
@@ -123,7 +116,6 @@ safecube-android/
 │   │   │           └── SessionManagerImplTest.kt
 │   │   └── build.gradle.kts
 │   ├── crypto/
-│   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/core/crypto/
 │   │   │   │   ├── di/
@@ -142,7 +134,61 @@ safecube-android/
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   ├── network/
-│   │   ├── build/... # Skipped Content
+│   │   ├── build/
+│   │   │   ├── generated/
+│   │   │   │   ├── openapi/
+│   │   │   │   │   ├── src/main/kotlin/com/miguelrodriguez19/safecube/core/network/generated/
+│   │   │   │   │   │   ├── api/
+│   │   │   │   │   │   │   ├── AuthControllerApi.kt
+│   │   │   │   │   │   │   ├── UserProfileControllerApi.kt
+│   │   │   │   │   │   │   ├── VaultControllerApi.kt
+│   │   │   │   │   │   │   └── VaultKeyMaterialControllerApi.kt
+│   │   │   │   │   │   ├── auth/
+│   │   │   │   │   │   ├── infrastructure/
+│   │   │   │   │   │   │   ├── AtomicBooleanAdapter.kt
+│   │   │   │   │   │   │   ├── AtomicIntegerAdapter.kt
+│   │   │   │   │   │   │   ├── AtomicLongAdapter.kt
+│   │   │   │   │   │   │   ├── BigDecimalAdapter.kt
+│   │   │   │   │   │   │   ├── BigIntegerAdapter.kt
+│   │   │   │   │   │   │   ├── CollectionFormats.kt
+│   │   │   │   │   │   │   ├── LocalDateAdapter.kt
+│   │   │   │   │   │   │   ├── LocalDateTimeAdapter.kt
+│   │   │   │   │   │   │   ├── OffsetDateTimeAdapter.kt
+│   │   │   │   │   │   │   ├── ResponseExt.kt
+│   │   │   │   │   │   │   ├── Serializer.kt
+│   │   │   │   │   │   │   ├── StringBuilderAdapter.kt
+│   │   │   │   │   │   │   ├── URIAdapter.kt
+│   │   │   │   │   │   │   ├── URLAdapter.kt
+│   │   │   │   │   │   │   └── UUIDAdapter.kt
+│   │   │   │   │   │   └── model/
+│   │   │   │   │   │       ├── AuthenticateAccountRequest.kt
+│   │   │   │   │   │       ├── AuthTokensResponse.kt
+│   │   │   │   │   │       ├── CreateSecureItemRequest.kt
+│   │   │   │   │   │       ├── CreateSecureItemResult.kt
+│   │   │   │   │   │       ├── CreateUserProfileRequest.kt
+│   │   │   │   │   │       ├── DeleteSecureItemResult.kt
+│   │   │   │   │   │       ├── Get400Response.kt
+│   │   │   │   │   │       ├── InitVaultKeyMaterialRequest.kt
+│   │   │   │   │   │       ├── ListSecureItemsResponse.kt
+│   │   │   │   │   │       ├── RefreshTokenRequest.kt
+│   │   │   │   │   │       ├── RegisterAccountRequest.kt
+│   │   │   │   │   │       ├── RegisterAccountResult.kt
+│   │   │   │   │   │       ├── SecureItemResponse.kt
+│   │   │   │   │   │       ├── SecureItemSummaryResponse.kt
+│   │   │   │   │   │       ├── UpdateMaster400Response.kt
+│   │   │   │   │   │       ├── UpdateMasterWrappedKekRequest.kt
+│   │   │   │   │   │       ├── UpdateSecureItemRequest.kt
+│   │   │   │   │   │       ├── UpdateSecureItemResult.kt
+│   │   │   │   │   │       ├── UpdateUserProfileRequest.kt
+│   │   │   │   │   │       ├── UserProfileResponse.kt
+│   │   │   │   │   │       └── VaultKeyMaterialResponse.kt
+│   │   │   │   │   ├── .openapi-generator-ignore
+│   │   │   │   │   ├── build.gradle
+│   │   │   │   │   ├── gradlew
+│   │   │   │   │   ├── gradlew.bat
+│   │   │   │   │   ├── proguard-rules.pro
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   └── settings.gradle
 │   │   ├── openapi/
 │   │   │   └── OpenAPI.json
 │   │   ├── src/
@@ -165,9 +211,8 @@ safecube-android/
 │   │   │       ├── NetworkClientFactoryTest.kt
 │   │   │       ├── TokenRefreshAuthenticatorFlowTest.kt
 │   │   │       └── TokenRefreshAuthenticatorTest.kt
-│   │   │   │   └── build.gradle.kts
+│   │   └── build.gradle.kts
 │   ├── storage/
-│   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/
 │   │   │   │   ├── di/
@@ -178,7 +223,6 @@ safecube-android/
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   ├── ui/
-│   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/core/ui/
 │   │   │   │   ├── components/
@@ -192,7 +236,7 @@ safecube-android/
 │   │   │   │       └── strings.xml
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
-│   ├── docs/
+├── docs/
 │   ├── architecture/
 │   │   ├── openapi-auth-contract-integration.md
 │   │   └── storage_decision.md
@@ -203,11 +247,10 @@ safecube-android/
 │   │   ├── roadmap--fase-2.md
 │   │   ├── roadmap--fase-3.md
 │   │   └── roadmap--high-level.md
-│   │   ├── README.md
+│   ├── README.md
 │   └── testing.md
 ├── feature/
 │   ├── auth/
-│   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/feature/auth/
 │   │   │   │   ├── navigation/
@@ -229,14 +272,12 @@ safecube-android/
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   ├── profile/
-│   │   ├── build/... # Skipped Content
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/feature/profile/navigation/
 │   │   │   │   └── ProfileScreen.kt
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   └── vault/
-│       ├── build/... # Skipped Content
 │       ├── src/main/
 │       │   ├── java/com/miguelrodriguez19/safecube/feature/vault/navigation/
 │       │   │   ├── CreateVaultScreen.kt
@@ -248,9 +289,7 @@ safecube-android/
 │       │   │   └── VaultScreen.kt
 │       │   └── AndroidManifest.xml
 │       └── build.gradle.kts
-├── gradle/... # Skipped Content
 ├── scripts/
-│   ├── .build/... # Skipped Content
 │   ├── resources/com/safecube/tooling/
 │   │   └── FolderTreeToFile.java
 │   └── run-folder-tree.sh
