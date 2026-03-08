@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 07-03-2026 03:10:59
+Updated: 08-03-2026 11:24:26
 
 ```
 safecube-android/
@@ -239,6 +239,7 @@ safecube-android/
 │   │   └── build.gradle.kts
 ├── docs/
 │   ├── architecture/
+│   │   ├── crypto-v1.md
 │   │   ├── openapi-auth-contract-integration.md
 │   │   └── storage_decision.md
 │   ├── package-structure/
