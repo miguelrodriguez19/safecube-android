@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 09-03-2026 11:17:22
+Updated: 09-03-2026 11:27:03
 
 ```
 safecube-android/
@@ -176,7 +176,7 @@ safecube-android/
 │   │   │   │   │   │       ├── CreateSecureItemResult.kt
 │   │   │   │   │   │       ├── CreateUserProfileRequest.kt
 │   │   │   │   │   │       ├── DeleteSecureItemResult.kt
-│   │   │   │   │   │       ├── Get400Response.kt
+│   │   │   │   │   │       ├── ErrorResponse.kt
 │   │   │   │   │   │       ├── InitVaultKeyMaterialRequest.kt
 │   │   │   │   │   │       ├── ListSecureItemsResponse.kt
 │   │   │   │   │   │       ├── RefreshTokenRequest.kt
@@ -184,7 +184,6 @@ safecube-android/
 │   │   │   │   │   │       ├── RegisterAccountResult.kt
 │   │   │   │   │   │       ├── SecureItemResponse.kt
 │   │   │   │   │   │       ├── SecureItemSummaryResponse.kt
-│   │   │   │   │   │       ├── UpdateMaster400Response.kt
 │   │   │   │   │   │       ├── UpdateMasterWrappedKekRequest.kt
 │   │   │   │   │   │       ├── UpdateSecureItemRequest.kt
 │   │   │   │   │   │       ├── UpdateSecureItemResult.kt
@@ -245,6 +244,10 @@ safecube-android/
 │   │   │   │       └── strings.xml
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
+│   ├── vault/
+│   │   └── src/
+│   │       ├── main/java/com/miguelrodriguez19/safecube/core/vault/data/remote/
+│   │       └── test/java/com/miguelrodriguez19/safecube/core/vault/data/remote/
 ├── docs/
 │   ├── architecture/
 │   │   ├── crypto-v1.md

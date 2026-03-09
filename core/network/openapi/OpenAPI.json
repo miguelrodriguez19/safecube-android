@@ -24,7 +24,7 @@
         ],
         "summary": "Update master-wrapped KEK",
         "description": "Updates the master-wrapped key material after passphrase change. Does not modify existing vault items.",
-        "operationId": "updateMaster",
+        "operationId": "updateMasterWrappedKek",
         "requestBody": {
           "content": {
             "application/json": {
@@ -37,31 +37,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Void"
-                }
-              }
-            }
+            "description": "OK"
           },
           "400": {
             "description": "Bad request",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -83,17 +66,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -108,7 +81,7 @@
         ],
         "summary": "Get vault item",
         "description": "Returns a vault item by id. The payload is opaque encrypted data.",
-        "operationId": "get",
+        "operationId": "getVaultItem",
         "parameters": [
           {
             "name": "itemId",
@@ -124,7 +97,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SecureItemResponse"
                 }
@@ -136,17 +109,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -168,17 +131,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -191,7 +144,7 @@
         ],
         "summary": "Update vault item",
         "description": "Updates an existing vault item. The payload is opaque encrypted data. Conflicts may occur on stale updates.",
-        "operationId": "update",
+        "operationId": "updateVaultItem",
         "parameters": [
           {
             "name": "itemId",
@@ -217,7 +170,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UpdateSecureItemResult"
                 }
@@ -229,17 +182,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -261,17 +204,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -284,7 +217,7 @@
         ],
         "summary": "Delete vault item (soft delete)",
         "description": "Soft-deletes a vault item for the authenticated account.",
-        "operationId": "delete",
+        "operationId": "deleteVaultItem",
         "parameters": [
           {
             "name": "itemId",
@@ -300,7 +233,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DeleteSecureItemResult"
                 }
@@ -312,17 +245,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -344,17 +267,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -369,12 +282,12 @@
         ],
         "summary": "Get user profile",
         "description": "Returns the user profile for the authenticated account.",
-        "operationId": "get_1",
+        "operationId": "getUserProfile",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserProfileResponse"
                 }
@@ -386,17 +299,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -418,17 +321,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -441,7 +334,7 @@
         ],
         "summary": "Update user profile",
         "description": "Updates editable profile fields for the authenticated account.",
-        "operationId": "update_1",
+        "operationId": "updateUserProfile",
         "requestBody": {
           "content": {
             "application/json": {
@@ -456,7 +349,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserProfileResponse"
                 }
@@ -468,17 +361,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -500,17 +383,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -523,7 +396,7 @@
         ],
         "summary": "Create user profile",
         "description": "Creates a non-sensitive user profile for the authenticated account.",
-        "operationId": "create",
+        "operationId": "createUserProfile",
         "requestBody": {
           "content": {
             "application/json": {
@@ -538,7 +411,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserProfileResponse"
                 }
@@ -550,17 +423,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -582,17 +445,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -607,12 +460,12 @@
         ],
         "summary": "Get vault key material",
         "description": "Returns the stored wrapped key material and crypto/KDF parameters for the authenticated account.",
-        "operationId": "get_2",
+        "operationId": "getVaultKeyMaterial",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/VaultKeyMaterialResponse"
                 }
@@ -624,17 +477,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -656,17 +499,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -679,7 +512,7 @@
         ],
         "summary": "Initialize vault key material",
         "description": "Stores wrapped key material and KDF parameters. All fields are opaque; the backend never derives or decrypts keys.",
-        "operationId": "init",
+        "operationId": "initVaultKeyMaterial",
         "requestBody": {
           "content": {
             "application/json": {
@@ -692,31 +525,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Void"
-                }
-              }
-            }
+            "description": "OK"
           },
           "400": {
             "description": "Bad request",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -738,17 +554,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -763,10 +569,19 @@
         ],
         "summary": "List vault items",
         "description": "Lists vault items for sync/listing. Supports filters and optional inclusion of deleted items.",
-        "operationId": "list",
+        "operationId": "listVaultItems",
         "parameters": [
           {
-            "name": "since",
+            "name": "createdAfter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "updatedAfter",
             "in": "query",
             "required": false,
             "schema": {
@@ -827,7 +642,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ListSecureItemsResponse"
                 }
@@ -839,17 +654,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -871,17 +676,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -894,7 +689,7 @@
         ],
         "summary": "Create vault item",
         "description": "Creates a new vault item for the authenticated account. The payload is opaque encrypted data.",
-        "operationId": "create_1",
+        "operationId": "createVaultItem",
         "requestBody": {
           "content": {
             "application/json": {
@@ -909,7 +704,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CreateSecureItemResult"
                 }
@@ -921,17 +716,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -953,17 +738,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -993,7 +768,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RegisterAccountResult"
                 }
@@ -1005,17 +780,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1037,22 +802,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           }
-        }
+        },
+        "security": []
       }
     },
     "/auth/refresh": {
@@ -1077,7 +833,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthTokensResponse"
                 }
@@ -1089,17 +845,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1121,22 +867,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           }
-        }
+        },
+        "security": []
       }
     },
     "/auth/logout": {
@@ -1156,17 +893,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1188,17 +915,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1228,7 +945,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthTokensResponse"
                 }
@@ -1240,17 +957,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1272,43 +979,48 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "fields": {
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           }
-        }
+        },
+        "security": []
       }
     }
   },
   "components": {
     "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
       "UpdateMasterWrappedKekRequest": {
         "type": "object",
         "description": "Request to update the master-wrapped KEK after a passphrase change. Opaque client-produced bytes; the backend does not decrypt or derive keys.",
         "properties": {
           "newKekEncMaster": {
             "type": "string",
-            "format": "binary",
+            "format": "byte",
             "description": "New master-wrapped KEK (opaque bytes)."
           }
         },
         "required": [
           "newKekEncMaster"
         ]
-      },
-      "Void": {
-
       },
       "UpdateSecureItemRequest": {
         "type": "object",
@@ -1332,7 +1044,7 @@
           },
           "payload": {
             "type": "string",
-            "format": "binary",
+            "format": "byte",
             "description": "Opaque encrypted payload bytes."
           },
           "updatedAt": {
@@ -1364,7 +1076,12 @@
             "type": "string",
             "format": "date-time"
           }
-        }
+        },
+        "required": [
+          "itemId",
+          "payloadVersion",
+          "updatedAt"
+        ]
       },
       "UpdateUserProfileRequest": {
         "type": "object",
@@ -1403,7 +1120,14 @@
             "type": "string",
             "format": "date-time"
           }
-        }
+        },
+        "required": [
+          "accountId",
+          "createdAt",
+          "displayName",
+          "updatedAt",
+          "userId"
+        ]
       },
       "InitVaultKeyMaterialRequest": {
         "type": "object",
@@ -1411,12 +1135,12 @@
         "properties": {
           "kekEncMaster": {
             "type": "string",
-            "format": "binary",
-            "description": "Master-wrapped KEK (opaque bytes)."
+            "format": "byte",
+            "description": "Master-wrapped KEK (base64 encoded bytes)."
           },
           "kekEncRecovery": {
             "type": "string",
-            "format": "binary",
+            "format": "byte",
             "description": "Recovery-wrapped KEK (opaque bytes)."
           },
           "kdfAlgorithm": {
@@ -1426,7 +1150,7 @@
           },
           "kdfSalt": {
             "type": "string",
-            "format": "binary",
+            "format": "byte",
             "description": "KDF salt (opaque bytes)."
           },
           "kdfMemoryKib": {
@@ -1485,7 +1209,7 @@
           },
           "payload": {
             "type": "string",
-            "format": "binary",
+            "format": "byte",
             "description": "Opaque encrypted payload bytes."
           }
         },
@@ -1507,7 +1231,11 @@
             "type": "string",
             "format": "date-time"
           }
-        }
+        },
+        "required": [
+          "createdAt",
+          "itemId"
+        ]
       },
       "CreateUserProfileRequest": {
         "type": "object",
@@ -1557,7 +1285,11 @@
             "type": "string",
             "format": "date-time"
           }
-        }
+        },
+        "required": [
+          "accountId",
+          "createdAt"
+        ]
       },
       "RefreshTokenRequest": {
         "type": "object",
@@ -1594,7 +1326,12 @@
             "description": "Instant when the token pair was issued.",
             "readOnly": true
           }
-        }
+        },
+        "required": [
+          "accessToken",
+          "issuedAt",
+          "refreshToken"
+        ]
       },
       "AuthenticateAccountRequest": {
         "type": "object",
@@ -1667,7 +1404,21 @@
             "type": "string",
             "format": "date-time"
           }
-        }
+        },
+        "required": [
+          "accountId",
+          "createdAt",
+          "cryptoVersion",
+          "kdfAlgorithm",
+          "kdfIterations",
+          "kdfMemoryKib",
+          "kdfOutputLen",
+          "kdfParallelism",
+          "kdfSalt",
+          "kekEncMaster",
+          "kekEncRecovery",
+          "updatedAt"
+        ]
       },
       "ListSecureItemsResponse": {
         "type": "object",
@@ -1678,7 +1429,10 @@
               "$ref": "#/components/schemas/SecureItemSummaryResponse"
             }
           }
-        }
+        },
+        "required": [
+          "items"
+        ]
       },
       "SecureItemSummaryResponse": {
         "type": "object",
@@ -1709,7 +1463,15 @@
             "type": "string",
             "format": "date-time"
           }
-        }
+        },
+        "required": [
+          "displayHint",
+          "itemId",
+          "itemType",
+          "payloadVersion",
+          "schemaVersion",
+          "updatedAt"
+        ]
       },
       "SecureItemResponse": {
         "type": "object",
@@ -1744,7 +1506,16 @@
             "type": "string",
             "format": "date-time"
           }
-        }
+        },
+        "required": [
+          "displayHint",
+          "itemId",
+          "itemType",
+          "payload",
+          "payloadVersion",
+          "schemaVersion",
+          "updatedAt"
+        ]
       },
       "DeleteSecureItemResult": {
         "type": "object",
@@ -1757,7 +1528,11 @@
             "type": "string",
             "format": "date-time"
           }
-        }
+        },
+        "required": [
+          "deletedAt",
+          "itemId"
+        ]
       }
     },
     "securitySchemes": {
