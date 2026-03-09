@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 09-03-2026 10:27:26
+Updated: 09-03-2026 10:52:24
 
 ```
 safecube-android/
@@ -123,8 +123,8 @@ safecube-android/
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   └── CryptoModule.kt
 │   │   │   │   │   ├── internal/
-│   │   │   │   │   │   ├── Argon2KdfEngine.kt
-│   │   │   │   │   │   └── FakeCryptoEngine.kt
+│   │   │   │   │   │   ├── AesGcmCryptoEngine.kt
+│   │   │   │   │   │   └── Argon2KdfEngine.kt
 │   │   │   │   │   ├── CryptoEngine.kt
 │   │   │   │   │   ├── DecryptionRequest.kt
 │   │   │   │   │   ├── EncryptionRequest.kt
@@ -138,6 +138,7 @@ safecube-android/
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/crypto/
 │   │   │       ├── internal/
+│   │   │       │   ├── AesGcmCryptoEngineTest.kt
 │   │   │       │   └── Argon2KdfEngineTest.kt
 │   │   │       └── SaltGeneratorTest.kt
 │   │   └── build.gradle.kts
