@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 08-03-2026 11:24:26
+Updated: 09-03-2026 10:27:26
 
 ```
 safecube-android/
@@ -117,22 +117,29 @@ safecube-android/
 │   │   │           └── SessionManagerImplTest.kt
 │   │   └── build.gradle.kts
 │   ├── crypto/
-│   │   ├── src/main/
-│   │   │   ├── java/com/miguelrodriguez19/safecube/core/crypto/
-│   │   │   │   ├── di/
-│   │   │   │   │   └── CryptoModule.kt
-│   │   │   │   ├── internal/
-│   │   │   │   │   └── FakeCryptoEngine.kt
-│   │   │   │   ├── CryptoEngine.kt
-│   │   │   │   ├── DecryptionRequest.kt
-│   │   │   │   ├── EncryptionRequest.kt
-│   │   │   │   ├── EncryptionResult.kt
-│   │   │   │   ├── KdfEngine.kt
-│   │   │   │   ├── KdfRequest.kt
-│   │   │   │   ├── KeyUnwrapRequest.kt
-│   │   │   │   ├── KeyWrapping.kt
-│   │   │   │   └── KeyWrapRequest.kt
-│   │   │   └── AndroidManifest.xml
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/crypto/
+│   │   │   │   │   ├── di/
+│   │   │   │   │   │   └── CryptoModule.kt
+│   │   │   │   │   ├── internal/
+│   │   │   │   │   │   ├── Argon2KdfEngine.kt
+│   │   │   │   │   │   └── FakeCryptoEngine.kt
+│   │   │   │   │   ├── CryptoEngine.kt
+│   │   │   │   │   ├── DecryptionRequest.kt
+│   │   │   │   │   ├── EncryptionRequest.kt
+│   │   │   │   │   ├── EncryptionResult.kt
+│   │   │   │   │   ├── KdfEngine.kt
+│   │   │   │   │   ├── KdfRequest.kt
+│   │   │   │   │   ├── KeyUnwrapRequest.kt
+│   │   │   │   │   ├── KeyWrapping.kt
+│   │   │   │   │   ├── KeyWrapRequest.kt
+│   │   │   │   │   └── SaltGenerator.kt
+│   │   │   │   └── AndroidManifest.xml
+│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/crypto/
+│   │   │       ├── internal/
+│   │   │       │   └── Argon2KdfEngineTest.kt
+│   │   │       └── SaltGeneratorTest.kt
 │   │   └── build.gradle.kts
 │   ├── network/
 │   │   ├── build/

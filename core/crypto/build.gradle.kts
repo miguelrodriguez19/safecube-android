@@ -45,6 +45,10 @@ kover {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    // TODO(post-MVP): migrate Argon2 implementation to libsodium.
+    implementation(libs.bouncycastle.bcprov)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    testImplementation(libs.junit)
 }

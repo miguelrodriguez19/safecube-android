@@ -1,6 +1,8 @@
 package com.miguelrodriguez19.safecube.core.crypto.di
 
 import com.miguelrodriguez19.safecube.core.crypto.CryptoEngine
+import com.miguelrodriguez19.safecube.core.crypto.KdfEngine
+import com.miguelrodriguez19.safecube.core.crypto.internal.Argon2KdfEngine
 import com.miguelrodriguez19.safecube.core.crypto.internal.FakeCryptoEngine
 import dagger.Binds
 import dagger.Module
@@ -17,4 +19,10 @@ abstract class CryptoModule {
     abstract fun bindCryptoEngine(
         fakeCryptoEngine: FakeCryptoEngine,
     ): CryptoEngine
+
+    @Binds
+    @Singleton
+    abstract fun bindKdfEngine(
+        argon2KdfEngine: Argon2KdfEngine,
+    ): KdfEngine
 }
