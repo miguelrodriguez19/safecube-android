@@ -6,6 +6,7 @@ import com.miguelrodriguez19.safecube.core.network.NetworkClientFactory
 import com.miguelrodriguez19.safecube.core.network.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.TokenRefreshAuthenticator
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
+import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMaterialControllerApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -81,6 +82,12 @@ object NetworkModule {
     fun provideAuthControllerApi(
         retrofit: Retrofit,
     ): AuthControllerApi = retrofit.create(AuthControllerApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideVaultKeyMaterialControllerApi(
+        retrofit: Retrofit,
+    ): VaultKeyMaterialControllerApi = retrofit.create(VaultKeyMaterialControllerApi::class.java)
 
     @Provides
     @Singleton

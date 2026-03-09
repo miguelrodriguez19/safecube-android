@@ -1,0 +1,97 @@
+package com.miguelrodriguez19.safecube.core.vault.data.remote
+
+import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMaterialControllerApi
+import com.miguelrodriguez19.safecube.core.network.generated.model.InitVaultKeyMaterialRequest
+import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateMasterWrappedKekRequest
+import com.miguelrodriguez19.safecube.core.network.generated.model.VaultKeyMaterialResponse
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
+import retrofit2.Response
+
+@Singleton
+class RemoteVaultKeyMaterialDataSource @Inject constructor(
+    private val vaultKeyMaterialControllerApi: VaultKeyMaterialControllerApi,
+) {
+    suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterialResponse> =
+        executeSafely {
+            executeWithBody { vaultKeyMaterialControllerApi.getVaultKeyMaterial() }
+        }
+
+    suspend fun initKeyMaterial(
+        request: InitVaultKeyMaterialRequest,
+    ): VaultKeyMaterialRemoteResult<Unit> = executeSafely {
+        executeWithoutBody { vaultKeyMaterialControllerApi.initVaultKeyMaterial(request) }
+    }
+
+    suspend fun updateMasterWrappedKek(
+        request: UpdateMasterWrappedKekRequest,
+    ): VaultKeyMaterialRemoteResult<Unit> = executeSafely {
+        executeWithoutBody { vaultKeyMaterialControllerApi.updateMasterWrappedKek(request) }
+    }
+
+    private suspend fun <T> executeWithBody(
+        call: suspend () -> Response<T>,
+    ): VaultKeyMaterialRemoteResult<T> {
+        val response = call()
+        val body = response.body()
+        return if (response.isSuccessful && body != null) {
+            VaultKeyMaterialRemoteResult.Success(body)
+        } else if (response.isSuccessful) {
+            VaultKeyMaterialRemoteResult.Error(
+                error = VaultKeyMaterialRemoteError.HttpError(
+                    statusCode = response.code(),
+                    errorBody = "Missing response body on successful response.",
+                ),
+            )
+        } else {
+            VaultKeyMaterialRemoteResult.Error(
+                error = mapHttpError(
+                    statusCode = response.code(),
+                    errorBody = runCatching { response.errorBody()?.string() }.getOrNull(),
+                ),
+            )
+        }
+    }
+
+    private suspend fun executeWithoutBody(
+        call: suspend () -> Response<Unit>,
+    ): VaultKeyMaterialRemoteResult<Unit> {
+        val response = call()
+        return if (response.isSuccessful) {
+            VaultKeyMaterialRemoteResult.Success(Unit)
+        } else {
+            VaultKeyMaterialRemoteResult.Error(
+                error = mapHttpError(
+                    statusCode = response.code(),
+                    errorBody = runCatching { response.errorBody()?.string() }.getOrNull(),
+                ),
+            )
+        }
+    }
+
+    private suspend fun <T> executeSafely(
+        execute: suspend () -> VaultKeyMaterialRemoteResult<T>,
+    ): VaultKeyMaterialRemoteResult<T> = try {
+        execute()
+    } catch (cancellationException: CancellationException) {
+        throw cancellationException
+    } catch (throwable: Throwable) {
+        VaultKeyMaterialRemoteResult.Error(
+            error = VaultKeyMaterialRemoteError.NetworkError(throwable),
+        )
+    }
+
+    private fun mapHttpError(
+        statusCode: Int,
+        errorBody: String?,
+    ): VaultKeyMaterialRemoteError = when (statusCode) {
+        401, 403 -> VaultKeyMaterialRemoteError.Unauthorized
+        404 -> VaultKeyMaterialRemoteError.VaultNotInitialized
+        409 -> VaultKeyMaterialRemoteError.VaultAlreadyInitialized
+        else -> VaultKeyMaterialRemoteError.HttpError(
+            statusCode = statusCode,
+            errorBody = errorBody,
+        )
+    }
+}

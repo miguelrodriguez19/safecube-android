@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 09-03-2026 11:43:20
+Updated: 10-03-2026 12:27:47
 
 ```
 safecube-android/
@@ -80,7 +80,6 @@ safecube-android/
 │   │   │   │   │   │   ├── session/
 │   │   │   │   │   │   │   └── AuthTokenRefreshHandler.kt
 │   │   │   │   │   │   └── vault/
-│   │   │   │   │   │       └── FakeVaultSessionManager.kt
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   └── AuthModule.kt
 │   │   │   │   │   └── domain/
@@ -90,8 +89,7 @@ safecube-android/
 │   │   │   │   │       │   ├── AuthResult.kt
 │   │   │   │   │       │   ├── AuthTokens.kt
 │   │   │   │   │       │   ├── RegisteredAccount.kt
-│   │   │   │   │       │   ├── SessionState.kt
-│   │   │   │   │       │   └── VaultState.kt
+│   │   │   │   │       │   └── SessionState.kt
 │   │   │   │   │       ├── repository/
 │   │   │   │   │       │   ├── AuthRepository.kt
 │   │   │   │   │       │   └── TokenStorage.kt
@@ -99,7 +97,6 @@ safecube-android/
 │   │   │   │   │       │   ├── SessionManager.kt
 │   │   │   │   │       │   └── SessionManagerImpl.kt
 │   │   │   │   │       └── vault/
-│   │   │   │   │           └── VaultSessionManager.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/auth/
 │   │   │       ├── data/
@@ -140,6 +137,7 @@ safecube-android/
 │   │   │       ├── internal/
 │   │   │       │   ├── AesGcmCryptoEngineTest.kt
 │   │   │       │   └── Argon2KdfEngineTest.kt
+│   │   │       ├── CryptoRequestModelsTest.kt
 │   │   │       └── SaltGeneratorTest.kt
 │   │   └── build.gradle.kts
 │   ├── network/
@@ -243,6 +241,30 @@ safecube-android/
 │   │   │   │   └── values-es/
 │   │   │   │       └── strings.xml
 │   │   │   └── AndroidManifest.xml
+│   │   └── build.gradle.kts
+│   ├── vault/
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/vault/
+│   │   │   │   │   ├── data/
+│   │   │   │   │   │   ├── remote/
+│   │   │   │   │   │   │   ├── RemoteVaultKeyMaterialDataSource.kt
+│   │   │   │   │   │   │   └── VaultKeyMaterialRemoteResult.kt
+│   │   │   │   │   │   └── session/
+│   │   │   │   │   │       └── FakeVaultSessionManager.kt
+│   │   │   │   │   ├── di/
+│   │   │   │   │   │   └── VaultModule.kt
+│   │   │   │   │   └── domain/
+│   │   │   │   │       ├── model/
+│   │   │   │   │       │   └── VaultState.kt
+│   │   │   │   │       └── session/
+│   │   │   │   │           └── VaultSessionManager.kt
+│   │   │   │   └── AndroidManifest.xml
+│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/vault/data/
+│   │   │       ├── remote/
+│   │   │       │   └── RemoteVaultKeyMaterialDataSourceTest.kt
+│   │   │       └── session/
+│   │   │           └── FakeVaultSessionManagerTest.kt
 │   │   └── build.gradle.kts
 ├── docs/
 │   ├── architecture/

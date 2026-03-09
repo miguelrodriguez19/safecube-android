@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":core:auth"))
     implementation(project(":core:crypto"))
     implementation(project(":core:storage"))
+    implementation(project(":core:vault"))
     implementation(project(":core:ui"))
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))

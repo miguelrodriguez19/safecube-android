@@ -91,6 +91,126 @@ class AuthTokenRefreshHandlerTest {
         assertEquals(0, sessionManager.forceLogoutCalls)
     }
 
+    @Test
+    fun `returns latest token when failed token is stale`() = runBlocking {
+        val sessionManager = FakeSessionManager()
+        val handler = AuthTokenRefreshHandler(
+            authRepositoryProvider = authRepositoryProvider(
+                refreshResult = AuthResult.Error(AuthError.Unknown(message = "should-not-refresh")),
+            ),
+            tokenStorage = FakeTokenStorage(
+                accessToken = "fresh-access-token",
+                refreshToken = "refresh-token",
+            ),
+            sessionManager = sessionManager,
+        )
+
+        val refreshedAccessToken = handler.refreshAccessToken(
+            failedAccessToken = "old-access-token",
+        )
+
+        assertEquals("fresh-access-token", refreshedAccessToken)
+        assertEquals(0, sessionManager.forceLogoutCalls)
+    }
+
+    @Test
+    fun `missing refresh token forces logout`() = runBlocking {
+        val sessionManager = FakeSessionManager()
+        val handler = AuthTokenRefreshHandler(
+            authRepositoryProvider = authRepositoryProvider(
+                refreshResult = AuthResult.Error(AuthError.Unknown(message = "not-used")),
+            ),
+            tokenStorage = FakeTokenStorage(
+                accessToken = "expired-access",
+                refreshToken = null,
+            ),
+            sessionManager = sessionManager,
+        )
+
+        val refreshedAccessToken = handler.refreshAccessToken(
+            failedAccessToken = "expired-access",
+        )
+
+        assertNull(refreshedAccessToken)
+        assertEquals(1, sessionManager.forceLogoutCalls)
+    }
+
+    @Test
+    fun `unknown auth error with auth-failure code forces logout`() = runBlocking {
+        val sessionManager = FakeSessionManager()
+        val handler = AuthTokenRefreshHandler(
+            authRepositoryProvider = authRepositoryProvider(
+                refreshResult = AuthResult.Error(AuthError.Unknown(code = 400, message = "bad request")),
+            ),
+            tokenStorage = FakeTokenStorage(refreshToken = "refresh-token"),
+            sessionManager = sessionManager,
+        )
+
+        val refreshedAccessToken = handler.refreshAccessToken(
+            failedAccessToken = "expired-access",
+        )
+
+        assertNull(refreshedAccessToken)
+        assertEquals(1, sessionManager.forceLogoutCalls)
+    }
+
+    @Test
+    fun `conflict error forces logout`() = runBlocking {
+        val sessionManager = FakeSessionManager()
+        val handler = AuthTokenRefreshHandler(
+            authRepositoryProvider = authRepositoryProvider(
+                refreshResult = AuthResult.Error(AuthError.Conflict(message = "conflict")),
+            ),
+            tokenStorage = FakeTokenStorage(refreshToken = "refresh-token"),
+            sessionManager = sessionManager,
+        )
+
+        val refreshedAccessToken = handler.refreshAccessToken(
+            failedAccessToken = "expired-access",
+        )
+
+        assertNull(refreshedAccessToken)
+        assertEquals(1, sessionManager.forceLogoutCalls)
+    }
+
+    @Test
+    fun `validation failed error forces logout`() = runBlocking {
+        val sessionManager = FakeSessionManager()
+        val handler = AuthTokenRefreshHandler(
+            authRepositoryProvider = authRepositoryProvider(
+                refreshResult = AuthResult.Error(AuthError.ValidationFailed(fields = null, message = "invalid")),
+            ),
+            tokenStorage = FakeTokenStorage(refreshToken = "refresh-token"),
+            sessionManager = sessionManager,
+        )
+
+        val refreshedAccessToken = handler.refreshAccessToken(
+            failedAccessToken = "expired-access",
+        )
+
+        assertNull(refreshedAccessToken)
+        assertEquals(1, sessionManager.forceLogoutCalls)
+    }
+
+    @Test
+    fun `account not active error forces logout`() = runBlocking {
+        val sessionManager = FakeSessionManager()
+        val handler = AuthTokenRefreshHandler(
+            authRepositoryProvider = authRepositoryProvider(
+                refreshResult = AuthResult.Error(AuthError.AccountNotActive),
+            ),
+            tokenStorage = FakeTokenStorage(refreshToken = "refresh-token"),
+            sessionManager = sessionManager,
+        )
+
+        val refreshedAccessToken = handler.refreshAccessToken(
+            failedAccessToken = "expired-access",
+        )
+
+        assertNull(refreshedAccessToken)
+        assertEquals(1, sessionManager.forceLogoutCalls)
+    }
+
     private fun authRepositoryProvider(
         refreshResult: AuthResult<AuthTokens>,
     ): Provider<AuthRepository> = Provider {

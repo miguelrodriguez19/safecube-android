@@ -109,10 +109,10 @@ class AuthRepositoryImpl @Inject constructor(
 
     private fun AuthTokensResponse.toAuthTokens(): AuthTokens? {
         val safeAccessToken = accessToken
-            ?.takeIf { it.isNotBlank() }
+            .takeIf { it.isNotBlank() }
             ?: return null
         val safeRefreshToken = refreshToken
-            ?.takeIf { it.isNotBlank() }
+            .takeIf { it.isNotBlank() }
             ?: return null
         return AuthTokens(
             accessToken = safeAccessToken,

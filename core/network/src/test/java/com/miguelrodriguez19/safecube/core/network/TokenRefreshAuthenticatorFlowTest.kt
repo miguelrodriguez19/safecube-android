@@ -136,10 +136,10 @@ class TokenRefreshAuthenticatorFlowTest {
 
             val payload = response.body() ?: return@TokenRefreshHandler null
             val newAccessToken = payload.accessToken
-                ?.takeIf { token -> token.isNotBlank() }
+                .takeIf { token -> token.isNotBlank() }
                 ?: return@TokenRefreshHandler null
             val newRefreshToken = payload.refreshToken
-                ?.takeIf { token -> token.isNotBlank() }
+                .takeIf { token -> token.isNotBlank() }
                 ?: return@TokenRefreshHandler null
 
             session.accessToken = newAccessToken

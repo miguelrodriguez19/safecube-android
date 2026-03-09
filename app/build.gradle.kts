@@ -74,6 +74,7 @@ android {
 dependencies {
     implementation(project(":core:auth"))
     implementation(project(":core:network"))
+    implementation(project(":core:vault"))
     implementation(project(":feature:auth"))
     implementation(project(":feature:vault"))
     implementation(project(":feature:profile"))

@@ -46,6 +46,26 @@ class AuthErrorMapperTest {
     }
 
     @Test
+    fun `maps 400 with blank message and non string fields safely`() {
+        val error = mapper.map(
+            statusCode = 400,
+            errorBody = """{"error":"   ","fields":{"email":12,"password":"   "}}""",
+            operation = AuthOperation.LOGIN,
+        )
+
+        assertEquals(
+            AuthError.ValidationFailed(
+                fields = mapOf(
+                    "email" to "12",
+                    "password" to "   ",
+                ),
+                message = null,
+            ),
+            error,
+        )
+    }
+
+    @Test
     fun `maps 401 into invalid credentials`() {
         val error = mapper.map(
             statusCode = 401,
@@ -90,6 +110,17 @@ class AuthErrorMapperTest {
     }
 
     @Test
+    fun `maps 409 into conflict with null message when body missing`() {
+        val error = mapper.map(
+            statusCode = 409,
+            errorBody = null,
+            operation = AuthOperation.REFRESH,
+        )
+
+        assertEquals(AuthError.Conflict(message = null), error)
+    }
+
+    @Test
     fun `maps unexpected status into unknown`() {
         val error = mapper.map(
             statusCode = 500,
@@ -101,6 +132,23 @@ class AuthErrorMapperTest {
             AuthError.Unknown(
                 code = 500,
                 message = "Server exploded",
+            ),
+            error,
+        )
+    }
+
+    @Test
+    fun `maps unexpected status with non object json into unknown without message`() {
+        val error = mapper.map(
+            statusCode = 500,
+            errorBody = """["boom"]""",
+            operation = AuthOperation.LOGOUT,
+        )
+
+        assertEquals(
+            AuthError.Unknown(
+                code = 500,
+                message = null,
             ),
             error,
         )

@@ -8,12 +8,10 @@ import com.miguelrodriguez19.safecube.core.auth.data.local.EncryptedTokenPrefs
 import com.miguelrodriguez19.safecube.core.auth.data.local.EncryptedTokenStorage
 import com.miguelrodriguez19.safecube.core.auth.data.repository.AuthRepositoryImpl
 import com.miguelrodriguez19.safecube.core.auth.data.session.AuthTokenRefreshHandler
-import com.miguelrodriguez19.safecube.core.auth.data.vault.FakeVaultSessionManager
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManagerImpl
-import com.miguelrodriguez19.safecube.core.auth.domain.vault.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.network.TokenProvider
 import com.miguelrodriguez19.safecube.core.network.TokenRefreshHandler
 import dagger.Binds
@@ -57,12 +55,6 @@ abstract class AuthModule {
     abstract fun bindTokenRefreshHandler(
         authTokenRefreshHandler: AuthTokenRefreshHandler,
     ): TokenRefreshHandler
-
-    @Binds
-    @Singleton
-    abstract fun bindVaultSessionManager(
-        fakeVaultSessionManager: FakeVaultSessionManager,
-    ): VaultSessionManager
 
     companion object {
         private const val PREFERENCES_NAME = "auth_encrypted_preferences"

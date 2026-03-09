@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.core.crypto.KdfRequest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class Argon2KdfEngineTest {
@@ -29,6 +30,41 @@ class Argon2KdfEngineTest {
         val outputB = engine.deriveKey(requestB)
 
         assertFalse(outputA.contentEquals(outputB))
+    }
+
+    @Test
+    fun deriveKey_worksWithoutContextInfo() {
+        val first = engine.deriveKey(
+            fixedRequest().copy(contextInfo = null),
+        )
+        val second = engine.deriveKey(
+            fixedRequest().copy(contextInfo = null),
+        )
+
+        assertArrayEquals(first, second)
+        assertEquals(32, first.size)
+    }
+
+    @Test
+    fun deriveKey_validatesRequestFields() {
+        assertThrows(IllegalArgumentException::class.java) {
+            engine.deriveKey(fixedRequest().copy(secret = byteArrayOf()))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            engine.deriveKey(fixedRequest().copy(salt = byteArrayOf()))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            engine.deriveKey(fixedRequest().copy(outputLengthBytes = 0))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            engine.deriveKey(fixedRequest().copy(iterations = 0))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            engine.deriveKey(fixedRequest().copy(memoryKib = 0))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            engine.deriveKey(fixedRequest().copy(parallelism = 0))
+        }
     }
 
     private fun fixedRequest(saltHex: String = "00112233445566778899aabbccddeeff"): KdfRequest {

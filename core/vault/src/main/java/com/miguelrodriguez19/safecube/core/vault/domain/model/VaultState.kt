@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.auth.domain.model
+package com.miguelrodriguez19.safecube.core.vault.domain.model
 
 sealed interface VaultState {
     data object Unknown : VaultState

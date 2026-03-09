@@ -16,6 +16,7 @@ dependencies {
     kover(project(":core:network"))
     kover(project(":core:crypto"))
     kover(project(":core:storage"))
+    kover(project(":core:vault"))
 }
 
 kover {
@@ -67,6 +68,7 @@ tasks.register("verifyCoverage") {
         ":core:network:testDebugUnitTest",
         ":core:crypto:testDebugUnitTest",
         ":core:storage:testDebugUnitTest",
+        ":core:vault:testDebugUnitTest",
         ":core:ui:testDebugUnitTest",
         ":feature:auth:testDebugUnitTest",
         ":feature:profile:testDebugUnitTest",
