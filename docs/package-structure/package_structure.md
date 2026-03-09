@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 09-03-2026 11:27:03
+Updated: 09-03-2026 11:43:20
 
 ```
 safecube-android/
@@ -244,10 +244,6 @@ safecube-android/
 │   │   │   │       └── strings.xml
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
-│   ├── vault/
-│   │   └── src/
-│   │       ├── main/java/com/miguelrodriguez19/safecube/core/vault/data/remote/
-│   │       └── test/java/com/miguelrodriguez19/safecube/core/vault/data/remote/
 ├── docs/
 │   ├── architecture/
 │   │   ├── crypto-v1.md

@@ -48,10 +48,10 @@ kover {
             verify {
                 onCheck.set(true)
                 rule("Total line coverage") {
-                    minBound(75, CoverageUnit.LINE)
+                    minBound(85, CoverageUnit.LINE)
                 }
                 rule("Total branch coverage") {
-                    minBound(60, CoverageUnit.BRANCH)
+                    minBound(80, CoverageUnit.BRANCH)
                 }
             }
         }
