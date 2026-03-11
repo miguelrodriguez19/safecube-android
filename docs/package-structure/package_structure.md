@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-03-2026 12:27:47
+Updated: 11-03-2026 10:05:32
 
 ```
 safecube-android/
@@ -247,6 +247,9 @@ safecube-android/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/vault/
 │   │   │   │   │   ├── data/
+│   │   │   │   │   │   ├── local/
+│   │   │   │   │   │   │   ├── EncryptedVaultKeyMaterialPrefs.kt
+│   │   │   │   │   │   │   └── VaultKeyMaterialCache.kt
 │   │   │   │   │   │   ├── remote/
 │   │   │   │   │   │   │   ├── RemoteVaultKeyMaterialDataSource.kt
 │   │   │   │   │   │   │   └── VaultKeyMaterialRemoteResult.kt
@@ -261,6 +264,8 @@ safecube-android/
 │   │   │   │   │           └── VaultSessionManager.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/vault/data/
+│   │   │       ├── local/
+│   │   │       │   └── VaultKeyMaterialCacheTest.kt
 │   │   │       ├── remote/
 │   │   │       │   └── RemoteVaultKeyMaterialDataSourceTest.kt
 │   │   │       └── session/
