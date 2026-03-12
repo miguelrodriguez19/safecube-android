@@ -12,22 +12,28 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.UnlockVaultViewModel
 
 @Composable
 fun UnlockVaultScreen(
-    onUnlockWithPassphrase: (String) -> VaultUnlockError?,
     onApp: () -> Unit,
-    mapErrorToMessage: (VaultUnlockError) -> String,
+    viewModel: UnlockVaultViewModel = hiltViewModel(),
 ) {
-    var passphrase by rememberSaveable { mutableStateOf("") }
-    var unlockErrorMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState.unlockSucceeded) {
+        if (!uiState.unlockSucceeded) return@LaunchedEffect
+        viewModel.consumeUnlockSuccess()
+        onApp()
+    }
 
     Scaffold(
         topBar = {
@@ -49,33 +55,34 @@ fun UnlockVaultScreen(
         ) {
             Text("Authenticate to open your secure data")
             OutlinedTextField(
-                value = passphrase,
-                onValueChange = { passphrase = it },
-                label = { Text("Master password") },
+                value = uiState.passphrase,
+                onValueChange = viewModel::onPassphraseChanged,
+                label = { Text(stringResource(UiR.string.password_label)) },
                 modifier = Modifier
                     .padding(top = 12.dp)
                     .fillMaxWidth(),
                 singleLine = true,
+                isError = uiState.passphraseErrorRes != null,
+                enabled = !uiState.isLoading,
             )
+            uiState.passphraseErrorRes?.let { errorRes ->
+                Text(
+                    text = stringResource(errorRes),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             Button(
-                onClick = {
-                    val error = onUnlockWithPassphrase(passphrase)
-                    if (error == null) {
-                        unlockErrorMessage = null
-                        onApp()
-                    } else {
-                        unlockErrorMessage = mapErrorToMessage(error)
-                    }
-                },
+                onClick = viewModel::unlockVault,
+                enabled = !uiState.isLoading,
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
             ) {
-                Text("Unlock")
+                Text(if (uiState.isLoading) "Unlocking..." else "Unlock")
             }
-            unlockErrorMessage?.let { message ->
+            uiState.errorMessageRes?.let { errorRes ->
                 Text(
-                    text = message,
+                    text = stringResource(errorRes),
                     color = MaterialTheme.colorScheme.error,
                 )
             }

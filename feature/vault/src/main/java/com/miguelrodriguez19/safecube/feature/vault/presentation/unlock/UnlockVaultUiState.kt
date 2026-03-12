@@ -1,0 +1,9 @@
+package com.miguelrodriguez19.safecube.feature.vault.presentation.unlock
+
+data class UnlockVaultUiState(
+    val passphrase: String = "",
+    val passphraseErrorRes: Int? = null,
+    val isLoading: Boolean = false,
+    val errorMessageRes: Int? = null,
+    val unlockSucceeded: Boolean = false,
+)

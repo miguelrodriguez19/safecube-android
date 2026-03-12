@@ -7,15 +7,41 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.feature.vault.presentation.create.CreateVaultViewModel
 
 @Composable
-fun CreateVaultScreen(onRecoveryKey: () -> Unit) {
+fun CreateVaultScreen(
+    onRecoveryKey: (String) -> Unit,
+    onVaultAlreadyExists: () -> Unit,
+    viewModel: CreateVaultViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState.recoveryKeyBase64) {
+        val recoveryKey = uiState.recoveryKeyBase64 ?: return@LaunchedEffect
+        viewModel.consumeRecoveryNavigation()
+        onRecoveryKey(recoveryKey)
+    }
+
+    LaunchedEffect(uiState.navigateToUnlock) {
+        if (!uiState.navigateToUnlock) return@LaunchedEffect
+        viewModel.consumeUnlockNavigation()
+        onVaultAlreadyExists()
+    }
+
     Scaffold(
         topBar = {
             Surface(shadowElevation = 2.dp) {
@@ -36,11 +62,38 @@ fun CreateVaultScreen(onRecoveryKey: () -> Unit) {
         ) {
             Text("Step 1: initialize secure vault storage")
             Text(
-                text = "This mock simulates vault creation with local encryption setup.",
+                text = "Define your passphrase to initialize the vault.",
                 modifier = Modifier.padding(bottom = 12.dp),
             )
-            Button(onClick = onRecoveryKey, modifier = Modifier.fillMaxWidth()) {
-                Text("Continue to Recovery Key")
+            OutlinedTextField(
+                value = uiState.passphrase,
+                onValueChange = viewModel::onPassphraseChanged,
+                label = { Text(stringResource(UiR.string.password_label)) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = uiState.passphraseErrorRes != null,
+                enabled = !uiState.isLoading,
+            )
+            uiState.passphraseErrorRes?.let { errorRes ->
+                Text(
+                    text = stringResource(errorRes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            uiState.errorMessageRes?.let { errorRes ->
+                Text(
+                    text = stringResource(errorRes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            Button(
+                onClick = viewModel::createVault,
+                enabled = !uiState.isLoading,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(if (uiState.isLoading) "Creating vault..." else "Create vault")
             }
         }
     }

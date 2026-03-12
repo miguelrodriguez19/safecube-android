@@ -11,11 +11,34 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.feature.vault.presentation.recovery.RecoveryKeyViewModel
 
 @Composable
-fun RecoveryKeyScreen(onUnlockVault: () -> Unit) {
+fun RecoveryKeyScreen(
+    recoveryKeyBase64: String?,
+    onUnlockVault: () -> Unit,
+    viewModel: RecoveryKeyViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(recoveryKeyBase64) {
+        viewModel.setRecoveryKey(recoveryKeyBase64)
+    }
+
+    LaunchedEffect(uiState.continueToUnlock) {
+        if (!uiState.continueToUnlock) return@LaunchedEffect
+        viewModel.consumeContinue()
+        onUnlockVault()
+    }
+
     Scaffold(
         topBar = {
             Surface(shadowElevation = 2.dp) {
@@ -36,10 +59,22 @@ fun RecoveryKeyScreen(onUnlockVault: () -> Unit) {
         ) {
             Text("Step 2: back up your key phrase")
             Text(
-                text = "Example phrase: ALPHA BRAVO CHARLIE DELTA",
+                text = if (uiState.recoveryKey.isBlank()) {
+                    "Recovery key unavailable"
+                } else {
+                    uiState.recoveryKey
+                },
                 modifier = Modifier.padding(bottom = 12.dp),
             )
-            Button(onClick = onUnlockVault, modifier = Modifier.fillMaxWidth()) {
+            uiState.errorMessageRes?.let { errorRes ->
+                Text(
+                    text = stringResource(errorRes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
+            Button(onClick = viewModel::continueToUnlock, modifier = Modifier.fillMaxWidth()) {
                 Text("I saved it, continue")
             }
         }

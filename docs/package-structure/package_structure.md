@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 12-03-2026 08:39:48
+Updated: 12-03-2026 09:02:32
 
 ```
 safecube-android/
@@ -340,14 +340,25 @@ safecube-android/
 │   │   └── build.gradle.kts
 │   └── vault/
 │       ├── src/main/
-│       │   ├── java/com/miguelrodriguez19/safecube/feature/vault/navigation/
-│       │   │   ├── CreateVaultScreen.kt
-│       │   │   ├── NavigationBar.kt
-│       │   │   ├── RecoveryKeyScreen.kt
-│       │   │   ├── SettingsScreen.kt
-│       │   │   ├── UnlockVaultScreen.kt
-│       │   │   ├── VaultFoldersScreen.kt
-│       │   │   └── VaultScreen.kt
+│       │   ├── java/com/miguelrodriguez19/safecube/feature/vault/
+│       │   │   ├── navigation/
+│       │   │   │   ├── CreateVaultScreen.kt
+│       │   │   │   ├── NavigationBar.kt
+│       │   │   │   ├── RecoveryKeyScreen.kt
+│       │   │   │   ├── SettingsScreen.kt
+│       │   │   │   ├── UnlockVaultScreen.kt
+│       │   │   │   ├── VaultFoldersScreen.kt
+│       │   │   │   └── VaultScreen.kt
+│       │   │   └── presentation/
+│       │   │       ├── create/
+│       │   │       │   ├── CreateVaultUiState.kt
+│       │   │       │   └── CreateVaultViewModel.kt
+│       │   │       ├── recovery/
+│       │   │       │   ├── RecoveryKeyUiState.kt
+│       │   │       │   └── RecoveryKeyViewModel.kt
+│       │   │       └── unlock/
+│       │   │           ├── UnlockVaultUiState.kt
+│       │   │           └── UnlockVaultViewModel.kt
 │       │   └── AndroidManifest.xml
 │       └── build.gradle.kts
 ├── scripts/

@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.StateFlow
 interface VaultSessionManager {
     val vaultState: StateFlow<VaultState>
 
+    suspend fun refreshVaultState()
+
     fun unlockWithPassphrase(passphrase: String): VaultUnlockError?
 
     fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockError?

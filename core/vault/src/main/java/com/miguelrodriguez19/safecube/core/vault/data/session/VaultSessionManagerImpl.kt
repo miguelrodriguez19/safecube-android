@@ -1,9 +1,12 @@
 package com.miguelrodriguez19.safecube.core.vault.data.session
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultUnlocker
 import javax.inject.Inject
@@ -16,11 +19,46 @@ import kotlinx.coroutines.flow.asStateFlow
 class VaultSessionManagerImpl @Inject constructor(
     private val vaultUnlocker: VaultUnlocker,
     private val vaultKeyMaterialLocalRepository: VaultKeyMaterialLocalRepository,
+    private val vaultKeyMaterialRemoteRepository: VaultKeyMaterialRemoteRepository,
 ) : VaultSessionManager {
     private val state = MutableStateFlow(initialVaultState())
     private var inMemoryKek: ByteArray? = null
 
     override val vaultState: StateFlow<VaultState> = state.asStateFlow()
+
+    override suspend fun refreshVaultState() {
+        state.value = VaultState.Unknown
+
+        when (val result = vaultKeyMaterialRemoteRepository.getKeyMaterial()) {
+            is VaultKeyMaterialRemoteResult.Success -> {
+                vaultKeyMaterialLocalRepository.save(result.value)
+                clearInMemoryKek()
+                state.value = VaultState.Locked
+            }
+
+            is VaultKeyMaterialRemoteResult.Error -> {
+                when (result.error) {
+                    VaultKeyMaterialRemoteError.VaultNotInitialized -> {
+                        vaultKeyMaterialLocalRepository.clear()
+                        clearInMemoryKek()
+                        state.value = VaultState.NotInitialized
+                    }
+
+                    VaultKeyMaterialRemoteError.Unauthorized -> {
+                        clearInMemoryKek()
+                        state.value = VaultState.Locked
+                    }
+
+                    VaultKeyMaterialRemoteError.VaultAlreadyInitialized,
+                    is VaultKeyMaterialRemoteError.HttpError,
+                    is VaultKeyMaterialRemoteError.NetworkError,
+                    -> {
+                        state.value = initialVaultState()
+                    }
+                }
+            }
+        }
+    }
 
     override fun unlockWithPassphrase(passphrase: String): VaultUnlockError? {
         val result = vaultUnlocker.unlockWithPassphrase(passphrase)

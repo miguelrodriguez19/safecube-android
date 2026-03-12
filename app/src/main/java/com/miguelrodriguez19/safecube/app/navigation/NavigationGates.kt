@@ -39,6 +39,10 @@ fun PostLoginGateRoute(
     val vaultSessionManager = remember(entryPoint) { entryPoint.vaultSessionManager() }
     val vaultState by vaultSessionManager.vaultState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        vaultSessionManager.refreshVaultState()
+    }
+
     LaunchedEffect(vaultState) {
         when (vaultState) {
             VaultState.Unknown -> Unit

@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -22,7 +23,6 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
-import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.feature.auth.screens.LoginScreen
 import com.miguelrodriguez19.safecube.feature.auth.screens.SignupScreen
 import com.miguelrodriguez19.safecube.feature.auth.screens.WelcomeScreen
@@ -53,6 +53,7 @@ fun NavigationWrapper() {
     val sessionState by sessionManager.sessionState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     var lastBackPressTimestamp by rememberSaveable { mutableLongStateOf(0L) }
+    var pendingRecoveryKey by rememberSaveable { mutableStateOf<String?>(null) }
 
     fun setRoot(route: Routes) {
         if (backStack.size == 1 && backStack.lastOrNull() == route) return
@@ -191,24 +192,26 @@ fun NavigationWrapper() {
                 ProfileScreen(onBackToSettings = { backStack.add(Routes.Settings) })
             }
             entry<Routes.CreateVault> {
-                CreateVaultScreen(onRecoveryKey = { replaceCurrent(Routes.RecoveryKey) })
+                CreateVaultScreen(
+                    onRecoveryKey = { recoveryKeyBase64 ->
+                        pendingRecoveryKey = recoveryKeyBase64
+                        replaceCurrent(Routes.RecoveryKey)
+                    },
+                    onVaultAlreadyExists = { replaceCurrent(Routes.UnlockVault) },
+                )
             }
             entry<Routes.RecoveryKey> {
-                RecoveryKeyScreen(onUnlockVault = { replaceCurrent(Routes.UnlockVault) })
+                RecoveryKeyScreen(
+                    recoveryKeyBase64 = pendingRecoveryKey,
+                    onUnlockVault = {
+                        pendingRecoveryKey = null
+                        replaceCurrent(Routes.UnlockVault)
+                    },
+                )
             }
             entry<Routes.UnlockVault> {
                 UnlockVaultScreen(
-                    onUnlockWithPassphrase = { passphrase ->
-                        vaultSessionManager.unlockWithPassphrase(passphrase)
-                    },
                     onApp = { setRoot(Routes.Vault) },
-                    mapErrorToMessage = { error ->
-                        when (error) {
-                            VaultUnlockError.InvalidCredential -> "Invalid credentials"
-                            VaultUnlockError.InvalidCachedKeyMaterial -> "Invalid cached key material"
-                            VaultUnlockError.KeyMaterialUnavailable -> "Vault not initialized"
-                        }
-                    },
                 )
             }
             entry<Routes.PostLoginGate> {

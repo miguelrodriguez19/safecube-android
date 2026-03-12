@@ -3,10 +3,14 @@ package com.miguelrodriguez19.safecube.core.vault.data.session
 import com.miguelrodriguez19.safecube.core.vault.domain.model.UnlockedKeyring
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultUnlocker
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -32,6 +36,57 @@ class VaultSessionManagerImplTest {
         )
 
         assertEquals(VaultState.Locked, manager.vaultState.value)
+    }
+
+    @Test
+    fun `refresh vault state uses remote key material and keeps state locked`() = runBlocking {
+        val remoteKeyMaterial = sampleVaultKeyMaterial().copy(kekEncMaster = byteArrayOf(9, 9, 9))
+        val manager = createManager(
+            unlocker = FakeVaultUnlocker(),
+            initialKeyMaterial = null,
+            remoteResult = VaultKeyMaterialRemoteResult.Success(remoteKeyMaterial),
+        )
+
+        manager.refreshVaultState()
+
+        assertEquals(VaultState.Locked, manager.vaultState.value)
+    }
+
+    @Test
+    fun `refresh vault state sets not initialized when backend returns 404`() = runBlocking {
+        val manager = createManager(
+            unlocker = FakeVaultUnlocker(),
+            initialKeyMaterial = sampleVaultKeyMaterial(),
+            remoteResult = VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultNotInitialized),
+        )
+
+        manager.refreshVaultState()
+
+        assertEquals(VaultState.NotInitialized, manager.vaultState.value)
+    }
+
+    @Test
+    fun `refresh vault state falls back to local state on network failure`() = runBlocking {
+        val managerWithoutCache = createManager(
+            unlocker = FakeVaultUnlocker(),
+            initialKeyMaterial = null,
+            remoteResult = VaultKeyMaterialRemoteResult.Error(
+                VaultKeyMaterialRemoteError.NetworkError(IllegalStateException("offline")),
+            ),
+        )
+        val managerWithCache = createManager(
+            unlocker = FakeVaultUnlocker(),
+            initialKeyMaterial = sampleVaultKeyMaterial(),
+            remoteResult = VaultKeyMaterialRemoteResult.Error(
+                VaultKeyMaterialRemoteError.NetworkError(IllegalStateException("offline")),
+            ),
+        )
+
+        managerWithoutCache.refreshVaultState()
+        managerWithCache.refreshVaultState()
+
+        assertEquals(VaultState.NotInitialized, managerWithoutCache.vaultState.value)
+        assertEquals(VaultState.Locked, managerWithCache.vaultState.value)
     }
 
     @Test
@@ -155,9 +210,13 @@ class VaultSessionManagerImplTest {
     private fun createManager(
         unlocker: VaultUnlocker,
         initialKeyMaterial: VaultKeyMaterial?,
+        remoteResult: VaultKeyMaterialRemoteResult<VaultKeyMaterial> = VaultKeyMaterialRemoteResult.Error(
+            VaultKeyMaterialRemoteError.NetworkError(IllegalStateException("unused")),
+        ),
     ): VaultSessionManagerImpl = VaultSessionManagerImpl(
         vaultUnlocker = unlocker,
         vaultKeyMaterialLocalRepository = FakeVaultKeyMaterialLocalRepository(initialKeyMaterial),
+        vaultKeyMaterialRemoteRepository = FakeVaultKeyMaterialRemoteRepository(remoteResult),
     )
 
     private fun sampleVaultKeyMaterial(): VaultKeyMaterial = VaultKeyMaterial(
@@ -207,4 +266,17 @@ private class FakeVaultKeyMaterialLocalRepository(
     override fun clear() {
         keyMaterial = null
     }
+}
+
+private class FakeVaultKeyMaterialRemoteRepository(
+    private val getResult: VaultKeyMaterialRemoteResult<VaultKeyMaterial>,
+) : VaultKeyMaterialRemoteRepository {
+    override suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterial> = getResult
+
+    override suspend fun initKeyMaterial(
+        vaultKeyMaterial: VaultKeyMaterial,
+    ): VaultKeyMaterialRemoteResult<Unit> = error("Not required in test")
+
+    override suspend fun updateMasterWrappedKek(newKekEncMaster: ByteArray): VaultKeyMaterialRemoteResult<Unit> =
+        error("Not required in test")
 }
