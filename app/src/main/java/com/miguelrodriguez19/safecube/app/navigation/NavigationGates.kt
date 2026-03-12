@@ -18,7 +18,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
-import com.miguelrodriguez19.safecube.feature.auth.screens.PostLoginGateScreen
+import com.miguelrodriguez19.safecube.feature.auth.presentation.gate.ui.PostLoginGateScreen
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors

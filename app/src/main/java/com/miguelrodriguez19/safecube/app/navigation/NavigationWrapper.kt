@@ -23,16 +23,16 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
-import com.miguelrodriguez19.safecube.feature.auth.screens.LoginScreen
-import com.miguelrodriguez19.safecube.feature.auth.screens.SignupScreen
-import com.miguelrodriguez19.safecube.feature.auth.screens.WelcomeScreen
-import com.miguelrodriguez19.safecube.feature.profile.navigation.ProfileScreen
-import com.miguelrodriguez19.safecube.feature.vault.navigation.CreateVaultScreen
-import com.miguelrodriguez19.safecube.feature.vault.navigation.RecoveryKeyScreen
-import com.miguelrodriguez19.safecube.feature.vault.navigation.SettingsScreen
-import com.miguelrodriguez19.safecube.feature.vault.navigation.UnlockVaultScreen
-import com.miguelrodriguez19.safecube.feature.vault.navigation.VaultFoldersScreen
-import com.miguelrodriguez19.safecube.feature.vault.navigation.VaultScreen
+import com.miguelrodriguez19.safecube.feature.auth.presentation.login.ui.LoginScreen
+import com.miguelrodriguez19.safecube.feature.auth.presentation.signup.ui.SignupScreen
+import com.miguelrodriguez19.safecube.feature.auth.presentation.welcome.ui.WelcomeScreen
+import com.miguelrodriguez19.safecube.feature.profile.presentation.profile.ui.ProfileScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.create.ui.CreateVaultScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.recovery.ui.RecoveryKeyScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.ui.SettingsScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.ui.UnlockVaultScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.folders.ui.VaultFoldersScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.home.ui.VaultScreen
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.launch
 

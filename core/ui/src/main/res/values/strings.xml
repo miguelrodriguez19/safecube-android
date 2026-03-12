@@ -6,6 +6,7 @@
     <string name="loading">Loading...</string>
     <string name="email_label">Email</string>
     <string name="password_label">Password</string>
+    <string name="confirm_password_label">Confirm password</string>
     <string name="vault_label">Vault</string>
     <string name="folders_label">Folders</string>
     <string name="settings_label">Settings</string>

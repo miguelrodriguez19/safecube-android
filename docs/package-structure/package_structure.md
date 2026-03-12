@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 12-03-2026 11:38:18
+Updated: 13-03-2026 12:43:36
 
 ```
 safecube-android/
@@ -20,12 +20,10 @@ safecube-android/
 │   │   │   │   │   ├── NavigationGates.kt
 │   │   │   │   │   ├── NavigationWrapper.kt
 │   │   │   │   │   └── Routes.kt
-│   │   │   │   ├── core/
 │   │   │   │   ├── ui/theme/
 │   │   │   │   │   ├── Color.kt
 │   │   │   │   │   ├── Theme.kt
 │   │   │   │   │   └── Type.kt
-│   │   │   │   ├── view/core/
 │   │   │   │   ├── MainActivity.kt
 │   │   │   │   └── SafeCubeApp.kt
 │   │   │   ├── res/
@@ -332,49 +330,95 @@ safecube-android/
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/feature/auth/
 │   │   │   │   ├── presentation/
+│   │   │   │   │   ├── component/
+│   │   │   │   │   │   └── AuthActionLabel.kt
+│   │   │   │   │   ├── gate/ui/
+│   │   │   │   │   │   └── PostLoginGateScreen.kt
 │   │   │   │   │   ├── login/
-│   │   │   │   │   │   ├── LoginUiState.kt
-│   │   │   │   │   │   └── LoginViewModel.kt
+│   │   │   │   │   │   ├── action/
+│   │   │   │   │   │   │   └── LoginUiAction.kt
+│   │   │   │   │   │   ├── event/
+│   │   │   │   │   │   │   └── LoginUiEvent.kt
+│   │   │   │   │   │   ├── state/
+│   │   │   │   │   │   │   └── LoginUiState.kt
+│   │   │   │   │   │   ├── ui/
+│   │   │   │   │   │   │   └── LoginScreen.kt
+│   │   │   │   │   │   └── viewmodel/
+│   │   │   │   │   │       └── LoginViewModel.kt
+│   │   │   │   │   ├── mapper/
+│   │   │   │   │   │   └── AuthUiErrorMapper.kt
 │   │   │   │   │   ├── signup/
-│   │   │   │   │   │   ├── SignupUiState.kt
-│   │   │   │   │   │   └── SignupViewModel.kt
-│   │   │   │   │   └── AuthUiErrorMapper.kt
-│   │   │   │   ├── screens/
-│   │   │   │   │   ├── LoginScreen.kt
-│   │   │   │   │   ├── PostLoginGateScreen.kt
-│   │   │   │   │   ├── SignupScreen.kt
-│   │   │   │   │   └── WelcomeScreen.kt
-│   │   │   │   └── AuthActionLabel.kt
+│   │   │   │   │   │   ├── action/
+│   │   │   │   │   │   │   └── SignupUiAction.kt
+│   │   │   │   │   │   ├── event/
+│   │   │   │   │   │   │   └── SignupUiEvent.kt
+│   │   │   │   │   │   ├── state/
+│   │   │   │   │   │   │   └── SignupUiState.kt
+│   │   │   │   │   │   ├── ui/
+│   │   │   │   │   │   │   └── SignupScreen.kt
+│   │   │   │   │   │   └── viewmodel/
+│   │   │   │   │   │       └── SignupViewModel.kt
+│   │   │   │   │   └── welcome/ui/
+│   │   │   │   │       └── WelcomeScreen.kt
+│   │   │   │   └── screens/
 │   │   │   ├── res/values/
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   ├── profile/
 │   │   ├── src/main/
-│   │   │   ├── java/com/miguelrodriguez19/safecube/feature/profile/navigation/
-│   │   │   │   └── ProfileScreen.kt
+│   │   │   ├── java/com/miguelrodriguez19/safecube/feature/profile/
+│   │   │   │   ├── navigation/
+│   │   │   │   └── presentation/profile/ui/
+│   │   │   │       └── ProfileScreen.kt
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   └── vault/
 │       ├── src/main/
 │       │   ├── java/com/miguelrodriguez19/safecube/feature/vault/
 │       │   │   ├── navigation/
-│       │   │   │   ├── CreateVaultScreen.kt
-│       │   │   │   ├── NavigationBar.kt
-│       │   │   │   ├── RecoveryKeyScreen.kt
-│       │   │   │   ├── SettingsScreen.kt
-│       │   │   │   ├── UnlockVaultScreen.kt
-│       │   │   │   ├── VaultFoldersScreen.kt
-│       │   │   │   └── VaultScreen.kt
 │       │   │   └── presentation/
 │       │   │       ├── create/
-│       │   │       │   ├── CreateVaultUiState.kt
-│       │   │       │   └── CreateVaultViewModel.kt
+│       │   │       │   ├── action/
+│       │   │       │   │   └── CreateVaultUiAction.kt
+│       │   │       │   ├── event/
+│       │   │       │   │   └── CreateVaultUiEvent.kt
+│       │   │       │   ├── state/
+│       │   │       │   │   └── CreateVaultUiState.kt
+│       │   │       │   ├── ui/
+│       │   │       │   │   └── CreateVaultScreen.kt
+│       │   │       │   └── viewmodel/
+│       │   │       │       └── CreateVaultViewModel.kt
+│       │   │       ├── folders/ui/
+│       │   │       │   └── VaultFoldersScreen.kt
+│       │   │       ├── home/ui/
+│       │   │       │   └── VaultScreen.kt
 │       │   │       ├── recovery/
-│       │   │       │   ├── RecoveryKeyUiState.kt
-│       │   │       │   └── RecoveryKeyViewModel.kt
+│       │   │       │   ├── action/
+│       │   │       │   │   └── RecoveryKeyUiAction.kt
+│       │   │       │   ├── event/
+│       │   │       │   │   └── RecoveryKeyUiEvent.kt
+│       │   │       │   ├── state/
+│       │   │       │   │   └── RecoveryKeyUiState.kt
+│       │   │       │   ├── ui/
+│       │   │       │   │   └── RecoveryKeyScreen.kt
+│       │   │       │   └── viewmodel/
+│       │   │       │       └── RecoveryKeyViewModel.kt
+│       │   │       ├── settings/ui/
+│       │   │       │   └── SettingsScreen.kt
+│       │   │       ├── shared/navigation/
+│       │   │       │   ├── AppTab.kt
+│       │   │       │   └── NavigationBar.kt
 │       │   │       └── unlock/
-│       │   │           ├── UnlockVaultUiState.kt
-│       │   │           └── UnlockVaultViewModel.kt
+│       │   │           ├── action/
+│       │   │           │   └── UnlockVaultUiAction.kt
+│       │   │           ├── event/
+│       │   │           │   └── UnlockVaultUiEvent.kt
+│       │   │           ├── state/
+│       │   │           │   └── UnlockVaultUiState.kt
+│       │   │           ├── ui/
+│       │   │           │   └── UnlockVaultScreen.kt
+│       │   │           └── viewmodel/
+│       │   │               └── UnlockVaultViewModel.kt
 │       │   └── AndroidManifest.xml
 │       └── build.gradle.kts
 ├── scripts/
