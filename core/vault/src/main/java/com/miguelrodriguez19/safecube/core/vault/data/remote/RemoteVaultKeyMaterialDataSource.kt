@@ -3,7 +3,10 @@ package com.miguelrodriguez19.safecube.core.vault.data.remote
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMaterialControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.InitVaultKeyMaterialRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateMasterWrappedKekRequest
-import com.miguelrodriguez19.safecube.core.network.generated.model.VaultKeyMaterialResponse
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -12,22 +15,55 @@ import retrofit2.Response
 @Singleton
 class RemoteVaultKeyMaterialDataSource @Inject constructor(
     private val vaultKeyMaterialControllerApi: VaultKeyMaterialControllerApi,
-) : VaultKeyMaterialDataSource {
-    override suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterialResponse> =
+) : VaultKeyMaterialRemoteRepository {
+    override suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterial> =
         executeSafely {
             executeWithBody { vaultKeyMaterialControllerApi.getVaultKeyMaterial() }
+                .mapSuccess { response ->
+                    VaultKeyMaterial(
+                        kekEncMaster = response.kekEncMaster,
+                        kekEncRecovery = response.kekEncRecovery,
+                        kdfAlgorithm = response.kdfAlgorithm,
+                        kdfSalt = response.kdfSalt,
+                        kdfMemoryKib = response.kdfMemoryKib,
+                        kdfIterations = response.kdfIterations,
+                        kdfParallelism = response.kdfParallelism,
+                        kdfOutputLen = response.kdfOutputLen,
+                        cryptoVersion = response.cryptoVersion,
+                    )
+                }
         }
 
     override suspend fun initKeyMaterial(
-        request: InitVaultKeyMaterialRequest,
+        vaultKeyMaterial: VaultKeyMaterial,
     ): VaultKeyMaterialRemoteResult<Unit> = executeSafely {
-        executeWithoutBody { vaultKeyMaterialControllerApi.initVaultKeyMaterial(request) }
+        executeWithoutBody {
+            vaultKeyMaterialControllerApi.initVaultKeyMaterial(
+                InitVaultKeyMaterialRequest(
+                    kekEncMaster = vaultKeyMaterial.kekEncMaster,
+                    kekEncRecovery = vaultKeyMaterial.kekEncRecovery,
+                    kdfAlgorithm = vaultKeyMaterial.kdfAlgorithm,
+                    kdfSalt = vaultKeyMaterial.kdfSalt,
+                    cryptoVersion = vaultKeyMaterial.cryptoVersion,
+                    kdfMemoryKib = vaultKeyMaterial.kdfMemoryKib,
+                    kdfIterations = vaultKeyMaterial.kdfIterations,
+                    kdfParallelism = vaultKeyMaterial.kdfParallelism,
+                    kdfOutputLen = vaultKeyMaterial.kdfOutputLen,
+                ),
+            )
+        }
     }
 
     override suspend fun updateMasterWrappedKek(
-        request: UpdateMasterWrappedKekRequest,
+        newKekEncMaster: ByteArray,
     ): VaultKeyMaterialRemoteResult<Unit> = executeSafely {
-        executeWithoutBody { vaultKeyMaterialControllerApi.updateMasterWrappedKek(request) }
+        executeWithoutBody {
+            vaultKeyMaterialControllerApi.updateMasterWrappedKek(
+                UpdateMasterWrappedKekRequest(
+                    newKekEncMaster = newKekEncMaster,
+                ),
+            )
+        }
     }
 
     private suspend fun <T> executeWithBody(
@@ -93,5 +129,14 @@ class RemoteVaultKeyMaterialDataSource @Inject constructor(
             statusCode = statusCode,
             errorBody = errorBody,
         )
+    }
+
+    private inline fun <T, R> VaultKeyMaterialRemoteResult<T>.mapSuccess(
+        transform: (T) -> R,
+    ): VaultKeyMaterialRemoteResult<R> = when (this) {
+        is VaultKeyMaterialRemoteResult.Success -> VaultKeyMaterialRemoteResult.Success(
+            transform(value),
+        )
+        is VaultKeyMaterialRemoteResult.Error -> this
     }
 }

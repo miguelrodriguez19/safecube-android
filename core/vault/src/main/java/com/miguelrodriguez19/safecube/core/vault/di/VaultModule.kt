@@ -5,9 +5,11 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMaterialPrefs
+import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
 import com.miguelrodriguez19.safecube.core.vault.data.remote.RemoteVaultKeyMaterialDataSource
-import com.miguelrodriguez19.safecube.core.vault.data.remote.VaultKeyMaterialDataSource
 import com.miguelrodriguez19.safecube.core.vault.data.session.FakeVaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import dagger.Binds
 import dagger.Module
@@ -28,9 +30,15 @@ abstract class VaultModule {
 
     @Binds
     @Singleton
-    abstract fun bindVaultKeyMaterialDataSource(
+    abstract fun bindVaultKeyMaterialRemoteRepository(
         remoteVaultKeyMaterialDataSource: RemoteVaultKeyMaterialDataSource,
-    ): VaultKeyMaterialDataSource
+    ): VaultKeyMaterialRemoteRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindVaultKeyMaterialLocalRepository(
+        vaultKeyMaterialCache: VaultKeyMaterialCache,
+    ): VaultKeyMaterialLocalRepository
 
     companion object {
         private const val PREFERENCES_NAME = "vault_key_material_encrypted_preferences"

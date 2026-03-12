@@ -5,12 +5,14 @@ import com.miguelrodriguez19.safecube.core.network.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMaterialControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.InitVaultKeyMaterialRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateMasterWrappedKekRequest
-import java.time.OffsetDateTime
-import java.util.UUID
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -32,9 +34,6 @@ class RemoteVaultKeyMaterialDataSourceTest {
 
     @Test
     fun `getKeyMaterial returns success with parsed payload`() = runBlocking {
-        val accountId = UUID.randomUUID()
-        val createdAt = OffsetDateTime.parse("2026-03-09T12:10:45Z")
-        val updatedAt = OffsetDateTime.parse("2026-03-09T12:11:45Z")
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -42,7 +41,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
                 .setBody(
                     """
                     {
-                      "accountId":"$accountId",
+                      "accountId":"4f89ab0e-453f-4be5-b261-95068f2ad6f0",
                       "kekEncMaster":[1,2,3],
                       "kekEncRecovery":[4,5,6],
                       "kdfAlgorithm":"argon2id",
@@ -52,8 +51,8 @@ class RemoteVaultKeyMaterialDataSourceTest {
                       "kdfParallelism":1,
                       "kdfOutputLen":32,
                       "cryptoVersion":"v1",
-                      "createdAt":"$createdAt",
-                      "updatedAt":"$updatedAt"
+                      "createdAt":"2026-03-09T12:10:45Z",
+                      "updatedAt":"2026-03-09T12:11:45Z"
                     }
                     """.trimIndent(),
                 ),
@@ -66,11 +65,11 @@ class RemoteVaultKeyMaterialDataSourceTest {
 
         assertTrue(result is VaultKeyMaterialRemoteResult.Success)
         val value = (result as VaultKeyMaterialRemoteResult.Success).value
-        assertEquals(accountId, value.accountId)
+        assertArrayEquals(byteArrayOf(1, 2, 3), value.kekEncMaster)
+        assertArrayEquals(byteArrayOf(4, 5, 6), value.kekEncRecovery)
         assertEquals("argon2id", value.kdfAlgorithm)
         assertEquals(65536, value.kdfMemoryKib)
-        assertEquals(createdAt, value.createdAt)
-        assertEquals(updatedAt, value.updatedAt)
+        assertEquals("v1", value.cryptoVersion)
 
         val request = server.takeRequest()
         assertEquals("/vault/keys", request.path)
@@ -110,7 +109,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
         )
 
         val result = dataSource.initKeyMaterial(
-            request = InitVaultKeyMaterialRequest(
+            vaultKeyMaterial = VaultKeyMaterial(
                 kekEncMaster = byteArrayOf(1, 2, 3),
                 kekEncRecovery = byteArrayOf(4, 5, 6),
                 kdfAlgorithm = "argon2id",
@@ -146,9 +145,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
         )
 
         val result = dataSource.updateMasterWrappedKek(
-            request = UpdateMasterWrappedKekRequest(
-                newKekEncMaster = byteArrayOf(10, 11, 12),
-            ),
+            newKekEncMaster = byteArrayOf(10, 11, 12),
         )
 
         assertEquals(

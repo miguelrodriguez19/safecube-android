@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.core.vault.data.local
 
 import android.content.SharedPreferences
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -94,7 +95,7 @@ class VaultKeyMaterialCacheTest {
         assertNull(cache.get())
     }
 
-    private fun createSample(): CachedVaultKeyMaterial = CachedVaultKeyMaterial(
+    private fun createSample(): VaultKeyMaterial = VaultKeyMaterial(
         kekEncMaster = byteArrayOf(1, 2, 3),
         kekEncRecovery = byteArrayOf(4, 5, 6),
         kdfAlgorithm = "argon2id",

@@ -8,15 +8,14 @@ import com.miguelrodriguez19.safecube.core.crypto.EncryptionResult
 import com.miguelrodriguez19.safecube.core.crypto.KdfEngine
 import com.miguelrodriguez19.safecube.core.crypto.KdfRequest
 import com.miguelrodriguez19.safecube.core.crypto.SaltGenerator
-import com.miguelrodriguez19.safecube.core.network.generated.model.InitVaultKeyMaterialRequest
-import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateMasterWrappedKekRequest
-import com.miguelrodriguez19.safecube.core.network.generated.model.VaultKeyMaterialResponse
 import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
-import com.miguelrodriguez19.safecube.core.vault.data.remote.VaultKeyMaterialDataSource
-import com.miguelrodriguez19.safecube.core.vault.data.remote.VaultKeyMaterialRemoteError
-import com.miguelrodriguez19.safecube.core.vault.data.remote.VaultKeyMaterialRemoteResult
-import java.time.OffsetDateTime
-import java.util.UUID
+import com.miguelrodriguez19.safecube.core.vault.domain.crypto.KeyWrapEnvelopeCodec
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -28,7 +27,7 @@ import org.junit.Test
 class VaultInitializeUseCaseTest {
     @Test
     fun `initializes vault when get returns vault not initialized`() = runBlocking {
-        val dataSource = FakeVaultKeyMaterialDataSource(
+        val remoteRepository = FakeVaultKeyMaterialRemoteRepository(
             getResult = VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultNotInitialized),
             initResult = VaultKeyMaterialRemoteResult.Success(Unit),
         )
@@ -36,7 +35,7 @@ class VaultInitializeUseCaseTest {
         val kdfEngine = FakeKdfEngine()
         val cryptoEngine = FakeCryptoEngine()
         val useCase = createUseCase(
-            dataSource = dataSource,
+            remoteRepository = remoteRepository,
             cache = cache,
             kdfEngine = kdfEngine,
             cryptoEngine = cryptoEngine,
@@ -47,26 +46,26 @@ class VaultInitializeUseCaseTest {
         assertTrue(result is VaultInitializeResult.Initialized)
         val recoveryKey = (result as VaultInitializeResult.Initialized).recoveryKey
         assertEquals(32, recoveryKey.size)
-        assertEquals(1, dataSource.getCalls)
-        assertEquals(1, dataSource.initCalls)
+        assertEquals(1, remoteRepository.getCalls)
+        assertEquals(1, remoteRepository.initCalls)
         assertEquals(2, cryptoEngine.encryptRequests.size)
 
-        val initRequest = requireNotNull(dataSource.lastInitRequest)
-        assertFalse(recoveryKey.contentEquals(initRequest.kekEncMaster))
-        assertFalse(recoveryKey.contentEquals(initRequest.kekEncRecovery))
-        assertEquals("argon2id", initRequest.kdfAlgorithm)
-        assertEquals("v1", initRequest.cryptoVersion)
-        assertEquals(65536, initRequest.kdfMemoryKib)
-        assertEquals(3, initRequest.kdfIterations)
-        assertEquals(1, initRequest.kdfParallelism)
-        assertEquals(32, initRequest.kdfOutputLen)
+        val initPayload = requireNotNull(remoteRepository.lastInitPayload)
+        assertFalse(recoveryKey.contentEquals(initPayload.kekEncMaster))
+        assertFalse(recoveryKey.contentEquals(initPayload.kekEncRecovery))
+        assertEquals("argon2id", initPayload.kdfAlgorithm)
+        assertEquals("v1", initPayload.cryptoVersion)
+        assertEquals(65536, initPayload.kdfMemoryKib)
+        assertEquals(3, initPayload.kdfIterations)
+        assertEquals(1, initPayload.kdfParallelism)
+        assertEquals(32, initPayload.kdfOutputLen)
 
         val cached = requireNotNull(cache.get())
-        assertArrayEquals(initRequest.kekEncMaster, cached.kekEncMaster)
-        assertArrayEquals(initRequest.kekEncRecovery, cached.kekEncRecovery)
-        assertArrayEquals(initRequest.kdfSalt, cached.kdfSalt)
-        assertEquals(initRequest.kdfAlgorithm, cached.kdfAlgorithm)
-        assertEquals(initRequest.cryptoVersion, cached.cryptoVersion)
+        assertArrayEquals(initPayload.kekEncMaster, cached.kekEncMaster)
+        assertArrayEquals(initPayload.kekEncRecovery, cached.kekEncRecovery)
+        assertArrayEquals(initPayload.kdfSalt, cached.kdfSalt)
+        assertEquals(initPayload.kdfAlgorithm, cached.kdfAlgorithm)
+        assertEquals(initPayload.cryptoVersion, cached.cryptoVersion)
 
         val lastKdfRequest = requireNotNull(kdfEngine.lastRequest)
         assertEquals(65536, lastKdfRequest.memoryKib)
@@ -77,26 +76,26 @@ class VaultInitializeUseCaseTest {
 
     @Test
     fun `returns already initialized when get succeeds`() = runBlocking {
-        val dataSource = FakeVaultKeyMaterialDataSource(
+        val remoteRepository = FakeVaultKeyMaterialRemoteRepository(
             getResult = VaultKeyMaterialRemoteResult.Success(existingVaultKeyMaterial()),
             initResult = VaultKeyMaterialRemoteResult.Success(Unit),
         )
-        val useCase = createUseCase(dataSource = dataSource)
+        val useCase = createUseCase(remoteRepository = remoteRepository)
 
         val result = useCase(passphrase = "irrelevant")
 
         assertEquals(VaultInitializeResult.AlreadyInitialized, result)
-        assertEquals(1, dataSource.getCalls)
-        assertEquals(0, dataSource.initCalls)
+        assertEquals(1, remoteRepository.getCalls)
+        assertEquals(0, remoteRepository.initCalls)
     }
 
     @Test
     fun `returns remote error when get fails for reason other than 404`() = runBlocking {
-        val dataSource = FakeVaultKeyMaterialDataSource(
+        val remoteRepository = FakeVaultKeyMaterialRemoteRepository(
             getResult = VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.Unauthorized),
             initResult = VaultKeyMaterialRemoteResult.Success(Unit),
         )
-        val useCase = createUseCase(dataSource = dataSource)
+        val useCase = createUseCase(remoteRepository = remoteRepository)
 
         val result = useCase(passphrase = "irrelevant")
 
@@ -105,38 +104,38 @@ class VaultInitializeUseCaseTest {
             VaultInitializeError.Remote(VaultKeyMaterialRemoteError.Unauthorized),
             (result as VaultInitializeResult.Error).reason,
         )
-        assertEquals(1, dataSource.getCalls)
-        assertEquals(0, dataSource.initCalls)
+        assertEquals(1, remoteRepository.getCalls)
+        assertEquals(0, remoteRepository.initCalls)
     }
 
     @Test
     fun `returns already initialized when init collides with existing vault`() = runBlocking {
-        val dataSource = FakeVaultKeyMaterialDataSource(
+        val remoteRepository = FakeVaultKeyMaterialRemoteRepository(
             getResult = VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultNotInitialized),
             initResult = VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultAlreadyInitialized),
         )
         val cache = VaultKeyMaterialCache(InMemorySharedPreferences())
         val useCase = createUseCase(
-            dataSource = dataSource,
+            remoteRepository = remoteRepository,
             cache = cache,
         )
 
         val result = useCase(passphrase = "irrelevant")
 
         assertEquals(VaultInitializeResult.AlreadyInitialized, result)
-        assertEquals(1, dataSource.initCalls)
+        assertEquals(1, remoteRepository.initCalls)
         assertNull(cache.get())
     }
 
     @Test
     fun `returns remote error when init fails`() = runBlocking {
-        val dataSource = FakeVaultKeyMaterialDataSource(
+        val remoteRepository = FakeVaultKeyMaterialRemoteRepository(
             getResult = VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultNotInitialized),
             initResult = VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.Unauthorized),
         )
         val cache = VaultKeyMaterialCache(InMemorySharedPreferences())
         val useCase = createUseCase(
-            dataSource = dataSource,
+            remoteRepository = remoteRepository,
             cache = cache,
         )
 
@@ -152,12 +151,12 @@ class VaultInitializeUseCaseTest {
 
     @Test
     fun `returns crypto error when kdf throws`() = runBlocking {
-        val dataSource = FakeVaultKeyMaterialDataSource(
+        val remoteRepository = FakeVaultKeyMaterialRemoteRepository(
             getResult = VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultNotInitialized),
             initResult = VaultKeyMaterialRemoteResult.Success(Unit),
         )
         val useCase = createUseCase(
-            dataSource = dataSource,
+            remoteRepository = remoteRepository,
             kdfEngine = ThrowingKdfEngine(),
         )
 
@@ -165,24 +164,24 @@ class VaultInitializeUseCaseTest {
 
         assertTrue(result is VaultInitializeResult.Error)
         assertTrue((result as VaultInitializeResult.Error).reason is VaultInitializeError.Crypto)
-        assertEquals(0, dataSource.initCalls)
+        assertEquals(0, remoteRepository.initCalls)
     }
 
     private fun createUseCase(
-        dataSource: FakeVaultKeyMaterialDataSource,
+        remoteRepository: FakeVaultKeyMaterialRemoteRepository,
         cache: VaultKeyMaterialCache = VaultKeyMaterialCache(InMemorySharedPreferences()),
         kdfEngine: KdfEngine = FakeKdfEngine(),
         cryptoEngine: FakeCryptoEngine = FakeCryptoEngine(),
     ): VaultInitializeUseCase = VaultInitializeUseCase(
-        vaultKeyMaterialDataSource = dataSource,
-        vaultKeyMaterialCache = cache,
+        vaultKeyMaterialRemoteRepository = remoteRepository,
+        vaultKeyMaterialLocalRepository = cache,
         kdfEngine = kdfEngine,
         cryptoEngine = cryptoEngine,
         saltGenerator = SaltGenerator(),
+        keyWrapEnvelopeCodec = KeyWrapEnvelopeCodec(),
     )
 
-    private fun existingVaultKeyMaterial(): VaultKeyMaterialResponse = VaultKeyMaterialResponse(
-        accountId = UUID.randomUUID(),
+    private fun existingVaultKeyMaterial(): VaultKeyMaterial = VaultKeyMaterial(
         kekEncMaster = byteArrayOf(1, 2, 3),
         kekEncRecovery = byteArrayOf(4, 5, 6),
         kdfAlgorithm = "argon2id",
@@ -192,37 +191,35 @@ class VaultInitializeUseCaseTest {
         kdfParallelism = 1,
         kdfOutputLen = 32,
         cryptoVersion = "v1",
-        createdAt = OffsetDateTime.parse("2026-03-11T12:10:45Z"),
-        updatedAt = OffsetDateTime.parse("2026-03-11T12:11:45Z"),
     )
 }
 
-private class FakeVaultKeyMaterialDataSource(
-    private val getResult: VaultKeyMaterialRemoteResult<VaultKeyMaterialResponse>,
+private class FakeVaultKeyMaterialRemoteRepository(
+    private val getResult: VaultKeyMaterialRemoteResult<VaultKeyMaterial>,
     private val initResult: VaultKeyMaterialRemoteResult<Unit>,
-) : VaultKeyMaterialDataSource {
+) : VaultKeyMaterialRemoteRepository {
     var getCalls: Int = 0
         private set
     var initCalls: Int = 0
         private set
-    var lastInitRequest: InitVaultKeyMaterialRequest? = null
+    var lastInitPayload: VaultKeyMaterial? = null
         private set
 
-    override suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterialResponse> {
+    override suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterial> {
         getCalls += 1
         return getResult
     }
 
     override suspend fun initKeyMaterial(
-        request: InitVaultKeyMaterialRequest,
+        vaultKeyMaterial: VaultKeyMaterial,
     ): VaultKeyMaterialRemoteResult<Unit> {
         initCalls += 1
-        lastInitRequest = request
+        lastInitPayload = vaultKeyMaterial
         return initResult
     }
 
     override suspend fun updateMasterWrappedKek(
-        request: UpdateMasterWrappedKekRequest,
+        newKekEncMaster: ByteArray,
     ): VaultKeyMaterialRemoteResult<Unit> = VaultKeyMaterialRemoteResult.Success(Unit)
 }
 

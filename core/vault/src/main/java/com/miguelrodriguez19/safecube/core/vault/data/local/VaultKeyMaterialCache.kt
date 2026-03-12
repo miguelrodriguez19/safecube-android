@@ -2,26 +2,16 @@ package com.miguelrodriguez19.safecube.core.vault.data.local
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class CachedVaultKeyMaterial(
-    val kekEncMaster: ByteArray,
-    val kekEncRecovery: ByteArray,
-    val kdfAlgorithm: String,
-    val kdfSalt: ByteArray,
-    val kdfMemoryKib: Int,
-    val kdfIterations: Int,
-    val kdfParallelism: Int,
-    val kdfOutputLen: Int,
-    val cryptoVersion: String,
-)
-
 @Singleton
 class VaultKeyMaterialCache @Inject constructor(
     @param:EncryptedVaultKeyMaterialPrefs private val encryptedPreferences: SharedPreferences,
-) {
+) : VaultKeyMaterialLocalRepository {
 
     private companion object {
         const val KEY_KEK_ENC_MASTER = "kek_enc_master"
@@ -36,21 +26,21 @@ class VaultKeyMaterialCache @Inject constructor(
         const val MISSING_INT = -1
     }
 
-    fun save(cachedVaultKeyMaterial: CachedVaultKeyMaterial) {
+    override fun save(vaultKeyMaterial: VaultKeyMaterial) {
         encryptedPreferences.edit {
-            putString(KEY_KEK_ENC_MASTER, encode(cachedVaultKeyMaterial.kekEncMaster))
-            putString(KEY_KEK_ENC_RECOVERY, encode(cachedVaultKeyMaterial.kekEncRecovery))
-            putString(KEY_KDF_ALGORITHM, cachedVaultKeyMaterial.kdfAlgorithm)
-            putString(KEY_KDF_SALT, encode(cachedVaultKeyMaterial.kdfSalt))
-            putInt(KEY_KDF_MEMORY_KIB, cachedVaultKeyMaterial.kdfMemoryKib)
-            putInt(KEY_KDF_ITERATIONS, cachedVaultKeyMaterial.kdfIterations)
-            putInt(KEY_KDF_PARALLELISM, cachedVaultKeyMaterial.kdfParallelism)
-            putInt(KEY_KDF_OUTPUT_LEN, cachedVaultKeyMaterial.kdfOutputLen)
-            putString(KEY_CRYPTO_VERSION, cachedVaultKeyMaterial.cryptoVersion)
+            putString(KEY_KEK_ENC_MASTER, encode(vaultKeyMaterial.kekEncMaster))
+            putString(KEY_KEK_ENC_RECOVERY, encode(vaultKeyMaterial.kekEncRecovery))
+            putString(KEY_KDF_ALGORITHM, vaultKeyMaterial.kdfAlgorithm)
+            putString(KEY_KDF_SALT, encode(vaultKeyMaterial.kdfSalt))
+            putInt(KEY_KDF_MEMORY_KIB, vaultKeyMaterial.kdfMemoryKib)
+            putInt(KEY_KDF_ITERATIONS, vaultKeyMaterial.kdfIterations)
+            putInt(KEY_KDF_PARALLELISM, vaultKeyMaterial.kdfParallelism)
+            putInt(KEY_KDF_OUTPUT_LEN, vaultKeyMaterial.kdfOutputLen)
+            putString(KEY_CRYPTO_VERSION, vaultKeyMaterial.cryptoVersion)
         }
     }
 
-    fun get(): CachedVaultKeyMaterial? {
+    override fun get(): VaultKeyMaterial? {
         val kekEncMaster = encryptedPreferences.getString(KEY_KEK_ENC_MASTER, null)
             ?.let(::decode)
             ?: return null
@@ -79,7 +69,7 @@ class VaultKeyMaterialCache @Inject constructor(
             ?.takeIf { it.isNotBlank() }
             ?: return null
 
-        return CachedVaultKeyMaterial(
+        return VaultKeyMaterial(
             kekEncMaster = kekEncMaster,
             kekEncRecovery = kekEncRecovery,
             kdfAlgorithm = kdfAlgorithm,
@@ -92,7 +82,7 @@ class VaultKeyMaterialCache @Inject constructor(
         )
     }
 
-    fun clear() {
+    override fun clear() {
         encryptedPreferences.edit {
             clear()
         }

@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 12-03-2026 03:22:11
+Updated: 12-03-2026 04:23:45
 
 ```
 safecube-android/
@@ -251,16 +251,31 @@ safecube-android/
 │   │   │   │   │   │   │   ├── EncryptedVaultKeyMaterialPrefs.kt
 │   │   │   │   │   │   │   └── VaultKeyMaterialCache.kt
 │   │   │   │   │   │   ├── remote/
-│   │   │   │   │   │   │   ├── RemoteVaultKeyMaterialDataSource.kt
-│   │   │   │   │   │   │   ├── VaultKeyMaterialDataSource.kt
-│   │   │   │   │   │   │   └── VaultKeyMaterialRemoteResult.kt
+│   │   │   │   │   │   │   └── RemoteVaultKeyMaterialDataSource.kt
 │   │   │   │   │   │   └── session/
 │   │   │   │   │   │       └── FakeVaultSessionManager.kt
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   └── VaultModule.kt
 │   │   │   │   │   └── domain/
+│   │   │   │   │       ├── config/
+│   │   │   │   │       │   └── VaultCryptoDefaults.kt
+│   │   │   │   │       ├── crypto/
+│   │   │   │   │       │   └── KeyWrapEnvelopeCodec.kt
 │   │   │   │   │       ├── model/
+│   │   │   │   │       │   ├── initialize/
+│   │   │   │   │       │   │   ├── VaultInitializeError.kt
+│   │   │   │   │       │   │   └── VaultInitializeResult.kt
+│   │   │   │   │       │   ├── remote/
+│   │   │   │   │       │   │   └── VaultKeyMaterialRemoteResult.kt
+│   │   │   │   │       │   ├── unlock/
+│   │   │   │   │       │   │   ├── VaultUnlockError.kt
+│   │   │   │   │       │   │   └── VaultUnlockResult.kt
+│   │   │   │   │       │   ├── UnlockedKeyring.kt
+│   │   │   │   │       │   ├── VaultKeyMaterial.kt
 │   │   │   │   │       │   └── VaultState.kt
+│   │   │   │   │       ├── repository/
+│   │   │   │   │       │   ├── VaultKeyMaterialLocalRepository.kt
+│   │   │   │   │       │   └── VaultKeyMaterialRemoteRepository.kt
 │   │   │   │   │       ├── session/
 │   │   │   │   │       │   └── VaultSessionManager.kt
 │   │   │   │   │       └── usecase/

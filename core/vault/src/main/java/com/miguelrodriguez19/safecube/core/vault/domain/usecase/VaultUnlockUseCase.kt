@@ -4,42 +4,26 @@ import com.miguelrodriguez19.safecube.core.crypto.CryptoEngine
 import com.miguelrodriguez19.safecube.core.crypto.DecryptionRequest
 import com.miguelrodriguez19.safecube.core.crypto.KdfEngine
 import com.miguelrodriguez19.safecube.core.crypto.KdfRequest
-import com.miguelrodriguez19.safecube.core.vault.data.local.CachedVaultKeyMaterial
-import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
+import com.miguelrodriguez19.safecube.core.vault.domain.crypto.KeyWrapEnvelopeCodec
+import com.miguelrodriguez19.safecube.core.vault.domain.crypto.MalformedKeyWrapEnvelopeException
+import com.miguelrodriguez19.safecube.core.vault.domain.model.UnlockedKeyring
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockResult
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class UnlockedKeyring(
-    val kek: ByteArray,
-)
-
-sealed interface VaultUnlockResult {
-    data class Unlocked(
-        val keyring: UnlockedKeyring,
-    ) : VaultUnlockResult
-
-    data class Error(
-        val reason: VaultUnlockError,
-    ) : VaultUnlockResult
-}
-
-sealed interface VaultUnlockError {
-    data object KeyMaterialUnavailable : VaultUnlockError
-
-    data object InvalidCredential : VaultUnlockError
-
-    data object InvalidCachedKeyMaterial : VaultUnlockError
-}
-
 @Singleton
 class VaultUnlockUseCase @Inject constructor(
-    private val vaultKeyMaterialCache: VaultKeyMaterialCache,
+    private val vaultKeyMaterialLocalRepository: VaultKeyMaterialLocalRepository,
     private val kdfEngine: KdfEngine,
     private val cryptoEngine: CryptoEngine,
+    private val keyWrapEnvelopeCodec: KeyWrapEnvelopeCodec,
 ) {
     fun unlockWithPassphrase(passphrase: String): VaultUnlockResult {
-        val cachedVaultKeyMaterial = vaultKeyMaterialCache.get()
+        val cachedVaultKeyMaterial = vaultKeyMaterialLocalRepository.get()
             ?: return VaultUnlockResult.Error(VaultUnlockError.KeyMaterialUnavailable)
         val passphraseBytes = passphrase.toByteArray(StandardCharsets.UTF_8)
         var masterKey = byteArrayOf()
@@ -56,7 +40,7 @@ class VaultUnlockUseCase @Inject constructor(
             VaultUnlockResult.Unlocked(
                 keyring = UnlockedKeyring(kek = kek),
             )
-        } catch (_: MalformedEnvelopeException) {
+        } catch (_: MalformedKeyWrapEnvelopeException) {
             VaultUnlockResult.Error(VaultUnlockError.InvalidCachedKeyMaterial)
         } catch (_: IllegalArgumentException) {
             VaultUnlockResult.Error(VaultUnlockError.InvalidCachedKeyMaterial)
@@ -69,7 +53,7 @@ class VaultUnlockUseCase @Inject constructor(
     }
 
     fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockResult {
-        val cachedVaultKeyMaterial = vaultKeyMaterialCache.get()
+        val cachedVaultKeyMaterial = vaultKeyMaterialLocalRepository.get()
             ?: return VaultUnlockResult.Error(VaultUnlockError.KeyMaterialUnavailable)
 
         val recoveryKeyCopy = recoveryKey.copyOf()
@@ -82,11 +66,11 @@ class VaultUnlockUseCase @Inject constructor(
             VaultUnlockResult.Unlocked(
                 keyring = UnlockedKeyring(kek = kek),
             )
-        } catch (malformedEnvelopeException: MalformedEnvelopeException) {
+        } catch (_: MalformedKeyWrapEnvelopeException) {
             VaultUnlockResult.Error(VaultUnlockError.InvalidCachedKeyMaterial)
-        } catch (illegalArgumentException: IllegalArgumentException) {
+        } catch (_: IllegalArgumentException) {
             VaultUnlockResult.Error(VaultUnlockError.InvalidCachedKeyMaterial)
-        } catch (throwable: Throwable) {
+        } catch (_: Throwable) {
             VaultUnlockResult.Error(VaultUnlockError.InvalidCredential)
         } finally {
             recoveryKeyCopy.fill(0)
@@ -95,7 +79,7 @@ class VaultUnlockUseCase @Inject constructor(
 
     private fun deriveMasterKey(
         passphraseBytes: ByteArray,
-        cachedVaultKeyMaterial: CachedVaultKeyMaterial,
+        cachedVaultKeyMaterial: VaultKeyMaterial,
     ): ByteArray = kdfEngine.deriveKey(
         request = KdfRequest(
             secret = passphraseBytes,
@@ -111,7 +95,7 @@ class VaultUnlockUseCase @Inject constructor(
         envelope: ByteArray,
         wrappingKey: ByteArray,
     ): ByteArray {
-        val parsedEnvelope = parseEnvelope(envelope)
+        val parsedEnvelope = keyWrapEnvelopeCodec.decode(envelope)
         return cryptoEngine.decrypt(
             request = DecryptionRequest(
                 ciphertext = parsedEnvelope.ciphertext,
@@ -120,45 +104,5 @@ class VaultUnlockUseCase @Inject constructor(
                 authTag = parsedEnvelope.authTag,
             ),
         )
-    }
-
-    private fun parseEnvelope(envelope: ByteArray): ParsedEnvelope {
-        if (envelope.size <= MIN_ENVELOPE_LENGTH_BYTES) {
-            throw MalformedEnvelopeException()
-        }
-        if (envelope[0] != KEY_WRAP_ENVELOPE_VERSION) {
-            throw MalformedEnvelopeException()
-        }
-
-        val ivStart = ENVELOPE_VERSION_SIZE_BYTES
-        val ivEndExclusive = ivStart + IV_SIZE_BYTES
-        val authTagStart = envelope.size - AUTH_TAG_SIZE_BYTES
-
-        if (authTagStart <= ivEndExclusive) {
-            throw MalformedEnvelopeException()
-        }
-
-        return ParsedEnvelope(
-            iv = envelope.copyOfRange(ivStart, ivEndExclusive),
-            ciphertext = envelope.copyOfRange(ivEndExclusive, authTagStart),
-            authTag = envelope.copyOfRange(authTagStart, envelope.size),
-        )
-    }
-
-    private data class ParsedEnvelope(
-        val iv: ByteArray,
-        val ciphertext: ByteArray,
-        val authTag: ByteArray,
-    )
-
-    private class MalformedEnvelopeException : IllegalStateException()
-
-    private companion object {
-        const val ENVELOPE_VERSION_SIZE_BYTES = 1
-        const val IV_SIZE_BYTES = 12
-        const val AUTH_TAG_SIZE_BYTES = 16
-        const val MIN_ENVELOPE_LENGTH_BYTES =
-            ENVELOPE_VERSION_SIZE_BYTES + IV_SIZE_BYTES + AUTH_TAG_SIZE_BYTES
-        const val KEY_WRAP_ENVELOPE_VERSION: Byte = 1
     }
 }
