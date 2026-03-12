@@ -1,12 +1,17 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.session
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
-import kotlinx.coroutines.flow.Flow
+import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
+import kotlinx.coroutines.flow.StateFlow
 
 interface VaultSessionManager {
-    val vaultState: Flow<VaultState>
+    val vaultState: StateFlow<VaultState>
 
-    fun markVaultUnlocked()
+    fun unlockWithPassphrase(passphrase: String): VaultUnlockError?
 
-    fun markVaultLocked()
+    fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockError?
+
+    fun lock()
+
+    fun onLogout()
 }

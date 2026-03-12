@@ -22,6 +22,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.feature.auth.screens.LoginScreen
 import com.miguelrodriguez19.safecube.feature.auth.screens.SignupScreen
 import com.miguelrodriguez19.safecube.feature.auth.screens.WelcomeScreen
@@ -48,6 +49,7 @@ fun NavigationWrapper() {
     }
     val authRepository = remember(entryPoint) { entryPoint.authRepository() }
     val sessionManager = remember(entryPoint) { entryPoint.sessionManager() }
+    val vaultSessionManager = remember(entryPoint) { entryPoint.vaultSessionManager() }
     val sessionState by sessionManager.sessionState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     var lastBackPressTimestamp by rememberSaveable { mutableLongStateOf(0L) }
@@ -179,6 +181,7 @@ fun NavigationWrapper() {
                     onLogout = {
                         coroutineScope.launch {
                             authRepository.logout()
+                            vaultSessionManager.onLogout()
                             sessionManager.forceLogout()
                         }
                     },
@@ -194,7 +197,19 @@ fun NavigationWrapper() {
                 RecoveryKeyScreen(onUnlockVault = { replaceCurrent(Routes.UnlockVault) })
             }
             entry<Routes.UnlockVault> {
-                UnlockVaultScreen(onApp = { setRoot(Routes.Vault) })
+                UnlockVaultScreen(
+                    onUnlockWithPassphrase = { passphrase ->
+                        vaultSessionManager.unlockWithPassphrase(passphrase)
+                    },
+                    onApp = { setRoot(Routes.Vault) },
+                    mapErrorToMessage = { error ->
+                        when (error) {
+                            VaultUnlockError.InvalidCredential -> "Invalid credentials"
+                            VaultUnlockError.InvalidCachedKeyMaterial -> "Invalid cached key material"
+                            VaultUnlockError.KeyMaterialUnavailable -> "Vault not initialized"
+                        }
+                    },
+                )
             }
             entry<Routes.PostLoginGate> {
                 PostLoginGateRoute(

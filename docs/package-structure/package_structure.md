@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 12-03-2026 04:23:45
+Updated: 12-03-2026 08:39:48
 
 ```
 safecube-android/
@@ -253,7 +253,7 @@ safecube-android/
 │   │   │   │   │   │   ├── remote/
 │   │   │   │   │   │   │   └── RemoteVaultKeyMaterialDataSource.kt
 │   │   │   │   │   │   └── session/
-│   │   │   │   │   │       └── FakeVaultSessionManager.kt
+│   │   │   │   │   │       └── VaultSessionManagerImpl.kt
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   └── VaultModule.kt
 │   │   │   │   │   └── domain/
@@ -280,6 +280,7 @@ safecube-android/
 │   │   │   │   │       │   └── VaultSessionManager.kt
 │   │   │   │   │       └── usecase/
 │   │   │   │   │           ├── VaultInitializeUseCase.kt
+│   │   │   │   │           ├── VaultUnlocker.kt
 │   │   │   │   │           └── VaultUnlockUseCase.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/vault/
@@ -289,7 +290,7 @@ safecube-android/
 │   │   │       │   ├── remote/
 │   │   │       │   │   └── RemoteVaultKeyMaterialDataSourceTest.kt
 │   │   │       │   └── session/
-│   │   │       │       └── FakeVaultSessionManagerTest.kt
+│   │   │       │       └── VaultSessionManagerImplTest.kt
 │   │   │       └── domain/usecase/
 │   │   │           ├── VaultInitializeUseCaseTest.kt
 │   │   │           └── VaultUnlockUseCaseTest.kt

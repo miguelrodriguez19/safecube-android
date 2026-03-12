@@ -7,10 +7,12 @@ import androidx.security.crypto.MasterKey
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMaterialPrefs
 import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
 import com.miguelrodriguez19.safecube.core.vault.data.remote.RemoteVaultKeyMaterialDataSource
-import com.miguelrodriguez19.safecube.core.vault.data.session.FakeVaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.data.session.VaultSessionManagerImpl
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultUnlockUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultUnlocker
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -25,7 +27,7 @@ abstract class VaultModule {
     @Binds
     @Singleton
     abstract fun bindVaultSessionManager(
-        fakeVaultSessionManager: FakeVaultSessionManager,
+        vaultSessionManagerImpl: VaultSessionManagerImpl,
     ): VaultSessionManager
 
     @Binds
@@ -39,6 +41,12 @@ abstract class VaultModule {
     abstract fun bindVaultKeyMaterialLocalRepository(
         vaultKeyMaterialCache: VaultKeyMaterialCache,
     ): VaultKeyMaterialLocalRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindVaultUnlocker(
+        vaultUnlockUseCase: VaultUnlockUseCase,
+    ): VaultUnlocker
 
     companion object {
         private const val PREFERENCES_NAME = "vault_key_material_encrypted_preferences"

@@ -21,8 +21,8 @@ class VaultUnlockUseCase @Inject constructor(
     private val kdfEngine: KdfEngine,
     private val cryptoEngine: CryptoEngine,
     private val keyWrapEnvelopeCodec: KeyWrapEnvelopeCodec,
-) {
-    fun unlockWithPassphrase(passphrase: String): VaultUnlockResult {
+) : VaultUnlocker {
+    override fun unlockWithPassphrase(passphrase: String): VaultUnlockResult {
         val cachedVaultKeyMaterial = vaultKeyMaterialLocalRepository.get()
             ?: return VaultUnlockResult.Error(VaultUnlockError.KeyMaterialUnavailable)
         val passphraseBytes = passphrase.toByteArray(StandardCharsets.UTF_8)
@@ -52,7 +52,7 @@ class VaultUnlockUseCase @Inject constructor(
         }
     }
 
-    fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockResult {
+    override fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockResult {
         val cachedVaultKeyMaterial = vaultKeyMaterialLocalRepository.get()
             ?: return VaultUnlockResult.Error(VaultUnlockError.KeyMaterialUnavailable)
 

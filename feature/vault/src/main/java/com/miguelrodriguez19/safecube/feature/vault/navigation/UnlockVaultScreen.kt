@@ -18,10 +18,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 
 @Composable
-fun UnlockVaultScreen(onApp: () -> Unit) {
+fun UnlockVaultScreen(
+    onUnlockWithPassphrase: (String) -> VaultUnlockError?,
+    onApp: () -> Unit,
+    mapErrorToMessage: (VaultUnlockError) -> String,
+) {
     var passphrase by rememberSaveable { mutableStateOf("") }
+    var unlockErrorMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -52,12 +58,26 @@ fun UnlockVaultScreen(onApp: () -> Unit) {
                 singleLine = true,
             )
             Button(
-                onClick = onApp,
+                onClick = {
+                    val error = onUnlockWithPassphrase(passphrase)
+                    if (error == null) {
+                        unlockErrorMessage = null
+                        onApp()
+                    } else {
+                        unlockErrorMessage = mapErrorToMessage(error)
+                    }
+                },
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
             ) {
                 Text("Unlock")
+            }
+            unlockErrorMessage?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
         }
     }
