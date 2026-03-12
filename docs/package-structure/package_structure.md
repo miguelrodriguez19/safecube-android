@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 13-03-2026 12:43:36
+Updated: 13-03-2026 12:53:43
 
 ```
 safecube-android/
@@ -15,17 +15,22 @@ safecube-android/
 │   │   │   ├── ExampleInstrumentedTest.kt
 │   │   │   └── MainActivityComposeTest.kt
 │   │   ├── main/
-│   │   │   ├── java/com/miguelrodriguez19/safecube/
-│   │   │   │   ├── app/navigation/
-│   │   │   │   │   ├── NavigationGates.kt
-│   │   │   │   │   ├── NavigationWrapper.kt
-│   │   │   │   │   └── Routes.kt
-│   │   │   │   ├── ui/theme/
-│   │   │   │   │   ├── Color.kt
-│   │   │   │   │   ├── Theme.kt
-│   │   │   │   │   └── Type.kt
-│   │   │   │   ├── MainActivity.kt
-│   │   │   │   └── SafeCubeApp.kt
+│   │   │   ├── java/com/miguelrodriguez19/safecube/app/
+│   │   │   │   ├── entrypoint/
+│   │   │   │   │   ├── MainActivity.kt
+│   │   │   │   │   └── SafeCubeApp.kt
+│   │   │   │   └── presentation/
+│   │   │   │       ├── navigation/
+│   │   │   │       │   ├── gate/
+│   │   │   │       │   │   └── NavigationGates.kt
+│   │   │   │       │   ├── host/
+│   │   │   │       │   │   └── NavigationWrapper.kt
+│   │   │   │       │   └── route/
+│   │   │   │       │       └── Routes.kt
+│   │   │   │       └── theme/
+│   │   │   │           ├── Color.kt
+│   │   │   │           ├── Theme.kt
+│   │   │   │           └── Type.kt
 │   │   │   ├── res/
 │   │   │   │   ├── drawable/
 │   │   │   │   │   ├── ic_launcher_background.xml
@@ -406,7 +411,6 @@ safecube-android/
 │       │   │       ├── settings/ui/
 │       │   │       │   └── SettingsScreen.kt
 │       │   │       ├── shared/navigation/
-│       │   │       │   ├── AppTab.kt
 │       │   │       │   └── NavigationBar.kt
 │       │   │       └── unlock/
 │       │   │           ├── action/

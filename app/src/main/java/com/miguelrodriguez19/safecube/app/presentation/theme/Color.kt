@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.ui.theme
+package com.miguelrodriguez19.safecube.app.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

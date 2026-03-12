@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube
+package com.miguelrodriguez19.safecube.app.entrypoint
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

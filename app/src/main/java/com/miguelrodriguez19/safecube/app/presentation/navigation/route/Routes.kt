@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.app.navigation
+package com.miguelrodriguez19.safecube.app.presentation.navigation.route
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable

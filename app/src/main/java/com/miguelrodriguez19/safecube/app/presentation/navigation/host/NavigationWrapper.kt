@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.app.navigation
+package com.miguelrodriguez19.safecube.app.presentation.navigation.host
 
 import android.app.Activity
 import android.os.SystemClock
@@ -22,6 +22,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.miguelrodriguez19.safecube.app.presentation.navigation.gate.NavigationGatesEntryPoint
+import com.miguelrodriguez19.safecube.app.presentation.navigation.gate.PostLoginGateRoute
+import com.miguelrodriguez19.safecube.app.presentation.navigation.gate.SplashGateScreen
+import com.miguelrodriguez19.safecube.app.presentation.navigation.route.Routes
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.ui.LoginScreen
 import com.miguelrodriguez19.safecube.feature.auth.presentation.signup.ui.SignupScreen
@@ -222,34 +226,7 @@ fun NavigationWrapper() {
                 )
             }
             entry<Routes.Error> { Text("Error") }
-        },
-        transitionSpec = {
-            slideInHorizontally(
-                initialOffsetX = { it },
-                animationSpec = tween(250),
-            ) togetherWith slideOutHorizontally(
-                targetOffsetX = { -it },
-                animationSpec = tween(250),
-            )
-        },
-        popTransitionSpec = {
-            slideInHorizontally(
-                initialOffsetX = { -it },
-                animationSpec = tween(250),
-            ) togetherWith slideOutHorizontally(
-                targetOffsetX = { it },
-                animationSpec = tween(250),
-            )
-        },
-        predictivePopTransitionSpec = {
-            slideInHorizontally(
-                initialOffsetX = { -it },
-                animationSpec = tween(250),
-            ) togetherWith slideOutHorizontally(
-                targetOffsetX = { it },
-                animationSpec = tween(250),
-            )
-        },
+        }
     )
 }
 

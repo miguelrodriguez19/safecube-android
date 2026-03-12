@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.app.navigation
+package com.miguelrodriguez19.safecube.app.presentation.navigation.gate
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
