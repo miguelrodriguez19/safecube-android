@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 12-03-2026 09:02:32
+Updated: 12-03-2026 09:10:41
 
 ```
 safecube-android/
@@ -77,9 +77,8 @@ safecube-android/
 │   │   │   │   │   │   │   └── RemoteAuthDataSource.kt
 │   │   │   │   │   │   ├── repository/
 │   │   │   │   │   │   │   └── AuthRepositoryImpl.kt
-│   │   │   │   │   │   ├── session/
-│   │   │   │   │   │   │   └── AuthTokenRefreshHandler.kt
-│   │   │   │   │   │   └── vault/
+│   │   │   │   │   │   └── session/
+│   │   │   │   │   │       └── AuthTokenRefreshHandler.kt
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   └── AuthModule.kt
 │   │   │   │   │   └── domain/
@@ -93,10 +92,9 @@ safecube-android/
 │   │   │   │   │       ├── repository/
 │   │   │   │   │       │   ├── AuthRepository.kt
 │   │   │   │   │       │   └── TokenStorage.kt
-│   │   │   │   │       ├── session/
-│   │   │   │   │       │   ├── SessionManager.kt
-│   │   │   │   │       │   └── SessionManagerImpl.kt
-│   │   │   │   │       └── vault/
+│   │   │   │   │       └── session/
+│   │   │   │   │           ├── SessionManager.kt
+│   │   │   │   │           └── SessionManagerImpl.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/auth/
 │   │   │       ├── data/
@@ -136,6 +134,7 @@ safecube-android/
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/crypto/
 │   │   │       ├── internal/
 │   │   │       │   ├── AesGcmCryptoEngineTest.kt
+│   │   │       │   ├── AesGcmKeyWrappingTest.kt
 │   │   │       │   └── Argon2KdfEngineTest.kt
 │   │   │       ├── CryptoRequestModelsTest.kt
 │   │   │       └── SaltGeneratorTest.kt
@@ -314,7 +313,6 @@ safecube-android/
 │   ├── auth/
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/feature/auth/
-│   │   │   │   ├── navigation/
 │   │   │   │   ├── presentation/
 │   │   │   │   │   ├── login/
 │   │   │   │   │   │   ├── LoginUiState.kt
