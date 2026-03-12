@@ -1,5 +1,14 @@
-package com.miguelrodriguez19.safecube.core.crypto
+package com.miguelrodriguez19.safecube.core.crypto.domain.model
 
+/**
+ * Input payload for symmetric decryption.
+ *
+ * @property ciphertext Encrypted bytes.
+ * @property keyMaterial Symmetric key material.
+ * @property iv Nonce/initialization vector.
+ * @property aad Optional additional authenticated data.
+ * @property authTag Authentication tag.
+ */
 data class DecryptionRequest(
     val ciphertext: ByteArray,
     val keyMaterial: ByteArray,

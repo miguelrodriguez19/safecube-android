@@ -1,11 +1,10 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
-import com.miguelrodriguez19.safecube.core.crypto.CryptoEngine
-import com.miguelrodriguez19.safecube.core.crypto.EncryptionRequest
-import com.miguelrodriguez19.safecube.core.crypto.KdfEngine
-import com.miguelrodriguez19.safecube.core.crypto.KdfRequest
-import com.miguelrodriguez19.safecube.core.crypto.SaltGenerator
-import com.miguelrodriguez19.safecube.core.vault.domain.crypto.KeyWrapEnvelopeCodec
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.KdfEngine
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KdfRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KeyWrapRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.KeyWrapping
+import com.miguelrodriguez19.safecube.core.crypto.domain.service.SaltGenerator
 import com.miguelrodriguez19.safecube.core.vault.domain.config.VaultCryptoDefaults
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
@@ -24,9 +23,8 @@ class VaultInitializeUseCase @Inject constructor(
     private val vaultKeyMaterialRemoteRepository: VaultKeyMaterialRemoteRepository,
     private val vaultKeyMaterialLocalRepository: VaultKeyMaterialLocalRepository,
     private val kdfEngine: KdfEngine,
-    private val cryptoEngine: CryptoEngine,
+    private val keyWrapping: KeyWrapping,
     private val saltGenerator: SaltGenerator,
-    private val keyWrapEnvelopeCodec: KeyWrapEnvelopeCodec,
 ) {
 
     suspend operator fun invoke(passphrase: String): VaultInitializeResult {
@@ -128,12 +126,10 @@ class VaultInitializeUseCase @Inject constructor(
     private fun wrapKek(
         kek: ByteArray,
         wrappingKey: ByteArray,
-    ): ByteArray = keyWrapEnvelopeCodec.encode(
-        encryptionResult = cryptoEngine.encrypt(
-            request = EncryptionRequest(
-                plaintext = kek,
-                keyMaterial = wrappingKey,
-            ),
+    ): ByteArray = keyWrapping.wrapKey(
+        request = KeyWrapRequest(
+            keyToWrap = kek,
+            wrappingKey = wrappingKey,
         ),
     )
 }

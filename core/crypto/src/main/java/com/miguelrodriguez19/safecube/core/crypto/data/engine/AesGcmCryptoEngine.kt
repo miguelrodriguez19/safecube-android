@@ -1,9 +1,9 @@
-package com.miguelrodriguez19.safecube.core.crypto.internal
+package com.miguelrodriguez19.safecube.core.crypto.data.engine
 
-import com.miguelrodriguez19.safecube.core.crypto.CryptoEngine
-import com.miguelrodriguez19.safecube.core.crypto.DecryptionRequest
-import com.miguelrodriguez19.safecube.core.crypto.EncryptionRequest
-import com.miguelrodriguez19.safecube.core.crypto.EncryptionResult
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.CryptoEngine
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.DecryptionRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.EncryptionRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.EncryptionResult
 import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
@@ -11,6 +11,9 @@ import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * AES-256-GCM implementation of [CryptoEngine].
+ */
 @Singleton
 class AesGcmCryptoEngine @Inject constructor() : CryptoEngine {
     private val secureRandom = SecureRandom()
@@ -24,6 +27,12 @@ class AesGcmCryptoEngine @Inject constructor() : CryptoEngine {
         private const val TAG_SIZE_BITS = 128
     }
 
+    /**
+     * Encrypts plaintext with AES-256-GCM.
+     *
+     * @param request Encryption request.
+     * @return Encryption result.
+     */
     override fun encrypt(request: EncryptionRequest): EncryptionResult {
         require(request.keyMaterial.size == KEY_SIZE_BYTES) {
             "Encryption key material must be exactly 32 bytes for AES-256-GCM."
@@ -52,6 +61,12 @@ class AesGcmCryptoEngine @Inject constructor() : CryptoEngine {
         }
     }
 
+    /**
+     * Decrypts ciphertext with AES-256-GCM.
+     *
+     * @param request Decryption request.
+     * @return Decrypted plaintext.
+     */
     override fun decrypt(request: DecryptionRequest): ByteArray {
         require(request.keyMaterial.size == KEY_SIZE_BYTES) {
             "Decryption key material must be exactly 32 bytes for AES-256-GCM."

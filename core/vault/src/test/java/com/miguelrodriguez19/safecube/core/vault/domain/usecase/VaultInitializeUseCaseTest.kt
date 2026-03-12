@@ -1,15 +1,13 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
 import android.content.SharedPreferences
-import com.miguelrodriguez19.safecube.core.crypto.CryptoEngine
-import com.miguelrodriguez19.safecube.core.crypto.DecryptionRequest
-import com.miguelrodriguez19.safecube.core.crypto.EncryptionRequest
-import com.miguelrodriguez19.safecube.core.crypto.EncryptionResult
-import com.miguelrodriguez19.safecube.core.crypto.KdfEngine
-import com.miguelrodriguez19.safecube.core.crypto.KdfRequest
-import com.miguelrodriguez19.safecube.core.crypto.SaltGenerator
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.KdfEngine
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KdfRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KeyUnwrapRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KeyWrapRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.KeyWrapping
+import com.miguelrodriguez19.safecube.core.crypto.domain.service.SaltGenerator
 import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
-import com.miguelrodriguez19.safecube.core.vault.domain.crypto.KeyWrapEnvelopeCodec
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
@@ -33,12 +31,12 @@ class VaultInitializeUseCaseTest {
         )
         val cache = VaultKeyMaterialCache(InMemorySharedPreferences())
         val kdfEngine = FakeKdfEngine()
-        val cryptoEngine = FakeCryptoEngine()
+        val keyWrapping = FakeKeyWrapping()
         val useCase = createUseCase(
             remoteRepository = remoteRepository,
             cache = cache,
             kdfEngine = kdfEngine,
-            cryptoEngine = cryptoEngine,
+            keyWrapping = keyWrapping,
         )
 
         val result = useCase(passphrase = "correct horse battery staple")
@@ -48,7 +46,7 @@ class VaultInitializeUseCaseTest {
         assertEquals(32, recoveryKey.size)
         assertEquals(1, remoteRepository.getCalls)
         assertEquals(1, remoteRepository.initCalls)
-        assertEquals(2, cryptoEngine.encryptRequests.size)
+        assertEquals(2, keyWrapping.wrapRequests.size)
 
         val initPayload = requireNotNull(remoteRepository.lastInitPayload)
         assertFalse(recoveryKey.contentEquals(initPayload.kekEncMaster))
@@ -171,14 +169,13 @@ class VaultInitializeUseCaseTest {
         remoteRepository: FakeVaultKeyMaterialRemoteRepository,
         cache: VaultKeyMaterialCache = VaultKeyMaterialCache(InMemorySharedPreferences()),
         kdfEngine: KdfEngine = FakeKdfEngine(),
-        cryptoEngine: FakeCryptoEngine = FakeCryptoEngine(),
+        keyWrapping: KeyWrapping = FakeKeyWrapping(),
     ): VaultInitializeUseCase = VaultInitializeUseCase(
         vaultKeyMaterialRemoteRepository = remoteRepository,
         vaultKeyMaterialLocalRepository = cache,
         kdfEngine = kdfEngine,
-        cryptoEngine = cryptoEngine,
+        keyWrapping = keyWrapping,
         saltGenerator = SaltGenerator(),
-        keyWrapEnvelopeCodec = KeyWrapEnvelopeCodec(),
     )
 
     private fun existingVaultKeyMaterial(): VaultKeyMaterial = VaultKeyMaterial(
@@ -239,25 +236,21 @@ private class ThrowingKdfEngine : KdfEngine {
     }
 }
 
-private class FakeCryptoEngine : CryptoEngine {
-    val encryptRequests = mutableListOf<EncryptionRequest>()
+private class FakeKeyWrapping : KeyWrapping {
+    val wrapRequests = mutableListOf<KeyWrapRequest>()
 
-    override fun encrypt(request: EncryptionRequest): EncryptionResult {
-        encryptRequests += request.copy(
-            plaintext = request.plaintext.copyOf(),
-            keyMaterial = request.keyMaterial.copyOf(),
+    override fun wrapKey(request: KeyWrapRequest): ByteArray {
+        wrapRequests += request.copy(
+            keyToWrap = request.keyToWrap.copyOf(),
+            wrappingKey = request.wrappingKey.copyOf(),
             aad = request.aad?.copyOf(),
         )
-        return EncryptionResult(
-            ciphertext = request.plaintext
-                .map { value -> (value.toInt() xor 0x5A).toByte() }
-                .toByteArray(),
-            iv = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
-            authTag = byteArrayOf(13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28),
-        )
+        return byteArrayOf(1) + request.keyToWrap.mapIndexed { index, value ->
+            (value.toInt() xor request.wrappingKey[index % request.wrappingKey.size].toInt()).toByte()
+        }.toByteArray()
     }
 
-    override fun decrypt(request: DecryptionRequest): ByteArray = byteArrayOf()
+    override fun unwrapKey(request: KeyUnwrapRequest): ByteArray = byteArrayOf()
 }
 
 private class InMemorySharedPreferences : SharedPreferences {

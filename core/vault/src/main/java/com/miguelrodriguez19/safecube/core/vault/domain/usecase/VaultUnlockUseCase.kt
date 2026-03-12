@@ -1,11 +1,9 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
-import com.miguelrodriguez19.safecube.core.crypto.CryptoEngine
-import com.miguelrodriguez19.safecube.core.crypto.DecryptionRequest
-import com.miguelrodriguez19.safecube.core.crypto.KdfEngine
-import com.miguelrodriguez19.safecube.core.crypto.KdfRequest
-import com.miguelrodriguez19.safecube.core.vault.domain.crypto.KeyWrapEnvelopeCodec
-import com.miguelrodriguez19.safecube.core.vault.domain.crypto.MalformedKeyWrapEnvelopeException
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.KdfEngine
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KdfRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KeyUnwrapRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.KeyWrapping
 import com.miguelrodriguez19.safecube.core.vault.domain.model.UnlockedKeyring
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
@@ -19,8 +17,7 @@ import javax.inject.Singleton
 class VaultUnlockUseCase @Inject constructor(
     private val vaultKeyMaterialLocalRepository: VaultKeyMaterialLocalRepository,
     private val kdfEngine: KdfEngine,
-    private val cryptoEngine: CryptoEngine,
-    private val keyWrapEnvelopeCodec: KeyWrapEnvelopeCodec,
+    private val keyWrapping: KeyWrapping,
 ) : VaultUnlocker {
     override fun unlockWithPassphrase(passphrase: String): VaultUnlockResult {
         val cachedVaultKeyMaterial = vaultKeyMaterialLocalRepository.get()
@@ -40,8 +37,6 @@ class VaultUnlockUseCase @Inject constructor(
             VaultUnlockResult.Unlocked(
                 keyring = UnlockedKeyring(kek = kek),
             )
-        } catch (_: MalformedKeyWrapEnvelopeException) {
-            VaultUnlockResult.Error(VaultUnlockError.InvalidCachedKeyMaterial)
         } catch (_: IllegalArgumentException) {
             VaultUnlockResult.Error(VaultUnlockError.InvalidCachedKeyMaterial)
         } catch (_: Throwable) {
@@ -66,8 +61,6 @@ class VaultUnlockUseCase @Inject constructor(
             VaultUnlockResult.Unlocked(
                 keyring = UnlockedKeyring(kek = kek),
             )
-        } catch (_: MalformedKeyWrapEnvelopeException) {
-            VaultUnlockResult.Error(VaultUnlockError.InvalidCachedKeyMaterial)
         } catch (_: IllegalArgumentException) {
             VaultUnlockResult.Error(VaultUnlockError.InvalidCachedKeyMaterial)
         } catch (_: Throwable) {
@@ -94,15 +87,10 @@ class VaultUnlockUseCase @Inject constructor(
     private fun unwrapKek(
         envelope: ByteArray,
         wrappingKey: ByteArray,
-    ): ByteArray {
-        val parsedEnvelope = keyWrapEnvelopeCodec.decode(envelope)
-        return cryptoEngine.decrypt(
-            request = DecryptionRequest(
-                ciphertext = parsedEnvelope.ciphertext,
-                keyMaterial = wrappingKey,
-                iv = parsedEnvelope.iv,
-                authTag = parsedEnvelope.authTag,
-            ),
-        )
-    }
+    ): ByteArray = keyWrapping.unwrapKey(
+        request = KeyUnwrapRequest(
+            wrappedKey = envelope,
+            wrappingKey = wrappingKey,
+        ),
+    )
 }

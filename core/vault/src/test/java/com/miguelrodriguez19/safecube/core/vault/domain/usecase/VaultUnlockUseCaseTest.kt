@@ -1,12 +1,13 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
 import android.content.SharedPreferences
-import com.miguelrodriguez19.safecube.core.crypto.EncryptionRequest
-import com.miguelrodriguez19.safecube.core.crypto.KdfEngine
-import com.miguelrodriguez19.safecube.core.crypto.KdfRequest
-import com.miguelrodriguez19.safecube.core.crypto.internal.AesGcmCryptoEngine
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.KdfEngine
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KdfRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KeyWrapRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.KeyWrapping
+import com.miguelrodriguez19.safecube.core.crypto.data.engine.AesGcmCryptoEngine
+import com.miguelrodriguez19.safecube.core.crypto.data.engine.AesGcmKeyWrapping
 import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
-import com.miguelrodriguez19.safecube.core.vault.domain.crypto.KeyWrapEnvelopeCodec
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockResult
@@ -18,7 +19,9 @@ import org.junit.Test
 class VaultUnlockUseCaseTest {
     private val cryptoEngine = AesGcmCryptoEngine()
     private val kdfEngine = DeterministicKdfEngine()
-    private val keyWrapEnvelopeCodec = KeyWrapEnvelopeCodec()
+    private val keyWrapping: KeyWrapping = AesGcmKeyWrapping(
+        cryptoEngine = cryptoEngine,
+    )
 
     @Test
     fun `unlock with passphrase returns unlocked keyring`() {
@@ -33,8 +36,7 @@ class VaultUnlockUseCaseTest {
         val useCase = VaultUnlockUseCase(
             vaultKeyMaterialLocalRepository = cache,
             kdfEngine = kdfEngine,
-            cryptoEngine = cryptoEngine,
-            keyWrapEnvelopeCodec = keyWrapEnvelopeCodec,
+            keyWrapping = keyWrapping,
         )
 
         val result = useCase.unlockWithPassphrase(passphrase = passphrase)
@@ -57,8 +59,7 @@ class VaultUnlockUseCaseTest {
         val useCase = VaultUnlockUseCase(
             vaultKeyMaterialLocalRepository = cache,
             kdfEngine = kdfEngine,
-            cryptoEngine = cryptoEngine,
-            keyWrapEnvelopeCodec = keyWrapEnvelopeCodec,
+            keyWrapping = keyWrapping,
         )
 
         val result = useCase.unlockWithRecoveryKey(recoveryKey = recoveryKey)
@@ -81,8 +82,7 @@ class VaultUnlockUseCaseTest {
         val useCase = VaultUnlockUseCase(
             vaultKeyMaterialLocalRepository = cache,
             kdfEngine = kdfEngine,
-            cryptoEngine = cryptoEngine,
-            keyWrapEnvelopeCodec = keyWrapEnvelopeCodec,
+            keyWrapping = keyWrapping,
         )
 
         val result = useCase.unlockWithPassphrase(passphrase = "wrong-passphrase")
@@ -106,8 +106,7 @@ class VaultUnlockUseCaseTest {
         val useCase = VaultUnlockUseCase(
             vaultKeyMaterialLocalRepository = cache,
             kdfEngine = kdfEngine,
-            cryptoEngine = cryptoEngine,
-            keyWrapEnvelopeCodec = keyWrapEnvelopeCodec,
+            keyWrapping = keyWrapping,
         )
 
         val result = useCase.unlockWithRecoveryKey(
@@ -125,8 +124,7 @@ class VaultUnlockUseCaseTest {
         val useCase = VaultUnlockUseCase(
             vaultKeyMaterialLocalRepository = VaultKeyMaterialCache(MinimalInMemorySharedPreferences()),
             kdfEngine = kdfEngine,
-            cryptoEngine = cryptoEngine,
-            keyWrapEnvelopeCodec = keyWrapEnvelopeCodec,
+            keyWrapping = keyWrapping,
         )
 
         val passphraseResult = useCase.unlockWithPassphrase(passphrase = "passphrase")
@@ -160,8 +158,7 @@ class VaultUnlockUseCaseTest {
         val useCase = VaultUnlockUseCase(
             vaultKeyMaterialLocalRepository = cache,
             kdfEngine = kdfEngine,
-            cryptoEngine = cryptoEngine,
-            keyWrapEnvelopeCodec = keyWrapEnvelopeCodec,
+            keyWrapping = keyWrapping,
         )
 
         val result = useCase.unlockWithPassphrase(passphrase = passphrase)
@@ -219,12 +216,10 @@ class VaultUnlockUseCaseTest {
     private fun wrapKek(
         kek: ByteArray,
         wrappingKey: ByteArray,
-    ): ByteArray = keyWrapEnvelopeCodec.encode(
-        encryptionResult = cryptoEngine.encrypt(
-            request = EncryptionRequest(
-                plaintext = kek,
-                keyMaterial = wrappingKey,
-            ),
+    ): ByteArray = keyWrapping.wrapKey(
+        request = KeyWrapRequest(
+            keyToWrap = kek,
+            wrappingKey = wrappingKey,
         ),
     )
 }

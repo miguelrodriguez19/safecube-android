@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 12-03-2026 09:10:41
+Updated: 12-03-2026 09:44:21
 
 ```
 safecube-android/
@@ -115,29 +115,37 @@ safecube-android/
 │   │   ├── src/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/crypto/
+│   │   │   │   │   ├── data/engine/
+│   │   │   │   │   │   ├── AesGcmCryptoEngine.kt
+│   │   │   │   │   │   ├── AesGcmKeyWrapping.kt
+│   │   │   │   │   │   └── Argon2KdfEngine.kt
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   └── CryptoModule.kt
-│   │   │   │   │   ├── internal/
-│   │   │   │   │   │   ├── AesGcmCryptoEngine.kt
-│   │   │   │   │   │   └── Argon2KdfEngine.kt
-│   │   │   │   │   ├── CryptoEngine.kt
-│   │   │   │   │   ├── DecryptionRequest.kt
-│   │   │   │   │   ├── EncryptionRequest.kt
-│   │   │   │   │   ├── EncryptionResult.kt
-│   │   │   │   │   ├── KdfEngine.kt
-│   │   │   │   │   ├── KdfRequest.kt
-│   │   │   │   │   ├── KeyUnwrapRequest.kt
-│   │   │   │   │   ├── KeyWrapping.kt
-│   │   │   │   │   ├── KeyWrapRequest.kt
-│   │   │   │   │   └── SaltGenerator.kt
+│   │   │   │   │   └── domain/
+│   │   │   │   │       ├── model/
+│   │   │   │   │       │   ├── DecryptionRequest.kt
+│   │   │   │   │       │   ├── EncryptionRequest.kt
+│   │   │   │   │       │   ├── EncryptionResult.kt
+│   │   │   │   │       │   ├── KdfRequest.kt
+│   │   │   │   │       │   ├── KeyUnwrapRequest.kt
+│   │   │   │   │       │   └── KeyWrapRequest.kt
+│   │   │   │   │       ├── port/
+│   │   │   │   │       │   ├── CryptoEngine.kt
+│   │   │   │   │       │   ├── KdfEngine.kt
+│   │   │   │   │       │   └── KeyWrapping.kt
+│   │   │   │   │       └── service/
+│   │   │   │   │           └── SaltGenerator.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/crypto/
-│   │   │       ├── internal/
+│   │   │       ├── data/engine/
 │   │   │       │   ├── AesGcmCryptoEngineTest.kt
 │   │   │       │   ├── AesGcmKeyWrappingTest.kt
 │   │   │       │   └── Argon2KdfEngineTest.kt
-│   │   │       ├── CryptoRequestModelsTest.kt
-│   │   │       └── SaltGeneratorTest.kt
+│   │   │       └── domain/
+│   │   │           ├── model/
+│   │   │           │   └── CryptoRequestModelsTest.kt
+│   │   │           └── service/
+│   │   │               └── SaltGeneratorTest.kt
 │   │   └── build.gradle.kts
 │   ├── network/
 │   │   ├── build/
@@ -259,7 +267,6 @@ safecube-android/
 │   │   │   │   │       ├── config/
 │   │   │   │   │       │   └── VaultCryptoDefaults.kt
 │   │   │   │   │       ├── crypto/
-│   │   │   │   │       │   └── KeyWrapEnvelopeCodec.kt
 │   │   │   │   │       ├── model/
 │   │   │   │   │       │   ├── initialize/
 │   │   │   │   │       │   │   ├── VaultInitializeError.kt

@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.crypto
+package com.miguelrodriguez19.safecube.core.crypto.domain.service
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

@@ -1,15 +1,21 @@
-package com.miguelrodriguez19.safecube.core.crypto.internal
+package com.miguelrodriguez19.safecube.core.crypto.data.engine
 
-import com.miguelrodriguez19.safecube.core.crypto.KdfEngine
-import com.miguelrodriguez19.safecube.core.crypto.KdfRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.KdfEngine
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KdfRequest
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator
 import org.bouncycastle.crypto.params.Argon2Parameters
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Argon2id implementation of [KdfEngine].
+ */
 @Singleton
 class Argon2KdfEngine @Inject constructor() : KdfEngine {
 
+    /**
+     * Derives a key from the provided [request] using Argon2id.
+     */
     override fun deriveKey(request: KdfRequest): ByteArray {
         require(request.secret.isNotEmpty()) { "KdfRequest.secret must not be empty." }
         require(request.salt.isNotEmpty()) { "KdfRequest.salt must not be empty." }

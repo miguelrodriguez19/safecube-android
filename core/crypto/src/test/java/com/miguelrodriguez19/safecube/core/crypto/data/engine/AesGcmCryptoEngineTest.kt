@@ -1,7 +1,7 @@
-package com.miguelrodriguez19.safecube.core.crypto.internal
+package com.miguelrodriguez19.safecube.core.crypto.data.engine
 
-import com.miguelrodriguez19.safecube.core.crypto.DecryptionRequest
-import com.miguelrodriguez19.safecube.core.crypto.EncryptionRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.DecryptionRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.EncryptionRequest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
