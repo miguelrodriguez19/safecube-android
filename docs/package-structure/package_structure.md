@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 11-03-2026 10:05:32
+Updated: 12-03-2026 03:01:47
 
 ```
 safecube-android/
@@ -252,6 +252,7 @@ safecube-android/
 │   │   │   │   │   │   │   └── VaultKeyMaterialCache.kt
 │   │   │   │   │   │   ├── remote/
 │   │   │   │   │   │   │   ├── RemoteVaultKeyMaterialDataSource.kt
+│   │   │   │   │   │   │   ├── VaultKeyMaterialDataSource.kt
 │   │   │   │   │   │   │   └── VaultKeyMaterialRemoteResult.kt
 │   │   │   │   │   │   └── session/
 │   │   │   │   │   │       └── FakeVaultSessionManager.kt
@@ -260,16 +261,21 @@ safecube-android/
 │   │   │   │   │   └── domain/
 │   │   │   │   │       ├── model/
 │   │   │   │   │       │   └── VaultState.kt
-│   │   │   │   │       └── session/
-│   │   │   │   │           └── VaultSessionManager.kt
+│   │   │   │   │       ├── session/
+│   │   │   │   │       │   └── VaultSessionManager.kt
+│   │   │   │   │       └── usecase/
+│   │   │   │   │           └── VaultInitializeUseCase.kt
 │   │   │   │   └── AndroidManifest.xml
-│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/vault/data/
-│   │   │       ├── local/
-│   │   │       │   └── VaultKeyMaterialCacheTest.kt
-│   │   │       ├── remote/
-│   │   │       │   └── RemoteVaultKeyMaterialDataSourceTest.kt
-│   │   │       └── session/
-│   │   │           └── FakeVaultSessionManagerTest.kt
+│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/vault/
+│   │   │       ├── data/
+│   │   │       │   ├── local/
+│   │   │       │   │   └── VaultKeyMaterialCacheTest.kt
+│   │   │       │   ├── remote/
+│   │   │       │   │   └── RemoteVaultKeyMaterialDataSourceTest.kt
+│   │   │       │   └── session/
+│   │   │       │       └── FakeVaultSessionManagerTest.kt
+│   │   │       └── domain/usecase/
+│   │   │           └── VaultInitializeUseCaseTest.kt
 │   │   └── build.gradle.kts
 ├── docs/
 │   ├── architecture/

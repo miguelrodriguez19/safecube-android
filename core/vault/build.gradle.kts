@@ -44,6 +44,7 @@ kover {
 }
 
 dependencies {
+    implementation(project(":core:crypto"))
     implementation(project(":core:network"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.security.crypto)

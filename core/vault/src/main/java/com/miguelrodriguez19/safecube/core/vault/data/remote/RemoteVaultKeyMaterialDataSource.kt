@@ -12,19 +12,19 @@ import retrofit2.Response
 @Singleton
 class RemoteVaultKeyMaterialDataSource @Inject constructor(
     private val vaultKeyMaterialControllerApi: VaultKeyMaterialControllerApi,
-) {
-    suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterialResponse> =
+) : VaultKeyMaterialDataSource {
+    override suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterialResponse> =
         executeSafely {
             executeWithBody { vaultKeyMaterialControllerApi.getVaultKeyMaterial() }
         }
 
-    suspend fun initKeyMaterial(
+    override suspend fun initKeyMaterial(
         request: InitVaultKeyMaterialRequest,
     ): VaultKeyMaterialRemoteResult<Unit> = executeSafely {
         executeWithoutBody { vaultKeyMaterialControllerApi.initVaultKeyMaterial(request) }
     }
 
-    suspend fun updateMasterWrappedKek(
+    override suspend fun updateMasterWrappedKek(
         request: UpdateMasterWrappedKekRequest,
     ): VaultKeyMaterialRemoteResult<Unit> = executeSafely {
         executeWithoutBody { vaultKeyMaterialControllerApi.updateMasterWrappedKek(request) }
