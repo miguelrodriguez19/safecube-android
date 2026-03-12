@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 12-03-2026 09:44:21
+Updated: 12-03-2026 11:38:18
 
 ```
 safecube-android/
@@ -207,23 +207,32 @@ safecube-android/
 │   │   ├── src/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/network/
+│   │   │   │   │   ├── data/
+│   │   │   │   │   │   ├── auth/
+│   │   │   │   │   │   │   ├── AuthInterceptor.kt
+│   │   │   │   │   │   │   └── TokenRefreshAuthenticator.kt
+│   │   │   │   │   │   └── client/
+│   │   │   │   │   │       └── NetworkClientFactory.kt
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   ├── NetworkModule.kt
 │   │   │   │   │   │   ├── RefreshAuthApi.kt
 │   │   │   │   │   │   ├── RefreshOkHttpClient.kt
 │   │   │   │   │   │   ├── RefreshRetrofit.kt
 │   │   │   │   │   │   └── TokenRefreshOptionalBindingModule.kt
-│   │   │   │   │   ├── AuthInterceptor.kt
-│   │   │   │   │   ├── NetworkClientFactory.kt
-│   │   │   │   │   ├── NetworkConfig.kt
-│   │   │   │   │   ├── TokenProvider.kt
-│   │   │   │   │   ├── TokenRefreshAuthenticator.kt
-│   │   │   │   │   └── TokenRefreshHandler.kt
+│   │   │   │   │   └── domain/
+│   │   │   │   │       ├── model/
+│   │   │   │   │       │   └── NetworkConfig.kt
+│   │   │   │   │       └── port/
+│   │   │   │   │           ├── TokenProvider.kt
+│   │   │   │   │           └── TokenRefreshHandler.kt
 │   │   │   │   └── AndroidManifest.xml
-│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/
-│   │   │       ├── NetworkClientFactoryTest.kt
-│   │   │       ├── TokenRefreshAuthenticatorFlowTest.kt
-│   │   │       └── TokenRefreshAuthenticatorTest.kt
+│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/data/
+│   │   │       ├── auth/
+│   │   │       │   ├── AuthInterceptorTest.kt
+│   │   │       │   ├── TokenRefreshAuthenticatorFlowTest.kt
+│   │   │       │   └── TokenRefreshAuthenticatorIntegrationTest.kt
+│   │   │       └── client/
+│   │   │           └── NetworkClientFactoryIntegrationTest.kt
 │   │   └── build.gradle.kts
 │   ├── storage/
 │   │   ├── src/main/
@@ -314,8 +323,10 @@ safecube-android/
 │   │   ├── roadmap--fase-2.md
 │   │   ├── roadmap--fase-3.md
 │   │   └── roadmap--high-level.md
-│   ├── README.md
-│   └── testing.md
+│   ├── testing/
+│   │   ├── testing.md
+│   │   └── TESTING_STANDARD.md
+│   └── README.md
 ├── feature/
 │   ├── auth/
 │   │   ├── src/main/

@@ -12,8 +12,8 @@ import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManagerImpl
-import com.miguelrodriguez19.safecube.core.network.TokenProvider
-import com.miguelrodriguez19.safecube.core.network.TokenRefreshHandler
+import com.miguelrodriguez19.safecube.core.network.domain.port.TokenProvider
+import com.miguelrodriguez19.safecube.core.network.domain.port.TokenRefreshHandler
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

@@ -23,6 +23,7 @@ coroutines = "1.10.2"
 hiltNavigationCompose = "1.2.0"
 kover = "0.9.7"
 bouncycastle = "1.83"
+mockk = "1.14.9"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
@@ -64,6 +65,7 @@ androidx-security-crypto = { module = "androidx.security:security-crypto", versi
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 
 [plugins]

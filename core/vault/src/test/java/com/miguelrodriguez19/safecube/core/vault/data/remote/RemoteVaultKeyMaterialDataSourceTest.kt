@@ -1,7 +1,7 @@
 package com.miguelrodriguez19.safecube.core.vault.data.remote
 
-import com.miguelrodriguez19.safecube.core.network.NetworkClientFactory
-import com.miguelrodriguez19.safecube.core.network.NetworkConfig
+import com.miguelrodriguez19.safecube.core.network.data.client.NetworkClientFactory
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMaterialControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.InitVaultKeyMaterialRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateMasterWrappedKekRequest

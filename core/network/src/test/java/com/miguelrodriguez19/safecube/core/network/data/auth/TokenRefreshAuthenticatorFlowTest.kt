@@ -1,5 +1,9 @@
-package com.miguelrodriguez19.safecube.core.network
+package com.miguelrodriguez19.safecube.core.network.data.auth
 
+import com.miguelrodriguez19.safecube.core.network.data.client.NetworkClientFactory
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
+import com.miguelrodriguez19.safecube.core.network.domain.port.TokenProvider
+import com.miguelrodriguez19.safecube.core.network.domain.port.TokenRefreshHandler
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.RefreshTokenRequest
 import java.util.Optional

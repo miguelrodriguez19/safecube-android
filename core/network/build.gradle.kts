@@ -110,6 +110,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
     testImplementation(libs.okhttp.mockwebserver)
 
     implementation(libs.hilt.android)

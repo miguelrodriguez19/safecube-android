@@ -5,7 +5,7 @@ import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
-import com.miguelrodriguez19.safecube.core.network.TokenRefreshHandler
+import com.miguelrodriguez19.safecube.core.network.domain.port.TokenRefreshHandler
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton

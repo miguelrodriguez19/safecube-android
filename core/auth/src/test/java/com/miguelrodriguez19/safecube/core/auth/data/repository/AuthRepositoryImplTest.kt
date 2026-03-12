@@ -6,8 +6,8 @@ import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
 import com.miguelrodriguez19.safecube.core.auth.domain.model.RegisteredAccount
-import com.miguelrodriguez19.safecube.core.network.NetworkClientFactory
-import com.miguelrodriguez19.safecube.core.network.NetworkConfig
+import com.miguelrodriguez19.safecube.core.network.data.client.NetworkClientFactory
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
 import java.time.OffsetDateTime
 import java.util.UUID

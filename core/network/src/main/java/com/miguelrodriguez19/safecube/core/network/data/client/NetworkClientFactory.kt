@@ -1,5 +1,6 @@
-package com.miguelrodriguez19.safecube.core.network
+package com.miguelrodriguez19.safecube.core.network.data.client
 
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.infrastructure.Serializer
 import java.util.concurrent.TimeUnit
 import kotlinx.serialization.json.Json
@@ -11,12 +12,21 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
+/**
+ * Factory for configured Json, OkHttp and Retrofit instances.
+ */
 object NetworkClientFactory {
+    /**
+     * Creates the Json configuration used by generated API models.
+     */
     fun createJson(): Json = Json(Serializer.kotlinxSerializationJson) {
         ignoreUnknownKeys = true
         explicitNulls = false
     }
 
+    /**
+     * Builds an OkHttp client configured with timeouts and optional auth components.
+     */
     fun createOkHttpClient(
         config: NetworkConfig,
         authInterceptor: Interceptor? = null,
@@ -41,6 +51,9 @@ object NetworkClientFactory {
         return builder.build()
     }
 
+    /**
+     * Builds Retrofit with the provided [config], JSON converter, and HTTP client.
+     */
     fun createRetrofit(
         config: NetworkConfig,
         authInterceptor: Interceptor? = null,
@@ -55,6 +68,9 @@ object NetworkClientFactory {
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
 
+    /**
+     * Creates a typed Retrofit service using [createRetrofit].
+     */
     inline fun <reified T : Any> createService(
         config: NetworkConfig,
         authInterceptor: Interceptor? = null,

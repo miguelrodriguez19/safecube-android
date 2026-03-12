@@ -1,8 +1,10 @@
-package com.miguelrodriguez19.safecube.core.network
+package com.miguelrodriguez19.safecube.core.network.data.auth
 
+import com.miguelrodriguez19.safecube.core.network.domain.port.TokenProvider
+import com.miguelrodriguez19.safecube.core.network.domain.port.TokenRefreshHandler
+import java.util.Optional
 import javax.inject.Inject
 import javax.inject.Singleton
-import java.util.Optional
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -12,7 +14,7 @@ import okhttp3.Response
 import okhttp3.Route
 
 /**
- * Owner for 401 -> refresh -> retry flow.
+ * Handles `401 Unauthorized` responses by attempting a token refresh and retrying once.
  */
 @Singleton
 class TokenRefreshAuthenticator @Inject constructor(
@@ -21,6 +23,9 @@ class TokenRefreshAuthenticator @Inject constructor(
 ) : Authenticator {
     private val refreshMutex = Mutex()
 
+    /**
+     * Returns a retried request with a refreshed bearer token, or null when retry is not possible.
+     */
     override fun authenticate(
         route: Route?,
         response: Response,
