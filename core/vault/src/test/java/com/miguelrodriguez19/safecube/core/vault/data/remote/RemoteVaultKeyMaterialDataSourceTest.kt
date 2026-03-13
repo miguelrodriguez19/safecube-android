@@ -42,10 +42,10 @@ class RemoteVaultKeyMaterialDataSourceTest {
                     """
                     {
                       "accountId":"4f89ab0e-453f-4be5-b261-95068f2ad6f0",
-                      "kekEncMaster":[1,2,3],
-                      "kekEncRecovery":[4,5,6],
+                      "kekEncMaster":"AQID",
+                      "kekEncRecovery":"BAUG",
                       "kdfAlgorithm":"argon2id",
-                      "kdfSalt":[7,8,9],
+                      "kdfSalt":"BwgJ",
                       "kdfMemoryKib":65536,
                       "kdfIterations":3,
                       "kdfParallelism":1,

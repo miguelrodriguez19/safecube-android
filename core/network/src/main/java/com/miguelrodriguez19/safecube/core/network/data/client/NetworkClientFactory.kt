@@ -11,6 +11,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.serialization.modules.SerializersModule
+import com.miguelrodriguez19.safecube.core.network.serialization.Base64ByteArraySerializer
+import kotlinx.serialization.modules.plus
 
 /**
  * Factory for configured Json, OkHttp and Retrofit instances.
@@ -20,8 +23,15 @@ object NetworkClientFactory {
      * Creates the Json configuration used by generated API models.
      */
     fun createJson(): Json = Json(Serializer.kotlinxSerializationJson) {
+
         ignoreUnknownKeys = true
         explicitNulls = false
+
+        val appSerializers = SerializersModule {
+            contextual(ByteArray::class, Base64ByteArraySerializer)
+        }
+
+        serializersModule = Serializer.kotlinxSerializationJson.serializersModule + appSerializers
     }
 
     /**

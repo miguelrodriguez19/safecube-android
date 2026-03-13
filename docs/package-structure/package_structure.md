@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 13-03-2026 11:44:34
+Updated: 13-03-2026 06:29:05
 
 ```
 safecube-android/
@@ -229,12 +229,14 @@ safecube-android/
 │   │   │   │   │   │   ├── RefreshOkHttpClient.kt
 │   │   │   │   │   │   ├── RefreshRetrofit.kt
 │   │   │   │   │   │   └── TokenRefreshOptionalBindingModule.kt
-│   │   │   │   │   └── domain/
-│   │   │   │   │       ├── model/
-│   │   │   │   │       │   └── NetworkConfig.kt
-│   │   │   │   │       └── port/
-│   │   │   │   │           ├── TokenProvider.kt
-│   │   │   │   │           └── TokenRefreshHandler.kt
+│   │   │   │   │   ├── domain/
+│   │   │   │   │   │   ├── model/
+│   │   │   │   │   │   │   └── NetworkConfig.kt
+│   │   │   │   │   │   └── port/
+│   │   │   │   │   │       ├── TokenProvider.kt
+│   │   │   │   │   │       └── TokenRefreshHandler.kt
+│   │   │   │   │   └── serialization/
+│   │   │   │   │       └── Base64ByteArraySerializer.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/data/
 │   │   │       ├── auth/

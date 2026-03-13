@@ -11,6 +11,9 @@ plugins {
 }
 
 val openApiOutput = layout.buildDirectory.dir("generated/openapi")
+val generatedNetworkPackage = "com.miguelrodriguez19.safecube.core.network.generated"
+val generatedApiPackage = "$generatedNetworkPackage.api"
+val generatedModelPackage = "$generatedNetworkPackage.model"
 
 android {
     namespace = "com.miguelrodriguez19.safecube.core.network"
@@ -51,9 +54,9 @@ tasks.named<GenerateTask>("openApiGenerate") {
     outputDir.set(openApiOutput.get().asFile.path)
     cleanupOutput.set(true)
 
-    packageName.set("com.miguelrodriguez19.safecube.core.network.generated")
-    apiPackage.set("com.miguelrodriguez19.safecube.core.network.generated.api")
-    modelPackage.set("com.miguelrodriguez19.safecube.core.network.generated.model")
+    packageName.set(generatedNetworkPackage)
+    apiPackage.set(generatedApiPackage)
+    modelPackage.set(generatedModelPackage)
 
     configOptions.set(
         mapOf(
@@ -70,8 +73,78 @@ tasks.named<GenerateTask>("openApiGenerate") {
     generateApiDocumentation.set(false)
 }
 
-tasks.named("preBuild") {
+tasks.register("postProcessOpenApiGeneratedModels") {
     dependsOn("openApiGenerate")
+    doLast {
+        val generatedModelDir = file(
+            "${openApiOutput.get().asFile.path}/src/main/kotlin/${generatedModelPackage.replace('.', '/')}",
+        )
+        if (!generatedModelDir.exists()) return@doLast
+
+        val byteArrayValueRegex = Regex("""^\s*val\s+\w+:\s+kotlin\.ByteArray\b.*$""")
+
+        generatedModelDir
+            .walkTopDown()
+            .filter { it.isFile && it.extension == "kt" }
+            .forEach { modelFile ->
+                val originalContent = modelFile.readText()
+                if (!originalContent.contains("kotlin.ByteArray")) return@forEach
+
+                val deDuplicatedLines = buildList<String> {
+                    originalContent.lines().forEach { line ->
+                        val isContextualLine = line.trim() == "@Contextual"
+                        val previousIsContextual = lastOrNull()?.trim() == "@Contextual"
+                        if (isContextualLine && previousIsContextual) return@forEach
+                        add(line)
+                    }
+                }
+
+                val normalizedLines = deDuplicatedLines.toMutableList()
+                var index = 0
+                while (index < normalizedLines.lastIndex) {
+                    val serialLine = normalizedLines[index]
+                    val valueLine = normalizedLines[index + 1]
+
+                    val hasSerialName = serialLine.contains("@SerialName(value =")
+                    val hasByteArrayValue = byteArrayValueRegex.matches(valueLine)
+
+                    if (hasSerialName && hasByteArrayValue) {
+                        val hasContextualSameLine = serialLine.contains("@Contextual")
+                        val previousNonEmptyLine = (index - 1 downTo 0)
+                            .asSequence()
+                            .map { normalizedLines[it] }
+                            .firstOrNull { it.isNotBlank() }
+                        val hasContextualPreviousLine = previousNonEmptyLine?.trim() == "@Contextual"
+
+                        if (!hasContextualSameLine && !hasContextualPreviousLine) {
+                            val indentation = serialLine.takeWhile { it == ' ' || it == '\t' }
+                            normalizedLines.add(index, "${indentation}@Contextual")
+                            index += 1
+                        }
+                    }
+
+                    index += 1
+                }
+
+                var updatedContent = normalizedLines.joinToString(separator = "\n")
+                if (updatedContent != originalContent &&
+                    !updatedContent.contains("import kotlinx.serialization.Contextual")
+                ) {
+                    updatedContent = updatedContent.replace(
+                        oldValue = "import kotlinx.serialization.SerialName",
+                        newValue = "import kotlinx.serialization.SerialName\nimport kotlinx.serialization.Contextual",
+                    )
+                }
+
+                if (updatedContent != originalContent) {
+                    modelFile.writeText(updatedContent)
+                }
+            }
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn("postProcessOpenApiGeneratedModels")
 }
 
 kover {
