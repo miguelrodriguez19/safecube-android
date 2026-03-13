@@ -14,13 +14,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        splashScreen.setKeepOnScreenCondition {
-            // TODO: ping to backend (start koyeb)
-            // TODO: check if is first time in app. Send to welcome if not send to login
-            false
-        }
+        splashScreen.setKeepOnScreenCondition(::shouldKeepSplashOnScreen)
 
         enableEdgeToEdge()
+        setAppContent()
+    }
+
+    private fun shouldKeepSplashOnScreen(): Boolean {
+        // TODO: check if is first time in app. Send to welcome, if not send to login
+        return false
+    }
+
+    private fun setAppContent() {
         setContent {
             SafecubeandroidTheme {
                 NavigationWrapper()

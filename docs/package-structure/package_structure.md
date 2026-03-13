@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 13-03-2026 12:53:43
+Updated: 13-03-2026 11:44:34
 
 ```
 safecube-android/
@@ -22,15 +22,22 @@ safecube-android/
 │   │   │   │   └── presentation/
 │   │   │   │       ├── navigation/
 │   │   │   │       │   ├── gate/
-│   │   │   │       │   │   └── NavigationGates.kt
+│   │   │   │       │   │   ├── NavigationGates.kt
+│   │   │   │       │   │   └── NavigationGatesEntryPoint.kt
 │   │   │   │       │   ├── host/
+│   │   │   │       │   │   ├── NavigationBackPolicy.kt
+│   │   │   │       │   │   ├── NavigationDependencies.kt
+│   │   │   │       │   │   ├── NavigationGraph.kt
+│   │   │   │       │   │   ├── NavigationSessionCoordinator.kt
 │   │   │   │       │   │   └── NavigationWrapper.kt
 │   │   │   │       │   └── route/
 │   │   │   │       │       └── Routes.kt
-│   │   │   │       └── theme/
-│   │   │   │           ├── Color.kt
-│   │   │   │           ├── Theme.kt
-│   │   │   │           └── Type.kt
+│   │   │   │       ├── theme/
+│   │   │   │       │   ├── Color.kt
+│   │   │   │       │   ├── Theme.kt
+│   │   │   │       │   └── Type.kt
+│   │   │   │       └── ui/
+│   │   │   │           └── SplashGateScreen.kt
 │   │   │   ├── res/
 │   │   │   │   ├── drawable/
 │   │   │   │   │   ├── ic_launcher_background.xml

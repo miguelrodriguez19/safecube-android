@@ -46,19 +46,3 @@ sealed class Routes : NavKey {
     @Serializable
     data object Error : Routes()
 }
-
-val allRoutes = listOf(
-    Routes.Splash,
-    Routes.Welcome,
-    Routes.Login,
-    Routes.Signup,
-    Routes.App,
-    Routes.Vault,
-    Routes.VaultFolders,
-    Routes.Settings,
-    Routes.Profile,
-    Routes.CreateVault,
-    Routes.RecoveryKey,
-    Routes.UnlockVault,
-    Routes.PostLoginGate,
-)
