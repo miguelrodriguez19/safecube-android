@@ -49,10 +49,13 @@ class VaultSessionManagerImpl @Inject constructor(
                         state.value = VaultState.Locked
                     }
 
-                    VaultKeyMaterialRemoteError.VaultAlreadyInitialized,
                     is VaultKeyMaterialRemoteError.HttpError,
                     is VaultKeyMaterialRemoteError.NetworkError,
                     -> {
+                        state.value = resolveStateForRemoteFailure()
+                    }
+
+                    VaultKeyMaterialRemoteError.VaultAlreadyInitialized -> {
                         state.value = initialVaultState()
                     }
                 }
@@ -108,6 +111,12 @@ class VaultSessionManagerImpl @Inject constructor(
 
     private fun initialVaultState(): VaultState = if (vaultKeyMaterialLocalRepository.get() == null) {
         VaultState.NotInitialized
+    } else {
+        VaultState.Locked
+    }
+
+    private fun resolveStateForRemoteFailure(): VaultState = if (vaultKeyMaterialLocalRepository.get() == null) {
+        VaultState.Unknown
     } else {
         VaultState.Locked
     }

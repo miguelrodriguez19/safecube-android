@@ -167,6 +167,14 @@ Campos de `VaultKeyMaterial` relevantes para cliente:
 * `kdfOutputLen` (`32`)
 * `cryptoVersion` (`v1`)
 
+### 8.1 Semántica de recovery/passphrase change en v1
+
+* La operación de actualización de material maestro (`PUT /vault/keys/master`) se interpreta como
+  actualización de envoltorio (`rewrap`) del material de KEK.
+* En v1 no implica re-encriptado masivo de items ni rotación obligatoria de DEK por sí sola.
+* Si en el futuro se añade rotación real de KEK, debe introducirse versionado explícito de material
+  de clave para coordinación multi-cliente.
+
 ## 9. Reglas de seguridad
 
 * `nonce` único por operación de cifrado con una misma clave.

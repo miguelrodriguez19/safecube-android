@@ -66,7 +66,7 @@ class VaultSessionManagerImplTest {
     }
 
     @Test
-    fun `refresh vault state falls back to local state on network failure`() = runBlocking {
+    fun `refresh vault state keeps locked with cache and unknown without cache on network failure`() = runBlocking {
         val managerWithoutCache = createManager(
             unlocker = FakeVaultUnlocker(),
             initialKeyMaterial = null,
@@ -85,7 +85,37 @@ class VaultSessionManagerImplTest {
         managerWithoutCache.refreshVaultState()
         managerWithCache.refreshVaultState()
 
-        assertEquals(VaultState.NotInitialized, managerWithoutCache.vaultState.value)
+        assertEquals(VaultState.Unknown, managerWithoutCache.vaultState.value)
+        assertEquals(VaultState.Locked, managerWithCache.vaultState.value)
+    }
+
+    @Test
+    fun `refresh vault state keeps locked with cache and unknown without cache on http error`() = runBlocking {
+        val managerWithoutCache = createManager(
+            unlocker = FakeVaultUnlocker(),
+            initialKeyMaterial = null,
+            remoteResult = VaultKeyMaterialRemoteResult.Error(
+                VaultKeyMaterialRemoteError.HttpError(
+                    statusCode = 500,
+                    errorBody = "server unavailable",
+                ),
+            ),
+        )
+        val managerWithCache = createManager(
+            unlocker = FakeVaultUnlocker(),
+            initialKeyMaterial = sampleVaultKeyMaterial(),
+            remoteResult = VaultKeyMaterialRemoteResult.Error(
+                VaultKeyMaterialRemoteError.HttpError(
+                    statusCode = 500,
+                    errorBody = "server unavailable",
+                ),
+            ),
+        )
+
+        managerWithoutCache.refreshVaultState()
+        managerWithCache.refreshVaultState()
+
+        assertEquals(VaultState.Unknown, managerWithoutCache.vaultState.value)
         assertEquals(VaultState.Locked, managerWithCache.vaultState.value)
     }
 
