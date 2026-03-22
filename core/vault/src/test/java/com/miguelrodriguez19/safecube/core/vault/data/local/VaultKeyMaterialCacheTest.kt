@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.vault.data.local
 
 import android.content.SharedPreferences
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import java.util.UUID
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -19,6 +20,7 @@ class VaultKeyMaterialCacheTest {
         val actual = cache.get()
 
         requireNotNull(actual)
+        assertEquals(expected.accountId, actual.accountId)
         assertArrayEquals(expected.kekEncMaster, actual.kekEncMaster)
         assertArrayEquals(expected.kekEncRecovery, actual.kekEncRecovery)
         assertEquals(expected.kdfAlgorithm, actual.kdfAlgorithm)
@@ -43,6 +45,18 @@ class VaultKeyMaterialCacheTest {
     @Test
     fun `get returns null when cache is empty`() {
         val cache = VaultKeyMaterialCache(InMemorySharedPreferences())
+
+        assertNull(cache.get())
+    }
+
+    @Test
+    fun `get returns null when account id is missing`() {
+        val preferences = InMemorySharedPreferences()
+        val cache = VaultKeyMaterialCache(preferences)
+        cache.save(createSample())
+        preferences.edit()
+            .remove("account_id")
+            .apply()
 
         assertNull(cache.get())
     }
@@ -96,6 +110,7 @@ class VaultKeyMaterialCacheTest {
     }
 
     private fun createSample(): VaultKeyMaterial = VaultKeyMaterial(
+        accountId = UUID.fromString("4f89ab0e-453f-4be5-b261-95068f2ad6f0"),
         kekEncMaster = byteArrayOf(1, 2, 3),
         kekEncRecovery = byteArrayOf(4, 5, 6),
         kdfAlgorithm = "argon2id",

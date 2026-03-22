@@ -14,6 +14,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultIn
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
+import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -25,8 +26,10 @@ import org.junit.Test
 class VaultInitializeUseCaseTest {
     @Test
     fun `initializes vault when get returns vault not initialized`() = runBlocking {
+        val refreshedVaultKeyMaterial = existingVaultKeyMaterial()
         val remoteRepository = FakeVaultKeyMaterialRemoteRepository(
             getResult = VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultNotInitialized),
+            refreshedGetResult = VaultKeyMaterialRemoteResult.Success(refreshedVaultKeyMaterial),
             initResult = VaultKeyMaterialRemoteResult.Success(Unit),
         )
         val cache = VaultKeyMaterialCache(InMemorySharedPreferences())
@@ -44,11 +47,12 @@ class VaultInitializeUseCaseTest {
         assertTrue(result is VaultInitializeResult.Initialized)
         val recoveryKey = (result as VaultInitializeResult.Initialized).recoveryKey
         assertEquals(32, recoveryKey.size)
-        assertEquals(1, remoteRepository.getCalls)
+        assertEquals(2, remoteRepository.getCalls)
         assertEquals(1, remoteRepository.initCalls)
         assertEquals(2, keyWrapping.wrapRequests.size)
 
         val initPayload = requireNotNull(remoteRepository.lastInitPayload)
+        assertNull(initPayload.accountId)
         assertFalse(recoveryKey.contentEquals(initPayload.kekEncMaster))
         assertFalse(recoveryKey.contentEquals(initPayload.kekEncRecovery))
         assertEquals("argon2id", initPayload.kdfAlgorithm)
@@ -59,11 +63,12 @@ class VaultInitializeUseCaseTest {
         assertEquals(32, initPayload.kdfOutputLen)
 
         val cached = requireNotNull(cache.get())
-        assertArrayEquals(initPayload.kekEncMaster, cached.kekEncMaster)
-        assertArrayEquals(initPayload.kekEncRecovery, cached.kekEncRecovery)
-        assertArrayEquals(initPayload.kdfSalt, cached.kdfSalt)
-        assertEquals(initPayload.kdfAlgorithm, cached.kdfAlgorithm)
-        assertEquals(initPayload.cryptoVersion, cached.cryptoVersion)
+        assertEquals(refreshedVaultKeyMaterial.accountId, cached.accountId)
+        assertArrayEquals(refreshedVaultKeyMaterial.kekEncMaster, cached.kekEncMaster)
+        assertArrayEquals(refreshedVaultKeyMaterial.kekEncRecovery, cached.kekEncRecovery)
+        assertArrayEquals(refreshedVaultKeyMaterial.kdfSalt, cached.kdfSalt)
+        assertEquals(refreshedVaultKeyMaterial.kdfAlgorithm, cached.kdfAlgorithm)
+        assertEquals(refreshedVaultKeyMaterial.cryptoVersion, cached.cryptoVersion)
 
         val lastKdfRequest = requireNotNull(kdfEngine.lastRequest)
         assertEquals(65536, lastKdfRequest.memoryKib)
@@ -179,6 +184,7 @@ class VaultInitializeUseCaseTest {
     )
 
     private fun existingVaultKeyMaterial(): VaultKeyMaterial = VaultKeyMaterial(
+        accountId = UUID.fromString("4f89ab0e-453f-4be5-b261-95068f2ad6f0"),
         kekEncMaster = byteArrayOf(1, 2, 3),
         kekEncRecovery = byteArrayOf(4, 5, 6),
         kdfAlgorithm = "argon2id",
@@ -193,6 +199,7 @@ class VaultInitializeUseCaseTest {
 
 private class FakeVaultKeyMaterialRemoteRepository(
     private val getResult: VaultKeyMaterialRemoteResult<VaultKeyMaterial>,
+    private val refreshedGetResult: VaultKeyMaterialRemoteResult<VaultKeyMaterial> = getResult,
     private val initResult: VaultKeyMaterialRemoteResult<Unit>,
 ) : VaultKeyMaterialRemoteRepository {
     var getCalls: Int = 0
@@ -204,7 +211,7 @@ private class FakeVaultKeyMaterialRemoteRepository(
 
     override suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterial> {
         getCalls += 1
-        return getResult
+        return if (getCalls == 1) getResult else refreshedGetResult
     }
 
     override suspend fun initKeyMaterial(

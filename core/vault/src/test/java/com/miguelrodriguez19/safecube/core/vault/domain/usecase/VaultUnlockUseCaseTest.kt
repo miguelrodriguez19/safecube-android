@@ -15,6 +15,7 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.UUID
 
 class VaultUnlockUseCaseTest {
     private val cryptoEngine = AesGcmCryptoEngine()
@@ -25,10 +26,12 @@ class VaultUnlockUseCaseTest {
 
     @Test
     fun `unlock with passphrase returns unlocked keyring`() {
+        val accountId = UUID.randomUUID()
         val passphrase = "correct-passphrase"
         val recoveryKey = ByteArray(32) { index -> (index + 31).toByte() }
         val kek = ByteArray(32) { index -> (index + 1).toByte() }
         val cache = cacheWithMaterial(
+            accountId = accountId,
             passphrase = passphrase,
             recoveryKey = recoveryKey,
             kek = kek,
@@ -48,10 +51,12 @@ class VaultUnlockUseCaseTest {
 
     @Test
     fun `unlock with recovery key returns unlocked keyring`() {
+        val accountId = UUID.randomUUID()
         val passphrase = "correct-passphrase"
         val recoveryKey = ByteArray(32) { index -> (index + 31).toByte() }
         val kek = ByteArray(32) { index -> (index + 1).toByte() }
         val cache = cacheWithMaterial(
+            accountId = accountId,
             passphrase = passphrase,
             recoveryKey = recoveryKey,
             kek = kek,
@@ -71,10 +76,12 @@ class VaultUnlockUseCaseTest {
 
     @Test
     fun `unlock with wrong passphrase returns stable invalid credential error`() {
+        val accountId = UUID.randomUUID()
         val passphrase = "correct-passphrase"
         val recoveryKey = ByteArray(32) { index -> (index + 31).toByte() }
         val kek = ByteArray(32) { index -> (index + 1).toByte() }
         val cache = cacheWithMaterial(
+            accountId = accountId,
             passphrase = passphrase,
             recoveryKey = recoveryKey,
             kek = kek,
@@ -95,10 +102,12 @@ class VaultUnlockUseCaseTest {
 
     @Test
     fun `unlock with wrong recovery key returns stable invalid credential error`() {
+        val accountId = UUID.randomUUID()
         val passphrase = "correct-passphrase"
         val recoveryKey = ByteArray(32) { index -> (index + 31).toByte() }
         val kek = ByteArray(32) { index -> (index + 1).toByte() }
         val cache = cacheWithMaterial(
+            accountId = accountId,
             passphrase = passphrase,
             recoveryKey = recoveryKey,
             kek = kek,
@@ -142,10 +151,12 @@ class VaultUnlockUseCaseTest {
 
     @Test
     fun `unlock returns invalid cached key material when envelope is malformed`() {
+        val accountId = UUID.randomUUID()
         val passphrase = "correct-passphrase"
         val recoveryKey = ByteArray(32) { index -> (index + 31).toByte() }
         val kek = ByteArray(32) { index -> (index + 1).toByte() }
         val cache = cacheWithMaterial(
+            accountId = accountId,
             passphrase = passphrase,
             recoveryKey = recoveryKey,
             kek = kek,
@@ -170,6 +181,7 @@ class VaultUnlockUseCaseTest {
     }
 
     private fun cacheWithMaterial(
+        accountId: UUID,
         passphrase: String,
         recoveryKey: ByteArray,
         kek: ByteArray,
@@ -199,6 +211,7 @@ class VaultUnlockUseCaseTest {
         )
         cache.save(
             vaultKeyMaterial = VaultKeyMaterial(
+                accountId = accountId,
                 kekEncMaster = wrappedMaster,
                 kekEncRecovery = wrappedRecovery,
                 kdfAlgorithm = "argon2id",

@@ -5,6 +5,7 @@ import androidx.core.content.edit
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import java.util.Base64
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,6 +15,7 @@ class VaultKeyMaterialCache @Inject constructor(
 ) : VaultKeyMaterialLocalRepository {
 
     private companion object {
+        const val KEY_ACCOUNT_ID = "account_id"
         const val KEY_KEK_ENC_MASTER = "kek_enc_master"
         const val KEY_KEK_ENC_RECOVERY = "kek_enc_recovery"
         const val KEY_KDF_ALGORITHM = "kdf_algorithm"
@@ -28,6 +30,7 @@ class VaultKeyMaterialCache @Inject constructor(
 
     override fun save(vaultKeyMaterial: VaultKeyMaterial) {
         encryptedPreferences.edit {
+            putString(KEY_ACCOUNT_ID, vaultKeyMaterial.accountId.toString())
             putString(KEY_KEK_ENC_MASTER, encode(vaultKeyMaterial.kekEncMaster))
             putString(KEY_KEK_ENC_RECOVERY, encode(vaultKeyMaterial.kekEncRecovery))
             putString(KEY_KDF_ALGORITHM, vaultKeyMaterial.kdfAlgorithm)
@@ -41,35 +44,48 @@ class VaultKeyMaterialCache @Inject constructor(
     }
 
     override fun get(): VaultKeyMaterial? {
+        val accountId = encryptedPreferences.getString(KEY_ACCOUNT_ID, null)
+            ?.toUuidOrNull()
+            ?: return null
+
         val kekEncMaster = encryptedPreferences.getString(KEY_KEK_ENC_MASTER, null)
             ?.let(::decode)
             ?: return null
+
         val kekEncRecovery = encryptedPreferences.getString(KEY_KEK_ENC_RECOVERY, null)
             ?.let(::decode)
             ?: return null
+
         val kdfAlgorithm = encryptedPreferences.getString(KEY_KDF_ALGORITHM, null)
             ?.takeIf { it.isNotBlank() }
             ?: return null
+
         val kdfSalt = encryptedPreferences.getString(KEY_KDF_SALT, null)
             ?.let(::decode)
             ?: return null
+
         val kdfMemoryKib = encryptedPreferences.getInt(KEY_KDF_MEMORY_KIB, MISSING_INT)
             .takeIfPositive()
             ?: return null
+
         val kdfIterations = encryptedPreferences.getInt(KEY_KDF_ITERATIONS, MISSING_INT)
             .takeIfPositive()
             ?: return null
+
         val kdfParallelism = encryptedPreferences.getInt(KEY_KDF_PARALLELISM, MISSING_INT)
             .takeIfPositive()
             ?: return null
+
         val kdfOutputLen = encryptedPreferences.getInt(KEY_KDF_OUTPUT_LEN, MISSING_INT)
             .takeIfPositive()
             ?: return null
+
         val cryptoVersion = encryptedPreferences.getString(KEY_CRYPTO_VERSION, null)
             ?.takeIf { it.isNotBlank() }
             ?: return null
 
         return VaultKeyMaterial(
+            accountId = accountId,
             kekEncMaster = kekEncMaster,
             kekEncRecovery = kekEncRecovery,
             kdfAlgorithm = kdfAlgorithm,
@@ -94,4 +110,8 @@ class VaultKeyMaterialCache @Inject constructor(
         runCatching { Base64.getDecoder().decode(value) }.getOrNull()
 
     private fun Int.takeIfPositive(): Int? = takeIf { it > 0 }
+
+    private fun String.toUuidOrNull(): UUID? =
+        takeIf { it.isNotBlank() }
+            ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
 }

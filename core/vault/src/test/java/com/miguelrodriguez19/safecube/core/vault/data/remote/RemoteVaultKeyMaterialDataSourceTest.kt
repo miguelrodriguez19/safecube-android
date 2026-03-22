@@ -8,12 +8,14 @@ import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateMasterW
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
+import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -34,6 +36,8 @@ class RemoteVaultKeyMaterialDataSourceTest {
 
     @Test
     fun `getKeyMaterial returns success with parsed payload`() = runBlocking {
+        val accountId = UUID.randomUUID()
+
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -41,7 +45,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
                 .setBody(
                     """
                     {
-                      "accountId":"4f89ab0e-453f-4be5-b261-95068f2ad6f0",
+                      "accountId":${accountId},
                       "kekEncMaster":"AQID",
                       "kekEncRecovery":"BAUG",
                       "kdfAlgorithm":"argon2id",
@@ -65,6 +69,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
 
         assertTrue(result is VaultKeyMaterialRemoteResult.Success)
         val value = (result as VaultKeyMaterialRemoteResult.Success).value
+        assertEquals(accountId, value.accountId)
         assertArrayEquals(byteArrayOf(1, 2, 3), value.kekEncMaster)
         assertArrayEquals(byteArrayOf(4, 5, 6), value.kekEncRecovery)
         assertEquals("argon2id", value.kdfAlgorithm)
@@ -108,8 +113,10 @@ class RemoteVaultKeyMaterialDataSourceTest {
             vaultKeyMaterialControllerApi = createVaultApi(server),
         )
 
+        val accountId = UUID.randomUUID()
         val result = dataSource.initKeyMaterial(
             vaultKeyMaterial = VaultKeyMaterial(
+                accountId = accountId,
                 kekEncMaster = byteArrayOf(1, 2, 3),
                 kekEncRecovery = byteArrayOf(4, 5, 6),
                 kdfAlgorithm = "argon2id",
@@ -130,6 +137,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
         val request = server.takeRequest()
         assertEquals("/vault/keys", request.path)
         assertEquals("POST", request.method)
+        assertFalse(request.body.readUtf8().contains("accountId"))
     }
 
     @Test

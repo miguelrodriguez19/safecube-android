@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
+import java.util.UUID
 
 @Singleton
 class VaultInitializeUseCase @Inject constructor(
@@ -93,7 +94,11 @@ class VaultInitializeUseCase @Inject constructor(
 
             when (val initResult = vaultKeyMaterialRemoteRepository.initKeyMaterial(vaultKeyMaterial)) {
                 is VaultKeyMaterialRemoteResult.Success -> {
-                    vaultKeyMaterialLocalRepository.save(vaultKeyMaterial)
+                    vaultKeyMaterialLocalRepository.save(
+                        refreshCachedVaultKeyMaterial(
+                            initializedVaultKeyMaterial = vaultKeyMaterial,
+                        ),
+                    )
                     VaultInitializeResult.Initialized(
                         recoveryKey = generatedRecoveryKey.copyOf(),
                     )
@@ -121,6 +126,13 @@ class VaultInitializeUseCase @Inject constructor(
             kek.fill(0)
             recoveryKey.fill(0)
         }
+    }
+
+    private suspend fun refreshCachedVaultKeyMaterial(
+        initializedVaultKeyMaterial: VaultKeyMaterial,
+    ): VaultKeyMaterial = when (val refreshedResponse = vaultKeyMaterialRemoteRepository.getKeyMaterial()) {
+        is VaultKeyMaterialRemoteResult.Success -> refreshedResponse.value
+        is VaultKeyMaterialRemoteResult.Error -> initializedVaultKeyMaterial
     }
 
     private fun wrapKek(

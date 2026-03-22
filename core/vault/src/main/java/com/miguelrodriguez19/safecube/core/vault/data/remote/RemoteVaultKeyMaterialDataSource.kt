@@ -21,6 +21,7 @@ class RemoteVaultKeyMaterialDataSource @Inject constructor(
             executeWithBody { vaultKeyMaterialControllerApi.getVaultKeyMaterial() }
                 .mapSuccess { response ->
                     VaultKeyMaterial(
+                        accountId = response.accountId,
                         kekEncMaster = response.kekEncMaster,
                         kekEncRecovery = response.kekEncRecovery,
                         kdfAlgorithm = response.kdfAlgorithm,
