@@ -42,7 +42,7 @@ Resultado esperado:
 
 ---
 
-### 🟢 FASE 2 — Auth Flow Completo
+### 🟢 FASE 2 — Auth Flow Completo (COMPLETADA)
 
 Construir:
 
@@ -63,7 +63,7 @@ Resultado:
 
 ---
 
-### 🟢 FASE 3 — Crypto Real + Vault Unlock
+### 🟢 FASE 3 — Crypto Real + Vault Unlock (COMPLETADA)
 
 Aquí empieza lo interesante.
 
