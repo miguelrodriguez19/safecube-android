@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.miguelrodriguez19.safecube.core.storage.AppDatabase
 import com.miguelrodriguez19.safecube.core.storage.SecureItemDao
+import com.miguelrodriguez19.safecube.core.storage.StorageMigrations
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,6 +24,8 @@ object StorageModule {
         context,
         AppDatabase::class.java,
         DATABASE_NAME,
+    ).addMigrations(
+        StorageMigrations.MIGRATION_1_2,
     ).build()
 
     @Provides

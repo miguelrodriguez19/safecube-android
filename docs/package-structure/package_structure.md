@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 24-03-2026 09:00:59
+Updated: 24-03-2026 09:21:36
 
 ```
 safecube-android/
@@ -247,14 +247,21 @@ safecube-android/
 │   │   │           └── NetworkClientFactoryIntegrationTest.kt
 │   │   └── build.gradle.kts
 │   ├── storage/
-│   │   ├── src/main/
-│   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/
-│   │   │   │   ├── di/
-│   │   │   │   │   └── StorageModule.kt
-│   │   │   │   ├── AppDatabase.kt
-│   │   │   │   ├── SecureItemDao.kt
-│   │   │   │   └── SecureItemEntity.kt
-│   │   │   └── AndroidManifest.xml
+│   │   ├── schemas/com.miguelrodriguez19.safecube.core.storage.AppDatabase/
+│   │   │   └── 2.json
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/
+│   │   │   │   │   ├── di/
+│   │   │   │   │   │   └── StorageModule.kt
+│   │   │   │   │   ├── AppDatabase.kt
+│   │   │   │   │   ├── SecureItemDao.kt
+│   │   │   │   │   ├── SecureItemEntity.kt
+│   │   │   │   │   ├── StorageMigrations.kt
+│   │   │   │   │   └── StorageTypeConverters.kt
+│   │   │   │   └── AndroidManifest.xml
+│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/storage/
+│   │   │       └── StorageTypeConvertersTest.kt
 │   │   └── build.gradle.kts
 │   ├── ui/
 │   │   ├── src/main/
