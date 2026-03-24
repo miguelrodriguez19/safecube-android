@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 23-03-2026 09:39:11
+Updated: 24-03-2026 09:00:59
 
 ```
 safecube-android/
@@ -275,6 +275,8 @@ safecube-android/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/vault/
 │   │   │   │   │   ├── data/
+│   │   │   │   │   │   ├── codec/
+│   │   │   │   │   │   │   └── JsonSecureItemContentCodec.kt
 │   │   │   │   │   │   ├── local/
 │   │   │   │   │   │   │   ├── EncryptedVaultKeyMaterialPrefs.kt
 │   │   │   │   │   │   │   └── VaultKeyMaterialCache.kt
@@ -285,6 +287,10 @@ safecube-android/
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   └── VaultModule.kt
 │   │   │   │   │   └── domain/
+│   │   │   │   │       ├── codec/
+│   │   │   │   │       │   ├── SecureItemContentCodec.kt
+│   │   │   │   │       │   ├── SecureItemContentDecodeError.kt
+│   │   │   │   │       │   └── SecureItemContentDecodeResult.kt
 │   │   │   │   │       ├── config/
 │   │   │   │   │       │   └── VaultCryptoDefaults.kt
 │   │   │   │   │       ├── crypto/
@@ -294,6 +300,14 @@ safecube-android/
 │   │   │   │   │       │   │   └── VaultInitializeResult.kt
 │   │   │   │   │       │   ├── remote/
 │   │   │   │   │       │   │   └── VaultKeyMaterialRemoteResult.kt
+│   │   │   │   │       │   ├── secureitem/
+│   │   │   │   │       │   │   ├── itemcontent/
+│   │   │   │   │       │   │   │   ├── NoteSecureItemContent.kt
+│   │   │   │   │       │   │   │   ├── PasswordSecureItemContent.kt
+│   │   │   │   │       │   │   │   └── SecureItemContent.kt
+│   │   │   │   │       │   │   ├── EncodedSecureItemContent.kt
+│   │   │   │   │       │   │   ├── SecureItem.kt
+│   │   │   │   │       │   │   └── SecureItemType.kt
 │   │   │   │   │       │   ├── unlock/
 │   │   │   │   │       │   │   ├── VaultUnlockError.kt
 │   │   │   │   │       │   │   └── VaultUnlockResult.kt
@@ -312,15 +326,21 @@ safecube-android/
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/vault/
 │   │   │       ├── data/
+│   │   │       │   ├── codec/
+│   │   │       │   │   └── JsonSecureItemContentCodecTest.kt
 │   │   │       │   ├── local/
 │   │   │       │   │   └── VaultKeyMaterialCacheTest.kt
 │   │   │       │   ├── remote/
 │   │   │       │   │   └── RemoteVaultKeyMaterialDataSourceTest.kt
 │   │   │       │   └── session/
 │   │   │       │       └── VaultSessionManagerImplTest.kt
-│   │   │       └── domain/usecase/
-│   │   │           ├── VaultInitializeUseCaseTest.kt
-│   │   │           └── VaultUnlockUseCaseTest.kt
+│   │   │       └── domain/
+│   │   │           ├── model/secureitem/
+│   │   │           │   ├── SecureItemContentTest.kt
+│   │   │           │   └── SecureItemTest.kt
+│   │   │           └── usecase/
+│   │   │               ├── VaultInitializeUseCaseTest.kt
+│   │   │               └── VaultUnlockUseCaseTest.kt
 │   │   └── build.gradle.kts
 ├── docs/
 │   ├── architecture/

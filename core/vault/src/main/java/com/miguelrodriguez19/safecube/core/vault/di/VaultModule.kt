@@ -5,9 +5,11 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMaterialPrefs
+import com.miguelrodriguez19.safecube.core.vault.data.codec.JsonSecureItemContentCodec
 import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
 import com.miguelrodriguez19.safecube.core.vault.data.remote.RemoteVaultKeyMaterialDataSource
 import com.miguelrodriguez19.safecube.core.vault.data.session.VaultSessionManagerImpl
+import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentCodec
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
@@ -47,6 +49,12 @@ abstract class VaultModule {
     abstract fun bindVaultUnlocker(
         vaultUnlockUseCase: VaultUnlockUseCase,
     ): VaultUnlocker
+
+    @Binds
+    @Singleton
+    abstract fun bindSecureItemContentCodec(
+        jsonSecureItemContentCodec: JsonSecureItemContentCodec,
+    ): SecureItemContentCodec
 
     companion object {
         private const val PREFERENCES_NAME = "vault_key_material_encrypted_preferences"
