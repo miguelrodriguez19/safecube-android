@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 24-03-2026 09:21:36
+Updated: 25-03-2026 10:38:43
 
 ```
 safecube-android/
@@ -253,7 +253,10 @@ safecube-android/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/
 │   │   │   │   │   ├── di/
+│   │   │   │   │   │   ├── StorageBindingsModule.kt
 │   │   │   │   │   │   └── StorageModule.kt
+│   │   │   │   │   ├── local/
+│   │   │   │   │   │   └── SecureItemLocalStorage.kt
 │   │   │   │   │   ├── AppDatabase.kt
 │   │   │   │   │   ├── SecureItemDao.kt
 │   │   │   │   │   ├── SecureItemEntity.kt
@@ -261,6 +264,8 @@ safecube-android/
 │   │   │   │   │   └── StorageTypeConverters.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/storage/
+│   │   │       ├── local/
+│   │   │       │   └── SecureItemLocalStorageTest.kt
 │   │   │       └── StorageTypeConvertersTest.kt
 │   │   └── build.gradle.kts
 │   ├── ui/
@@ -322,6 +327,7 @@ safecube-android/
 │   │   │   │   │       │   ├── VaultKeyMaterial.kt
 │   │   │   │   │       │   └── VaultState.kt
 │   │   │   │   │       ├── repository/
+│   │   │   │   │       │   ├── SecureItemRepository.kt
 │   │   │   │   │       │   ├── VaultKeyMaterialLocalRepository.kt
 │   │   │   │   │       │   └── VaultKeyMaterialRemoteRepository.kt
 │   │   │   │   │       ├── session/

@@ -18,6 +18,7 @@ class SecureItemTest {
             displayHint = "Example account",
             payload = payload,
             payloadVersion = 1,
+            createdAt = Instant.parse("2026-03-23T11:00:00Z"),
             updatedAt = updatedAt,
         )
 
@@ -38,6 +39,7 @@ class SecureItemTest {
             displayHint = " ",
             payload = byteArrayOf(1),
             payloadVersion = 1,
+            createdAt = Instant.parse("2026-03-23T12:00:00Z"),
             updatedAt = Instant.parse("2026-03-23T12:00:00Z"),
         )
     }
@@ -51,6 +53,7 @@ class SecureItemTest {
             displayHint = "Example",
             payload = byteArrayOf(),
             payloadVersion = 1,
+            createdAt = Instant.parse("2026-03-23T12:00:00Z"),
             updatedAt = Instant.parse("2026-03-23T12:00:00Z"),
         )
     }
@@ -64,6 +67,7 @@ class SecureItemTest {
             displayHint = "Example",
             payload = byteArrayOf(1),
             payloadVersion = 0,
+            createdAt = Instant.parse("2026-03-23T12:00:00Z"),
             updatedAt = Instant.parse("2026-03-23T12:00:00Z"),
         )
     }
@@ -77,6 +81,7 @@ class SecureItemTest {
             displayHint = "Example",
             payload = byteArrayOf(1),
             payloadVersion = 1,
+            createdAt = Instant.parse("2026-03-23T12:00:00Z"),
             updatedAt = Instant.parse("2026-03-23T12:00:00Z"),
         )
     }

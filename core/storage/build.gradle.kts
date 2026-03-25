@@ -51,14 +51,17 @@ kover {
 
 dependencies {
     implementation(project(":core:crypto"))
+    implementation(project(":core:vault"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.kotlinx.coroutines.core)
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
 }

@@ -11,6 +11,7 @@ data class SecureItem(
     val displayHint: String,
     val payload: ByteArray,
     val payloadVersion: Long,
+    val createdAt: Instant,
     val updatedAt: Instant,
     val deletedAt: Instant? = null,
 ) {
