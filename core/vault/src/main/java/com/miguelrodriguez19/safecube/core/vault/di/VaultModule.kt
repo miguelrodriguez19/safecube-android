@@ -4,8 +4,10 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.miguelrodriguez19.safecube.core.crypto.domain.service.SaltGenerator
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMaterialPrefs
 import com.miguelrodriguez19.safecube.core.vault.data.codec.JsonSecureItemContentCodec
+import com.miguelrodriguez19.safecube.core.vault.data.crypto.VaultItemCipher
 import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
 import com.miguelrodriguez19.safecube.core.vault.data.remote.RemoteVaultKeyMaterialDataSource
 import com.miguelrodriguez19.safecube.core.vault.data.session.VaultSessionManagerImpl
@@ -13,6 +15,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentC
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultUnlockUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultUnlocker
 import dagger.Binds
@@ -28,7 +31,7 @@ import javax.inject.Singleton
 abstract class VaultModule {
     @Binds
     @Singleton
-    abstract fun bindVaultSessionManager(
+    internal abstract fun bindVaultSessionManager(
         vaultSessionManagerImpl: VaultSessionManagerImpl,
     ): VaultSessionManager
 
@@ -55,6 +58,12 @@ abstract class VaultModule {
     abstract fun bindSecureItemContentCodec(
         jsonSecureItemContentCodec: JsonSecureItemContentCodec,
     ): SecureItemContentCodec
+
+    @Binds
+    @Singleton
+    internal abstract fun bindSecureItemCryptoService(
+        vaultItemCipher: VaultItemCipher,
+    ): SecureItemCryptoService
 
     companion object {
         private const val PREFERENCES_NAME = "vault_key_material_encrypted_preferences"

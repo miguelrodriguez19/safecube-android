@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 25-03-2026 10:38:43
+Updated: 27-03-2026 06:44:32
 
 ```
 safecube-android/
@@ -289,12 +289,18 @@ safecube-android/
 │   │   │   │   │   ├── data/
 │   │   │   │   │   │   ├── codec/
 │   │   │   │   │   │   │   └── JsonSecureItemContentCodec.kt
+│   │   │   │   │   │   ├── crypto/
+│   │   │   │   │   │   │   ├── SecureItemCryptoContextProvider.kt
+│   │   │   │   │   │   │   ├── SecureItemPayloadAadFactory.kt
+│   │   │   │   │   │   │   ├── SecureItemPayloadEnvelopeV1Codec.kt
+│   │   │   │   │   │   │   └── VaultItemCipher.kt
 │   │   │   │   │   │   ├── local/
 │   │   │   │   │   │   │   ├── EncryptedVaultKeyMaterialPrefs.kt
 │   │   │   │   │   │   │   └── VaultKeyMaterialCache.kt
 │   │   │   │   │   │   ├── remote/
 │   │   │   │   │   │   │   └── RemoteVaultKeyMaterialDataSource.kt
 │   │   │   │   │   │   └── session/
+│   │   │   │   │   │       ├── VaultInMemoryKekStore.kt
 │   │   │   │   │   │       └── VaultSessionManagerImpl.kt
 │   │   │   │   │   ├── di/
 │   │   │   │   │   │   └── VaultModule.kt
@@ -330,6 +336,12 @@ safecube-android/
 │   │   │   │   │       │   ├── SecureItemRepository.kt
 │   │   │   │   │       │   ├── VaultKeyMaterialLocalRepository.kt
 │   │   │   │   │       │   └── VaultKeyMaterialRemoteRepository.kt
+│   │   │   │   │       ├── service/
+│   │   │   │   │       │   ├── EncryptedSecureItemPayload.kt
+│   │   │   │   │       │   ├── SecureItemCryptoError.kt
+│   │   │   │   │       │   ├── SecureItemCryptoService.kt
+│   │   │   │   │       │   ├── SecureItemDecryptionResult.kt
+│   │   │   │   │       │   └── SecureItemEncryptionResult.kt
 │   │   │   │   │       ├── session/
 │   │   │   │   │       │   └── VaultSessionManager.kt
 │   │   │   │   │       └── usecase/
@@ -341,11 +353,17 @@ safecube-android/
 │   │   │       ├── data/
 │   │   │       │   ├── codec/
 │   │   │       │   │   └── JsonSecureItemContentCodecTest.kt
+│   │   │       │   ├── crypto/
+│   │   │       │   │   ├── SecureItemCryptoContextProviderTest.kt
+│   │   │       │   │   ├── SecureItemPayloadAadFactoryTest.kt
+│   │   │       │   │   ├── SecureItemPayloadEnvelopeV1CodecTest.kt
+│   │   │       │   │   └── VaultItemCipherTest.kt
 │   │   │       │   ├── local/
 │   │   │       │   │   └── VaultKeyMaterialCacheTest.kt
 │   │   │       │   ├── remote/
 │   │   │       │   │   └── RemoteVaultKeyMaterialDataSourceTest.kt
 │   │   │       │   └── session/
+│   │   │       │       ├── VaultInMemoryKekStoreTest.kt
 │   │   │       │       └── VaultSessionManagerImplTest.kt
 │   │   │       └── domain/
 │   │   │           ├── model/secureitem/

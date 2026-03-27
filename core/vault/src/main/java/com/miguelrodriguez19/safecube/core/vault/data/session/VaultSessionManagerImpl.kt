@@ -16,13 +16,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 @Singleton
-class VaultSessionManagerImpl @Inject constructor(
+internal class VaultSessionManagerImpl @Inject constructor(
     private val vaultUnlocker: VaultUnlocker,
     private val vaultKeyMaterialLocalRepository: VaultKeyMaterialLocalRepository,
     private val vaultKeyMaterialRemoteRepository: VaultKeyMaterialRemoteRepository,
+    private val vaultInMemoryKekStore: VaultInMemoryKekStore,
 ) : VaultSessionManager {
     private val state = MutableStateFlow(initialVaultState())
-    private var inMemoryKek: ByteArray? = null
 
     override val vaultState: StateFlow<VaultState> = state.asStateFlow()
 
@@ -101,12 +101,11 @@ class VaultSessionManagerImpl @Inject constructor(
 
     private fun replaceInMemoryKek(newKek: ByteArray) {
         clearInMemoryKek()
-        inMemoryKek = newKek.copyOf()
+        vaultInMemoryKekStore.replace(newKek)
     }
 
     private fun clearInMemoryKek() {
-        inMemoryKek?.fill(0)
-        inMemoryKek = null
+        vaultInMemoryKekStore.clear()
     }
 
     private fun initialVaultState(): VaultState = if (vaultKeyMaterialLocalRepository.get() == null) {

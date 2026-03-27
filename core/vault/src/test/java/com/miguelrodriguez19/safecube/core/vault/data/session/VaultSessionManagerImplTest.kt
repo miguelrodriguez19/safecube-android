@@ -232,9 +232,10 @@ class VaultSessionManagerImplTest {
 
     @Suppress("UNCHECKED_CAST")
     private fun readInMemoryKek(manager: VaultSessionManagerImpl): ByteArray? {
-        val field = VaultSessionManagerImpl::class.java.getDeclaredField("inMemoryKek")
+        val field = VaultSessionManagerImpl::class.java.getDeclaredField("vaultInMemoryKekStore")
         field.isAccessible = true
-        return field.get(manager) as ByteArray?
+        val store = field.get(manager) as VaultInMemoryKekStore
+        return store.currentReference()
     }
 
     private fun createManager(
@@ -247,6 +248,7 @@ class VaultSessionManagerImplTest {
         vaultUnlocker = unlocker,
         vaultKeyMaterialLocalRepository = FakeVaultKeyMaterialLocalRepository(initialKeyMaterial),
         vaultKeyMaterialRemoteRepository = FakeVaultKeyMaterialRemoteRepository(remoteResult),
+        vaultInMemoryKekStore = VaultInMemoryKekStore(),
     )
 
     private fun sampleVaultKeyMaterial(): VaultKeyMaterial = VaultKeyMaterial(
