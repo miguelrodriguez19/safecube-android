@@ -8,7 +8,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlock
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
-import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultUnlocker
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlocker
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow

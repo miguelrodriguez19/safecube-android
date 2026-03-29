@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.vault.domain.usecase
+package com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault
 
 import com.miguelrodriguez19.safecube.core.crypto.domain.port.KdfEngine
 import com.miguelrodriguez19.safecube.core.crypto.domain.model.KdfRequest

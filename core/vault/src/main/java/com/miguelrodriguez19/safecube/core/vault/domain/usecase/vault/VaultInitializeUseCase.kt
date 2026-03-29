@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.vault.domain.usecase
+package com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault
 
 import com.miguelrodriguez19.safecube.core.crypto.domain.port.KdfEngine
 import com.miguelrodriguez19.safecube.core.crypto.domain.model.KdfRequest
@@ -17,7 +17,6 @@ import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
-import java.util.UUID
 
 @Singleton
 class VaultInitializeUseCase @Inject constructor(

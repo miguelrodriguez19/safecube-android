@@ -14,7 +14,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class JsonSecureItemContentCodecTest {
-    private val codec = JsonSecureItemContentCodec()
+    private val codec = JsonSecureItemContentCodec(
+        passwordSecureItemContentJsonAdapter = PasswordSecureItemContentJsonAdapter(),
+        noteSecureItemContentJsonAdapter = NoteSecureItemContentJsonAdapter(),
+    )
 
     @Test
     fun `encode password content serializes deterministic payload from model`() {

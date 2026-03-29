@@ -3,19 +3,18 @@ package com.miguelrodriguez19.safecube.core.vault.data.codec
 import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentCodec
 import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentDecodeError
 import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentDecodeResult
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.EncodedSecureItemContent
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordSecureItemContent
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.SecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.SecureItemContent
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class JsonSecureItemContentCodec @Inject constructor() : SecureItemContentCodec {
+class JsonSecureItemContentCodec @Inject internal constructor(
+    passwordSecureItemContentJsonAdapter: PasswordSecureItemContentJsonAdapter,
+    noteSecureItemContentJsonAdapter: NoteSecureItemContentJsonAdapter,
+) : SecureItemContentCodec {
     private companion object {
         val json = Json {
             prettyPrint = false
@@ -26,19 +25,15 @@ class JsonSecureItemContentCodec @Inject constructor() : SecureItemContentCodec 
         }
     }
 
-    override fun encode(content: SecureItemContent): EncodedSecureItemContent = when (content) {
-        is PasswordSecureItemContent -> EncodedSecureItemContent(
-            itemType = content.itemType,
-            schemaVersion = content.schemaVersion,
-            payload = json.encodeToString(content).toByteArray(StandardCharsets.UTF_8),
-        )
+    private val adapters = listOf(
+        passwordSecureItemContentJsonAdapter,
+        noteSecureItemContentJsonAdapter,
+    )
 
-        is NoteSecureItemContent -> EncodedSecureItemContent(
-            itemType = content.itemType,
-            schemaVersion = content.schemaVersion,
-            payload = json.encodeToString(content).toByteArray(StandardCharsets.UTF_8),
-        )
-    }
+    override fun encode(content: SecureItemContent) = adapters
+        .firstOrNull { it.canEncode(content) }
+        ?.encode(content, json)
+        ?: error("Unsupported secure item content for itemType=${content.itemType.wireName}.")
 
     override fun decode(
         itemType: String,
@@ -50,42 +45,17 @@ class JsonSecureItemContentCodec @Inject constructor() : SecureItemContentCodec 
                 SecureItemContentDecodeError.UnsupportedItemType(itemType),
             )
 
+        val adapter = adapters.firstOrNull {
+            it.itemType == secureItemType && it.schemaVersion == schemaVersion
+        } ?: return unsupportedSchemaVersion(secureItemType.wireName, schemaVersion)
+
         return try {
-            when (secureItemType) {
-                SecureItemType.PASSWORD -> decodePassword(schemaVersion, payload)
-                SecureItemType.NOTE -> decodeNote(schemaVersion, payload)
-            }
+            SecureItemContentDecodeResult.Success(adapter.decode(payload, json))
         } catch (exception: SerializationException) {
             invalidPayload(exception.message ?: "Payload is not valid JSON.")
         } catch (exception: IllegalArgumentException) {
             invalidPayload(exception.message ?: "Payload failed semantic validation.")
         }
-    }
-
-    private fun decodePassword(
-        schemaVersion: Int,
-        payload: ByteArray,
-    ): SecureItemContentDecodeResult {
-        if (schemaVersion != PasswordSecureItemContent.PASSWORD_SCHEMA_VERSION) {
-            return unsupportedSchemaVersion(SecureItemType.PASSWORD.wireName, schemaVersion)
-        }
-
-        return SecureItemContentDecodeResult.Success(
-            json.decodeFromString<PasswordSecureItemContent>(payload.toString(StandardCharsets.UTF_8)),
-        )
-    }
-
-    private fun decodeNote(
-        schemaVersion: Int,
-        payload: ByteArray,
-    ): SecureItemContentDecodeResult {
-        if (schemaVersion != NoteSecureItemContent.NOTE_SCHEMA_VERSION) {
-            return unsupportedSchemaVersion(SecureItemType.NOTE.wireName, schemaVersion)
-        }
-
-        return SecureItemContentDecodeResult.Success(
-            json.decodeFromString<NoteSecureItemContent>(payload.toString(StandardCharsets.UTF_8)),
-        )
     }
 
     private fun invalidPayload(message: String): SecureItemContentDecodeResult =

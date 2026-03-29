@@ -7,7 +7,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultIn
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
-import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultInitializeUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultInitializeUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.action.CreateVaultUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.event.CreateVaultUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.state.CreateVaultUiState

@@ -9,7 +9,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlock
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
-import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultUnlocker
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlocker
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals

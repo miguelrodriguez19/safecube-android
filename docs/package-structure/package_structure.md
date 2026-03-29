@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 27-03-2026 06:44:32
+Updated: 29-03-2026 09:17:59
 
 ```
 safecube-android/
@@ -288,7 +288,10 @@ safecube-android/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/vault/
 │   │   │   │   │   ├── data/
 │   │   │   │   │   │   ├── codec/
-│   │   │   │   │   │   │   └── JsonSecureItemContentCodec.kt
+│   │   │   │   │   │   │   ├── JsonSecureItemContentCodec.kt
+│   │   │   │   │   │   │   ├── NoteSecureItemContentJsonAdapter.kt
+│   │   │   │   │   │   │   ├── PasswordSecureItemContentJsonAdapter.kt
+│   │   │   │   │   │   │   └── SecureItemContentJsonAdapter.kt
 │   │   │   │   │   │   ├── crypto/
 │   │   │   │   │   │   │   ├── SecureItemCryptoContextProvider.kt
 │   │   │   │   │   │   │   ├── SecureItemPayloadAadFactory.kt
@@ -319,6 +322,14 @@ safecube-android/
 │   │   │   │   │       │   ├── remote/
 │   │   │   │   │       │   │   └── VaultKeyMaterialRemoteResult.kt
 │   │   │   │   │       │   ├── secureitem/
+│   │   │   │   │       │   │   ├── crud/
+│   │   │   │   │       │   │   │   ├── ObserveSecureItemDetailResult.kt
+│   │   │   │   │       │   │   │   ├── SecureItemCrudError.kt
+│   │   │   │   │       │   │   │   ├── SecureItemDetail.kt
+│   │   │   │   │       │   │   │   ├── SecureItemMutationResult.kt
+│   │   │   │   │       │   │   │   ├── SecureNoteDraft.kt
+│   │   │   │   │       │   │   │   ├── SecurePasswordDraft.kt
+│   │   │   │   │       │   │   │   └── VaultItemSummary.kt
 │   │   │   │   │       │   │   ├── itemcontent/
 │   │   │   │   │       │   │   │   ├── NoteSecureItemContent.kt
 │   │   │   │   │       │   │   │   ├── PasswordSecureItemContent.kt
@@ -345,9 +356,25 @@ safecube-android/
 │   │   │   │   │       ├── session/
 │   │   │   │   │       │   └── VaultSessionManager.kt
 │   │   │   │   │       └── usecase/
-│   │   │   │   │           ├── VaultInitializeUseCase.kt
-│   │   │   │   │           ├── VaultUnlocker.kt
-│   │   │   │   │           └── VaultUnlockUseCase.kt
+│   │   │   │   │           ├── secureitem/
+│   │   │   │   │           │   ├── note/
+│   │   │   │   │           │   │   ├── CreateSecureNoteUseCase.kt
+│   │   │   │   │           │   │   ├── NoteDraftToContentMapper.kt
+│   │   │   │   │           │   │   └── UpdateSecureNoteUseCase.kt
+│   │   │   │   │           │   ├── password/
+│   │   │   │   │           │   │   ├── CreateSecurePasswordUseCase.kt
+│   │   │   │   │           │   │   ├── PasswordDraftToContentMapper.kt
+│   │   │   │   │           │   │   └── UpdateSecurePasswordUseCase.kt
+│   │   │   │   │           │   ├── CurrentInstantProvider.kt
+│   │   │   │   │           │   ├── ObserveSecureItemDetailUseCase.kt
+│   │   │   │   │           │   ├── ObserveVaultItemSummariesUseCase.kt
+│   │   │   │   │           │   ├── SecureItemIdGenerator.kt
+│   │   │   │   │           │   ├── SecureItemMutationCoordinator.kt
+│   │   │   │   │           │   └── SoftDeleteSecureItemUseCase.kt
+│   │   │   │   │           └── vault/
+│   │   │   │   │               ├── VaultInitializeUseCase.kt
+│   │   │   │   │               ├── VaultUnlocker.kt
+│   │   │   │   │               └── VaultUnlockUseCase.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/vault/
 │   │   │       ├── data/
@@ -370,6 +397,18 @@ safecube-android/
 │   │   │           │   ├── SecureItemContentTest.kt
 │   │   │           │   └── SecureItemTest.kt
 │   │   │           └── usecase/
+│   │   │               ├── note/
+│   │   │               │   └── NoteDraftToContentMapperTest.kt
+│   │   │               ├── password/
+│   │   │               │   └── PasswordDraftToContentMapperTest.kt
+│   │   │               ├── CreateSecureNoteUseCaseTest.kt
+│   │   │               ├── CreateSecurePasswordUseCaseTest.kt
+│   │   │               ├── ObserveSecureItemDetailUseCaseTest.kt
+│   │   │               ├── ObserveVaultItemSummariesUseCaseTest.kt
+│   │   │               ├── SecureItemMutationCoordinatorTest.kt
+│   │   │               ├── SoftDeleteSecureItemUseCaseTest.kt
+│   │   │               ├── UpdateSecureNoteUseCaseTest.kt
+│   │   │               ├── UpdateSecurePasswordUseCaseTest.kt
 │   │   │               ├── VaultInitializeUseCaseTest.kt
 │   │   │               └── VaultUnlockUseCaseTest.kt
 │   │   └── build.gradle.kts

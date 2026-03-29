@@ -11,6 +11,7 @@ import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCach
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockResult
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlockUseCase
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

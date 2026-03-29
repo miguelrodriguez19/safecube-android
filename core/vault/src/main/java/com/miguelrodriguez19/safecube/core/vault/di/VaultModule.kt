@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.miguelrodriguez19.safecube.core.crypto.domain.service.SaltGenerator
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMaterialPrefs
 import com.miguelrodriguez19.safecube.core.vault.data.codec.JsonSecureItemContentCodec
 import com.miguelrodriguez19.safecube.core.vault.data.crypto.VaultItemCipher
@@ -16,8 +15,12 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
-import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultUnlockUseCase
-import com.miguelrodriguez19.safecube.core.vault.domain.usecase.VaultUnlocker
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.CurrentInstantProvider
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.RandomSecureItemIdGenerator
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SecureItemIdGenerator
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SystemCurrentInstantProvider
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlockUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlocker
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -64,6 +67,18 @@ abstract class VaultModule {
     internal abstract fun bindSecureItemCryptoService(
         vaultItemCipher: VaultItemCipher,
     ): SecureItemCryptoService
+
+    @Binds
+    @Singleton
+    internal abstract fun bindCurrentInstantProvider(
+        systemCurrentInstantProvider: SystemCurrentInstantProvider,
+    ): CurrentInstantProvider
+
+    @Binds
+    @Singleton
+    internal abstract fun bindSecureItemIdGenerator(
+        randomSecureItemIdGenerator: RandomSecureItemIdGenerator,
+    ): SecureItemIdGenerator
 
     companion object {
         private const val PREFERENCES_NAME = "vault_key_material_encrypted_preferences"

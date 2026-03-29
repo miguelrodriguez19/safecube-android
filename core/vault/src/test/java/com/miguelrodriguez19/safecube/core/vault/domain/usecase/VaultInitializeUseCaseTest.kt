@@ -14,6 +14,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultIn
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultInitializeUseCase
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
