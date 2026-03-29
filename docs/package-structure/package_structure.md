@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 29-03-2026 09:17:59
+Updated: 29-03-2026 10:40:24
 
 ```
 safecube-android/
@@ -479,52 +479,65 @@ safecube-android/
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   └── vault/
-│       ├── src/main/
-│       │   ├── java/com/miguelrodriguez19/safecube/feature/vault/
-│       │   │   ├── navigation/
-│       │   │   └── presentation/
-│       │   │       ├── create/
-│       │   │       │   ├── action/
-│       │   │       │   │   └── CreateVaultUiAction.kt
-│       │   │       │   ├── event/
-│       │   │       │   │   └── CreateVaultUiEvent.kt
-│       │   │       │   ├── state/
-│       │   │       │   │   └── CreateVaultUiState.kt
-│       │   │       │   ├── ui/
-│       │   │       │   │   └── CreateVaultScreen.kt
-│       │   │       │   └── viewmodel/
-│       │   │       │       └── CreateVaultViewModel.kt
-│       │   │       ├── folders/ui/
-│       │   │       │   └── VaultFoldersScreen.kt
-│       │   │       ├── home/ui/
-│       │   │       │   └── VaultScreen.kt
-│       │   │       ├── recovery/
-│       │   │       │   ├── action/
-│       │   │       │   │   └── RecoveryKeyUiAction.kt
-│       │   │       │   ├── event/
-│       │   │       │   │   └── RecoveryKeyUiEvent.kt
-│       │   │       │   ├── state/
-│       │   │       │   │   └── RecoveryKeyUiState.kt
-│       │   │       │   ├── ui/
-│       │   │       │   │   └── RecoveryKeyScreen.kt
-│       │   │       │   └── viewmodel/
-│       │   │       │       └── RecoveryKeyViewModel.kt
-│       │   │       ├── settings/ui/
-│       │   │       │   └── SettingsScreen.kt
-│       │   │       ├── shared/navigation/
-│       │   │       │   └── NavigationBar.kt
-│       │   │       └── unlock/
-│       │   │           ├── action/
-│       │   │           │   └── UnlockVaultUiAction.kt
-│       │   │           ├── event/
-│       │   │           │   └── UnlockVaultUiEvent.kt
-│       │   │           ├── state/
-│       │   │           │   └── UnlockVaultUiState.kt
-│       │   │           ├── ui/
-│       │   │           │   └── UnlockVaultScreen.kt
-│       │   │           └── viewmodel/
-│       │   │               └── UnlockVaultViewModel.kt
-│       │   └── AndroidManifest.xml
+│       ├── src/
+│       │   ├── main/
+│       │   │   ├── java/com/miguelrodriguez19/safecube/feature/vault/
+│       │   │   │   ├── navigation/
+│       │   │   │   └── presentation/
+│       │   │   │       ├── create/
+│       │   │   │       │   ├── action/
+│       │   │   │       │   │   └── CreateVaultUiAction.kt
+│       │   │   │       │   ├── event/
+│       │   │   │       │   │   └── CreateVaultUiEvent.kt
+│       │   │   │       │   ├── state/
+│       │   │   │       │   │   └── CreateVaultUiState.kt
+│       │   │   │       │   ├── ui/
+│       │   │   │       │   │   └── CreateVaultScreen.kt
+│       │   │   │       │   └── viewmodel/
+│       │   │   │       │       └── CreateVaultViewModel.kt
+│       │   │   │       ├── folders/ui/
+│       │   │   │       │   └── VaultFoldersScreen.kt
+│       │   │   │       ├── home/
+│       │   │   │       │   ├── action/
+│       │   │   │       │   │   └── VaultHomeUiAction.kt
+│       │   │   │       │   ├── state/
+│       │   │   │       │   │   └── VaultHomeUiState.kt
+│       │   │   │       │   ├── ui/
+│       │   │   │       │   │   └── VaultScreen.kt
+│       │   │   │       │   └── viewmodel/
+│       │   │   │       │       └── VaultHomeViewModel.kt
+│       │   │   │       ├── recovery/
+│       │   │   │       │   ├── action/
+│       │   │   │       │   │   └── RecoveryKeyUiAction.kt
+│       │   │   │       │   ├── event/
+│       │   │   │       │   │   └── RecoveryKeyUiEvent.kt
+│       │   │   │       │   ├── state/
+│       │   │   │       │   │   └── RecoveryKeyUiState.kt
+│       │   │   │       │   ├── ui/
+│       │   │   │       │   │   └── RecoveryKeyScreen.kt
+│       │   │   │       │   └── viewmodel/
+│       │   │   │       │       └── RecoveryKeyViewModel.kt
+│       │   │   │       ├── settings/ui/
+│       │   │   │       │   └── SettingsScreen.kt
+│       │   │   │       ├── shared/navigation/
+│       │   │   │       │   └── NavigationBar.kt
+│       │   │   │       └── unlock/
+│       │   │   │           ├── action/
+│       │   │   │           │   └── UnlockVaultUiAction.kt
+│       │   │   │           ├── event/
+│       │   │   │           │   └── UnlockVaultUiEvent.kt
+│       │   │   │           ├── state/
+│       │   │   │           │   └── UnlockVaultUiState.kt
+│       │   │   │           ├── ui/
+│       │   │   │           │   └── UnlockVaultScreen.kt
+│       │   │   │           └── viewmodel/
+│       │   │   │               └── UnlockVaultViewModel.kt
+│       │   │   └── AndroidManifest.xml
+│       │   └── test/java/com/miguelrodriguez19/safecube/feature/vault/
+│       │       ├── presentation/home/viewmodel/
+│       │       │   └── VaultHomeViewModelTest.kt
+│       │       └── test/
+│       │           └── MainDispatcherRule.kt
 │       └── build.gradle.kts
 ├── scripts/
 │   ├── resources/com/safecube/tooling/
