@@ -14,6 +14,8 @@ import com.miguelrodriguez19.safecube.feature.profile.presentation.profile.ui.Pr
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.ui.CreateVaultScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.folders.ui.VaultFoldersScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.ui.VaultScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.ui.NoteEditorScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.ui.PasswordEditorScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.recovery.ui.RecoveryKeyScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.ui.SettingsScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.ui.UnlockVaultScreen
@@ -22,6 +24,7 @@ internal fun navigationEntryProvider(
     setRoot: (Routes) -> Unit,
     addRoute: (Routes) -> Unit,
     replaceCurrent: (Routes) -> Unit,
+    popBackStack: () -> Unit,
     pendingRecoveryKey: String?,
     onPendingRecoveryKeyChanged: (String?) -> Unit,
     onLogout: () -> Unit,
@@ -50,8 +53,34 @@ internal fun navigationEntryProvider(
     entry<Routes.Vault> {
         VaultScreen(
             onVault = {},
+            onCreatePassword = { addRoute(Routes.CreatePassword) },
+            onCreateNote = { addRoute(Routes.CreateNote) },
+            onEditPassword = { logicalItemId ->
+                addRoute(Routes.EditPassword(logicalItemId.toString()))
+            },
+            onEditNote = { logicalItemId ->
+                addRoute(Routes.EditNote(logicalItemId.toString()))
+            },
             onVaultFolders = { addRoute(Routes.VaultFolders) },
             onSettings = { addRoute(Routes.Settings) },
+        )
+    }
+    entry<Routes.CreatePassword> {
+        PasswordEditorScreen(onBack = popBackStack)
+    }
+    entry<Routes.EditPassword> { route ->
+        PasswordEditorScreen(
+            logicalItemId = route.logicalItemId,
+            onBack = popBackStack,
+        )
+    }
+    entry<Routes.CreateNote> {
+        NoteEditorScreen(onBack = popBackStack)
+    }
+    entry<Routes.EditNote> { route ->
+        NoteEditorScreen(
+            logicalItemId = route.logicalItemId,
+            onBack = popBackStack,
         )
     }
     entry<Routes.VaultFolders> {

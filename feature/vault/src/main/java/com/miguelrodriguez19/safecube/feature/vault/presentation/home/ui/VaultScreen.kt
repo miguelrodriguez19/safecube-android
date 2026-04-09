@@ -3,22 +3,17 @@ package com.miguelrodriguez19.safecube.feature.vault.presentation.home.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,11 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
-import com.miguelrodriguez19.safecube.feature.vault.presentation.home.action.VaultHomeUiAction
-import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultEditorUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultItemSummaryUiModel
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.viewmodel.VaultHomeViewModel
@@ -43,10 +35,15 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.UUID
 
 @Composable
 fun VaultScreen(
     onVault: () -> Unit,
+    onCreatePassword: () -> Unit,
+    onCreateNote: () -> Unit,
+    onEditPassword: (UUID) -> Unit,
+    onEditNote: (UUID) -> Unit,
     onVaultFolders: () -> Unit,
     onSettings: () -> Unit,
     viewModel: VaultHomeViewModel = hiltViewModel(),
@@ -55,7 +52,10 @@ fun VaultScreen(
 
     VaultContent(
         uiState = uiState,
-        onAction = viewModel::onAction,
+        onCreatePassword = onCreatePassword,
+        onCreateNote = onCreateNote,
+        onEditPassword = onEditPassword,
+        onEditNote = onEditNote,
         onVault = onVault,
         onVaultFolders = onVaultFolders,
         onSettings = onSettings,
@@ -65,14 +65,20 @@ fun VaultScreen(
 @Composable
 private fun VaultContent(
     uiState: VaultHomeUiState,
-    onAction: (VaultHomeUiAction) -> Unit,
+    onCreatePassword: () -> Unit,
+    onCreateNote: () -> Unit,
+    onEditPassword: (UUID) -> Unit,
+    onEditNote: (UUID) -> Unit,
     onVault: () -> Unit,
     onVaultFolders: () -> Unit,
     onSettings: () -> Unit,
 ) {
     Scaffold(
         topBar = {
-            Surface(shadowElevation = 2.dp) {
+            Surface(
+                shadowElevation = 2.dp,
+                modifier = Modifier.statusBarsPadding(),
+            ) {
                 Text(
                     text = "Vault",
                     style = MaterialTheme.typography.titleLarge,
@@ -96,15 +102,10 @@ private fun VaultContent(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            VaultPrimaryActions(onAction = onAction)
-
-            uiState.screenMessage?.let { message ->
-                Text(
-                    text = message,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
+            VaultPrimaryActions(
+                onCreatePassword = onCreatePassword,
+                onCreateNote = onCreateNote,
+            )
 
             if (uiState.items.isEmpty()) {
                 VaultEmptyState(
@@ -115,40 +116,29 @@ private fun VaultContent(
             } else {
                 VaultItemsList(
                     items = uiState.items,
-                    onAction = onAction,
+                    onEditPassword = onEditPassword,
+                    onEditNote = onEditNote,
                     modifier = Modifier.weight(1f),
                 )
             }
         }
     }
-
-    when (val editor = uiState.editor) {
-        null -> Unit
-        is VaultEditorUiState.Password -> PasswordEditorDialog(
-            editor = editor,
-            onAction = onAction,
-        )
-
-        is VaultEditorUiState.Note -> NoteEditorDialog(
-            editor = editor,
-            onAction = onAction,
-        )
-    }
 }
 
 @Composable
 private fun VaultPrimaryActions(
-    onAction: (VaultHomeUiAction) -> Unit,
+    onCreatePassword: () -> Unit,
+    onCreateNote: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Button(
-            onClick = { onAction(VaultHomeUiAction.CreatePasswordClicked) },
+            onClick = onCreatePassword,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("New password entry")
         }
         OutlinedButton(
-            onClick = { onAction(VaultHomeUiAction.CreateNoteClicked) },
+            onClick = onCreateNote,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("New note")
@@ -183,7 +173,8 @@ private fun VaultEmptyState(
 @Composable
 private fun VaultItemsList(
     items: List<VaultItemSummaryUiModel>,
-    onAction: (VaultHomeUiAction) -> Unit,
+    onEditPassword: (UUID) -> Unit,
+    onEditNote: (UUID) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -197,12 +188,10 @@ private fun VaultItemsList(
             VaultItemCard(
                 item = item,
                 onClick = {
-                    onAction(
-                        VaultHomeUiAction.EditItemClicked(
-                            logicalItemId = item.logicalItemId,
-                            itemType = item.itemType,
-                        ),
-                    )
+                    when (item.itemType) {
+                        SecureItemType.PASSWORD -> onEditPassword(item.logicalItemId)
+                        SecureItemType.NOTE -> onEditNote(item.logicalItemId)
+                    }
                 },
             )
         }
@@ -238,170 +227,6 @@ private fun VaultItemCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-    }
-}
-
-@Composable
-private fun PasswordEditorDialog(
-    editor: VaultEditorUiState.Password,
-    onAction: (VaultHomeUiAction) -> Unit,
-) {
-    EditorDialogFrame(
-        title = if (editor.logicalItemId == null) "New password entry" else "Edit password entry",
-        editor = editor,
-        onDismiss = { onAction(VaultHomeUiAction.DismissEditor) },
-        onDelete = {
-            if (editor.logicalItemId != null) {
-                onAction(VaultHomeUiAction.DeleteItemClicked)
-            }
-        },
-        onSave = { onAction(VaultHomeUiAction.SaveEditorClicked) },
-    ) {
-        OutlinedTextField(
-            value = editor.displayHint,
-            onValueChange = { onAction(VaultHomeUiAction.PasswordDisplayHintChanged(it)) },
-            label = { Text("Display hint") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !editor.isLoading && !editor.isSaving,
-            singleLine = true,
-        )
-        OutlinedTextField(
-            value = editor.username,
-            onValueChange = { onAction(VaultHomeUiAction.PasswordUsernameChanged(it)) },
-            label = { Text("Username") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !editor.isLoading && !editor.isSaving,
-            singleLine = true,
-        )
-        OutlinedTextField(
-            value = editor.email,
-            onValueChange = { onAction(VaultHomeUiAction.PasswordEmailChanged(it)) },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !editor.isLoading && !editor.isSaving,
-            singleLine = true,
-        )
-        OutlinedTextField(
-            value = editor.password,
-            onValueChange = { onAction(VaultHomeUiAction.PasswordValueChanged(it)) },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !editor.isLoading && !editor.isSaving,
-            singleLine = true,
-        )
-    }
-}
-
-@Composable
-private fun NoteEditorDialog(
-    editor: VaultEditorUiState.Note,
-    onAction: (VaultHomeUiAction) -> Unit,
-) {
-    EditorDialogFrame(
-        title = if (editor.logicalItemId == null) "New secure note" else "Edit secure note",
-        editor = editor,
-        onDismiss = { onAction(VaultHomeUiAction.DismissEditor) },
-        onDelete = {
-            if (editor.logicalItemId != null) {
-                onAction(VaultHomeUiAction.DeleteItemClicked)
-            }
-        },
-        onSave = { onAction(VaultHomeUiAction.SaveEditorClicked) },
-    ) {
-        OutlinedTextField(
-            value = editor.displayHint,
-            onValueChange = { onAction(VaultHomeUiAction.NoteDisplayHintChanged(it)) },
-            label = { Text("Display hint") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !editor.isLoading && !editor.isSaving,
-            singleLine = true,
-        )
-        OutlinedTextField(
-            value = editor.body,
-            onValueChange = { onAction(VaultHomeUiAction.NoteBodyChanged(it)) },
-            label = { Text("Note body") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 160.dp),
-            enabled = !editor.isLoading && !editor.isSaving,
-        )
-    }
-}
-
-@Composable
-private fun EditorDialogFrame(
-    title: String,
-    editor: VaultEditorUiState,
-    onDismiss: () -> Unit,
-    onDelete: () -> Unit,
-    onSave: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            tonalElevation = 3.dp,
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(20.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-
-                if (editor.isLoading) {
-                    Text(
-                        text = "Loading item...",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                } else {
-                    content()
-                }
-
-                editor.errorMessage?.let { message ->
-                    Text(
-                        text = message,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    if (editor.logicalItemId != null) {
-                        OutlinedButton(
-                            onClick = onDelete,
-                            enabled = !editor.isLoading && !editor.isSaving,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text("Delete")
-                        }
-                    }
-
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        enabled = !editor.isSaving,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text("Cancel")
-                    }
-
-                    Button(
-                        onClick = onSave,
-                        enabled = !editor.isLoading && !editor.isSaving,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(if (editor.isSaving) "Saving..." else "Save")
-                    }
-                }
-            }
         }
     }
 }

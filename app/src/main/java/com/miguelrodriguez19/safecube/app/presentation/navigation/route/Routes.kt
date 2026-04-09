@@ -23,6 +23,22 @@ sealed class Routes : NavKey {
     data object Vault : Routes()
 
     @Serializable
+    data object CreatePassword : Routes()
+
+    @Serializable
+    data class EditPassword(
+        val logicalItemId: String,
+    ) : Routes()
+
+    @Serializable
+    data object CreateNote : Routes()
+
+    @Serializable
+    data class EditNote(
+        val logicalItemId: String,
+    ) : Routes()
+
+    @Serializable
     data object VaultFolders : Routes()
 
     @Serializable

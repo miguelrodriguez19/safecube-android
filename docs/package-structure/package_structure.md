@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 29-03-2026 10:40:24
+Updated: 09-04-2026 12:30:58
 
 ```
 safecube-android/
@@ -499,13 +499,34 @@ safecube-android/
 │       │   │   │       │   └── VaultFoldersScreen.kt
 │       │   │   │       ├── home/
 │       │   │   │       │   ├── action/
-│       │   │   │       │   │   └── VaultHomeUiAction.kt
 │       │   │   │       │   ├── state/
 │       │   │   │       │   │   └── VaultHomeUiState.kt
 │       │   │   │       │   ├── ui/
 │       │   │   │       │   │   └── VaultScreen.kt
 │       │   │   │       │   └── viewmodel/
 │       │   │   │       │       └── VaultHomeViewModel.kt
+│       │   │   │       ├── noteeditor/
+│       │   │   │       │   ├── action/
+│       │   │   │       │   │   └── NoteEditorUiAction.kt
+│       │   │   │       │   ├── event/
+│       │   │   │       │   │   └── NoteEditorUiEvent.kt
+│       │   │   │       │   ├── state/
+│       │   │   │       │   │   └── NoteEditorUiState.kt
+│       │   │   │       │   ├── ui/
+│       │   │   │       │   │   └── NoteEditorScreen.kt
+│       │   │   │       │   └── viewmodel/
+│       │   │   │       │       └── NoteEditorViewModel.kt
+│       │   │   │       ├── passwordeditor/
+│       │   │   │       │   ├── action/
+│       │   │   │       │   │   └── PasswordEditorUiAction.kt
+│       │   │   │       │   ├── event/
+│       │   │   │       │   │   └── PasswordEditorUiEvent.kt
+│       │   │   │       │   ├── state/
+│       │   │   │       │   │   └── PasswordEditorUiState.kt
+│       │   │   │       │   ├── ui/
+│       │   │   │       │   │   └── PasswordEditorScreen.kt
+│       │   │   │       │   └── viewmodel/
+│       │   │   │       │       └── PasswordEditorViewModel.kt
 │       │   │   │       ├── recovery/
 │       │   │   │       │   ├── action/
 │       │   │   │       │   │   └── RecoveryKeyUiAction.kt
@@ -519,8 +540,13 @@ safecube-android/
 │       │   │   │       │       └── RecoveryKeyViewModel.kt
 │       │   │   │       ├── settings/ui/
 │       │   │   │       │   └── SettingsScreen.kt
-│       │   │   │       ├── shared/navigation/
-│       │   │   │       │   └── NavigationBar.kt
+│       │   │   │       ├── shared/
+│       │   │   │       │   ├── editor/
+│       │   │   │       │   │   └── SecureItemEditorScaffold.kt
+│       │   │   │       │   ├── error/
+│       │   │   │       │   │   └── SecureItemCrudErrorMessageMapper.kt
+│       │   │   │       │   └── navigation/
+│       │   │   │       │       └── NavigationBar.kt
 │       │   │   │       └── unlock/
 │       │   │   │           ├── action/
 │       │   │   │           │   └── UnlockVaultUiAction.kt
@@ -534,8 +560,13 @@ safecube-android/
 │       │   │   │               └── UnlockVaultViewModel.kt
 │       │   │   └── AndroidManifest.xml
 │       │   └── test/java/com/miguelrodriguez19/safecube/feature/vault/
-│       │       ├── presentation/home/viewmodel/
-│       │       │   └── VaultHomeViewModelTest.kt
+│       │       ├── presentation/
+│       │       │   ├── home/viewmodel/
+│       │       │   │   └── VaultHomeViewModelTest.kt
+│       │       │   ├── noteeditor/viewmodel/
+│       │       │   │   └── NoteEditorViewModelTest.kt
+│       │       │   └── passwordeditor/viewmodel/
+│       │       │       └── PasswordEditorViewModelTest.kt
 │       │       └── test/
 │       │           └── MainDispatcherRule.kt
 │       └── build.gradle.kts

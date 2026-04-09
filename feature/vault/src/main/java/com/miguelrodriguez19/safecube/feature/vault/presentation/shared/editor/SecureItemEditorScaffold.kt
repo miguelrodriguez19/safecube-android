@@ -1,0 +1,113 @@
+package com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+@Composable
+internal fun SecureItemEditorScaffold(
+    title: String,
+    isEditMode: Boolean,
+    isLoading: Boolean,
+    isSaving: Boolean,
+    errorMessage: String?,
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+    onDelete: (() -> Unit)?,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            Surface(
+                shadowElevation = 2.dp,
+                modifier = Modifier.statusBarsPadding(),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    IconButton(
+                        onClick = onBack,
+                        enabled = !isSaving,
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
+                    }
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
+            }
+        },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (isLoading) {
+                Text(
+                    text = "Loading item...",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            } else {
+                content()
+            }
+
+            errorMessage?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            if (isEditMode && onDelete != null) {
+                OutlinedButton(
+                    onClick = onDelete,
+                    enabled = !isLoading && !isSaving,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Delete")
+                }
+            }
+
+            Button(
+                onClick = onSave,
+                enabled = !isLoading && !isSaving,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(if (isSaving) "Saving..." else "Save")
+            }
+        }
+    }
+}

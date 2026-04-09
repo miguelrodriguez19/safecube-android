@@ -1,10 +1,6 @@
 package com.miguelrodriguez19.safecube.app.presentation.navigation.host
 
 import android.app.Activity
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -99,6 +95,7 @@ fun NavigationWrapper() {
             setRoot = setRoot,
             addRoute = addRoute,
             replaceCurrent = replaceCurrent,
+            popBackStack = popBackStack,
             pendingRecoveryKey = pendingRecoveryKey,
             onPendingRecoveryKeyChanged = { pendingRecoveryKey = it },
             onLogout = onLogout,
