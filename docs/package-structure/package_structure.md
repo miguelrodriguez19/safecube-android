@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 09-04-2026 12:30:58
+Updated: 10-04-2026 10:13:30
 
 ```
 safecube-android/
@@ -266,6 +266,7 @@ safecube-android/
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/storage/
 │   │   │       ├── local/
 │   │   │       │   └── SecureItemLocalStorageTest.kt
+│   │   │       ├── SecureItemDaoIntegrationTest.kt
 │   │   │       └── StorageTypeConvertersTest.kt
 │   │   └── build.gradle.kts
 │   ├── ui/
