@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-04-2026 10:14:25
+Updated: 10-04-2026 11:16:11
 
 ```
 safecube-android/
@@ -427,6 +427,7 @@ safecube-android/
 │   │   ├── roadmap--fase-2.md
 │   │   ├── roadmap--fase-3.md
 │   │   ├── roadmap--fase-4.md
+│   │   ├── roadmap--fase-5.md
 │   │   └── roadmap--high-level.md
 │   ├── testing/
 │   │   ├── testing.md
