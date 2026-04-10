@@ -26,6 +26,8 @@ Follow Arrange / Act / Assert in this order:
 2. Act: execute one public method.
 3. Assert: state + output + interaction verification.
 
+> Never add comments dividing sections, the code must be declarative enough
+
 ## General Tests Rules
 
 - The test subject variable must be called `target`

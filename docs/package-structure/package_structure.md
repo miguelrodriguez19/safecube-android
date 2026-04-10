@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-04-2026 02:08:33
+Updated: 10-04-2026 05:30:29
 
 ```
 safecube-android/
@@ -239,13 +239,16 @@ safecube-android/
 │   │   │   │   │   └── serialization/
 │   │   │   │   │       └── Base64ByteArraySerializer.kt
 │   │   │   │   └── AndroidManifest.xml
-│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/data/
-│   │   │       ├── auth/
-│   │   │       │   ├── AuthInterceptorTest.kt
-│   │   │       │   ├── TokenRefreshAuthenticatorFlowIntegrationTest.kt
-│   │   │       │   └── TokenRefreshAuthenticatorTest.kt
-│   │   │       └── client/
-│   │   │           └── NetworkClientFactoryIntegrationTest.kt
+│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/
+│   │   │       ├── data/
+│   │   │       │   ├── auth/
+│   │   │       │   │   ├── AuthInterceptorTest.kt
+│   │   │       │   │   ├── TokenRefreshAuthenticatorFlowIntegrationTest.kt
+│   │   │       │   │   └── TokenRefreshAuthenticatorTest.kt
+│   │   │       │   └── client/
+│   │   │       │       └── NetworkClientFactoryIntegrationTest.kt
+│   │   │       └── domain/model/
+│   │   │           └── NetworkConfigTest.kt
 │   │   └── build.gradle.kts
 │   ├── storage/
 │   │   ├── schemas/com.miguelrodriguez19.safecube.core.storage.AppDatabase/
@@ -381,7 +384,8 @@ safecube-android/
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/vault/
 │   │   │       ├── data/
 │   │   │       │   ├── codec/
-│   │   │       │   │   └── JsonSecureItemContentCodecTest.kt
+│   │   │       │   │   ├── JsonSecureItemContentCodecTest.kt
+│   │   │       │   │   └── SecureItemContentJsonAdapterTest.kt
 │   │   │       │   ├── crypto/
 │   │   │       │   │   ├── SecureItemCryptoContextProviderTest.kt
 │   │   │       │   │   ├── SecureItemPayloadAadFactoryTest.kt
@@ -397,6 +401,8 @@ safecube-android/
 │   │   │       │       └── VaultSessionManagerImplTest.kt
 │   │   │       └── domain/
 │   │   │           ├── model/secureitem/
+│   │   │           │   ├── itemcontent/
+│   │   │           │   │   └── NoteSecureItemContentTest.kt
 │   │   │           │   ├── SecureItemContentTest.kt
 │   │   │           │   └── SecureItemTest.kt
 │   │   │           └── usecase/
