@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
+import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentDecodeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
@@ -167,6 +168,35 @@ class SecureItemMutationCoordinatorTest {
     }
 
     @Test
+    fun `create when encryption reports missing account id then returns vault locked`() = runBlocking {
+        vaultState.value = VaultState.Unlocked
+        every { secureItemIdGenerator.generate() } returns SAMPLE_LOGICAL_ITEM_ID
+        every { currentInstantProvider.now() } returns CREATED_AT
+        every {
+            secureItemCryptoService.encrypt(
+                logicalItemId = SAMPLE_LOGICAL_ITEM_ID,
+                payloadVersion = 1,
+                content = validPasswordContent(),
+            )
+        } returns SecureItemEncryptionResult.Error(SecureItemCryptoError.AccountIdUnavailable)
+
+        val result = target.create(
+            displayHint = "Github",
+            content = validPasswordContent(),
+        )
+
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.VaultLocked),
+            result,
+        )
+        verify(exactly = 1) { secureItemIdGenerator.generate() }
+        verify(exactly = 1) { currentInstantProvider.now() }
+        verify(exactly = 1) { secureItemCryptoService.encrypt(SAMPLE_LOGICAL_ITEM_ID, 1, validPasswordContent()) }
+        coVerify(exactly = 0) { secureItemRepository.insert(any()) }
+        confirmVerified(secureItemIdGenerator, currentInstantProvider, secureItemCryptoService, secureItemRepository)
+    }
+
+    @Test
     fun `create when encryption fails then returns validation error`() = runBlocking {
         vaultState.value = VaultState.Unlocked
         every { secureItemIdGenerator.generate() } returns SAMPLE_LOGICAL_ITEM_ID
@@ -195,6 +225,63 @@ class SecureItemMutationCoordinatorTest {
         verify(exactly = 1) { secureItemCryptoService.encrypt(SAMPLE_LOGICAL_ITEM_ID, 1, validPasswordContent()) }
         coVerify(exactly = 0) { secureItemRepository.insert(any()) }
         confirmVerified(secureItemIdGenerator, currentInstantProvider, secureItemCryptoService, secureItemRepository)
+    }
+
+    @Test
+    fun `create when encryption content cannot be encoded then returns validation error`() = runBlocking {
+        vaultState.value = VaultState.Unlocked
+        every { secureItemIdGenerator.generate() } returns SAMPLE_LOGICAL_ITEM_ID
+        every { currentInstantProvider.now() } returns CREATED_AT
+        every {
+            secureItemCryptoService.encrypt(
+                logicalItemId = SAMPLE_LOGICAL_ITEM_ID,
+                payloadVersion = 1,
+                content = validPasswordContent(),
+            )
+        } returns SecureItemEncryptionResult.Error(
+            SecureItemCryptoError.ContentDecodingFailed(
+                SecureItemContentDecodeError.InvalidPayload("boom"),
+            ),
+        )
+
+        val result = target.create(
+            displayHint = "Github",
+            content = validPasswordContent(),
+        )
+
+        assertEquals(
+            SecureItemMutationResult.Error(
+                SecureItemCrudError.ValidationError("Unable to encrypt secure item."),
+            ),
+            result,
+        )
+        verify(exactly = 1) { secureItemIdGenerator.generate() }
+        verify(exactly = 1) { currentInstantProvider.now() }
+        verify(exactly = 1) { secureItemCryptoService.encrypt(SAMPLE_LOGICAL_ITEM_ID, 1, validPasswordContent()) }
+        coVerify(exactly = 0) { secureItemRepository.insert(any()) }
+        confirmVerified(secureItemIdGenerator, currentInstantProvider, secureItemCryptoService, secureItemRepository)
+    }
+
+    @Test
+    fun `update when vault is locked then returns vault locked without reading repository`() = runBlocking {
+        vaultState.value = VaultState.Locked
+
+        val result = target.update(
+            logicalItemId = SAMPLE_LOGICAL_ITEM_ID,
+            displayHint = "Github",
+            expectedItemType = SecureItemType.PASSWORD,
+            content = validPasswordContent(),
+        )
+
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.VaultLocked),
+            result,
+        )
+        coVerify(exactly = 0) { secureItemRepository.getItem(any()) }
+        verify(exactly = 0) { secureItemCryptoService.decrypt(any()) }
+        verify(exactly = 0) { secureItemCryptoService.encrypt(any(), any(), any()) }
+        coVerify(exactly = 0) { secureItemRepository.update(any()) }
+        confirmVerified(secureItemRepository, secureItemCryptoService)
     }
 
     @Test
@@ -432,6 +519,104 @@ class SecureItemMutationCoordinatorTest {
         verify(exactly = 1) { secureItemCryptoService.decrypt(existingItem) }
         verify(exactly = 0) { secureItemCryptoService.encrypt(any(), any(), any()) }
         verify(exactly = 0) { currentInstantProvider.now() }
+        coVerify(exactly = 0) { secureItemRepository.update(any()) }
+        confirmVerified(secureItemRepository, secureItemCryptoService, currentInstantProvider)
+    }
+
+    @Test
+    fun `update when existing payload reports vault locked then returns vault locked`() = runBlocking {
+        val existingItem = samplePasswordItem()
+        vaultState.value = VaultState.Unlocked
+        coEvery { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) } returns existingItem
+        every { secureItemCryptoService.decrypt(existingItem) } returns SecureItemDecryptionResult.Error(
+            SecureItemCryptoError.VaultLocked,
+        )
+
+        val result = target.update(
+            logicalItemId = SAMPLE_LOGICAL_ITEM_ID,
+            displayHint = "Github",
+            expectedItemType = SecureItemType.PASSWORD,
+            content = validPasswordContent(),
+        )
+
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.VaultLocked),
+            result,
+        )
+        coVerify(exactly = 1) { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) }
+        verify(exactly = 1) { secureItemCryptoService.decrypt(existingItem) }
+        verify(exactly = 0) { secureItemCryptoService.encrypt(any(), any(), any()) }
+        verify(exactly = 0) { currentInstantProvider.now() }
+        coVerify(exactly = 0) { secureItemRepository.update(any()) }
+        confirmVerified(secureItemRepository, secureItemCryptoService, currentInstantProvider)
+    }
+
+    @Test
+    fun `update when existing payload cannot be decoded then returns corrupted payload`() = runBlocking {
+        val existingItem = samplePasswordItem()
+        vaultState.value = VaultState.Unlocked
+        coEvery { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) } returns existingItem
+        every { secureItemCryptoService.decrypt(existingItem) } returns SecureItemDecryptionResult.Error(
+            SecureItemCryptoError.ContentDecodingFailed(
+                SecureItemContentDecodeError.InvalidPayload("boom"),
+            ),
+        )
+
+        val result = target.update(
+            logicalItemId = SAMPLE_LOGICAL_ITEM_ID,
+            displayHint = "Github",
+            expectedItemType = SecureItemType.PASSWORD,
+            content = validPasswordContent(),
+        )
+
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.CorruptedPayload),
+            result,
+        )
+        coVerify(exactly = 1) { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) }
+        verify(exactly = 1) { secureItemCryptoService.decrypt(existingItem) }
+        verify(exactly = 0) { secureItemCryptoService.encrypt(any(), any(), any()) }
+        verify(exactly = 0) { currentInstantProvider.now() }
+        coVerify(exactly = 0) { secureItemRepository.update(any()) }
+        confirmVerified(secureItemRepository, secureItemCryptoService, currentInstantProvider)
+    }
+
+    @Test
+    fun `update when re encryption fails cryptographically then returns validation error`() = runBlocking {
+        val existingItem = samplePasswordItem()
+        val newContent = PasswordSecureItemContent(
+            username = "user",
+            password = "new-secret",
+        )
+        vaultState.value = VaultState.Unlocked
+        coEvery { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) } returns existingItem
+        every { secureItemCryptoService.decrypt(existingItem) } returns SecureItemDecryptionResult.Success(validPasswordContent())
+        every { currentInstantProvider.now() } returns UPDATED_AT
+        every {
+            secureItemCryptoService.encrypt(
+                logicalItemId = SAMPLE_LOGICAL_ITEM_ID,
+                payloadVersion = 2,
+                content = newContent,
+            )
+        } returns SecureItemEncryptionResult.Error(SecureItemCryptoError.CryptographicFailure)
+
+        val result = target.update(
+            logicalItemId = SAMPLE_LOGICAL_ITEM_ID,
+            displayHint = "Github",
+            expectedItemType = SecureItemType.PASSWORD,
+            content = newContent,
+        )
+
+        assertEquals(
+            SecureItemMutationResult.Error(
+                SecureItemCrudError.ValidationError("Unable to encrypt secure item."),
+            ),
+            result,
+        )
+        coVerify(exactly = 1) { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) }
+        verify(exactly = 1) { secureItemCryptoService.decrypt(existingItem) }
+        verify(exactly = 1) { secureItemCryptoService.encrypt(SAMPLE_LOGICAL_ITEM_ID, 2, newContent) }
+        verify(exactly = 1) { currentInstantProvider.now() }
         coVerify(exactly = 0) { secureItemRepository.update(any()) }
         confirmVerified(secureItemRepository, secureItemCryptoService, currentInstantProvider)
     }

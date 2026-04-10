@@ -92,6 +92,22 @@ class SecureItemLocalStorageTest {
     }
 
     @Test
+    fun `observeItem when dao emits unsupported item type then throws illegal state exception`() = runBlocking {
+        val logicalItemId = UUID.randomUUID()
+        every { secureItemDao.observeItem(logicalItemId) } returns flowOf(
+            sampleEntity(logicalItemId = logicalItemId).copy(itemType = "CARD"),
+        )
+
+        val throwable = kotlin.runCatching { target.observeItem(logicalItemId).first() }.exceptionOrNull()
+
+        requireNotNull(throwable)
+        assertTrue(throwable is IllegalStateException)
+        assertEquals("Unsupported SecureItemType 'CARD' in local storage.", throwable.message)
+        verify(exactly = 1) { secureItemDao.observeItem(logicalItemId) }
+        confirmVerified(secureItemDao)
+    }
+
+    @Test
     fun `getItem when dao finds entity then maps it into domain item`() = runBlocking {
         val entity = sampleEntity()
         val logicalItemId = entity.logicalItemId

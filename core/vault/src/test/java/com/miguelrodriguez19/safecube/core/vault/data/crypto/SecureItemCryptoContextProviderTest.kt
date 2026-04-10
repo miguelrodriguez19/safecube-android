@@ -45,6 +45,19 @@ class SecureItemCryptoContextProviderTest {
     }
 
     @Test
+    fun `get when key material is missing after snapshot then returns account id unavailable and zeroizes snapshot`() {
+        vaultInMemoryKekStore.replace(byteArrayOf(1, 2, 3, 4))
+        every { vaultKeyMaterialLocalRepository.get() } returns null
+
+        val result = target.get()
+
+        assertEquals(SecureItemCryptoContextResult.AccountIdUnavailable, result)
+        assertArrayEquals(byteArrayOf(1, 2, 3, 4), vaultInMemoryKekStore.snapshot())
+        verify(exactly = 1) { vaultKeyMaterialLocalRepository.get() }
+        confirmVerified(vaultKeyMaterialLocalRepository)
+    }
+
+    @Test
     fun `get when context is available then returns account id and isolated kek snapshot`() {
         vaultInMemoryKekStore.replace(byteArrayOf(5, 6, 7, 8))
         every { vaultKeyMaterialLocalRepository.get() } returns sampleVaultKeyMaterial(accountId = SAMPLE_ACCOUNT_ID)

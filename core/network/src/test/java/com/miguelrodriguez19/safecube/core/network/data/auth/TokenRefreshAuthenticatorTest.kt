@@ -106,6 +106,54 @@ class TokenRefreshAuthenticatorTest {
     }
 
     @Test
+    fun `authenticate when request has no bearer token then refreshes with null failed token`() {
+        every { tokenProvider.getAccessToken() } returns null
+        coEvery { refreshHandler.refreshAccessToken(null) } returns "new-token"
+        val target = TokenRefreshAuthenticator(
+            tokenProvider = tokenProvider,
+            tokenRefreshHandler = Optional.of(refreshHandler),
+        )
+
+        val retriedRequest = target.authenticate(
+            route = null,
+            response = response(
+                code = 401,
+                authorizationHeader = null,
+            ),
+        )
+
+        assertNotNull(retriedRequest)
+        assertEquals("Bearer new-token", retriedRequest?.header("Authorization"))
+        verify(exactly = 1) { tokenProvider.getAccessToken() }
+        coVerify(exactly = 1) { refreshHandler.refreshAccessToken(null) }
+        confirmVerified(tokenProvider, refreshHandler)
+    }
+
+    @Test
+    fun `authenticate when in memory token is blank then delegates refresh handler`() {
+        every { tokenProvider.getAccessToken() } returns "   "
+        coEvery { refreshHandler.refreshAccessToken("expired-token") } returns "new-token"
+        val target = TokenRefreshAuthenticator(
+            tokenProvider = tokenProvider,
+            tokenRefreshHandler = Optional.of(refreshHandler),
+        )
+
+        val retriedRequest = target.authenticate(
+            route = null,
+            response = response(
+                code = 401,
+                authorizationHeader = "Bearer expired-token",
+            ),
+        )
+
+        assertNotNull(retriedRequest)
+        assertEquals("Bearer new-token", retriedRequest?.header("Authorization"))
+        verify(exactly = 1) { tokenProvider.getAccessToken() }
+        coVerify(exactly = 1) { refreshHandler.refreshAccessToken("expired-token") }
+        confirmVerified(tokenProvider, refreshHandler)
+    }
+
+    @Test
     fun `authenticate when refresh handler binding does not exist then returns null`() {
         every { tokenProvider.getAccessToken() } returns "expired-token"
         val target = TokenRefreshAuthenticator(
@@ -123,6 +171,29 @@ class TokenRefreshAuthenticatorTest {
 
         assertNull(retriedRequest)
         verify(exactly = 1) { tokenProvider.getAccessToken() }
+        confirmVerified(tokenProvider, refreshHandler)
+    }
+
+    @Test
+    fun `authenticate when refresh returns blank token then returns null`() {
+        every { tokenProvider.getAccessToken() } returns "expired-token"
+        coEvery { refreshHandler.refreshAccessToken("expired-token") } returns " "
+        val target = TokenRefreshAuthenticator(
+            tokenProvider = tokenProvider,
+            tokenRefreshHandler = Optional.of(refreshHandler),
+        )
+
+        val retriedRequest = target.authenticate(
+            route = null,
+            response = response(
+                code = 401,
+                authorizationHeader = "Bearer expired-token",
+            ),
+        )
+
+        assertNull(retriedRequest)
+        verify(exactly = 1) { tokenProvider.getAccessToken() }
+        coVerify(exactly = 1) { refreshHandler.refreshAccessToken("expired-token") }
         confirmVerified(tokenProvider, refreshHandler)
     }
 

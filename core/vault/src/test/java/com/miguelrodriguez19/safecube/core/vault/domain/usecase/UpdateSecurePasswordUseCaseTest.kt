@@ -99,4 +99,29 @@ class UpdateSecurePasswordUseCaseTest {
         coVerify(exactly = 0) { secureItemMutationCoordinator.update(any(), any(), any(), any()) }
         confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper)
     }
+
+    @Test
+    fun `invoke when mapper rejects draft without message then returns fallback validation error`() = runBlocking {
+        val logicalItemId = UUID.fromString("11111111-1111-1111-1111-111111111111")
+        val draft = SecurePasswordDraft(
+            displayHint = "Github",
+            password = "secret",
+        )
+        every { passwordDraftToContentMapper.map(draft) } throws IllegalArgumentException()
+
+        val result = target(
+            logicalItemId = logicalItemId,
+            draft = draft,
+        )
+
+        assertEquals(
+            SecureItemMutationResult.Error(
+                SecureItemCrudError.ValidationError("Invalid password item."),
+            ),
+            result,
+        )
+        verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
+        coVerify(exactly = 0) { secureItemMutationCoordinator.update(any(), any(), any(), any()) }
+        confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper)
+    }
 }

@@ -95,6 +95,17 @@ class EncryptedTokenStorageTest {
     }
 
     @Test
+    fun `getIssuedAt when stored value is missing then returns null`() {
+        every { encryptedPreferences.getString("issued_at", null) } returns null
+
+        val result = target.getIssuedAt()
+
+        assertNull(result)
+        verify(exactly = 1) { encryptedPreferences.getString("issued_at", null) }
+        confirmVerified(encryptedPreferences, editor)
+    }
+
+    @Test
     fun `getIssuedAt when stored value is valid then returns parsed issuedAt`() {
         val issuedAt = OffsetDateTime.parse("2026-03-05T12:34:56Z")
         every { encryptedPreferences.getString("issued_at", null) } returns issuedAt.toString()

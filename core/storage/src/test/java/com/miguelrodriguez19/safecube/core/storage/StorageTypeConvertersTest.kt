@@ -4,6 +4,7 @@ import java.time.Instant
 import java.util.UUID
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class StorageTypeConvertersTest {
@@ -27,6 +28,13 @@ class StorageTypeConvertersTest {
     }
 
     @Test
+    fun `uuid converter when value is invalid then throws illegal argument exception`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            target.toUuid("not-a-uuid")
+        }
+    }
+
+    @Test
     fun `instant converter when value is valid then preserves value through roundtrip`() {
         val instant = Instant.parse("2026-03-24T10:15:30Z")
 
@@ -40,6 +48,15 @@ class StorageTypeConvertersTest {
     fun `instant converter when value is null then returns null`() {
         val persisted = target.fromInstant(null)
         val restored = target.toInstant(null)
+
+        assertNull(persisted)
+        assertNull(restored)
+    }
+
+    @Test
+    fun `uuid converter when value is null then returns null`() {
+        val persisted = target.fromUuid(null)
+        val restored = target.toUuid(null)
 
         assertNull(persisted)
         assertNull(restored)

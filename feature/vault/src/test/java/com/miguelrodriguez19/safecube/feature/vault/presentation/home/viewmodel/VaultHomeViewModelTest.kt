@@ -26,20 +26,22 @@ class VaultHomeViewModelTest {
     private val observeVaultItemSummariesUseCase = mockk<ObserveVaultItemSummariesUseCase>()
     private val summariesFlow = MutableStateFlow<List<VaultItemSummary>>(emptyList())
 
-    private val target = VaultHomeViewModel(
+    private fun buildTarget(): VaultHomeViewModel = VaultHomeViewModel(
         observeVaultItemSummariesUseCase = observeVaultItemSummariesUseCase,
     )
 
     @Test
     fun `init when summaries flow emits then exposes local vault items`() = runTest {
         every { observeVaultItemSummariesUseCase.invoke() } returns summariesFlow
+        val updatedAt = Instant.parse("2026-04-10T10:15:30Z")
+        val target = buildTarget()
 
         summariesFlow.value = listOf(
             VaultItemSummary(
                 logicalItemId = UUID.randomUUID(),
                 itemType = SecureItemType.PASSWORD,
                 displayHint = "Github",
-                updatedAt = Instant.now(),
+                updatedAt = updatedAt,
             ),
         )
 
@@ -52,4 +54,3 @@ class VaultHomeViewModelTest {
         confirmVerified(observeVaultItemSummariesUseCase)
     }
 }
-

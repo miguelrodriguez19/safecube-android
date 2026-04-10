@@ -111,10 +111,54 @@ class VaultKeyMaterialCacheTest {
     }
 
     @Test
+    fun `get when account id is blank then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["account_id"] = " "
+
+        val result = target.get()
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `get when account id is not a uuid then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["account_id"] = "not-a-uuid"
+
+        val result = target.get()
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `get when master blob is missing then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values.remove("kek_enc_master")
+
+        val result = target.get()
+
+        assertNull(result)
+    }
+
+    @Test
     fun `get when master blob is not valid base64 then returns null`() {
         val target = VaultKeyMaterialCache(encryptedPreferences)
         target.save(sampleVaultKeyMaterial())
         values["kek_enc_master"] = "###invalid-base64###"
+
+        val result = target.get()
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `get when recovery blob is missing then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values.remove("kek_enc_recovery")
 
         val result = target.get()
 
@@ -133,10 +177,65 @@ class VaultKeyMaterialCacheTest {
     }
 
     @Test
+    fun `get when kdf algorithm is blank then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["kdf_algorithm"] = " "
+
+        val result = target.get()
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `get when kdf salt is not valid base64 then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["kdf_salt"] = "###invalid-base64###"
+
+        val result = target.get()
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `get when kdf memory is zero then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["kdf_memory_kib"] = 0
+
+        val result = target.get()
+
+        assertNull(result)
+    }
+
+    @Test
     fun `get when kdf iterations is zero then returns null`() {
         val target = VaultKeyMaterialCache(encryptedPreferences)
         target.save(sampleVaultKeyMaterial())
         values["kdf_iterations"] = 0
+
+        val result = target.get()
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `get when kdf parallelism is zero then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["kdf_parallelism"] = 0
+
+        val result = target.get()
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `get when kdf output length is zero then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["kdf_output_len"] = 0
 
         val result = target.get()
 

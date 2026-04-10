@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
+import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentDecodeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
@@ -79,6 +80,24 @@ class ObserveSecureItemDetailUseCaseTest {
     }
 
     @Test
+    fun `invoke when item is soft deleted then emits item not found without decrypting`() = runBlocking {
+        vaultState.value = VaultState.Unlocked
+        every { secureItemRepository.observeItem(SAMPLE_ITEM_ID) } returns flowOf(
+            sampleSecureItem().copy(deletedAt = Instant.parse("2026-03-27T10:00:00Z")),
+        )
+
+        val result = target(SAMPLE_ITEM_ID).first()
+
+        assertEquals(
+            ObserveSecureItemDetailResult.Error(SecureItemCrudError.ItemNotFound),
+            result,
+        )
+        verify(exactly = 1) { secureItemRepository.observeItem(SAMPLE_ITEM_ID) }
+        verify(exactly = 0) { secureItemCryptoService.decrypt(any()) }
+        confirmVerified(secureItemRepository, secureItemCryptoService)
+    }
+
+    @Test
     fun `invoke when vault is unlocked and payload decrypts then emits secure item detail`() = runBlocking {
         val item = sampleSecureItem()
         val content = NoteSecureItemContent(body = "secret note")
@@ -105,6 +124,88 @@ class ObserveSecureItemDetailUseCaseTest {
         every { secureItemRepository.observeItem(SAMPLE_ITEM_ID) } returns flowOf(item)
         every { secureItemCryptoService.decrypt(item) } returns SecureItemDecryptionResult.Error(
             SecureItemCryptoError.MalformedPayload,
+        )
+
+        val result = target(SAMPLE_ITEM_ID).first()
+
+        assertEquals(
+            ObserveSecureItemDetailResult.Error(SecureItemCrudError.CorruptedPayload),
+            result,
+        )
+        verify(exactly = 1) { secureItemRepository.observeItem(SAMPLE_ITEM_ID) }
+        verify(exactly = 1) { secureItemCryptoService.decrypt(item) }
+        confirmVerified(secureItemRepository, secureItemCryptoService)
+    }
+
+    @Test
+    fun `invoke when decrypt returns vault locked then emits vault locked`() = runBlocking {
+        val item = sampleSecureItem()
+        vaultState.value = VaultState.Unlocked
+        every { secureItemRepository.observeItem(SAMPLE_ITEM_ID) } returns flowOf(item)
+        every { secureItemCryptoService.decrypt(item) } returns SecureItemDecryptionResult.Error(
+            SecureItemCryptoError.VaultLocked,
+        )
+
+        val result = target(SAMPLE_ITEM_ID).first()
+
+        assertEquals(
+            ObserveSecureItemDetailResult.Error(SecureItemCrudError.VaultLocked),
+            result,
+        )
+        verify(exactly = 1) { secureItemRepository.observeItem(SAMPLE_ITEM_ID) }
+        verify(exactly = 1) { secureItemCryptoService.decrypt(item) }
+        confirmVerified(secureItemRepository, secureItemCryptoService)
+    }
+
+    @Test
+    fun `invoke when decrypt returns missing account id then emits vault locked`() = runBlocking {
+        val item = sampleSecureItem()
+        vaultState.value = VaultState.Unlocked
+        every { secureItemRepository.observeItem(SAMPLE_ITEM_ID) } returns flowOf(item)
+        every { secureItemCryptoService.decrypt(item) } returns SecureItemDecryptionResult.Error(
+            SecureItemCryptoError.AccountIdUnavailable,
+        )
+
+        val result = target(SAMPLE_ITEM_ID).first()
+
+        assertEquals(
+            ObserveSecureItemDetailResult.Error(SecureItemCrudError.VaultLocked),
+            result,
+        )
+        verify(exactly = 1) { secureItemRepository.observeItem(SAMPLE_ITEM_ID) }
+        verify(exactly = 1) { secureItemCryptoService.decrypt(item) }
+        confirmVerified(secureItemRepository, secureItemCryptoService)
+    }
+
+    @Test
+    fun `invoke when payload fails cryptographic verification then emits corrupted payload`() = runBlocking {
+        val item = sampleSecureItem()
+        vaultState.value = VaultState.Unlocked
+        every { secureItemRepository.observeItem(SAMPLE_ITEM_ID) } returns flowOf(item)
+        every { secureItemCryptoService.decrypt(item) } returns SecureItemDecryptionResult.Error(
+            SecureItemCryptoError.CryptographicFailure,
+        )
+
+        val result = target(SAMPLE_ITEM_ID).first()
+
+        assertEquals(
+            ObserveSecureItemDetailResult.Error(SecureItemCrudError.CorruptedPayload),
+            result,
+        )
+        verify(exactly = 1) { secureItemRepository.observeItem(SAMPLE_ITEM_ID) }
+        verify(exactly = 1) { secureItemCryptoService.decrypt(item) }
+        confirmVerified(secureItemRepository, secureItemCryptoService)
+    }
+
+    @Test
+    fun `invoke when payload content cannot be decoded then emits corrupted payload`() = runBlocking {
+        val item = sampleSecureItem()
+        vaultState.value = VaultState.Unlocked
+        every { secureItemRepository.observeItem(SAMPLE_ITEM_ID) } returns flowOf(item)
+        every { secureItemCryptoService.decrypt(item) } returns SecureItemDecryptionResult.Error(
+            SecureItemCryptoError.ContentDecodingFailed(
+                SecureItemContentDecodeError.InvalidPayload("boom"),
+            ),
         )
 
         val result = target(SAMPLE_ITEM_ID).first()

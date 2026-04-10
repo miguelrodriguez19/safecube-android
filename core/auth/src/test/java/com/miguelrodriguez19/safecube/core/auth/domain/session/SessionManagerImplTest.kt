@@ -50,6 +50,20 @@ class SessionManagerImplTest {
     }
 
     @Test
+    fun `init when access token is blank then starts as logged out`() {
+        every { tokenStorage.getAccessToken() } returns " "
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+
+        createTarget()
+
+        assertEquals(SessionState.LoggedOut, target.sessionState.value)
+        assertFalse(target.isLoggedIn())
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        confirmVerified(tokenStorage)
+    }
+
+    @Test
     fun `onLoginSuccess when tokens are provided then persists them and updates session state`() {
         val issuedAt = OffsetDateTime.parse("2026-03-05T00:00:00Z")
         every { tokenStorage.getAccessToken() } returns null

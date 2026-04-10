@@ -77,4 +77,32 @@ class AuthInterceptorTest {
         verify(exactly = 1) { chain.proceed(any()) }
         confirmVerified(tokenProvider, chain)
     }
+
+    @Test
+    fun `intercept when token is null then does not add bearer header`() {
+        every { tokenProvider.getAccessToken() } returns null
+        val originalRequest = Request.Builder()
+            .url("https://example.com/protected")
+            .build()
+        every { chain.request() } returns originalRequest
+
+        val requestSlot = slot<Request>()
+        every { chain.proceed(capture(requestSlot)) } answers {
+            Response.Builder()
+                .request(requestSlot.captured)
+                .protocol(Protocol.HTTP_1_1)
+                .code(200)
+                .message("OK")
+                .body("{}".toResponseBody())
+                .build()
+        }
+
+        target.intercept(chain)
+
+        assertNull(requestSlot.captured.header("Authorization"))
+        verify(exactly = 1) { tokenProvider.getAccessToken() }
+        verify(exactly = 1) { chain.request() }
+        verify(exactly = 1) { chain.proceed(any()) }
+        confirmVerified(tokenProvider, chain)
+    }
 }

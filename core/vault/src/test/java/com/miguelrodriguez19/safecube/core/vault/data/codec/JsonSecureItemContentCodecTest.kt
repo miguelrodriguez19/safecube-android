@@ -2,14 +2,18 @@ package com.miguelrodriguez19.safecube.core.vault.data.codec
 
 import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentDecodeError
 import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentDecodeResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordTotpSecureItemContent
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordWebsiteSecureItemContent
+import io.mockk.every
+import io.mockk.mockk
 import java.nio.charset.StandardCharsets
+import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -82,6 +86,29 @@ class JsonSecureItemContentCodecTest {
         assertArrayEquals(
             """{"body":"private text"}""".toByteArray(StandardCharsets.UTF_8),
             encoded.payload,
+        )
+    }
+
+    @Test
+    fun `encode when no adapter supports content then throws illegal state exception`() {
+        val passwordAdapter = mockk<PasswordSecureItemContentJsonAdapter>()
+        val noteAdapter = mockk<NoteSecureItemContentJsonAdapter>()
+        val target = JsonSecureItemContentCodec(passwordAdapter, noteAdapter)
+        val content = PasswordSecureItemContent(
+            username = "alice",
+            password = "s3cr3t",
+        )
+
+        every { passwordAdapter.canEncode(content) } returns false
+        every { noteAdapter.canEncode(any()) } returns false
+
+        val exception = assertThrows(IllegalStateException::class.java) {
+            target.encode(content)
+        }
+
+        assertEquals(
+            "Unsupported secure item content for itemType=PASSWORD.",
+            exception.message,
         )
     }
 
@@ -236,6 +263,32 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
+    fun `decode when serialization exception has no message then returns fallback invalid payload error`() {
+        val passwordAdapter = mockk<PasswordSecureItemContentJsonAdapter>()
+        val noteAdapter = mockk<NoteSecureItemContentJsonAdapter>()
+        val target = JsonSecureItemContentCodec(passwordAdapter, noteAdapter)
+
+        every { passwordAdapter.itemType } returns SecureItemType.PASSWORD
+        every { passwordAdapter.schemaVersion } returns 1
+        every { passwordAdapter.decode(any(), any()) } throws SerializationException()
+        every { noteAdapter.itemType } returns SecureItemType.NOTE
+        every { noteAdapter.schemaVersion } returns 1
+
+        val result = target.decode(
+            itemType = "PASSWORD",
+            schemaVersion = 1,
+            payload = """{"password":"ignored"}""".toByteArray(StandardCharsets.UTF_8),
+        )
+
+        assertEquals(
+            SecureItemContentDecodeResult.Error(
+                SecureItemContentDecodeError.InvalidPayload("Payload is not valid JSON."),
+            ),
+            result,
+        )
+    }
+
+    @Test
     fun `decode when password payload contains unknown fields then returns invalid payload error`() {
         val payload = """{"email":"alice@example.com","password":"s3cr3t","extra":"boom"}"""
             .toByteArray(StandardCharsets.UTF_8)
@@ -251,6 +304,32 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
+    fun `decode when semantic validation exception has no message then returns fallback invalid payload error`() {
+        val passwordAdapter = mockk<PasswordSecureItemContentJsonAdapter>()
+        val noteAdapter = mockk<NoteSecureItemContentJsonAdapter>()
+        val target = JsonSecureItemContentCodec(passwordAdapter, noteAdapter)
+
+        every { passwordAdapter.itemType } returns SecureItemType.PASSWORD
+        every { passwordAdapter.schemaVersion } returns 1
+        every { passwordAdapter.decode(any(), any()) } throws IllegalArgumentException()
+        every { noteAdapter.itemType } returns SecureItemType.NOTE
+        every { noteAdapter.schemaVersion } returns 1
+
+        val result = target.decode(
+            itemType = "PASSWORD",
+            schemaVersion = 1,
+            payload = """{"password":"ignored"}""".toByteArray(StandardCharsets.UTF_8),
+        )
+
+        assertEquals(
+            SecureItemContentDecodeResult.Error(
+                SecureItemContentDecodeError.InvalidPayload("Payload failed semantic validation."),
+            ),
+            result,
+        )
+    }
+
+    @Test
     fun `decode when note payload contains unknown fields then returns invalid payload error`() {
         val payload =
             """{"noteBody":"private text","extra":"boom"}""".toByteArray(StandardCharsets.UTF_8)
@@ -263,6 +342,24 @@ class JsonSecureItemContentCodecTest {
 
         assertTrue(result is SecureItemContentDecodeResult.Error)
         assertTrue((result as SecureItemContentDecodeResult.Error).reason is SecureItemContentDecodeError.InvalidPayload)
+    }
+
+    @Test
+    fun `decode when note payload body is blank then returns invalid payload error`() {
+        val payload = """{"body":" "}""".toByteArray(StandardCharsets.UTF_8)
+
+        val result = target.decode(
+            itemType = "NOTE",
+            schemaVersion = 1,
+            payload = payload,
+        )
+
+        assertEquals(
+            SecureItemContentDecodeResult.Error(
+                SecureItemContentDecodeError.InvalidPayload("body must not be blank."),
+            ),
+            result,
+        )
     }
 
     @Test

@@ -92,4 +92,29 @@ class UpdateSecureNoteUseCaseTest {
         coVerify(exactly = 0) { secureItemMutationCoordinator.update(any(), any(), any(), any()) }
         confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
     }
+
+    @Test
+    fun `invoke when mapper rejects draft without message then returns fallback validation error`() = runBlocking {
+        val logicalItemId = UUID.fromString("11111111-1111-1111-1111-111111111111")
+        val draft = SecureNoteDraft(
+            displayHint = "API key",
+            body = "secret body",
+        )
+        every { noteDraftToContentMapper.map(draft) } throws IllegalArgumentException()
+
+        val result = target(
+            logicalItemId = logicalItemId,
+            draft = draft,
+        )
+
+        assertEquals(
+            SecureItemMutationResult.Error(
+                SecureItemCrudError.ValidationError("Invalid note item."),
+            ),
+            result,
+        )
+        verify(exactly = 1) { noteDraftToContentMapper.map(draft) }
+        coVerify(exactly = 0) { secureItemMutationCoordinator.update(any(), any(), any(), any()) }
+        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
+    }
 }

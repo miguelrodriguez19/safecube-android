@@ -105,6 +105,31 @@ class AuthRepositoryImplTest {
     }
 
     @Test
+    fun `register when data source returns failure then returns unknown error preserving throwable message`() = runBlocking {
+        coEvery { remoteAuthDataSource.register(any()) } returns NetworkResult.Failure(
+            throwable = IllegalStateException("network down"),
+        )
+
+        val result = target.register(
+            email = "user@example.com",
+            password = "password",
+        )
+
+        assertEquals(
+            AuthResult.Error(
+                AuthError.Unknown(
+                    code = null,
+                    message = "network down",
+                ),
+            ),
+            result,
+        )
+        coVerify(exactly = 1) { remoteAuthDataSource.register(any()) }
+        verify(exactly = 0) { authErrorMapper.map(any(), any(), any()) }
+        confirmVerified(remoteAuthDataSource, authErrorMapper)
+    }
+
+    @Test
     fun `login when data source returns success with valid body then maps auth tokens into domain result`() = runBlocking {
         val issuedAt = OffsetDateTime.parse("2026-03-06T12:11:35.524804768Z")
         coEvery { remoteAuthDataSource.login(any()) } returns NetworkResult.Success(
@@ -230,6 +255,64 @@ class AuthRepositoryImplTest {
     }
 
     @Test
+    fun `login when data source returns http error then delegates mapping using login operation`() = runBlocking {
+        val errorBody = """{"error":"Invalid credentials"}"""
+        coEvery { remoteAuthDataSource.login(any()) } returns NetworkResult.HttpError(
+            httpCode = 401,
+            body = null,
+            errorBody = errorBody,
+        )
+        every {
+            authErrorMapper.map(
+                statusCode = 401,
+                errorBody = errorBody,
+                operation = AuthOperation.LOGIN,
+            )
+        } returns AuthError.InvalidCredentials
+
+        val result = target.login(
+            email = "user@example.com",
+            password = "password",
+        )
+
+        assertEquals(AuthResult.Error(AuthError.InvalidCredentials), result)
+        coVerify(exactly = 1) { remoteAuthDataSource.login(any()) }
+        verify(exactly = 1) {
+            authErrorMapper.map(
+                statusCode = 401,
+                errorBody = errorBody,
+                operation = AuthOperation.LOGIN,
+            )
+        }
+        confirmVerified(remoteAuthDataSource, authErrorMapper)
+    }
+
+    @Test
+    fun `login when data source returns failure then returns unknown error preserving throwable message`() = runBlocking {
+        coEvery { remoteAuthDataSource.login(any()) } returns NetworkResult.Failure(
+            throwable = IllegalStateException("network down"),
+        )
+
+        val result = target.login(
+            email = "user@example.com",
+            password = "password",
+        )
+
+        assertEquals(
+            AuthResult.Error(
+                AuthError.Unknown(
+                    code = null,
+                    message = "network down",
+                ),
+            ),
+            result,
+        )
+        coVerify(exactly = 1) { remoteAuthDataSource.login(any()) }
+        verify(exactly = 0) { authErrorMapper.map(any(), any(), any()) }
+        confirmVerified(remoteAuthDataSource, authErrorMapper)
+    }
+
+    @Test
     fun `refresh when data source returns http error then delegates mapping using refresh operation`() = runBlocking {
         val errorBody = """{"error":"Refresh token conflict"}"""
         val mappedError = AuthError.Conflict(message = "Refresh token conflict")
@@ -267,6 +350,90 @@ class AuthRepositoryImplTest {
     }
 
     @Test
+    fun `refresh when data source returns success with valid body then maps auth tokens into domain result`() = runBlocking {
+        val issuedAt = OffsetDateTime.parse("2026-03-06T12:11:35.524804768Z")
+        coEvery { remoteAuthDataSource.refresh(any()) } returns NetworkResult.Success(
+            httpCode = 200,
+            body = AuthTokensResponse(
+                accessToken = "access-token",
+                refreshToken = "refresh-token",
+                issuedAt = issuedAt,
+            ),
+        )
+
+        val result = target.refresh(
+            refreshToken = "refresh-token",
+        )
+
+        assertEquals(
+            AuthResult.Success(
+                AuthTokens(
+                    accessToken = "access-token",
+                    refreshToken = "refresh-token",
+                    issuedAt = issuedAt,
+                ),
+            ),
+            result,
+        )
+        coVerify(exactly = 1) {
+            remoteAuthDataSource.refresh(
+                match { request -> request.refreshToken == "refresh-token" },
+            )
+        }
+        verify(exactly = 0) { authErrorMapper.map(any(), any(), any()) }
+        confirmVerified(remoteAuthDataSource, authErrorMapper)
+    }
+
+    @Test
+    fun `refresh when success body is missing then returns unknown error with successful code`() = runBlocking {
+        coEvery { remoteAuthDataSource.refresh(any()) } returns NetworkResult.Success(
+            httpCode = 200,
+            body = null,
+        )
+
+        val result = target.refresh(
+            refreshToken = "refresh-token",
+        )
+
+        assertEquals(
+            AuthResult.Error(
+                AuthError.Unknown(
+                    code = 200,
+                    message = "Missing token payload in successful auth response.",
+                ),
+            ),
+            result,
+        )
+        coVerify(exactly = 1) { remoteAuthDataSource.refresh(any()) }
+        verify(exactly = 0) { authErrorMapper.map(any(), any(), any()) }
+        confirmVerified(remoteAuthDataSource, authErrorMapper)
+    }
+
+    @Test
+    fun `refresh when data source returns failure then returns unknown error preserving throwable message`() = runBlocking {
+        coEvery { remoteAuthDataSource.refresh(any()) } returns NetworkResult.Failure(
+            throwable = IllegalStateException("network down"),
+        )
+
+        val result = target.refresh(
+            refreshToken = "refresh-token",
+        )
+
+        assertEquals(
+            AuthResult.Error(
+                AuthError.Unknown(
+                    code = null,
+                    message = "network down",
+                ),
+            ),
+            result,
+        )
+        coVerify(exactly = 1) { remoteAuthDataSource.refresh(any()) }
+        verify(exactly = 0) { authErrorMapper.map(any(), any(), any()) }
+        confirmVerified(remoteAuthDataSource, authErrorMapper)
+    }
+
+    @Test
     fun `logout when data source returns success then returns success unit`() = runBlocking {
         coEvery { remoteAuthDataSource.logout() } returns NetworkResult.Success(
             httpCode = 200,
@@ -278,6 +445,36 @@ class AuthRepositoryImplTest {
         assertEquals(AuthResult.Success(Unit), result)
         coVerify(exactly = 1) { remoteAuthDataSource.logout() }
         verify(exactly = 0) { authErrorMapper.map(any(), any(), any()) }
+        confirmVerified(remoteAuthDataSource, authErrorMapper)
+    }
+
+    @Test
+    fun `logout when data source returns http error then delegates mapping using logout operation`() = runBlocking {
+        val errorBody = """{"error":"Forbidden"}"""
+        coEvery { remoteAuthDataSource.logout() } returns NetworkResult.HttpError(
+            httpCode = 403,
+            body = null,
+            errorBody = errorBody,
+        )
+        every {
+            authErrorMapper.map(
+                statusCode = 403,
+                errorBody = errorBody,
+                operation = AuthOperation.LOGOUT,
+            )
+        } returns AuthError.Forbidden
+
+        val result = target.logout()
+
+        assertEquals(AuthResult.Error(AuthError.Forbidden), result)
+        coVerify(exactly = 1) { remoteAuthDataSource.logout() }
+        verify(exactly = 1) {
+            authErrorMapper.map(
+                statusCode = 403,
+                errorBody = errorBody,
+                operation = AuthOperation.LOGOUT,
+            )
+        }
         confirmVerified(remoteAuthDataSource, authErrorMapper)
     }
 

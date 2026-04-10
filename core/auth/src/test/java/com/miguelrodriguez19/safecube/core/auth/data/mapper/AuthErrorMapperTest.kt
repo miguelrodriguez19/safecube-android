@@ -47,6 +47,17 @@ class AuthErrorMapperTest {
     }
 
     @Test
+    fun `map when status code is 400 and body is blank then returns validation failed without details`() {
+        val result = target.map(
+            statusCode = 400,
+            errorBody = " ",
+            operation = AuthOperation.LOGIN,
+        )
+
+        assertEquals(AuthError.ValidationFailed(fields = null, message = null), result)
+    }
+
+    @Test
     fun `map when status code is 400 and fields are not strings then sanitizes parsed values`() {
         val result = target.map(
             statusCode = 400,
@@ -61,6 +72,23 @@ class AuthErrorMapperTest {
                     "password" to "   ",
                 ),
                 message = null,
+            ),
+            result,
+        )
+    }
+
+    @Test
+    fun `map when status code is 400 and fields object is empty then returns validation failed without fields`() {
+        val result = target.map(
+            statusCode = 400,
+            errorBody = """{"error":"Validation failed","fields":{}}""",
+            operation = AuthOperation.LOGIN,
+        )
+
+        assertEquals(
+            AuthError.ValidationFailed(
+                fields = null,
+                message = "Validation failed",
             ),
             result,
         )
@@ -122,6 +150,17 @@ class AuthErrorMapperTest {
     }
 
     @Test
+    fun `map when status code is 409 and body message is blank then returns conflict without message`() {
+        val result = target.map(
+            statusCode = 409,
+            errorBody = """{"error":" "}""",
+            operation = AuthOperation.REFRESH,
+        )
+
+        assertEquals(AuthError.Conflict(message = null), result)
+    }
+
+    @Test
     fun `map when status code is unexpected and body has message then returns unknown with code and message`() {
         val result = target.map(
             statusCode = 500,
@@ -143,6 +182,23 @@ class AuthErrorMapperTest {
         val result = target.map(
             statusCode = 500,
             errorBody = """["boom"]""",
+            operation = AuthOperation.LOGOUT,
+        )
+
+        assertEquals(
+            AuthError.Unknown(
+                code = 500,
+                message = null,
+            ),
+            result,
+        )
+    }
+
+    @Test
+    fun `map when status code is unexpected and body is missing then returns unknown without message`() {
+        val result = target.map(
+            statusCode = 500,
+            errorBody = null,
             operation = AuthOperation.LOGOUT,
         )
 
