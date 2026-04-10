@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.core.network.domain.port.TokenProvider
 import com.miguelrodriguez19.safecube.core.network.domain.port.TokenRefreshHandler
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -17,18 +18,18 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-class TokenRefreshAuthenticatorIntegrationTest {
+class TokenRefreshAuthenticatorTest {
+    private val tokenProvider = mockk<TokenProvider>()
+    private val refreshHandler = mockk<TokenRefreshHandler>()
 
     @Test
-    fun `authenticate returns null when response is not unauthorized`() {
-        val tokenProvider = mockk<TokenProvider>(relaxed = true)
-        val refreshHandler = mockk<TokenRefreshHandler>(relaxed = true)
-        val authenticator = TokenRefreshAuthenticator(
+    fun `authenticate when response is not unauthorized then returns null`() {
+        val target = TokenRefreshAuthenticator(
             tokenProvider = tokenProvider,
             tokenRefreshHandler = Optional.of(refreshHandler),
         )
 
-        val retriedRequest = authenticator.authenticate(
+        val retriedRequest = target.authenticate(
             route = null,
             response = response(code = 200),
         )
@@ -36,18 +37,17 @@ class TokenRefreshAuthenticatorIntegrationTest {
         assertNull(retriedRequest)
         verify(exactly = 0) { tokenProvider.getAccessToken() }
         coVerify(exactly = 0) { refreshHandler.refreshAccessToken(any()) }
+        confirmVerified(tokenProvider, refreshHandler)
     }
 
     @Test
-    fun `authenticate returns null when unauthorized response comes from refresh endpoint`() {
-        val tokenProvider = mockk<TokenProvider>(relaxed = true)
-        val refreshHandler = mockk<TokenRefreshHandler>(relaxed = true)
-        val authenticator = TokenRefreshAuthenticator(
+    fun `authenticate when unauthorized response comes from refresh endpoint then returns null`() {
+        val target = TokenRefreshAuthenticator(
             tokenProvider = tokenProvider,
             tokenRefreshHandler = Optional.of(refreshHandler),
         )
 
-        val retriedRequest = authenticator.authenticate(
+        val retriedRequest = target.authenticate(
             route = null,
             response = response(code = 401, path = "/auth/refresh"),
         )
@@ -55,20 +55,19 @@ class TokenRefreshAuthenticatorIntegrationTest {
         assertNull(retriedRequest)
         verify(exactly = 0) { tokenProvider.getAccessToken() }
         coVerify(exactly = 0) { refreshHandler.refreshAccessToken(any()) }
+        confirmVerified(tokenProvider, refreshHandler)
     }
 
     @Test
-    fun `authenticate retries request with refreshed token when refresh succeeds`() {
-        val tokenProvider = mockk<TokenProvider>()
-        val refreshHandler = mockk<TokenRefreshHandler>()
+    fun `authenticate when refresh succeeds then retries request with refreshed token`() {
         every { tokenProvider.getAccessToken() } returns "expired-token"
         coEvery { refreshHandler.refreshAccessToken("expired-token") } returns "new-token"
-        val authenticator = TokenRefreshAuthenticator(
+        val target = TokenRefreshAuthenticator(
             tokenProvider = tokenProvider,
             tokenRefreshHandler = Optional.of(refreshHandler),
         )
 
-        val retriedRequest = authenticator.authenticate(
+        val retriedRequest = target.authenticate(
             route = null,
             response = response(
                 code = 401,
@@ -80,19 +79,18 @@ class TokenRefreshAuthenticatorIntegrationTest {
         assertEquals("Bearer new-token", retriedRequest?.header("Authorization"))
         verify(exactly = 1) { tokenProvider.getAccessToken() }
         coVerify(exactly = 1) { refreshHandler.refreshAccessToken("expired-token") }
+        confirmVerified(tokenProvider, refreshHandler)
     }
 
     @Test
-    fun `authenticate uses in-memory rotated token without invoking refresh handler`() {
-        val tokenProvider = mockk<TokenProvider>()
-        val refreshHandler = mockk<TokenRefreshHandler>()
+    fun `authenticate when token is already rotated in memory then skips refresh handler`() {
         every { tokenProvider.getAccessToken() } returns "already-rotated-token"
-        val authenticator = TokenRefreshAuthenticator(
+        val target = TokenRefreshAuthenticator(
             tokenProvider = tokenProvider,
             tokenRefreshHandler = Optional.of(refreshHandler),
         )
 
-        val retriedRequest = authenticator.authenticate(
+        val retriedRequest = target.authenticate(
             route = null,
             response = response(
                 code = 401,
@@ -104,18 +102,18 @@ class TokenRefreshAuthenticatorIntegrationTest {
         assertEquals("Bearer already-rotated-token", retriedRequest?.header("Authorization"))
         verify(exactly = 1) { tokenProvider.getAccessToken() }
         coVerify(exactly = 0) { refreshHandler.refreshAccessToken(any()) }
+        confirmVerified(tokenProvider, refreshHandler)
     }
 
     @Test
-    fun `authenticate returns null when no refresh handler binding exists`() {
-        val tokenProvider = mockk<TokenProvider>()
+    fun `authenticate when refresh handler binding does not exist then returns null`() {
         every { tokenProvider.getAccessToken() } returns "expired-token"
-        val authenticator = TokenRefreshAuthenticator(
+        val target = TokenRefreshAuthenticator(
             tokenProvider = tokenProvider,
             tokenRefreshHandler = Optional.empty(),
         )
 
-        val retriedRequest = authenticator.authenticate(
+        val retriedRequest = target.authenticate(
             route = null,
             response = response(
                 code = 401,
@@ -125,20 +123,19 @@ class TokenRefreshAuthenticatorIntegrationTest {
 
         assertNull(retriedRequest)
         verify(exactly = 1) { tokenProvider.getAccessToken() }
+        confirmVerified(tokenProvider, refreshHandler)
     }
 
     @Test
-    fun `authenticate returns null when refresh returns same token`() {
-        val tokenProvider = mockk<TokenProvider>()
-        val refreshHandler = mockk<TokenRefreshHandler>()
+    fun `authenticate when refresh returns same token then returns null`() {
         every { tokenProvider.getAccessToken() } returns "expired-token"
         coEvery { refreshHandler.refreshAccessToken("expired-token") } returns "expired-token"
-        val authenticator = TokenRefreshAuthenticator(
+        val target = TokenRefreshAuthenticator(
             tokenProvider = tokenProvider,
             tokenRefreshHandler = Optional.of(refreshHandler),
         )
 
-        val retriedRequest = authenticator.authenticate(
+        val retriedRequest = target.authenticate(
             route = null,
             response = response(
                 code = 401,
@@ -149,13 +146,12 @@ class TokenRefreshAuthenticatorIntegrationTest {
         assertNull(retriedRequest)
         verify(exactly = 1) { tokenProvider.getAccessToken() }
         coVerify(exactly = 1) { refreshHandler.refreshAccessToken("expired-token") }
+        confirmVerified(tokenProvider, refreshHandler)
     }
 
     @Test
-    fun `authenticate returns null when request was already retried`() {
-        val tokenProvider = mockk<TokenProvider>(relaxed = true)
-        val refreshHandler = mockk<TokenRefreshHandler>(relaxed = true)
-        val authenticator = TokenRefreshAuthenticator(
+    fun `authenticate when request was already retried then returns null`() {
+        val target = TokenRefreshAuthenticator(
             tokenProvider = tokenProvider,
             tokenRefreshHandler = Optional.of(refreshHandler),
         )
@@ -164,7 +160,8 @@ class TokenRefreshAuthenticatorIntegrationTest {
             code = 401,
             authorizationHeader = "Bearer prior-token",
         )
-        val retriedRequest = authenticator.authenticate(
+
+        val retriedRequest = target.authenticate(
             route = null,
             response = response(
                 code = 401,
@@ -176,6 +173,7 @@ class TokenRefreshAuthenticatorIntegrationTest {
         assertNull(retriedRequest)
         verify(exactly = 0) { tokenProvider.getAccessToken() }
         coVerify(exactly = 0) { refreshHandler.refreshAccessToken(any()) }
+        confirmVerified(tokenProvider, refreshHandler)
     }
 
     private fun response(

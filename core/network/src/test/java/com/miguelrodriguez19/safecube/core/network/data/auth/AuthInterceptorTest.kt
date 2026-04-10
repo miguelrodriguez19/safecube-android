@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.core.network.domain.port.TokenProvider
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.confirmVerified
 import io.mockk.verify
 import okhttp3.Interceptor
 import okhttp3.Protocol
@@ -16,21 +17,17 @@ import org.junit.Test
 
 class AuthInterceptorTest {
 
-    val tokenProvider = mockk<TokenProvider>()
+    private val tokenProvider = mockk<TokenProvider>()
+    private val chain = mockk<Interceptor.Chain>()
 
-    val target = AuthInterceptor(tokenProvider)
-
+    private val target = AuthInterceptor(tokenProvider)
 
     @Test
-    fun `intercept adds bearer header when token exists`() {
-
+    fun `intercept when token exists then adds bearer header`() {
         every { tokenProvider.getAccessToken() } returns "access-token"
-
         val originalRequest = Request.Builder()
             .url("https://example.com/protected")
             .build()
-
-        val chain = mockk<Interceptor.Chain>()
         every { chain.request() } returns originalRequest
 
         val requestSlot = slot<Request>()
@@ -48,18 +45,17 @@ class AuthInterceptorTest {
 
         assertEquals("Bearer access-token", requestSlot.captured.header("Authorization"))
         verify(exactly = 1) { tokenProvider.getAccessToken() }
+        verify(exactly = 1) { chain.request() }
         verify(exactly = 1) { chain.proceed(any()) }
+        confirmVerified(tokenProvider, chain)
     }
 
     @Test
-    fun `intercept does not add bearer header when token is blank`() {
+    fun `intercept when token is blank then does not add bearer header`() {
         every { tokenProvider.getAccessToken() } returns "   "
-
         val originalRequest = Request.Builder()
             .url("https://example.com/protected")
             .build()
-
-        val chain = mockk<Interceptor.Chain>()
         every { chain.request() } returns originalRequest
 
         val requestSlot = slot<Request>()
@@ -77,6 +73,8 @@ class AuthInterceptorTest {
 
         assertNull(requestSlot.captured.header("Authorization"))
         verify(exactly = 1) { tokenProvider.getAccessToken() }
+        verify(exactly = 1) { chain.request() }
         verify(exactly = 1) { chain.proceed(any()) }
+        confirmVerified(tokenProvider, chain)
     }
 }

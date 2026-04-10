@@ -30,27 +30,37 @@ class SecureItemLocalStorageTest {
     private val target = SecureItemLocalStorage(secureItemDao)
 
     @Test
-    fun `observeActiveItems when dao emits entities then maps them into domain items`() = runBlocking {
-        val firstEntity = sampleEntity(
-            itemType = SecureItemType.PASSWORD,
-            payload = byteArrayOf(1, 2, 3),
-        )
-        val secondEntity = sampleEntity(
-            itemType = SecureItemType.NOTE,
-            payload = byteArrayOf(4, 5, 6),
-            deletedAt = Instant.now(),
-        )
-        every { secureItemDao.observeActiveItems() } returns flowOf(listOf(firstEntity, secondEntity))
+    fun `observeActiveItems when dao emits entities then maps them into domain items`() =
+        runBlocking {
+            val firstEntity = sampleEntity(
+                itemType = SecureItemType.PASSWORD,
+                payload = byteArrayOf(1, 2, 3),
+            )
+            val secondEntity = sampleEntity(
+                itemType = SecureItemType.NOTE,
+                payload = byteArrayOf(4, 5, 6),
+                deletedAt = Instant.parse("2026-03-24T11:00:00Z"),
+            )
+            every { secureItemDao.observeActiveItems() } returns flowOf(
+                listOf(
+                    firstEntity,
+                    secondEntity
+                )
+            )
 
-        val result = target.observeActiveItems().first()
+            val result = target.observeActiveItems().first()
 
-        assertEquals(listOf(firstEntity.logicalItemId, secondEntity.logicalItemId), result.map { it.logicalItemId })
-        assertEquals(listOf(SecureItemType.PASSWORD, SecureItemType.NOTE), result.map { it.itemType })
-        assertArrayEquals(firstEntity.payload, result[0].payload)
-        assertEquals(secondEntity.deletedAt, result[1].deletedAt)
-        verify(exactly = 1) { secureItemDao.observeActiveItems() }
-        confirmVerified(secureItemDao)
-    }
+            assertEquals(
+                listOf(firstEntity.logicalItemId, secondEntity.logicalItemId),
+                result.map { it.logicalItemId })
+            assertEquals(
+                listOf(SecureItemType.PASSWORD, SecureItemType.NOTE),
+                result.map { it.itemType })
+            assertArrayEquals(firstEntity.payload, result[0].payload)
+            assertEquals(secondEntity.deletedAt, result[1].deletedAt)
+            verify(exactly = 1) { secureItemDao.observeActiveItems() }
+            confirmVerified(secureItemDao)
+        }
 
     @Test
     fun `observeItem when dao emits entity then maps it into domain item`() = runBlocking {
@@ -155,7 +165,7 @@ class SecureItemLocalStorageTest {
     @Test
     fun `softDelete when dao updates one row then returns true`() = runBlocking {
         val logicalItemId = UUID.randomUUID()
-        val deletedAt = Instant.now()
+        val deletedAt = Instant.parse("2026-03-24T12:00:00Z")
         coEvery { secureItemDao.softDelete(logicalItemId, deletedAt) } returns 1
 
         val result = target.softDelete(
@@ -171,7 +181,7 @@ class SecureItemLocalStorageTest {
     @Test
     fun `softDelete when dao updates no rows then returns false`() = runBlocking {
         val logicalItemId = UUID.randomUUID()
-        val deletedAt = Instant.now()
+        val deletedAt = Instant.parse("2026-03-24T12:00:00Z")
         coEvery { secureItemDao.softDelete(logicalItemId, deletedAt) } returns 0
 
         val result = target.softDelete(

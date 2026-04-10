@@ -21,7 +21,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-class TokenRefreshAuthenticatorFlowTest {
+class TokenRefreshAuthenticatorFlowIntegrationTest {
     private lateinit var server: MockWebServer
 
     @Before
@@ -36,7 +36,7 @@ class TokenRefreshAuthenticatorFlowTest {
     }
 
     @Test
-    fun `401 triggers refresh then retries original request`() {
+    fun `401 when refresh succeeds then retries original request`() {
         val session = MutableSession(
             accessToken = "expired-access",
             refreshToken = "refresh-1",
@@ -77,7 +77,7 @@ class TokenRefreshAuthenticatorFlowTest {
     }
 
     @Test
-    fun `401 and refresh auth failure forces logout and returns original unauthorized response`() {
+    fun `401 when refresh returns auth failure then forces logout and returns unauthorized response`() {
         val session = MutableSession(
             accessToken = "expired-access",
             refreshToken = "refresh-1",
@@ -168,56 +168,58 @@ class TokenRefreshAuthenticatorFlowTest {
         refreshedAccessToken: String,
         refreshedRefreshToken: String,
     ): Dispatcher = object : Dispatcher() {
-        override fun dispatch(request: RecordedRequest): MockResponse = when (request.requestUrl?.encodedPath) {
-            "/protected" -> {
-                val authHeader = request.getHeader("Authorization")
-                if (authHeader == "Bearer $expiredAccessToken") {
-                    MockResponse().setResponseCode(401)
-                } else if (authHeader == "Bearer $refreshedAccessToken") {
-                    MockResponse()
-                        .setResponseCode(200)
-                        .setBody("ok")
-                } else {
-                    MockResponse().setResponseCode(401)
+        override fun dispatch(request: RecordedRequest): MockResponse =
+            when (request.requestUrl?.encodedPath) {
+                "/protected" -> {
+                    val authHeader = request.getHeader("Authorization")
+                    if (authHeader == "Bearer $expiredAccessToken") {
+                        MockResponse().setResponseCode(401)
+                    } else if (authHeader == "Bearer $refreshedAccessToken") {
+                        MockResponse()
+                            .setResponseCode(200)
+                            .setBody("ok")
+                    } else {
+                        MockResponse().setResponseCode(401)
+                    }
                 }
-            }
 
-            "/auth/refresh" -> MockResponse()
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                    """
+                "/auth/refresh" -> MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(
+                        """
                     {
                       "accessToken":"$refreshedAccessToken",
                       "refreshToken":"$refreshedRefreshToken",
                       "issuedAt":"2026-03-06T12:11:35.524804768Z"
                     }
                     """.trimIndent(),
-                )
+                    )
 
-            else -> MockResponse().setResponseCode(404)
-        }
+                else -> MockResponse().setResponseCode(404)
+            }
     }
 
     private fun refreshUnauthorizedDispatcher(
         expiredAccessToken: String,
     ): Dispatcher = object : Dispatcher() {
-        override fun dispatch(request: RecordedRequest): MockResponse = when (request.requestUrl?.encodedPath) {
-            "/protected" -> {
-                if (request.getHeader("Authorization") == "Bearer $expiredAccessToken") {
-                    MockResponse().setResponseCode(401)
-                } else {
-                    MockResponse().setResponseCode(404)
+        override fun dispatch(request: RecordedRequest): MockResponse =
+            when (request.requestUrl?.encodedPath) {
+                "/protected" -> {
+                    if (request.getHeader("Authorization") == "Bearer $expiredAccessToken") {
+                        MockResponse().setResponseCode(401)
+                    } else {
+                        MockResponse().setResponseCode(404)
+                    }
                 }
+
+                "/auth/refresh" -> MockResponse()
+                    .setResponseCode(401)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody("""{"error":"Invalid credentials"}""")
+
+                else -> MockResponse().setResponseCode(404)
             }
-
-            "/auth/refresh" -> MockResponse()
-                .setResponseCode(401)
-                .addHeader("Content-Type", "application/json")
-                .setBody("""{"error":"Invalid credentials"}""")
-
-            else -> MockResponse().setResponseCode(404)
-        }
     }
 
     private class MutableSession(

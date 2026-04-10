@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-04-2026 12:12:26
+Updated: 10-04-2026 12:29:09
 
 ```
 safecube-android/
@@ -242,8 +242,8 @@ safecube-android/
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/data/
 │   │   │       ├── auth/
 │   │   │       │   ├── AuthInterceptorTest.kt
-│   │   │       │   ├── TokenRefreshAuthenticatorFlowTest.kt
-│   │   │       │   └── TokenRefreshAuthenticatorIntegrationTest.kt
+│   │   │       │   ├── TokenRefreshAuthenticatorFlowIntegrationTest.kt
+│   │   │       │   └── TokenRefreshAuthenticatorTest.kt
 │   │   │       └── client/
 │   │   │           └── NetworkClientFactoryIntegrationTest.kt
 │   │   └── build.gradle.kts
