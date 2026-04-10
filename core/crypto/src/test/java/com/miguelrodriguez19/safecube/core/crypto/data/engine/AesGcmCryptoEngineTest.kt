@@ -10,16 +10,16 @@ import org.junit.Test
 import javax.crypto.AEADBadTagException
 
 class AesGcmCryptoEngineTest {
-    private val engine = AesGcmCryptoEngine()
+    private val target = AesGcmCryptoEngine()
     private val validKey = ByteArray(32) { index -> (index + 1).toByte() }
 
     @Test
-    fun encryptThenDecrypt_roundtripSucceeds() {
+    fun `encrypt and decrypt when request is valid then returns original plaintext`() {
         val key = ByteArray(32) { index -> index.toByte() }
         val plaintext = "safe cube payload".encodeToByteArray()
         val aad = "accountId:11111111-2222-3333-4444-555555555555|purpose:kek".encodeToByteArray()
 
-        val encrypted = engine.encrypt(
+        val encrypted = target.encrypt(
             EncryptionRequest(
                 plaintext = plaintext,
                 keyMaterial = key,
@@ -27,11 +27,7 @@ class AesGcmCryptoEngineTest {
             )
         )
 
-        assertEquals(12, encrypted.iv.size)
-        assertEquals(16, encrypted.authTag.size)
-        assertFalse(encrypted.ciphertext.contentEquals(plaintext))
-
-        val decrypted = engine.decrypt(
+        val decrypted = target.decrypt(
             DecryptionRequest(
                 ciphertext = encrypted.ciphertext,
                 keyMaterial = key,
@@ -41,14 +37,17 @@ class AesGcmCryptoEngineTest {
             )
         )
 
+        assertEquals(12, encrypted.iv.size)
+        assertEquals(16, encrypted.authTag.size)
+        assertFalse(encrypted.ciphertext.contentEquals(plaintext))
         assertArrayEquals(plaintext, decrypted)
     }
 
     @Test
-    fun decrypt_failsWhenAadIsIncorrect() {
+    fun `decrypt when aad is incorrect then throws bad tag exception`() {
         val plaintext = "payload for aad validation".encodeToByteArray()
 
-        val encrypted = engine.encrypt(
+        val encrypted = target.encrypt(
             EncryptionRequest(
                 plaintext = plaintext,
                 keyMaterial = validKey,
@@ -57,7 +56,7 @@ class AesGcmCryptoEngineTest {
         )
 
         assertThrows(AEADBadTagException::class.java) {
-            engine.decrypt(
+            target.decrypt(
                 DecryptionRequest(
                     ciphertext = encrypted.ciphertext,
                     keyMaterial = validKey,
@@ -70,10 +69,10 @@ class AesGcmCryptoEngineTest {
     }
 
     @Test
-    fun encryptThenDecrypt_roundtripWithoutAadSucceeds() {
+    fun `encrypt and decrypt when aad is absent then returns original plaintext`() {
         val plaintext = "payload without aad".encodeToByteArray()
 
-        val encrypted = engine.encrypt(
+        val encrypted = target.encrypt(
             EncryptionRequest(
                 plaintext = plaintext,
                 keyMaterial = validKey,
@@ -81,7 +80,7 @@ class AesGcmCryptoEngineTest {
             ),
         )
 
-        val decrypted = engine.decrypt(
+        val decrypted = target.decrypt(
             DecryptionRequest(
                 ciphertext = encrypted.ciphertext,
                 keyMaterial = validKey,
@@ -95,60 +94,81 @@ class AesGcmCryptoEngineTest {
     }
 
     @Test
-    fun encrypt_throwsWhenKeyLengthIsInvalid() {
+    fun `encrypt when key length is invalid then throws illegal argument exception`() {
+        val request = EncryptionRequest(
+            plaintext = "x".encodeToByteArray(),
+            keyMaterial = ByteArray(16),
+            aad = null,
+        )
+
         assertThrows(IllegalArgumentException::class.java) {
-            engine.encrypt(
-                EncryptionRequest(
-                    plaintext = "x".encodeToByteArray(),
-                    keyMaterial = ByteArray(16),
-                    aad = null,
-                ),
-            )
+            target.encrypt(request)
         }
     }
 
     @Test
-    fun decrypt_throwsWhenInputLengthsAreInvalid() {
-        val encrypted = engine.encrypt(
+    fun `decrypt when key length is invalid then throws illegal argument exception`() {
+        val encrypted = target.encrypt(
             EncryptionRequest(
                 plaintext = "x".encodeToByteArray(),
                 keyMaterial = validKey,
                 aad = null,
             ),
         )
+        val request = DecryptionRequest(
+            ciphertext = encrypted.ciphertext,
+            keyMaterial = ByteArray(16),
+            iv = encrypted.iv,
+            aad = null,
+            authTag = encrypted.authTag,
+        )
 
         assertThrows(IllegalArgumentException::class.java) {
-            engine.decrypt(
-                DecryptionRequest(
-                    ciphertext = encrypted.ciphertext,
-                    keyMaterial = ByteArray(16),
-                    iv = encrypted.iv,
-                    aad = null,
-                    authTag = encrypted.authTag,
-                ),
-            )
+            target.decrypt(request)
         }
+    }
+
+    @Test
+    fun `decrypt when iv length is invalid then throws illegal argument exception`() {
+        val encrypted = target.encrypt(
+            EncryptionRequest(
+                plaintext = "x".encodeToByteArray(),
+                keyMaterial = validKey,
+                aad = null,
+            ),
+        )
+        val request = DecryptionRequest(
+            ciphertext = encrypted.ciphertext,
+            keyMaterial = validKey,
+            iv = ByteArray(8),
+            aad = null,
+            authTag = encrypted.authTag,
+        )
+
         assertThrows(IllegalArgumentException::class.java) {
-            engine.decrypt(
-                DecryptionRequest(
-                    ciphertext = encrypted.ciphertext,
-                    keyMaterial = validKey,
-                    iv = ByteArray(8),
-                    aad = null,
-                    authTag = encrypted.authTag,
-                ),
-            )
+            target.decrypt(request)
         }
+    }
+
+    @Test
+    fun `decrypt when auth tag length is invalid then throws illegal argument exception`() {
+        val encrypted = target.encrypt(
+            EncryptionRequest(
+                plaintext = "x".encodeToByteArray(),
+                keyMaterial = validKey,
+                aad = null,
+            ),
+        )
+        val request = DecryptionRequest(
+            ciphertext = encrypted.ciphertext,
+            keyMaterial = validKey,
+            iv = encrypted.iv,
+            aad = null,
+            authTag = ByteArray(8),
+        )
+
         assertThrows(IllegalArgumentException::class.java) {
-            engine.decrypt(
-                DecryptionRequest(
-                    ciphertext = encrypted.ciphertext,
-                    keyMaterial = validKey,
-                    iv = encrypted.iv,
-                    aad = null,
-                    authTag = ByteArray(8),
-                ),
-            )
+            target.decrypt(request)
         }
     }
 }

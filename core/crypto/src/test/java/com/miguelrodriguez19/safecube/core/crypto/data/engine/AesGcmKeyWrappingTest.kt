@@ -9,7 +9,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class AesGcmKeyWrappingTest {
-    private val keyWrapping = AesGcmKeyWrapping(
+    private val target = AesGcmKeyWrapping(
         cryptoEngine = AesGcmCryptoEngine(),
     )
     private val wrappingKey = ByteArray(32) { index -> (index + 1).toByte() }
@@ -17,8 +17,11 @@ class AesGcmKeyWrappingTest {
     private val aad = "purpose:key-wrap|version:v1".encodeToByteArray()
 
     @Test
-    fun wrapThenUnwrap_roundtripSucceeds() {
-        val wrapped = keyWrapping.wrapKey(
+    fun `wrap and unwrap when request is valid then returns original key`() {
+        // Arrange
+
+        // Act
+        val wrapped = target.wrapKey(
             request = KeyWrapRequest(
                 keyToWrap = kek,
                 wrappingKey = wrappingKey,
@@ -26,9 +29,7 @@ class AesGcmKeyWrappingTest {
             ),
         )
 
-        assertFalse(wrapped.contentEquals(kek))
-
-        val unwrapped = keyWrapping.unwrapKey(
+        val unwrapped = target.unwrapKey(
             request = KeyUnwrapRequest(
                 wrappedKey = wrapped,
                 wrappingKey = wrappingKey,
@@ -36,12 +37,15 @@ class AesGcmKeyWrappingTest {
             ),
         )
 
+        // Assert
+        assertFalse(wrapped.contentEquals(kek))
         assertArrayEquals(kek, unwrapped)
     }
 
     @Test
-    fun unwrap_failsWhenWrappingKeyIsIncorrect() {
-        val wrapped = keyWrapping.wrapKey(
+    fun `unwrap when wrapping key is incorrect then throws bad tag exception`() {
+        // Arrange
+        val wrapped = target.wrapKey(
             request = KeyWrapRequest(
                 keyToWrap = kek,
                 wrappingKey = wrappingKey,
@@ -52,8 +56,10 @@ class AesGcmKeyWrappingTest {
             it[it.lastIndex] = (it.last().toInt() xor 0x55).toByte()
         }
 
+        // Act
+        // Assert
         assertThrows(AEADBadTagException::class.java) {
-            keyWrapping.unwrapKey(
+            target.unwrapKey(
                 request = KeyUnwrapRequest(
                     wrappedKey = wrapped,
                     wrappingKey = wrongWrappingKey,
@@ -64,15 +70,18 @@ class AesGcmKeyWrappingTest {
     }
 
     @Test
-    fun wrappingSameKekTwiceProducesDifferentCiphertextAndNonce() {
-        val firstWrapped = keyWrapping.wrapKey(
+    fun `wrap key when same key is wrapped twice then returns different envelopes`() {
+        // Arrange
+
+        // Act
+        val firstWrapped = target.wrapKey(
             request = KeyWrapRequest(
                 keyToWrap = kek,
                 wrappingKey = wrappingKey,
                 aad = aad,
             ),
         )
-        val secondWrapped = keyWrapping.wrapKey(
+        val secondWrapped = target.wrapKey(
             request = KeyWrapRequest(
                 keyToWrap = kek,
                 wrappingKey = wrappingKey,
@@ -80,15 +89,19 @@ class AesGcmKeyWrappingTest {
             ),
         )
 
+        // Assert
         assertFalse(firstWrapped.contentEquals(secondWrapped))
     }
 
     @Test
-    fun unwrap_failsWhenEnvelopeIsMalformed() {
+    fun `unwrap when envelope is malformed then throws illegal argument exception`() {
+        // Arrange
         val malformedEnvelope = byteArrayOf(99, 1, 2, 3)
 
+        // Act
+        // Assert
         assertThrows(IllegalArgumentException::class.java) {
-            keyWrapping.unwrapKey(
+            target.unwrapKey(
                 request = KeyUnwrapRequest(
                     wrappedKey = malformedEnvelope,
                     wrappingKey = wrappingKey,

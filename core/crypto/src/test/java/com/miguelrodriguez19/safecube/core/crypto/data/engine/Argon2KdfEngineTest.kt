@@ -8,66 +8,127 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class Argon2KdfEngineTest {
-    private val engine = Argon2KdfEngine()
+    private val target = Argon2KdfEngine()
 
     @Test
-    fun deriveKey_isDeterministic_forSameInputAndParams() {
-        val request = fixedRequest()
+    fun `derive key when input and params are the same then returns deterministic output`() {
+        // Arrange
+        val request = createRequest()
 
-        val first = engine.deriveKey(request)
-        val second = engine.deriveKey(request)
+        // Act
+        val first = target.deriveKey(request)
+        val second = target.deriveKey(request)
 
+        // Assert
         assertArrayEquals(first, second)
         assertEquals(EXPECTED_OUTPUT_HEX, first.toHex())
     }
 
     @Test
-    fun deriveKey_changesWhenSaltChanges() {
-        val requestA = fixedRequest(saltHex = "00112233445566778899aabbccddeeff")
-        val requestB = fixedRequest(saltHex = "ffeeddccbbaa99887766554433221100")
+    fun `derive key when salt changes then returns different output`() {
+        // Arrange
+        val requestA = createRequest(saltHex = "00112233445566778899aabbccddeeff")
+        val requestB = createRequest(saltHex = "ffeeddccbbaa99887766554433221100")
 
-        val outputA = engine.deriveKey(requestA)
-        val outputB = engine.deriveKey(requestB)
+        // Act
+        val outputA = target.deriveKey(requestA)
+        val outputB = target.deriveKey(requestB)
 
+        // Assert
         assertFalse(outputA.contentEquals(outputB))
     }
 
     @Test
-    fun deriveKey_worksWithoutContextInfo() {
-        val first = engine.deriveKey(
-            fixedRequest().copy(contextInfo = null),
+    fun `derive key when context info is absent then returns deterministic output`() {
+        // Arrange
+        val request = createRequest().copy(contextInfo = null)
+
+        // Act
+        val first = target.deriveKey(
+            request,
         )
-        val second = engine.deriveKey(
-            fixedRequest().copy(contextInfo = null),
+        val second = target.deriveKey(
+            request,
         )
 
+        // Assert
         assertArrayEquals(first, second)
         assertEquals(32, first.size)
     }
 
     @Test
-    fun deriveKey_validatesRequestFields() {
+    fun `derive key when secret is empty then throws illegal argument exception`() {
+        // Arrange
+        val request = createRequest().copy(secret = byteArrayOf())
+
+        // Act
+        // Assert
         assertThrows(IllegalArgumentException::class.java) {
-            engine.deriveKey(fixedRequest().copy(secret = byteArrayOf()))
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            engine.deriveKey(fixedRequest().copy(salt = byteArrayOf()))
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            engine.deriveKey(fixedRequest().copy(outputLengthBytes = 0))
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            engine.deriveKey(fixedRequest().copy(iterations = 0))
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            engine.deriveKey(fixedRequest().copy(memoryKib = 0))
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            engine.deriveKey(fixedRequest().copy(parallelism = 0))
+            target.deriveKey(request)
         }
     }
 
-    private fun fixedRequest(saltHex: String = "00112233445566778899aabbccddeeff"): KdfRequest {
+    @Test
+    fun `derive key when salt is empty then throws illegal argument exception`() {
+        // Arrange
+        val request = createRequest().copy(salt = byteArrayOf())
+
+        // Act
+        // Assert
+        assertThrows(IllegalArgumentException::class.java) {
+            target.deriveKey(request)
+        }
+    }
+
+    @Test
+    fun `derive key when output length is zero then throws illegal argument exception`() {
+        // Arrange
+        val request = createRequest().copy(outputLengthBytes = 0)
+
+        // Act
+        // Assert
+        assertThrows(IllegalArgumentException::class.java) {
+            target.deriveKey(request)
+        }
+    }
+
+    @Test
+    fun `derive key when iterations are zero then throws illegal argument exception`() {
+        // Arrange
+        val request = createRequest().copy(iterations = 0)
+
+        // Act
+        // Assert
+        assertThrows(IllegalArgumentException::class.java) {
+            target.deriveKey(request)
+        }
+    }
+
+    @Test
+    fun `derive key when memory is zero then throws illegal argument exception`() {
+        // Arrange
+        val request = createRequest().copy(memoryKib = 0)
+
+        // Act
+        // Assert
+        assertThrows(IllegalArgumentException::class.java) {
+            target.deriveKey(request)
+        }
+    }
+
+    @Test
+    fun `derive key when parallelism is zero then throws illegal argument exception`() {
+        // Arrange
+        val request = createRequest().copy(parallelism = 0)
+
+        // Act
+        // Assert
+        assertThrows(IllegalArgumentException::class.java) {
+            target.deriveKey(request)
+        }
+    }
+
+    private fun createRequest(saltHex: String = "00112233445566778899aabbccddeeff"): KdfRequest {
         return KdfRequest(
             secret = "correct horse battery staple".encodeToByteArray(),
             salt = saltHex.hexToBytes(),
