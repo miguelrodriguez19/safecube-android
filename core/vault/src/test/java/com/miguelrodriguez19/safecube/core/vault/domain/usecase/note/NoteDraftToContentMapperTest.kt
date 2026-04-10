@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.Se
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.NoteDraftToContentMapper
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class NoteDraftToContentMapperTest {
@@ -16,6 +17,7 @@ class NoteDraftToContentMapperTest {
             displayHint = "API key",
             body = "secret body",
         )
+
         val result = target.map(
             draft,
         )
@@ -24,13 +26,15 @@ class NoteDraftToContentMapperTest {
         assertEquals(result.body, draft.body)
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun `map when draft is invalid then throws validation error`() {
-        target.map(
-            SecureNoteDraft(
-                displayHint = "API key",
-                body = " ",
-            )
+        val draft = SecureNoteDraft(
+            displayHint = "API key",
+            body = " ",
         )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            target.map(draft)
+        }
     }
 }

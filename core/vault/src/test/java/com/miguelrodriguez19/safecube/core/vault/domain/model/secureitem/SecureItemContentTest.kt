@@ -5,11 +5,12 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcon
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordTotpSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordWebsiteSecureItemContent
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class SecureItemContentTest {
     @Test
-    fun `creates password content with username only`() {
+    fun `password secure item content when username is present then creates content`() {
         val content = PasswordSecureItemContent(
             username = "alice",
             password = "s3cr3t",
@@ -21,7 +22,8 @@ class SecureItemContentTest {
     }
 
     @Test
-    fun `creates password content with email only`() {
+    fun `password secure item content when email is present then creates content`() {
+
         val content = PasswordSecureItemContent(
             email = "alice@example.com",
             password = "s3cr3t",
@@ -32,33 +34,43 @@ class SecureItemContentTest {
         assertEquals(SecureItemType.PASSWORD, content.itemType)
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `rejects password content with blank password`() {
-        PasswordSecureItemContent(
-            email = "alice@example.com",
-            password = " ",
-        )
+    @Test
+    fun `password secure item content when password is blank then throws illegal argument exception`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PasswordSecureItemContent(
+                email = "alice@example.com",
+                password = " ",
+            )
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `rejects password content without username or email`() {
-        PasswordSecureItemContent(
-            password = "s3cr3t",
-        )
+    @Test
+    fun `password secure item content when username and email are missing then throws illegal argument exception`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PasswordSecureItemContent(
+                password = "s3cr3t",
+            )
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `rejects website content without url or domain`() {
-        PasswordWebsiteSecureItemContent()
+    @Test
+    fun `password website secure item content when url and domain are missing then throws illegal argument exception`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PasswordWebsiteSecureItemContent()
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `rejects totp content with blank secret`() {
-        PasswordTotpSecureItemContent(secret = " ")
+    @Test
+    fun `password totp secure item content when secret is blank then throws illegal argument exception`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PasswordTotpSecureItemContent(secret = " ")
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `rejects note content with blank body`() {
-        NoteSecureItemContent(body = " ")
+    @Test
+    fun `note secure item content when body is blank then throws illegal argument exception`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            NoteSecureItemContent(body = " ")
+        }
     }
 }

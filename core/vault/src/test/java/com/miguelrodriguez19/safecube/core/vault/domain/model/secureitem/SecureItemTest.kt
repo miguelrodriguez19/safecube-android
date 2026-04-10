@@ -1,88 +1,108 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem
 
-import java.time.Instant
-import java.util.UUID
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 class SecureItemTest {
     @Test
-    fun `creates secure item with canonical metadata`() {
-        val updatedAt = Instant.parse("2026-03-23T12:00:00Z")
+    fun `secure item when metadata is valid then creates canonical aggregate`() {
+        val createdAt = Instant.now().minus(1, ChronoUnit.DAYS)
+        val updatedAt = Instant.now()
         val payload = byteArrayOf(1, 2, 3)
-        val item = SecureItem(
-            logicalItemId = UUID.fromString("4f89ab0e-453f-4be5-b261-95068f2ad6f0"),
-            remoteItemId = UUID.fromString("ae9b2bea-c2dc-4c0f-bf73-42bd61c4f997"),
+
+        val target = SecureItem(
+            logicalItemId = UUID.randomUUID(),
+            remoteItemId = UUID.randomUUID(),
             itemType = SecureItemType.PASSWORD,
             schemaVersion = 1,
             displayHint = "Example account",
             payload = payload,
             payloadVersion = 1,
-            createdAt = Instant.parse("2026-03-23T11:00:00Z"),
+            createdAt = createdAt,
             updatedAt = updatedAt,
         )
 
-        assertEquals("Example account", item.displayHint)
-        assertEquals(SecureItemType.PASSWORD, item.itemType)
-        assertEquals(1, item.schemaVersion)
-        assertEquals(1L, item.payloadVersion)
-        assertEquals(updatedAt, item.updatedAt)
-        assertEquals(payload.toList(), item.payload.toList())
+        assertEquals("Example account", target.displayHint)
+        assertEquals(SecureItemType.PASSWORD, target.itemType)
+        assertEquals(1, target.schemaVersion)
+        assertEquals(1L, target.payloadVersion)
+        assertEquals(updatedAt, target.updatedAt)
+        assertEquals(payload.toList(), target.payload.toList())
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `rejects blank display hint`() {
-        SecureItem(
-            logicalItemId = UUID.randomUUID(),
-            itemType = SecureItemType.NOTE,
-            schemaVersion = 1,
-            displayHint = " ",
-            payload = byteArrayOf(1),
-            payloadVersion = 1,
-            createdAt = Instant.parse("2026-03-23T12:00:00Z"),
-            updatedAt = Instant.parse("2026-03-23T12:00:00Z"),
-        )
+    @Test
+    fun `secure item when display hint is blank then throws illegal argument exception`() {
+        val now = Instant.now()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            SecureItem(
+                logicalItemId = UUID.randomUUID(),
+                itemType = SecureItemType.NOTE,
+                schemaVersion = 1,
+                displayHint = " ",
+                payload = byteArrayOf(1),
+                payloadVersion = 1,
+                createdAt = now,
+                updatedAt = now,
+            )
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `rejects empty payload`() {
-        SecureItem(
-            logicalItemId = UUID.randomUUID(),
-            itemType = SecureItemType.NOTE,
-            schemaVersion = 1,
-            displayHint = "Example",
-            payload = byteArrayOf(),
-            payloadVersion = 1,
-            createdAt = Instant.parse("2026-03-23T12:00:00Z"),
-            updatedAt = Instant.parse("2026-03-23T12:00:00Z"),
-        )
+    @Test
+    fun `secure item when payload is empty then throws illegal argument exception`() {
+        val now = Instant.now()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            SecureItem(
+                logicalItemId = UUID.randomUUID(),
+                itemType = SecureItemType.NOTE,
+                schemaVersion = 1,
+                displayHint = "Example",
+                payload = byteArrayOf(),
+                payloadVersion = 1,
+                createdAt = now,
+                updatedAt = now,
+            )
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `rejects non positive payload version`() {
-        SecureItem(
-            logicalItemId = UUID.randomUUID(),
-            itemType = SecureItemType.NOTE,
-            schemaVersion = 1,
-            displayHint = "Example",
-            payload = byteArrayOf(1),
-            payloadVersion = 0,
-            createdAt = Instant.parse("2026-03-23T12:00:00Z"),
-            updatedAt = Instant.parse("2026-03-23T12:00:00Z"),
-        )
+    @Test
+    fun `secure item when payload version is not positive then throws illegal argument exception`() {
+        val now = Instant.now()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            SecureItem(
+                logicalItemId = UUID.randomUUID(),
+                itemType = SecureItemType.NOTE,
+                schemaVersion = 1,
+                displayHint = "Example",
+                payload = byteArrayOf(1),
+                payloadVersion = 0,
+                createdAt = now,
+                updatedAt = now,
+            )
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `rejects non positive schema version`() {
-        SecureItem(
-            logicalItemId = UUID.randomUUID(),
-            itemType = SecureItemType.NOTE,
-            schemaVersion = 0,
-            displayHint = "Example",
-            payload = byteArrayOf(1),
-            payloadVersion = 1,
-            createdAt = Instant.parse("2026-03-23T12:00:00Z"),
-            updatedAt = Instant.parse("2026-03-23T12:00:00Z"),
-        )
+    @Test
+    fun `secure item when schema version is not positive then throws illegal argument exception`() {
+        val now = Instant.now()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            SecureItem(
+                logicalItemId = UUID.randomUUID(),
+                itemType = SecureItemType.NOTE,
+                schemaVersion = 0,
+                displayHint = "Example",
+                payload = byteArrayOf(1),
+                payloadVersion = 1,
+                createdAt = now,
+                updatedAt = now,
+            )
+        }
     }
 }

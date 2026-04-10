@@ -1,403 +1,192 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
-import android.content.SharedPreferences
-import com.miguelrodriguez19.safecube.core.crypto.domain.port.KdfEngine
 import com.miguelrodriguez19.safecube.core.crypto.domain.model.KdfRequest
-import com.miguelrodriguez19.safecube.core.crypto.domain.model.KeyWrapRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.model.KeyUnwrapRequest
+import com.miguelrodriguez19.safecube.core.crypto.domain.port.KdfEngine
 import com.miguelrodriguez19.safecube.core.crypto.domain.port.KeyWrapping
-import com.miguelrodriguez19.safecube.core.crypto.data.engine.AesGcmCryptoEngine
-import com.miguelrodriguez19.safecube.core.crypto.data.engine.AesGcmKeyWrapping
-import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockResult
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlockUseCase
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
+import java.util.UUID
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.util.UUID
 
 class VaultUnlockUseCaseTest {
-    private val cryptoEngine = AesGcmCryptoEngine()
-    private val kdfEngine = DeterministicKdfEngine()
-    private val keyWrapping: KeyWrapping = AesGcmKeyWrapping(
-        cryptoEngine = cryptoEngine,
-    )
+    private val vaultKeyMaterialLocalRepository = mockk<VaultKeyMaterialLocalRepository>()
+    private val kdfEngine = mockk<KdfEngine>()
+    private val keyWrapping = mockk<KeyWrapping>()
 
     @Test
-    fun `unlock with passphrase returns unlocked keyring`() {
-        val accountId = UUID.randomUUID()
-        val passphrase = "correct-passphrase"
-        val recoveryKey = ByteArray(32) { index -> (index + 31).toByte() }
-        val kek = ByteArray(32) { index -> (index + 1).toByte() }
-        val cache = cacheWithMaterial(
-            accountId = accountId,
-            passphrase = passphrase,
-            recoveryKey = recoveryKey,
-            kek = kek,
-        )
-        val useCase = VaultUnlockUseCase(
-            vaultKeyMaterialLocalRepository = cache,
-            kdfEngine = kdfEngine,
-            keyWrapping = keyWrapping,
-        )
+    fun `unlockWithPassphrase when passphrase is valid then returns unlocked keyring`() {
+        val cachedVaultKeyMaterial = sampleVaultKeyMaterial()
+        val derivedMasterKey = ByteArray(32) { index -> (index + 1).toByte() }
+        val expectedDerivedMasterKey = derivedMasterKey.copyOf()
+        val kek = ByteArray(32) { index -> (index + 41).toByte() }
+        val kdfRequestSlot = slot<KdfRequest>()
+        val unwrapRequests = mutableListOf<KeyUnwrapRequest>()
 
-        val result = useCase.unlockWithPassphrase(passphrase = passphrase)
+        every { vaultKeyMaterialLocalRepository.get() } returns cachedVaultKeyMaterial
+        every { kdfEngine.deriveKey(capture(kdfRequestSlot)) } returns derivedMasterKey
+        every { keyWrapping.unwrapKey(any()) } answers {
+            unwrapRequests += firstArg<KeyUnwrapRequest>().copy(
+                wrappedKey = firstArg<KeyUnwrapRequest>().wrappedKey.copyOf(),
+                wrappingKey = firstArg<KeyUnwrapRequest>().wrappingKey.copyOf(),
+            )
+            kek
+        }
+
+        val target = createTarget()
+
+        val result = target.unlockWithPassphrase(passphrase = "correct-passphrase")
 
         assertTrue(result is VaultUnlockResult.Unlocked)
-        val keyring = (result as VaultUnlockResult.Unlocked).keyring
-        assertArrayEquals(kek, keyring.kek)
+        assertArrayEquals(kek, (result as VaultUnlockResult.Unlocked).keyring.kek)
+        assertArrayEquals(cachedVaultKeyMaterial.kdfSalt, kdfRequestSlot.captured.salt)
+        assertEquals(cachedVaultKeyMaterial.kdfIterations, kdfRequestSlot.captured.iterations)
+        assertEquals(cachedVaultKeyMaterial.kdfMemoryKib, kdfRequestSlot.captured.memoryKib)
+        assertEquals(cachedVaultKeyMaterial.kdfParallelism, kdfRequestSlot.captured.parallelism)
+        assertEquals(cachedVaultKeyMaterial.kdfOutputLen, kdfRequestSlot.captured.outputLengthBytes)
+        assertArrayEquals(cachedVaultKeyMaterial.kekEncMaster, unwrapRequests.single().wrappedKey)
+        assertArrayEquals(expectedDerivedMasterKey, unwrapRequests.single().wrappingKey)
+
+        verify(exactly = 1) { vaultKeyMaterialLocalRepository.get() }
+        verify(exactly = 1) { kdfEngine.deriveKey(any()) }
+        verify(exactly = 1) { keyWrapping.unwrapKey(any()) }
+        confirmVerified(vaultKeyMaterialLocalRepository, kdfEngine, keyWrapping)
     }
 
     @Test
-    fun `unlock with recovery key returns unlocked keyring`() {
-        val accountId = UUID.randomUUID()
-        val passphrase = "correct-passphrase"
-        val recoveryKey = ByteArray(32) { index -> (index + 31).toByte() }
-        val kek = ByteArray(32) { index -> (index + 1).toByte() }
-        val cache = cacheWithMaterial(
-            accountId = accountId,
-            passphrase = passphrase,
-            recoveryKey = recoveryKey,
-            kek = kek,
-        )
-        val useCase = VaultUnlockUseCase(
-            vaultKeyMaterialLocalRepository = cache,
-            kdfEngine = kdfEngine,
-            keyWrapping = keyWrapping,
-        )
+    fun `unlockWithRecoveryKey when recovery key is valid then returns unlocked keyring`() {
+        val cachedVaultKeyMaterial = sampleVaultKeyMaterial()
+        val recoveryKey = ByteArray(32) { index -> (index + 71).toByte() }
+        val expectedRecoveryKey = recoveryKey.copyOf()
+        val kek = ByteArray(32) { index -> (index + 81).toByte() }
+        val unwrapRequests = mutableListOf<KeyUnwrapRequest>()
 
-        val result = useCase.unlockWithRecoveryKey(recoveryKey = recoveryKey)
+        every { vaultKeyMaterialLocalRepository.get() } returns cachedVaultKeyMaterial
+        every { keyWrapping.unwrapKey(any()) } answers {
+            unwrapRequests += firstArg<KeyUnwrapRequest>().copy(
+                wrappedKey = firstArg<KeyUnwrapRequest>().wrappedKey.copyOf(),
+                wrappingKey = firstArg<KeyUnwrapRequest>().wrappingKey.copyOf(),
+            )
+            kek
+        }
+
+        val target = createTarget()
+
+        val result = target.unlockWithRecoveryKey(recoveryKey = recoveryKey)
 
         assertTrue(result is VaultUnlockResult.Unlocked)
-        val keyring = (result as VaultUnlockResult.Unlocked).keyring
-        assertArrayEquals(kek, keyring.kek)
+        assertArrayEquals(kek, (result as VaultUnlockResult.Unlocked).keyring.kek)
+        assertArrayEquals(cachedVaultKeyMaterial.kekEncRecovery, unwrapRequests.single().wrappedKey)
+        assertArrayEquals(expectedRecoveryKey, unwrapRequests.single().wrappingKey)
+
+        verify(exactly = 1) { vaultKeyMaterialLocalRepository.get() }
+        verify(exactly = 0) { kdfEngine.deriveKey(any()) }
+        verify(exactly = 1) { keyWrapping.unwrapKey(any()) }
+        confirmVerified(vaultKeyMaterialLocalRepository, kdfEngine, keyWrapping)
     }
 
     @Test
-    fun `unlock with wrong passphrase returns stable invalid credential error`() {
-        val accountId = UUID.randomUUID()
-        val passphrase = "correct-passphrase"
-        val recoveryKey = ByteArray(32) { index -> (index + 31).toByte() }
-        val kek = ByteArray(32) { index -> (index + 1).toByte() }
-        val cache = cacheWithMaterial(
-            accountId = accountId,
-            passphrase = passphrase,
-            recoveryKey = recoveryKey,
-            kek = kek,
-        )
-        val useCase = VaultUnlockUseCase(
-            vaultKeyMaterialLocalRepository = cache,
-            kdfEngine = kdfEngine,
-            keyWrapping = keyWrapping,
-        )
+    fun `unlockWithPassphrase when passphrase is wrong then returns invalid credential error`() {
+        every { vaultKeyMaterialLocalRepository.get() } returns sampleVaultKeyMaterial()
+        every { kdfEngine.deriveKey(any()) } returns ByteArray(32) { index -> (index + 1).toByte() }
+        every { keyWrapping.unwrapKey(any()) } throws IllegalStateException("authentication failed")
 
-        val result = useCase.unlockWithPassphrase(passphrase = "wrong-passphrase")
+        val target = createTarget()
 
-        assertEquals(
-            VaultUnlockResult.Error(VaultUnlockError.InvalidCredential),
-            result,
-        )
+        val result = target.unlockWithPassphrase(passphrase = "wrong-passphrase")
+
+        assertEquals(VaultUnlockResult.Error(VaultUnlockError.InvalidCredential), result)
+        verify(exactly = 1) { vaultKeyMaterialLocalRepository.get() }
+        verify(exactly = 1) { kdfEngine.deriveKey(any()) }
+        verify(exactly = 1) { keyWrapping.unwrapKey(any()) }
+        confirmVerified(vaultKeyMaterialLocalRepository, kdfEngine, keyWrapping)
     }
 
     @Test
-    fun `unlock with wrong recovery key returns stable invalid credential error`() {
-        val accountId = UUID.randomUUID()
-        val passphrase = "correct-passphrase"
-        val recoveryKey = ByteArray(32) { index -> (index + 31).toByte() }
-        val kek = ByteArray(32) { index -> (index + 1).toByte() }
-        val cache = cacheWithMaterial(
-            accountId = accountId,
-            passphrase = passphrase,
-            recoveryKey = recoveryKey,
-            kek = kek,
-        )
-        val useCase = VaultUnlockUseCase(
-            vaultKeyMaterialLocalRepository = cache,
-            kdfEngine = kdfEngine,
-            keyWrapping = keyWrapping,
-        )
+    fun `unlockWithRecoveryKey when recovery key is wrong then returns invalid credential error`() {
+        every { vaultKeyMaterialLocalRepository.get() } returns sampleVaultKeyMaterial()
+        every { keyWrapping.unwrapKey(any()) } throws IllegalStateException("authentication failed")
 
-        val result = useCase.unlockWithRecoveryKey(
+        val target = createTarget()
+
+        val result = target.unlockWithRecoveryKey(
             recoveryKey = ByteArray(32) { 7 },
         )
 
-        assertEquals(
-            VaultUnlockResult.Error(VaultUnlockError.InvalidCredential),
-            result,
-        )
+        assertEquals(VaultUnlockResult.Error(VaultUnlockError.InvalidCredential), result)
+        verify(exactly = 1) { vaultKeyMaterialLocalRepository.get() }
+        verify(exactly = 0) { kdfEngine.deriveKey(any()) }
+        verify(exactly = 1) { keyWrapping.unwrapKey(any()) }
+        confirmVerified(vaultKeyMaterialLocalRepository, kdfEngine, keyWrapping)
     }
 
     @Test
-    fun `unlock returns key material unavailable when cache is empty`() {
-        val useCase = VaultUnlockUseCase(
-            vaultKeyMaterialLocalRepository = VaultKeyMaterialCache(MinimalInMemorySharedPreferences()),
-            kdfEngine = kdfEngine,
-            keyWrapping = keyWrapping,
-        )
+    fun `unlock methods when cache is empty then return key material unavailable`() {
+        every { vaultKeyMaterialLocalRepository.get() } returns null
 
-        val passphraseResult = useCase.unlockWithPassphrase(passphrase = "passphrase")
-        val recoveryResult = useCase.unlockWithRecoveryKey(recoveryKey = ByteArray(32) { 1 })
+        val target = createTarget()
+
+        val passphraseResult = target.unlockWithPassphrase(passphrase = "passphrase")
+        val recoveryResult = target.unlockWithRecoveryKey(recoveryKey = ByteArray(32) { 1 })
 
         assertEquals(
             VaultUnlockResult.Error(VaultUnlockError.KeyMaterialUnavailable),
-            passphraseResult,
+            passphraseResult
         )
         assertEquals(
             VaultUnlockResult.Error(VaultUnlockError.KeyMaterialUnavailable),
-            recoveryResult,
+            recoveryResult
         )
+        verify(exactly = 2) { vaultKeyMaterialLocalRepository.get() }
+        verify(exactly = 0) { kdfEngine.deriveKey(any()) }
+        verify(exactly = 0) { keyWrapping.unwrapKey(any()) }
+        confirmVerified(vaultKeyMaterialLocalRepository, kdfEngine, keyWrapping)
     }
 
     @Test
-    fun `unlock returns invalid cached key material when envelope is malformed`() {
-        val accountId = UUID.randomUUID()
-        val passphrase = "correct-passphrase"
-        val recoveryKey = ByteArray(32) { index -> (index + 31).toByte() }
-        val kek = ByteArray(32) { index -> (index + 1).toByte() }
-        val cache = cacheWithMaterial(
-            accountId = accountId,
-            passphrase = passphrase,
-            recoveryKey = recoveryKey,
-            kek = kek,
-            mutateMasterEnvelope = { envelope ->
-                envelope.copyOf().also { corrupted ->
-                    corrupted[0] = 99
-                }
-            },
-        )
-        val useCase = VaultUnlockUseCase(
-            vaultKeyMaterialLocalRepository = cache,
-            kdfEngine = kdfEngine,
-            keyWrapping = keyWrapping,
-        )
+    fun `unlockWithPassphrase when cached envelope is malformed then returns invalid cached key material`() {
+        every { vaultKeyMaterialLocalRepository.get() } returns sampleVaultKeyMaterial()
+        every { kdfEngine.deriveKey(any()) } returns ByteArray(32) { index -> (index + 1).toByte() }
+        every { keyWrapping.unwrapKey(any()) } throws IllegalArgumentException("malformed envelope")
 
-        val result = useCase.unlockWithPassphrase(passphrase = passphrase)
+        val target = createTarget()
 
-        assertEquals(
-            VaultUnlockResult.Error(VaultUnlockError.InvalidCachedKeyMaterial),
-            result,
-        )
+        val result = target.unlockWithPassphrase(passphrase = "correct-passphrase")
+
+        assertEquals(VaultUnlockResult.Error(VaultUnlockError.InvalidCachedKeyMaterial), result)
+        verify(exactly = 1) { vaultKeyMaterialLocalRepository.get() }
+        verify(exactly = 1) { kdfEngine.deriveKey(any()) }
+        verify(exactly = 1) { keyWrapping.unwrapKey(any()) }
+        confirmVerified(vaultKeyMaterialLocalRepository, kdfEngine, keyWrapping)
     }
 
-    private fun cacheWithMaterial(
-        accountId: UUID,
-        passphrase: String,
-        recoveryKey: ByteArray,
-        kek: ByteArray,
-        mutateMasterEnvelope: (ByteArray) -> ByteArray = { value -> value },
-    ): VaultKeyMaterialCache {
-        val cache = VaultKeyMaterialCache(MinimalInMemorySharedPreferences())
-        val kdfSalt = ByteArray(16) { index -> (index + 3).toByte() }
-        val masterKey = kdfEngine.deriveKey(
-            request = KdfRequest(
-                secret = passphrase.encodeToByteArray(),
-                salt = kdfSalt,
-                iterations = 3,
-                memoryKib = 65536,
-                parallelism = 1,
-                outputLengthBytes = 32,
-            ),
-        )
-        val wrappedMaster = mutateMasterEnvelope(
-            wrapKek(
-                kek = kek,
-                wrappingKey = masterKey,
-            ),
-        )
-        val wrappedRecovery = wrapKek(
-            kek = kek,
-            wrappingKey = recoveryKey,
-        )
-        cache.save(
-            vaultKeyMaterial = VaultKeyMaterial(
-                accountId = accountId,
-                kekEncMaster = wrappedMaster,
-                kekEncRecovery = wrappedRecovery,
-                kdfAlgorithm = "argon2id",
-                kdfSalt = kdfSalt,
-                kdfMemoryKib = 65536,
-                kdfIterations = 3,
-                kdfParallelism = 1,
-                kdfOutputLen = 32,
-                cryptoVersion = "v1",
-            ),
-        )
-        return cache
-    }
-
-    private fun wrapKek(
-        kek: ByteArray,
-        wrappingKey: ByteArray,
-    ): ByteArray = keyWrapping.wrapKey(
-        request = KeyWrapRequest(
-            keyToWrap = kek,
-            wrappingKey = wrappingKey,
-        ),
+    private fun createTarget(): VaultUnlockUseCase = VaultUnlockUseCase(
+        vaultKeyMaterialLocalRepository = vaultKeyMaterialLocalRepository,
+        kdfEngine = kdfEngine,
+        keyWrapping = keyWrapping,
     )
-}
 
-private class DeterministicKdfEngine : KdfEngine {
-    override fun deriveKey(request: KdfRequest): ByteArray {
-        require(request.secret.isNotEmpty())
-        require(request.salt.isNotEmpty())
-        return ByteArray(request.outputLengthBytes) { index ->
-            val secretByte = request.secret[index % request.secret.size].toInt() and 0xFF
-            val saltByte = request.salt[index % request.salt.size].toInt() and 0xFF
-            val mixed = secretByte xor saltByte xor request.iterations xor request.parallelism
-            mixed.toByte()
-        }
-    }
-}
-
-private class MinimalInMemorySharedPreferences : SharedPreferences {
-    private val values = LinkedHashMap<String, Any?>()
-
-    override fun getAll(): MutableMap<String, *> = LinkedHashMap(values)
-
-    override fun getString(
-        key: String?,
-        defValue: String?,
-    ): String? = values[key] as? String ?: defValue
-
-    @Suppress("UNCHECKED_CAST")
-    override fun getStringSet(
-        key: String?,
-        defValues: MutableSet<String>?,
-    ): MutableSet<String>? = (values[key] as? Set<String>)?.toMutableSet() ?: defValues
-
-    override fun getInt(
-        key: String?,
-        defValue: Int,
-    ): Int = values[key] as? Int ?: defValue
-
-    override fun getLong(
-        key: String?,
-        defValue: Long,
-    ): Long = values[key] as? Long ?: defValue
-
-    override fun getFloat(
-        key: String?,
-        defValue: Float,
-    ): Float = values[key] as? Float ?: defValue
-
-    override fun getBoolean(
-        key: String?,
-        defValue: Boolean,
-    ): Boolean = values[key] as? Boolean ?: defValue
-
-    override fun contains(key: String?): Boolean = key != null && values.containsKey(key)
-
-    override fun edit(): SharedPreferences.Editor = EditorImpl()
-
-    override fun registerOnSharedPreferenceChangeListener(
-        listener: SharedPreferences.OnSharedPreferenceChangeListener?,
-    ) = Unit
-
-    override fun unregisterOnSharedPreferenceChangeListener(
-        listener: SharedPreferences.OnSharedPreferenceChangeListener?,
-    ) = Unit
-
-    private inner class EditorImpl : SharedPreferences.Editor {
-        private var clearAll = false
-        private val updates = LinkedHashMap<String, Any?>()
-        private val removedKeys = LinkedHashSet<String>()
-
-        override fun putString(
-            key: String?,
-            value: String?,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = value
-            removedKeys.remove(key)
-        }
-
-        override fun putStringSet(
-            key: String?,
-            values: MutableSet<String>?,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = values?.toSet()
-            removedKeys.remove(key)
-        }
-
-        override fun putInt(
-            key: String?,
-            value: Int,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = value
-            removedKeys.remove(key)
-        }
-
-        override fun putLong(
-            key: String?,
-            value: Long,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = value
-            removedKeys.remove(key)
-        }
-
-        override fun putFloat(
-            key: String?,
-            value: Float,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = value
-            removedKeys.remove(key)
-        }
-
-        override fun putBoolean(
-            key: String?,
-            value: Boolean,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = value
-            removedKeys.remove(key)
-        }
-
-        override fun remove(key: String?): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            removedKeys.add(key)
-            updates.remove(key)
-        }
-
-        override fun clear(): SharedPreferences.Editor = apply {
-            clearAll = true
-            updates.clear()
-            removedKeys.clear()
-        }
-
-        override fun commit(): Boolean {
-            applyChanges()
-            return true
-        }
-
-        override fun apply() {
-            applyChanges()
-        }
-
-        private fun applyChanges() {
-            if (clearAll) {
-                values.clear()
-                clearAll = false
-            }
-
-            for (key in removedKeys) {
-                values.remove(key)
-            }
-            removedKeys.clear()
-
-            for ((key, value) in updates) {
-                if (value == null) {
-                    values.remove(key)
-                } else {
-                    values[key] = value
-                }
-            }
-            updates.clear()
-        }
-    }
+    private fun sampleVaultKeyMaterial(): VaultKeyMaterial = VaultKeyMaterial(
+        accountId = UUID.randomUUID(),
+        kekEncMaster = byteArrayOf(1, 2, 3, 4),
+        kekEncRecovery = byteArrayOf(5, 6, 7, 8),
+        kdfAlgorithm = "argon2id",
+        kdfSalt = byteArrayOf(9, 10, 11, 12),
+        kdfMemoryKib = 65536,
+        kdfIterations = 3,
+        kdfParallelism = 1,
+        kdfOutputLen = 32,
+        cryptoVersion = "v1",
+    )
 }

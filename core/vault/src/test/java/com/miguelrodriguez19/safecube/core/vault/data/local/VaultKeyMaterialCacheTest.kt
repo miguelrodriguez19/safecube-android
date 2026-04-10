@@ -2,6 +2,9 @@ package com.miguelrodriguez19.safecube.core.vault.data.local
 
 import android.content.SharedPreferences
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import java.util.UUID
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -9,15 +12,57 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class VaultKeyMaterialCacheTest {
+    private val encryptedPreferences = mockk<SharedPreferences>()
+    private val editor = mockk<SharedPreferences.Editor>()
+    private val values = linkedMapOf<String, Any?>()
+    private val pendingUpdates = linkedMapOf<String, Any?>()
+    private val removedKeys = linkedSetOf<String>()
+    private var clearAll = false
+
+    init {
+        every { encryptedPreferences.edit() } returns editor
+        every { encryptedPreferences.getString(any(), any()) } answers {
+            values[firstArg<String>()] as? String ?: secondArg()
+        }
+        every { encryptedPreferences.getInt(any(), any()) } answers {
+            values[firstArg<String>()] as? Int ?: secondArg()
+        }
+
+        every { editor.putString(any(), any()) } answers {
+            pendingUpdates[firstArg<String>()] = secondArg<String?>()
+            removedKeys.remove(firstArg())
+            editor
+        }
+        every { editor.putInt(any(), any()) } answers {
+            pendingUpdates[firstArg<String>()] = secondArg<Int>()
+            removedKeys.remove(firstArg())
+            editor
+        }
+        every { editor.clear() } answers {
+            clearAll = true
+            pendingUpdates.clear()
+            removedKeys.clear()
+            editor
+        }
+        every { editor.remove(any()) } answers {
+            removedKeys += firstArg<String>()
+            pendingUpdates.remove(firstArg())
+            editor
+        }
+        every { editor.apply() } answers { applyEditorChanges() }
+        every { editor.commit() } answers {
+            applyEditorChanges()
+            true
+        }
+    }
 
     @Test
-    fun `save and get returns cached key material`() {
-        val cache = VaultKeyMaterialCache(InMemorySharedPreferences())
-        val expected = createSample()
+    fun `save and get when key material is cached then returns cached key material`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        val expected = sampleVaultKeyMaterial()
 
-        cache.save(expected)
-
-        val actual = cache.get()
+        target.save(expected)
+        val actual = target.get()
 
         requireNotNull(actual)
         assertEquals(expected.accountId, actual.accountId)
@@ -30,87 +75,87 @@ class VaultKeyMaterialCacheTest {
         assertEquals(expected.kdfParallelism, actual.kdfParallelism)
         assertEquals(expected.kdfOutputLen, actual.kdfOutputLen)
         assertEquals(expected.cryptoVersion, actual.cryptoVersion)
+        verify(exactly = 1) { encryptedPreferences.edit() }
     }
 
     @Test
-    fun `clear removes cached key material`() {
-        val cache = VaultKeyMaterialCache(InMemorySharedPreferences())
-        cache.save(createSample())
+    fun `clear when cache contains key material then removes it`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
 
-        cache.clear()
+        target.clear()
 
-        assertNull(cache.get())
+        assertNull(target.get())
+        verify(exactly = 2) { encryptedPreferences.edit() }
+        verify(exactly = 1) { editor.clear() }
     }
 
     @Test
-    fun `get returns null when cache is empty`() {
-        val cache = VaultKeyMaterialCache(InMemorySharedPreferences())
+    fun `get when cache is empty then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
 
-        assertNull(cache.get())
+        val result = target.get()
+
+        assertNull(result)
     }
 
     @Test
-    fun `get returns null when account id is missing`() {
-        val preferences = InMemorySharedPreferences()
-        val cache = VaultKeyMaterialCache(preferences)
-        cache.save(createSample())
-        preferences.edit()
-            .remove("account_id")
-            .apply()
+    fun `get when account id is missing then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values.remove("account_id")
 
-        assertNull(cache.get())
+        val result = target.get()
+
+        assertNull(result)
     }
 
     @Test
-    fun `get returns null when blob is not valid base64`() {
-        val preferences = InMemorySharedPreferences()
-        val cache = VaultKeyMaterialCache(preferences)
-        cache.save(createSample())
-        preferences.edit()
-            .putString("kek_enc_master", "###invalid-base64###")
-            .apply()
+    fun `get when master blob is not valid base64 then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["kek_enc_master"] = "###invalid-base64###"
 
-        assertNull(cache.get())
+        val result = target.get()
+
+        assertNull(result)
     }
 
     @Test
-    fun `get returns null when second blob is not valid base64`() {
-        val preferences = InMemorySharedPreferences()
-        val cache = VaultKeyMaterialCache(preferences)
-        cache.save(createSample())
-        preferences.edit()
-            .putString("kek_enc_recovery", "###invalid-base64###")
-            .apply()
+    fun `get when recovery blob is not valid base64 then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["kek_enc_recovery"] = "###invalid-base64###"
 
-        assertNull(cache.get())
+        val result = target.get()
+
+        assertNull(result)
     }
 
     @Test
-    fun `get returns null when kdf iterations is zero`() {
-        val preferences = InMemorySharedPreferences()
-        val cache = VaultKeyMaterialCache(preferences)
-        cache.save(createSample())
-        preferences.edit()
-            .putInt("kdf_iterations", 0)
-            .apply()
+    fun `get when kdf iterations is zero then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["kdf_iterations"] = 0
 
-        assertNull(cache.get())
+        val result = target.get()
+
+        assertNull(result)
     }
 
     @Test
-    fun `get returns null when crypto version is blank`() {
-        val preferences = InMemorySharedPreferences()
-        val cache = VaultKeyMaterialCache(preferences)
-        cache.save(createSample())
-        preferences.edit()
-            .putString("crypto_version", " ")
-            .apply()
+    fun `get when crypto version is blank then returns null`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values["crypto_version"] = " "
 
-        assertNull(cache.get())
+        val result = target.get()
+
+        assertNull(result)
     }
 
-    private fun createSample(): VaultKeyMaterial = VaultKeyMaterial(
-        accountId = UUID.fromString("4f89ab0e-453f-4be5-b261-95068f2ad6f0"),
+    private fun sampleVaultKeyMaterial(): VaultKeyMaterial = VaultKeyMaterial(
+        accountId = UUID.randomUUID(),
         kekEncMaster = byteArrayOf(1, 2, 3),
         kekEncRecovery = byteArrayOf(4, 5, 6),
         kdfAlgorithm = "argon2id",
@@ -121,155 +166,23 @@ class VaultKeyMaterialCacheTest {
         kdfOutputLen = 32,
         cryptoVersion = "v1",
     )
-}
 
-private class InMemorySharedPreferences : SharedPreferences {
-    private val values = LinkedHashMap<String, Any?>()
-
-    override fun getAll(): MutableMap<String, *> = LinkedHashMap(values)
-
-    override fun getString(
-        key: String?,
-        defValue: String?,
-    ): String? = values[key] as? String ?: defValue
-
-    @Suppress("UNCHECKED_CAST")
-    override fun getStringSet(
-        key: String?,
-        defValues: MutableSet<String>?,
-    ): MutableSet<String>? = (values[key] as? Set<String>)?.toMutableSet() ?: defValues
-
-    override fun getInt(
-        key: String?,
-        defValue: Int,
-    ): Int = values[key] as? Int ?: defValue
-
-    override fun getLong(
-        key: String?,
-        defValue: Long,
-    ): Long = values[key] as? Long ?: defValue
-
-    override fun getFloat(
-        key: String?,
-        defValue: Float,
-    ): Float = values[key] as? Float ?: defValue
-
-    override fun getBoolean(
-        key: String?,
-        defValue: Boolean,
-    ): Boolean = values[key] as? Boolean ?: defValue
-
-    override fun contains(key: String?): Boolean = key != null && values.containsKey(key)
-
-    override fun edit(): SharedPreferences.Editor = EditorImpl()
-
-    override fun registerOnSharedPreferenceChangeListener(
-        listener: SharedPreferences.OnSharedPreferenceChangeListener?,
-    ) = Unit
-
-    override fun unregisterOnSharedPreferenceChangeListener(
-        listener: SharedPreferences.OnSharedPreferenceChangeListener?,
-    ) = Unit
-
-    private inner class EditorImpl : SharedPreferences.Editor {
-        private var clearAll = false
-        private val updates = LinkedHashMap<String, Any?>()
-        private val removedKeys = LinkedHashSet<String>()
-
-        override fun putString(
-            key: String?,
-            value: String?,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = value
-            removedKeys.remove(key)
+    private fun applyEditorChanges() {
+        if (clearAll) {
+            values.clear()
+            clearAll = false
         }
 
-        override fun putStringSet(
-            key: String?,
-            values: MutableSet<String>?,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = values?.toSet()
-            removedKeys.remove(key)
-        }
+        removedKeys.forEach(values::remove)
+        removedKeys.clear()
 
-        override fun putInt(
-            key: String?,
-            value: Int,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = value
-            removedKeys.remove(key)
-        }
-
-        override fun putLong(
-            key: String?,
-            value: Long,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = value
-            removedKeys.remove(key)
-        }
-
-        override fun putFloat(
-            key: String?,
-            value: Float,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = value
-            removedKeys.remove(key)
-        }
-
-        override fun putBoolean(
-            key: String?,
-            value: Boolean,
-        ): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            updates[key] = value
-            removedKeys.remove(key)
-        }
-
-        override fun remove(key: String?): SharedPreferences.Editor = apply {
-            if (key == null) return@apply
-            removedKeys.add(key)
-            updates.remove(key)
-        }
-
-        override fun clear(): SharedPreferences.Editor = apply {
-            clearAll = true
-            updates.clear()
-            removedKeys.clear()
-        }
-
-        override fun commit(): Boolean {
-            applyChanges()
-            return true
-        }
-
-        override fun apply() {
-            applyChanges()
-        }
-
-        private fun applyChanges() {
-            if (clearAll) {
-                values.clear()
-                clearAll = false
-            }
-
-            for (key in removedKeys) {
+        pendingUpdates.forEach { (key, value) ->
+            if (value == null) {
                 values.remove(key)
+            } else {
+                values[key] = value
             }
-            removedKeys.clear()
-
-            for ((key, value) in updates) {
-                if (value == null) {
-                    values.remove(key)
-                } else {
-                    values[key] = value
-                }
-            }
-            updates.clear()
         }
+        pendingUpdates.clear()
     }
 }

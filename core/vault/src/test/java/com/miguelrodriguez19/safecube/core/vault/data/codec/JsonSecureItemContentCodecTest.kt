@@ -14,29 +14,31 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class JsonSecureItemContentCodecTest {
-    private val codec = JsonSecureItemContentCodec(
+    private val target = JsonSecureItemContentCodec(
         passwordSecureItemContentJsonAdapter = PasswordSecureItemContentJsonAdapter(),
         noteSecureItemContentJsonAdapter = NoteSecureItemContentJsonAdapter(),
     )
 
     @Test
-    fun `encode password content serializes deterministic payload from model`() {
-        val encoded = codec.encode(
-            PasswordSecureItemContent(
-                username = "alice",
-                email = "alice@example.com",
-                password = "s3cr3t",
-                website = PasswordWebsiteSecureItemContent(
-                    url = "https://example.com",
-                    domain = "example.com",
-                ),
-                notes = "personal",
-                totp = PasswordTotpSecureItemContent(
-                    secret = "BASE32SECRET",
-                    issuer = "Example",
-                    accountName = "alice@example.com",
-                ),
+    fun `encode when password content is valid then serializes deterministic payload`() {
+        val content = PasswordSecureItemContent(
+            username = "alice",
+            email = "alice@example.com",
+            password = "s3cr3t",
+            website = PasswordWebsiteSecureItemContent(
+                url = "https://example.com",
+                domain = "example.com",
             ),
+            notes = "personal",
+            totp = PasswordTotpSecureItemContent(
+                secret = "BASE32SECRET",
+                issuer = "Example",
+                accountName = "alice@example.com",
+            ),
+        )
+
+        val encoded = target.encode(
+            content,
         )
 
         assertEquals(SecureItemType.PASSWORD, encoded.itemType)
@@ -49,12 +51,14 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `encode password omits null optional fields`() {
-        val encoded = codec.encode(
-            PasswordSecureItemContent(
-                email = "alice@example.com",
-                password = "s3cr3t",
-            ),
+    fun `encode when password optional fields are null then omits them`() {
+        val content = PasswordSecureItemContent(
+            email = "alice@example.com",
+            password = "s3cr3t",
+        )
+
+        val encoded = target.encode(
+            content,
         )
 
         assertArrayEquals(
@@ -64,11 +68,13 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `encode note content serializes note body under canonical field name`() {
-        val encoded = codec.encode(
-            NoteSecureItemContent(
-                body = "private text",
-            ),
+    fun `encode when note content is valid then serializes canonical payload`() {
+        val content = NoteSecureItemContent(
+            body = "private text",
+        )
+
+        val encoded = target.encode(
+            content,
         )
 
         assertEquals(SecureItemType.NOTE, encoded.itemType)
@@ -80,12 +86,31 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `decode password content rehydrates enriched domain model`() {
-        val result = codec.decode(
+    fun `decode when password payload is valid then rehydrates password content`() {
+        val payload =
+            """
+                {
+                    "username":"alice",
+                    "email":"alice@example.com",
+                    "password":"s3cr3t",
+                    "website":{
+                        "url":"https://example.com",
+                        "domain":"example.com"
+                    },
+                    "notes":"personal",
+                    "totp":{
+                        "secret":"BASE32SECRET",
+                        "issuer":"Example",
+                        "accountName":"alice@example.com"
+                    }
+                }
+                """.trimIndent()
+                .toByteArray(StandardCharsets.UTF_8)
+
+        val result = target.decode(
             itemType = "PASSWORD",
             schemaVersion = 1,
-            payload = """{"username":"alice","email":"alice@example.com","password":"s3cr3t","website":{"url":"https://example.com","domain":"example.com"},"notes":"personal","totp":{"secret":"BASE32SECRET","issuer":"Example","accountName":"alice@example.com"}}"""
-                .toByteArray(StandardCharsets.UTF_8),
+            payload = payload,
         )
 
         assertEquals(
@@ -111,11 +136,13 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `decode note content rehydrates domain model`() {
-        val result = codec.decode(
+    fun `decode when note payload is valid then rehydrates note content`() {
+        val payload = """{"body":"private text"}""".toByteArray(StandardCharsets.UTF_8)
+
+        val result = target.decode(
             itemType = "NOTE",
             schemaVersion = 1,
-            payload = """{"body":"private text"}""".toByteArray(StandardCharsets.UTF_8),
+            payload = payload,
         )
 
         assertEquals(
@@ -129,11 +156,13 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `decode rejects unsupported item type`() {
-        val result = codec.decode(
+    fun `decode when item type is unsupported then returns unsupported item type error`() {
+        val payload = """{"holder":"Alice"}""".toByteArray(StandardCharsets.UTF_8)
+
+        val result = target.decode(
             itemType = "CARD",
             schemaVersion = 1,
-            payload = """{"holder":"Alice"}""".toByteArray(StandardCharsets.UTF_8),
+            payload = payload,
         )
 
         assertEquals(
@@ -145,11 +174,19 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `decode rejects unsupported schema version`() {
-        val result = codec.decode(
+    fun `decode when password schema version is unsupported then returns unsupported schema version error`() {
+        val payload =
+            """
+                {
+                    "email":"alice@example.com",
+                    "password":"s3cr3t"
+                }
+            """.trimIndent().toByteArray(StandardCharsets.UTF_8)
+
+        val result = target.decode(
             itemType = "PASSWORD",
             schemaVersion = 2,
-            payload = """{"email":"alice@example.com","password":"s3cr3t"}""".toByteArray(StandardCharsets.UTF_8),
+            payload = payload,
         )
 
         assertEquals(
@@ -164,11 +201,13 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `decode rejects unsupported note schema version`() {
-        val result = codec.decode(
+    fun `decode when note schema version is unsupported then returns unsupported schema version error`() {
+        val payload = """{"noteBody":"private text"}""".toByteArray(StandardCharsets.UTF_8)
+
+        val result = target.decode(
             itemType = "NOTE",
             schemaVersion = 2,
-            payload = """{"noteBody":"private text"}""".toByteArray(StandardCharsets.UTF_8),
+            payload = payload,
         )
 
         assertEquals(
@@ -183,11 +222,13 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `decode rejects malformed json payload`() {
-        val result = codec.decode(
+    fun `decode when json payload is malformed then returns invalid payload error`() {
+        val payload = """{"noteBody":""".toByteArray(StandardCharsets.UTF_8)
+
+        val result = target.decode(
             itemType = "NOTE",
             schemaVersion = 1,
-            payload = """{"noteBody":""".toByteArray(StandardCharsets.UTF_8),
+            payload = payload,
         )
 
         assertTrue(result is SecureItemContentDecodeResult.Error)
@@ -195,12 +236,14 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `decode rejects unknown password fields`() {
-        val result = codec.decode(
+    fun `decode when password payload contains unknown fields then returns invalid payload error`() {
+        val payload = """{"email":"alice@example.com","password":"s3cr3t","extra":"boom"}"""
+            .toByteArray(StandardCharsets.UTF_8)
+
+        val result = target.decode(
             itemType = "PASSWORD",
             schemaVersion = 1,
-            payload = """{"email":"alice@example.com","password":"s3cr3t","extra":"boom"}"""
-                .toByteArray(StandardCharsets.UTF_8),
+            payload = payload,
         )
 
         assertTrue(result is SecureItemContentDecodeResult.Error)
@@ -208,11 +251,14 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `decode rejects unknown note fields`() {
-        val result = codec.decode(
+    fun `decode when note payload contains unknown fields then returns invalid payload error`() {
+        val payload =
+            """{"noteBody":"private text","extra":"boom"}""".toByteArray(StandardCharsets.UTF_8)
+
+        val result = target.decode(
             itemType = "NOTE",
             schemaVersion = 1,
-            payload = """{"noteBody":"private text","extra":"boom"}""".toByteArray(StandardCharsets.UTF_8),
+            payload = payload,
         )
 
         assertTrue(result is SecureItemContentDecodeResult.Error)
@@ -220,11 +266,13 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `decode rejects password without username or email`() {
-        val result = codec.decode(
+    fun `decode when password payload lacks username and email then returns invalid payload error`() {
+        val payload = """{"password":"s3cr3t"}""".toByteArray(StandardCharsets.UTF_8)
+
+        val result = target.decode(
             itemType = "PASSWORD",
             schemaVersion = 1,
-            payload = """{"password":"s3cr3t"}""".toByteArray(StandardCharsets.UTF_8),
+            payload = payload,
         )
 
         assertEquals(
@@ -238,8 +286,8 @@ class JsonSecureItemContentCodecTest {
     }
 
     @Test
-    fun `decode roundtrip preserves password payload bytes`() {
-        val encoded = codec.encode(
+    fun `decode and encode when password payload roundtrips then preserves payload bytes`() {
+        val encoded = target.encode(
             PasswordSecureItemContent(
                 email = "alice@example.com",
                 password = "s3cr3t",
@@ -247,14 +295,14 @@ class JsonSecureItemContentCodecTest {
             ),
         )
 
-        val decoded = codec.decode(
+        val decoded = target.decode(
             itemType = encoded.itemType.wireName,
             schemaVersion = encoded.schemaVersion,
             payload = encoded.payload,
         )
 
         assertTrue(decoded is SecureItemContentDecodeResult.Success)
-        val reEncoded = codec.encode((decoded as SecureItemContentDecodeResult.Success).content)
+        val reEncoded = target.encode((decoded as SecureItemContentDecodeResult.Success).content)
         assertArrayEquals(encoded.payload, reEncoded.payload)
     }
 }

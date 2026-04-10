@@ -3,11 +3,9 @@ package com.miguelrodriguez19.safecube.core.vault.domain.usecase.password
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecurePasswordDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecurePasswordTotpDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecurePasswordWebsiteDraft
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordSecureItemContent
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordTotpSecureItemContent
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordWebsiteSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.password.PasswordDraftToContentMapper
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class PasswordDraftToContentMapperTest {
@@ -34,6 +32,7 @@ class PasswordDraftToContentMapperTest {
         )
 
         val result = target.map(draft)
+
         assertEquals(draft.username, result.username)
         assertEquals(draft.email, result.email)
         assertEquals(draft.password, result.password)
@@ -45,13 +44,15 @@ class PasswordDraftToContentMapperTest {
         assertEquals(draft.totp?.accountName, result.totp?.accountName)
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun `map when draft is invalid then throws validation error`() {
-        target.map(
-            SecurePasswordDraft(
-                displayHint = "Github",
-                password = " ",
-            ),
+        val draft = SecurePasswordDraft(
+            displayHint = "Github",
+            password = " ",
         )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            target.map(draft)
+        }
     }
 }

@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-04-2026 12:29:09
+Updated: 10-04-2026 01:20:48
 
 ```
 safecube-android/
@@ -390,6 +390,7 @@ safecube-android/
 │   │   │       │   ├── local/
 │   │   │       │   │   └── VaultKeyMaterialCacheTest.kt
 │   │   │       │   ├── remote/
+│   │   │       │   │   ├── RemoteVaultKeyMaterialDataSourceIntegrationTest.kt
 │   │   │       │   │   └── RemoteVaultKeyMaterialDataSourceTest.kt
 │   │   │       │   └── session/
 │   │   │       │       ├── VaultInMemoryKekStoreTest.kt
