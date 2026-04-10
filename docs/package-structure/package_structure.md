@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-04-2026 11:16:11
+Updated: 10-04-2026 11:59:23
 
 ```
 safecube-android/
@@ -113,6 +113,7 @@ safecube-android/
 │   │   │       │   ├── mapper/
 │   │   │       │   │   └── AuthErrorMapperTest.kt
 │   │   │       │   ├── remote/
+│   │   │       │   │   ├── RemoteAuthDataSourceIntegrationTest.kt
 │   │   │       │   │   └── RemoteAuthDataSourceTest.kt
 │   │   │       │   ├── repository/
 │   │   │       │   │   └── AuthRepositoryImplTest.kt

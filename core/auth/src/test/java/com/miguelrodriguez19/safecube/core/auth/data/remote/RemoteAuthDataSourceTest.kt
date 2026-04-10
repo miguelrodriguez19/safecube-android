@@ -1,101 +1,46 @@
 package com.miguelrodriguez19.safecube.core.auth.data.remote
 
-import com.miguelrodriguez19.safecube.core.network.data.client.NetworkClientFactory
-import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
-import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthenticateAccountRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RefreshTokenRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountResult
-import java.time.OffsetDateTime
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import java.util.concurrent.CancellationException
 import kotlinx.coroutines.runBlocking
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
-import org.junit.After
+import okhttp3.ResponseBody
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Assert.assertThrows
 import org.junit.Test
+import retrofit2.Response
 
 class RemoteAuthDataSourceTest {
-    private lateinit var authServer: MockWebServer
-    private lateinit var refreshServer: MockWebServer
 
-    @Before
-    fun setUp() {
-        authServer = MockWebServer().also(MockWebServer::start)
-        refreshServer = MockWebServer().also(MockWebServer::start)
-    }
+    private val authControllerApi = mockk<AuthControllerApi>()
+    private val refreshAuthControllerApi = mockk<AuthControllerApi>()
 
-    @After
-    fun tearDown() {
-        authServer.shutdown()
-        refreshServer.shutdown()
-    }
+    private val target = RemoteAuthDataSource(
+        authControllerApi = authControllerApi,
+        refreshAuthControllerApi = refreshAuthControllerApi,
+    )
 
     @Test
-    fun `login returns success result preserving code and body`() = runBlocking {
-        val issuedAtRaw = "2026-03-06T12:11:35.524804768Z"
-        authServer.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                    """
-                    {
-                      "accessToken":"access-token",
-                      "refreshToken":"refresh-token",
-                      "issuedAt":"$issuedAtRaw"
-                    }
-                    """.trimIndent(),
-                ),
-        )
-        val dataSource = RemoteAuthDataSource(
-            authControllerApi = createAuthApi(authServer),
-            refreshAuthControllerApi = createAuthApi(refreshServer),
-        )
+    fun `register when error body parsing fails then returns http error with null error body`() = runBlocking {
+        val response = mockk<Response<RegisterAccountResult>>()
+        val responseBody = mockk<ResponseBody>()
+        coEvery { authControllerApi.register(any()) } returns response
+        every { response.isSuccessful } returns false
+        every { response.code() } returns 400
+        every { response.body() } returns null
+        every { response.errorBody() } returns responseBody
+        every { responseBody.string() } throws IllegalStateException("boom")
 
-        val result = dataSource.login(
-            request = AuthenticateAccountRequest(
-                email = "test@example.com",
-                password = "password",
-            ),
-        )
-
-        assertEquals(
-            NetworkResult.Success(
-                httpCode = 200,
-                body = AuthTokensResponse(
-                    accessToken = "access-token",
-                    refreshToken = "refresh-token",
-                    issuedAt = OffsetDateTime.parse(issuedAtRaw),
-                ),
-            ),
-            result,
-        )
-
-        val request = authServer.takeRequest()
-        assertEquals("/auth/login", request.path)
-        assertEquals("POST", request.method)
-        assertTrue(request.body.readUtf8().contains("\"email\":\"test@example.com\""))
-    }
-
-    @Test
-    fun `register returns http error preserving code and error body`() = runBlocking {
-        val errorJson = """{"error":"Validation failed","fields":{"email":"invalid"}}"""
-        authServer.enqueue(
-            MockResponse()
-                .setResponseCode(400)
-                .addHeader("Content-Type", "application/json")
-                .setBody(errorJson),
-        )
-        val dataSource = RemoteAuthDataSource(
-            authControllerApi = createAuthApi(authServer),
-            refreshAuthControllerApi = createAuthApi(refreshServer),
-        )
-
-        val result = dataSource.register(
+        val result = target.register(
             request = RegisterAccountRequest(
                 email = "invalid-email",
                 password = "password",
@@ -106,66 +51,67 @@ class RemoteAuthDataSourceTest {
             NetworkResult.HttpError<RegisterAccountResult>(
                 httpCode = 400,
                 body = null,
-                errorBody = errorJson,
+                errorBody = null,
             ),
             result,
         )
-
-        val request = authServer.takeRequest()
-        assertEquals("/auth/register", request.path)
-        assertEquals("POST", request.method)
+        coVerify(exactly = 1) {
+            authControllerApi.register(
+                match { request ->
+                    request.email == "invalid-email" &&
+                        request.password == "password"
+                },
+            )
+        }
+        verify(exactly = 1) { response.isSuccessful }
+        verify(exactly = 1) { response.code() }
+        verify(exactly = 1) { response.body() }
+        verify(exactly = 1) { response.errorBody() }
+        verify(exactly = 1) { responseBody.string() }
+        confirmVerified(authControllerApi, refreshAuthControllerApi, response, responseBody)
     }
 
     @Test
-    fun `refresh uses refresh api client and returns success`() = runBlocking {
-        val issuedAtRaw = "2026-03-06T12:11:35.524804768Z"
-        refreshServer.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                    """
-                    {
-                      "accessToken":"rotated-access",
-                      "refreshToken":"rotated-refresh",
-                      "issuedAt":"$issuedAtRaw"
-                    }
-                    """.trimIndent(),
-                ),
-        )
-        val dataSource = RemoteAuthDataSource(
-            authControllerApi = createAuthApi(authServer),
-            refreshAuthControllerApi = createAuthApi(refreshServer),
-        )
+    fun `login when api throws cancellation exception then rethrows cancellation exception`() = runBlocking {
+        coEvery { authControllerApi.login(any()) } throws CancellationException("cancelled")
 
-        val result = dataSource.refresh(
-            request = RefreshTokenRequest(refreshToken = "old-refresh"),
-        )
+        assertThrows(CancellationException::class.java) {
+            runBlocking {
+                target.login(
+                    request = AuthenticateAccountRequest(
+                        email = "user@example.com",
+                        password = "password",
+                    ),
+                )
+            }
+        }
 
-        assertEquals(
-            NetworkResult.Success(
-                httpCode = 200,
-                body = AuthTokensResponse(
-                    accessToken = "rotated-access",
-                    refreshToken = "rotated-refresh",
-                    issuedAt = OffsetDateTime.parse(issuedAtRaw),
-                ),
-            ),
-            result,
-        )
-        assertEquals(0, authServer.requestCount)
-
-        val refreshRequest = refreshServer.takeRequest()
-        assertEquals("/auth/refresh", refreshRequest.path)
-        assertEquals("POST", refreshRequest.method)
-        assertTrue(refreshRequest.body.readUtf8().contains("\"refreshToken\":\"old-refresh\""))
+        coVerify(exactly = 1) {
+            authControllerApi.login(
+                match { request ->
+                    request.email == "user@example.com" &&
+                        request.password == "password"
+                },
+            )
+        }
+        confirmVerified(authControllerApi, refreshAuthControllerApi)
     }
 
-    private fun createAuthApi(server: MockWebServer): AuthControllerApi =
-        NetworkClientFactory.createService(
-            config = NetworkConfig(
-                baseUrl = server.url("/").toString(),
-                isDebug = false,
-            ),
+    @Test
+    fun `refresh when api throws unexpected exception then returns failure preserving throwable`() = runBlocking {
+        val failure = IllegalStateException("network down")
+        coEvery { refreshAuthControllerApi.refresh(any()) } throws failure
+
+        val result = target.refresh(
+            request = RefreshTokenRequest(refreshToken = "refresh-token"),
         )
+
+        assertEquals(NetworkResult.Failure(failure), result)
+        coVerify(exactly = 1) {
+            refreshAuthControllerApi.refresh(
+                match { request -> request.refreshToken == "refresh-token" },
+            )
+        }
+        confirmVerified(authControllerApi, refreshAuthControllerApi)
+    }
 }

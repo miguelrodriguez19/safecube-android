@@ -3,6 +3,12 @@ package com.miguelrodriguez19.safecube.core.auth.domain.session
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
+import io.mockk.Runs
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.verify
 import java.time.OffsetDateTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -10,35 +16,48 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SessionManagerImplTest {
+
+    private val tokenStorage = mockk<TokenStorage>()
+
+    private lateinit var target: SessionManagerImpl
+
     @Test
-    fun `cold start with tokens starts as logged in vault locked`() {
-        val storage = FakeTokenStorage(
-            accessToken = "access-token",
-            refreshToken = "refresh-token",
-            issuedAt = OffsetDateTime.parse("2026-03-05T00:00:00Z"),
-        )
+    fun `init when access and refresh tokens exist then starts as logged in vault locked`() {
+        every { tokenStorage.getAccessToken() } returns "access-token"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
 
-        val sessionManager = SessionManagerImpl(storage)
+        createTarget()
 
-        assertEquals(SessionState.LoggedInVaultLocked, sessionManager.sessionState.value)
-        assertTrue(sessionManager.isLoggedIn())
+        assertEquals(SessionState.LoggedInVaultLocked, target.sessionState.value)
+        assertTrue(target.isLoggedIn())
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        confirmVerified(tokenStorage)
     }
 
     @Test
-    fun `cold start without tokens starts as logged out`() {
-        val sessionManager = SessionManagerImpl(FakeTokenStorage())
+    fun `init when tokens are missing then starts as logged out`() {
+        every { tokenStorage.getAccessToken() } returns null
+        every { tokenStorage.getRefreshToken() } returns null
 
-        assertEquals(SessionState.LoggedOut, sessionManager.sessionState.value)
-        assertFalse(sessionManager.isLoggedIn())
+        createTarget()
+
+        assertEquals(SessionState.LoggedOut, target.sessionState.value)
+        assertFalse(target.isLoggedIn())
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        confirmVerified(tokenStorage)
     }
 
     @Test
-    fun `onLoginSuccess persists tokens and updates session state`() {
-        val storage = FakeTokenStorage()
-        val sessionManager = SessionManagerImpl(storage)
+    fun `onLoginSuccess when tokens are provided then persists them and updates session state`() {
         val issuedAt = OffsetDateTime.parse("2026-03-05T00:00:00Z")
+        every { tokenStorage.getAccessToken() } returns null
+        every { tokenStorage.getRefreshToken() } returns null
+        every { tokenStorage.saveTokens("access-token", "refresh-token", issuedAt) } just Runs
+        createTarget()
 
-        sessionManager.onLoginSuccess(
+        target.onLoginSuccess(
             tokens = AuthTokens(
                 accessToken = "access-token",
                 refreshToken = "refresh-token",
@@ -46,71 +65,46 @@ class SessionManagerImplTest {
             ),
         )
 
-        assertEquals("access-token", storage.storedAccessToken)
-        assertEquals("refresh-token", storage.storedRefreshToken)
-        assertEquals(issuedAt, storage.storedIssuedAt)
-        assertEquals(SessionState.LoggedInVaultLocked, sessionManager.sessionState.value)
-        assertTrue(sessionManager.isLoggedIn())
+        assertEquals(SessionState.LoggedInVaultLocked, target.sessionState.value)
+        assertTrue(target.isLoggedIn())
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { tokenStorage.saveTokens("access-token", "refresh-token", issuedAt) }
+        confirmVerified(tokenStorage)
     }
 
     @Test
-    fun `forceLogout clears tokens and sets logged out`() {
-        val storage = FakeTokenStorage(
-            accessToken = "access-token",
-            refreshToken = "refresh-token",
-            issuedAt = OffsetDateTime.parse("2026-03-05T00:00:00Z"),
-        )
-        val sessionManager = SessionManagerImpl(storage)
+    fun `forceLogout when session exists then clears tokens and updates session state`() {
+        every { tokenStorage.getAccessToken() } returns "access-token"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { tokenStorage.clear() } just Runs
+        createTarget()
 
-        sessionManager.forceLogout()
+        target.forceLogout()
 
-        assertEquals(null, storage.storedAccessToken)
-        assertEquals(null, storage.storedRefreshToken)
-        assertEquals(null, storage.storedIssuedAt)
-        assertEquals(SessionState.LoggedOut, sessionManager.sessionState.value)
-        assertFalse(sessionManager.isLoggedIn())
+        assertEquals(SessionState.LoggedOut, target.sessionState.value)
+        assertFalse(target.isLoggedIn())
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { tokenStorage.clear() }
+        confirmVerified(tokenStorage)
     }
 
     @Test
-    fun `getAccessToken delegates to token storage`() {
-        val storage = FakeTokenStorage(accessToken = "access-token")
-        val sessionManager = SessionManagerImpl(storage)
+    fun `getAccessToken when session manager delegates then returns token storage access token`() {
+        every { tokenStorage.getAccessToken() } returnsMany listOf(null, "access-token")
+        every { tokenStorage.getRefreshToken() } returns null
+        createTarget()
 
-        assertEquals("access-token", sessionManager.getAccessToken())
-    }
-}
+        val result = target.getAccessToken()
 
-private class FakeTokenStorage(
-    accessToken: String? = null,
-    refreshToken: String? = null,
-    issuedAt: OffsetDateTime? = null,
-) : TokenStorage {
-    var storedAccessToken: String? = accessToken
-        private set
-    var storedRefreshToken: String? = refreshToken
-        private set
-    var storedIssuedAt: OffsetDateTime? = issuedAt
-        private set
-
-    override fun saveTokens(
-        accessToken: String,
-        refreshToken: String,
-        issuedAt: OffsetDateTime?,
-    ) {
-        storedAccessToken = accessToken
-        storedRefreshToken = refreshToken
-        storedIssuedAt = issuedAt
+        assertEquals("access-token", result)
+        verify(exactly = 2) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        confirmVerified(tokenStorage)
     }
 
-    override fun getAccessToken(): String? = storedAccessToken
-
-    override fun getRefreshToken(): String? = storedRefreshToken
-
-    override fun getIssuedAt(): OffsetDateTime? = storedIssuedAt
-
-    override fun clear() {
-        storedAccessToken = null
-        storedRefreshToken = null
-        storedIssuedAt = null
+    private fun createTarget() {
+        target = SessionManagerImpl(tokenStorage)
     }
 }

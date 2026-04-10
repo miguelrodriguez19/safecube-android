@@ -7,10 +7,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AuthErrorMapperTest {
-    private val mapper = AuthErrorMapper()
+
+    private val target = AuthErrorMapper()
 
     @Test
-    fun `maps 400 into validation failed with parsed fields`() {
+    fun `map when status code is 400 and body has validation fields then returns validation failed`() {
         val errorBody = """
             {
               "error": "Validation failed",
@@ -21,33 +22,33 @@ class AuthErrorMapperTest {
             }
         """.trimIndent()
 
-        val error = mapper.map(
+        val result = target.map(
             statusCode = 400,
             errorBody = errorBody,
             operation = AuthOperation.LOGIN,
         )
 
-        assertTrue(error is AuthError.ValidationFailed)
-        val validation = error as AuthError.ValidationFailed
+        assertTrue(result is AuthError.ValidationFailed)
+        val validation = result as AuthError.ValidationFailed
         assertEquals("Validation failed", validation.message)
         assertEquals("invalid", validation.fields?.get("email"))
         assertEquals("too_short", validation.fields?.get("password"))
     }
 
     @Test
-    fun `maps 400 with invalid body safely`() {
-        val error = mapper.map(
+    fun `map when status code is 400 and body is invalid then returns validation failed without details`() {
+        val result = target.map(
             statusCode = 400,
             errorBody = "not-json",
             operation = AuthOperation.LOGIN,
         )
 
-        assertEquals(AuthError.ValidationFailed(fields = null, message = null), error)
+        assertEquals(AuthError.ValidationFailed(fields = null, message = null), result)
     }
 
     @Test
-    fun `maps 400 with blank message and non string fields safely`() {
-        val error = mapper.map(
+    fun `map when status code is 400 and fields are not strings then sanitizes parsed values`() {
+        val result = target.map(
             statusCode = 400,
             errorBody = """{"error":"   ","fields":{"email":12,"password":"   "}}""",
             operation = AuthOperation.LOGIN,
@@ -61,68 +62,68 @@ class AuthErrorMapperTest {
                 ),
                 message = null,
             ),
-            error,
+            result,
         )
     }
 
     @Test
-    fun `maps 401 into invalid credentials`() {
-        val error = mapper.map(
+    fun `map when status code is 401 then returns invalid credentials`() {
+        val result = target.map(
             statusCode = 401,
             errorBody = null,
             operation = AuthOperation.LOGIN,
         )
 
-        assertEquals(AuthError.InvalidCredentials, error)
+        assertEquals(AuthError.InvalidCredentials, result)
     }
 
     @Test
-    fun `maps 403 into forbidden`() {
-        val error = mapper.map(
+    fun `map when status code is 403 then returns forbidden`() {
+        val result = target.map(
             statusCode = 403,
             errorBody = null,
             operation = AuthOperation.LOGIN,
         )
 
-        assertEquals(AuthError.Forbidden, error)
+        assertEquals(AuthError.Forbidden, result)
     }
 
     @Test
-    fun `maps 409 into account already exists for signup`() {
-        val error = mapper.map(
+    fun `map when status code is 409 during signup then returns account already exists`() {
+        val result = target.map(
             statusCode = 409,
             errorBody = """{"error":"Account already exists"}""",
             operation = AuthOperation.SIGNUP,
         )
 
-        assertEquals(AuthError.AccountAlreadyExists, error)
+        assertEquals(AuthError.AccountAlreadyExists, result)
     }
 
     @Test
-    fun `maps 409 into generic conflict for non signup operations`() {
-        val error = mapper.map(
+    fun `map when status code is 409 outside signup then returns conflict`() {
+        val result = target.map(
             statusCode = 409,
             errorBody = """{"error":"Refresh token conflict"}""",
             operation = AuthOperation.REFRESH,
         )
 
-        assertEquals(AuthError.Conflict(message = "Refresh token conflict"), error)
+        assertEquals(AuthError.Conflict(message = "Refresh token conflict"), result)
     }
 
     @Test
-    fun `maps 409 into conflict with null message when body missing`() {
-        val error = mapper.map(
+    fun `map when status code is 409 and body is missing then returns conflict without message`() {
+        val result = target.map(
             statusCode = 409,
             errorBody = null,
             operation = AuthOperation.REFRESH,
         )
 
-        assertEquals(AuthError.Conflict(message = null), error)
+        assertEquals(AuthError.Conflict(message = null), result)
     }
 
     @Test
-    fun `maps unexpected status into unknown`() {
-        val error = mapper.map(
+    fun `map when status code is unexpected and body has message then returns unknown with code and message`() {
+        val result = target.map(
             statusCode = 500,
             errorBody = """{"error":"Server exploded"}""",
             operation = AuthOperation.LOGOUT,
@@ -133,13 +134,13 @@ class AuthErrorMapperTest {
                 code = 500,
                 message = "Server exploded",
             ),
-            error,
+            result,
         )
     }
 
     @Test
-    fun `maps unexpected status with non object json into unknown without message`() {
-        val error = mapper.map(
+    fun `map when status code is unexpected and body is not an object then returns unknown without message`() {
+        val result = target.map(
             statusCode = 500,
             errorBody = """["boom"]""",
             operation = AuthOperation.LOGOUT,
@@ -150,7 +151,7 @@ class AuthErrorMapperTest {
                 code = 500,
                 message = null,
             ),
-            error,
+            result,
         )
     }
 }

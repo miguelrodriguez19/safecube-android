@@ -55,6 +55,7 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
     testImplementation(libs.okhttp)
     testImplementation(libs.okhttp.mockwebserver)
 }

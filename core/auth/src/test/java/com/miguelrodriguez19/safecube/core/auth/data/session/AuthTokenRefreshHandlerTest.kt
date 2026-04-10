@@ -3,291 +3,329 @@ package com.miguelrodriguez19.safecube.core.auth.data.session
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
-import com.miguelrodriguez19.safecube.core.auth.domain.model.RegisteredAccount
-import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
-import javax.inject.Provider
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.Runs
+import io.mockk.verify
 import java.time.OffsetDateTime
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import javax.inject.Provider
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
 class AuthTokenRefreshHandlerTest {
+
+    private val authRepositoryProvider = mockk<Provider<AuthRepository>>()
+    private val authRepository = mockk<AuthRepository>()
+    private val tokenStorage = mockk<TokenStorage>()
+    private val sessionManager = mockk<SessionManager>()
+
+    private val target = AuthTokenRefreshHandler(
+        authRepositoryProvider = authRepositoryProvider,
+        tokenStorage = tokenStorage,
+        sessionManager = sessionManager,
+    )
+
     @Test
-    fun `refresh success returns new access token and updates session`() = runBlocking {
+    fun `refreshAccessToken when failed access token is stale then returns latest token without refreshing`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "fresh-access-token"
+
+        val result = target.refreshAccessToken(
+            failedAccessToken = "old-access-token",
+        )
+
+        assertEquals("fresh-access-token", result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 0) { tokenStorage.getRefreshToken() }
+        verify(exactly = 0) { authRepositoryProvider.get() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        verify(exactly = 0) { sessionManager.forceLogout() }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
+    }
+
+    @Test
+    fun `refreshAccessToken when refresh token is missing then forces logout and returns null`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns null
+        every { sessionManager.forceLogout() } just Runs
+
+        val result = target.refreshAccessToken(
+            failedAccessToken = "expired-access",
+        )
+
+        assertNull(result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 0) { authRepositoryProvider.get() }
+        verify(exactly = 1) { sessionManager.forceLogout() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
+    }
+
+    @Test
+    fun `refreshAccessToken when refresh succeeds then returns new access token and updates session`() = runBlocking {
         val newTokens = AuthTokens(
             accessToken = "new-access",
             refreshToken = "new-refresh",
             issuedAt = OffsetDateTime.parse("2026-03-05T00:00:00Z"),
         )
-        val tokenStorage = FakeTokenStorage(
-            accessToken = "expired-access",
-            refreshToken = "current-refresh",
-        )
-        val sessionManager = FakeSessionManager()
-        val handler = AuthTokenRefreshHandler(
-            authRepositoryProvider = authRepositoryProvider(
-                refreshResult = AuthResult.Success(newTokens),
-            ),
-            tokenStorage = tokenStorage,
-            sessionManager = sessionManager,
-        )
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "current-refresh"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery { authRepository.refresh("current-refresh") } returns AuthResult.Success(newTokens)
+        every { sessionManager.onLoginSuccess(newTokens) } just Runs
 
-        val refreshedAccessToken = handler.refreshAccessToken(
+        val result = target.refreshAccessToken(
             failedAccessToken = "expired-access",
         )
 
-        assertEquals("new-access", refreshedAccessToken)
-        assertEquals(1, sessionManager.onLoginSuccessCalls)
-        assertEquals(newTokens, sessionManager.lastTokens)
-        assertEquals(0, sessionManager.forceLogoutCalls)
+        assertEquals("new-access", result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { authRepositoryProvider.get() }
+        coVerify(exactly = 1) { authRepository.refresh("current-refresh") }
+        verify(exactly = 1) { sessionManager.onLoginSuccess(newTokens) }
+        verify(exactly = 0) { sessionManager.forceLogout() }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 
     @Test
-    fun `refresh auth failure forces logout`() = runBlocking {
-        val sessionManager = FakeSessionManager()
-        val handler = AuthTokenRefreshHandler(
-            authRepositoryProvider = authRepositoryProvider(
-                refreshResult = AuthResult.Error(AuthError.InvalidCredentials),
-            ),
-            tokenStorage = FakeTokenStorage(refreshToken = "current-refresh"),
-            sessionManager = sessionManager,
-        )
+    fun `refreshAccessToken when refresh returns invalid credentials then forces logout`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "current-refresh"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery { authRepository.refresh("current-refresh") } returns AuthResult.Error(AuthError.InvalidCredentials)
+        every { sessionManager.forceLogout() } just Runs
 
-        val refreshedAccessToken = handler.refreshAccessToken(
+        val result = target.refreshAccessToken(
             failedAccessToken = "expired-access",
         )
 
-        assertNull(refreshedAccessToken)
-        assertEquals(1, sessionManager.forceLogoutCalls)
+        assertNull(result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { authRepositoryProvider.get() }
+        coVerify(exactly = 1) { authRepository.refresh("current-refresh") }
+        verify(exactly = 1) { sessionManager.forceLogout() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 
     @Test
-    fun `refresh transport failure does not force logout`() = runBlocking {
-        val sessionManager = FakeSessionManager()
-        val handler = AuthTokenRefreshHandler(
-            authRepositoryProvider = authRepositoryProvider(
-                refreshResult = AuthResult.Error(
-                    AuthError.Unknown(
-                        code = null,
-                        message = "network down",
-                    ),
-                ),
-            ),
-            tokenStorage = FakeTokenStorage(refreshToken = "current-refresh"),
-            sessionManager = sessionManager,
-        )
+    fun `refreshAccessToken when refresh returns forbidden then forces logout`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery { authRepository.refresh("refresh-token") } returns AuthResult.Error(AuthError.Forbidden)
+        every { sessionManager.forceLogout() } just Runs
 
-        val refreshedAccessToken = handler.refreshAccessToken(
+        val result = target.refreshAccessToken(
             failedAccessToken = "expired-access",
         )
 
-        assertNull(refreshedAccessToken)
-        assertEquals(0, sessionManager.forceLogoutCalls)
+        assertNull(result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { authRepositoryProvider.get() }
+        coVerify(exactly = 1) { authRepository.refresh("refresh-token") }
+        verify(exactly = 1) { sessionManager.forceLogout() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 
     @Test
-    fun `returns latest token when failed token is stale`() = runBlocking {
-        val sessionManager = FakeSessionManager()
-        val handler = AuthTokenRefreshHandler(
-            authRepositoryProvider = authRepositoryProvider(
-                refreshResult = AuthResult.Error(AuthError.Unknown(message = "should-not-refresh")),
-            ),
-            tokenStorage = FakeTokenStorage(
-                accessToken = "fresh-access-token",
-                refreshToken = "refresh-token",
-            ),
-            sessionManager = sessionManager,
-        )
+    fun `refreshAccessToken when refresh returns account already exists then forces logout`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery { authRepository.refresh("refresh-token") } returns AuthResult.Error(AuthError.AccountAlreadyExists)
+        every { sessionManager.forceLogout() } just Runs
 
-        val refreshedAccessToken = handler.refreshAccessToken(
-            failedAccessToken = "old-access-token",
-        )
-
-        assertEquals("fresh-access-token", refreshedAccessToken)
-        assertEquals(0, sessionManager.forceLogoutCalls)
-    }
-
-    @Test
-    fun `missing refresh token forces logout`() = runBlocking {
-        val sessionManager = FakeSessionManager()
-        val handler = AuthTokenRefreshHandler(
-            authRepositoryProvider = authRepositoryProvider(
-                refreshResult = AuthResult.Error(AuthError.Unknown(message = "not-used")),
-            ),
-            tokenStorage = FakeTokenStorage(
-                accessToken = "expired-access",
-                refreshToken = null,
-            ),
-            sessionManager = sessionManager,
-        )
-
-        val refreshedAccessToken = handler.refreshAccessToken(
+        val result = target.refreshAccessToken(
             failedAccessToken = "expired-access",
         )
 
-        assertNull(refreshedAccessToken)
-        assertEquals(1, sessionManager.forceLogoutCalls)
+        assertNull(result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { authRepositoryProvider.get() }
+        coVerify(exactly = 1) { authRepository.refresh("refresh-token") }
+        verify(exactly = 1) { sessionManager.forceLogout() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 
     @Test
-    fun `unknown auth error with auth-failure code forces logout`() = runBlocking {
-        val sessionManager = FakeSessionManager()
-        val handler = AuthTokenRefreshHandler(
-            authRepositoryProvider = authRepositoryProvider(
-                refreshResult = AuthResult.Error(AuthError.Unknown(code = 400, message = "bad request")),
-            ),
-            tokenStorage = FakeTokenStorage(refreshToken = "refresh-token"),
-            sessionManager = sessionManager,
+    fun `refreshAccessToken when refresh returns conflict then forces logout`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery { authRepository.refresh("refresh-token") } returns AuthResult.Error(
+            AuthError.Conflict(message = "conflict"),
         )
+        every { sessionManager.forceLogout() } just Runs
 
-        val refreshedAccessToken = handler.refreshAccessToken(
+        val result = target.refreshAccessToken(
             failedAccessToken = "expired-access",
         )
 
-        assertNull(refreshedAccessToken)
-        assertEquals(1, sessionManager.forceLogoutCalls)
+        assertNull(result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { authRepositoryProvider.get() }
+        coVerify(exactly = 1) { authRepository.refresh("refresh-token") }
+        verify(exactly = 1) { sessionManager.forceLogout() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 
     @Test
-    fun `conflict error forces logout`() = runBlocking {
-        val sessionManager = FakeSessionManager()
-        val handler = AuthTokenRefreshHandler(
-            authRepositoryProvider = authRepositoryProvider(
-                refreshResult = AuthResult.Error(AuthError.Conflict(message = "conflict")),
-            ),
-            tokenStorage = FakeTokenStorage(refreshToken = "refresh-token"),
-            sessionManager = sessionManager,
+    fun `refreshAccessToken when failed access token is blank then does not reuse current token and refreshes`() = runBlocking {
+        val newTokens = AuthTokens(
+            accessToken = "new-access",
+            refreshToken = "new-refresh",
+            issuedAt = OffsetDateTime.parse("2026-03-05T00:00:00Z"),
+        )
+        every { tokenStorage.getAccessToken() } returns "current-access"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery { authRepository.refresh("refresh-token") } returns AuthResult.Success(newTokens)
+        every { sessionManager.onLoginSuccess(newTokens) } just Runs
+
+        val result = target.refreshAccessToken(
+            failedAccessToken = "",
         )
 
-        val refreshedAccessToken = handler.refreshAccessToken(
-            failedAccessToken = "expired-access",
-        )
-
-        assertNull(refreshedAccessToken)
-        assertEquals(1, sessionManager.forceLogoutCalls)
+        assertEquals("new-access", result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { authRepositoryProvider.get() }
+        coVerify(exactly = 1) { authRepository.refresh("refresh-token") }
+        verify(exactly = 1) { sessionManager.onLoginSuccess(newTokens) }
+        verify(exactly = 0) { sessionManager.forceLogout() }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 
     @Test
-    fun `validation failed error forces logout`() = runBlocking {
-        val sessionManager = FakeSessionManager()
-        val handler = AuthTokenRefreshHandler(
-            authRepositoryProvider = authRepositoryProvider(
-                refreshResult = AuthResult.Error(AuthError.ValidationFailed(fields = null, message = "invalid")),
-            ),
-            tokenStorage = FakeTokenStorage(refreshToken = "refresh-token"),
-            sessionManager = sessionManager,
-        )
+    fun `refreshAccessToken when refresh token is blank then forces logout and returns null`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "   "
+        every { sessionManager.forceLogout() } just Runs
 
-        val refreshedAccessToken = handler.refreshAccessToken(
+        val result = target.refreshAccessToken(
             failedAccessToken = "expired-access",
         )
 
-        assertNull(refreshedAccessToken)
-        assertEquals(1, sessionManager.forceLogoutCalls)
+        assertNull(result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 0) { authRepositoryProvider.get() }
+        verify(exactly = 1) { sessionManager.forceLogout() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 
     @Test
-    fun `account not active error forces logout`() = runBlocking {
-        val sessionManager = FakeSessionManager()
-        val handler = AuthTokenRefreshHandler(
-            authRepositoryProvider = authRepositoryProvider(
-                refreshResult = AuthResult.Error(AuthError.AccountNotActive),
-            ),
-            tokenStorage = FakeTokenStorage(refreshToken = "refresh-token"),
-            sessionManager = sessionManager,
+    fun `refreshAccessToken when refresh returns validation failed then forces logout`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery { authRepository.refresh("refresh-token") } returns AuthResult.Error(
+            AuthError.ValidationFailed(fields = null, message = "invalid"),
         )
+        every { sessionManager.forceLogout() } just Runs
 
-        val refreshedAccessToken = handler.refreshAccessToken(
+        val result = target.refreshAccessToken(
             failedAccessToken = "expired-access",
         )
 
-        assertNull(refreshedAccessToken)
-        assertEquals(1, sessionManager.forceLogoutCalls)
+        assertNull(result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { authRepositoryProvider.get() }
+        coVerify(exactly = 1) { authRepository.refresh("refresh-token") }
+        verify(exactly = 1) { sessionManager.forceLogout() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 
-    private fun authRepositoryProvider(
-        refreshResult: AuthResult<AuthTokens>,
-    ): Provider<AuthRepository> = Provider {
-        FakeAuthRepository(refreshResult = refreshResult)
-    }
-}
+    @Test
+    fun `refreshAccessToken when refresh returns account not active then forces logout`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery { authRepository.refresh("refresh-token") } returns AuthResult.Error(AuthError.AccountNotActive)
+        every { sessionManager.forceLogout() } just Runs
 
-private class FakeAuthRepository(
-    private val refreshResult: AuthResult<AuthTokens>,
-) : AuthRepository {
-    override suspend fun register(
-        email: String,
-        password: String,
-    ): AuthResult<RegisteredAccount> = error("not needed")
+        val result = target.refreshAccessToken(
+            failedAccessToken = "expired-access",
+        )
 
-    override suspend fun login(
-        email: String,
-        password: String,
-    ): AuthResult<AuthTokens> = error("not needed")
-
-    override suspend fun refresh(
-        refreshToken: String,
-    ): AuthResult<AuthTokens> = refreshResult
-
-    override suspend fun logout(): AuthResult<Unit> = error("not needed")
-}
-
-private class FakeTokenStorage(
-    private var accessToken: String? = null,
-    private var refreshToken: String? = null,
-    private var issuedAt: OffsetDateTime? = null,
-) : TokenStorage {
-    override fun saveTokens(
-        accessToken: String,
-        refreshToken: String,
-        issuedAt: OffsetDateTime?,
-    ) {
-        this.accessToken = accessToken
-        this.refreshToken = refreshToken
-        this.issuedAt = issuedAt
+        assertNull(result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { authRepositoryProvider.get() }
+        coVerify(exactly = 1) { authRepository.refresh("refresh-token") }
+        verify(exactly = 1) { sessionManager.forceLogout() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 
-    override fun getAccessToken(): String? = accessToken
+    @Test
+    fun `refreshAccessToken when refresh returns unknown auth failure code then forces logout`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery { authRepository.refresh("refresh-token") } returns AuthResult.Error(
+            AuthError.Unknown(code = 400, message = "bad request"),
+        )
+        every { sessionManager.forceLogout() } just Runs
 
-    override fun getRefreshToken(): String? = refreshToken
+        val result = target.refreshAccessToken(
+            failedAccessToken = "expired-access",
+        )
 
-    override fun getIssuedAt(): OffsetDateTime? = issuedAt
-
-    override fun clear() {
-        accessToken = null
-        refreshToken = null
-        issuedAt = null
-    }
-}
-
-private class FakeSessionManager : SessionManager {
-    private val mutableState = MutableStateFlow<SessionState>(SessionState.LoggedOut)
-
-    override val sessionState: StateFlow<SessionState> = mutableState
-
-    var forceLogoutCalls: Int = 0
-        private set
-    var onLoginSuccessCalls: Int = 0
-        private set
-    var lastTokens: AuthTokens? = null
-        private set
-
-    override fun isLoggedIn(): Boolean = sessionState.value is SessionState.LoggedInVaultLocked
-
-    override fun onLoginSuccess(tokens: AuthTokens) {
-        onLoginSuccessCalls++
-        lastTokens = tokens
-        mutableState.value = SessionState.LoggedInVaultLocked
+        assertNull(result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { authRepositoryProvider.get() }
+        coVerify(exactly = 1) { authRepository.refresh("refresh-token") }
+        verify(exactly = 1) { sessionManager.forceLogout() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 
-    override fun forceLogout() {
-        forceLogoutCalls++
-        mutableState.value = SessionState.LoggedOut
+    @Test
+    fun `refreshAccessToken when refresh returns unknown transport failure then does not force logout`() = runBlocking {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "current-refresh"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery { authRepository.refresh("current-refresh") } returns AuthResult.Error(
+            AuthError.Unknown(
+                code = null,
+                message = "network down",
+            ),
+        )
+
+        val result = target.refreshAccessToken(
+            failedAccessToken = "expired-access",
+        )
+
+        assertNull(result)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { authRepositoryProvider.get() }
+        coVerify(exactly = 1) { authRepository.refresh("current-refresh") }
+        verify(exactly = 0) { sessionManager.forceLogout() }
+        verify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
+        confirmVerified(authRepositoryProvider, authRepository, tokenStorage, sessionManager)
     }
 }
