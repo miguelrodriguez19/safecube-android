@@ -102,7 +102,6 @@ Recibe:
 - `schemaVersion`
 - `displayHint`
 - `payload`
-- `updatedAt`
 
 Devuelve:
 
@@ -111,6 +110,11 @@ Devuelve:
 - `updatedAt`
 
 Puede devolver `409 Conflict`.
+
+Nota de alineación contractual:
+
+- `409` se trata como comportamiento observable del backend.
+- este roadmap no asume el mecanismo interno exacto que dispara el conflicto.
 
 ### `DELETE /vault/items/{itemId}`
 
@@ -315,6 +319,7 @@ Definir explícitamente:
 - regla `list summaries -> get detail`
 - ciclo recomendado `push -> pull`
 - política de conflicto MVP (`CONFLICT`, sin merge automático)
+- tratamiento de `409` como contrato observable (sin asumir `request.updatedAt`)
 - regla de no pisar items dirty
 - relación entre `logicalItemId` y `remoteItemId`
 - qué significa `syncState`
@@ -514,7 +519,7 @@ Mapeo mínimo de errores:
 
 - `401/403` -> auth/session issue
 - `404` -> missing remote item
-- `409` -> conflict/stale operation
+- `409` -> conflicto remoto explícito (sin asumir causa interna)
 - fallback -> unknown remote failure
 
 ### Out of Scope (if applies)
@@ -705,7 +710,7 @@ Actualizar estado local en success:
 
 Reglas mínimas de error:
 
-- `409` -> `CONFLICT`
+- `409` en update/delete -> `CONFLICT`
 - `404` en delete -> tratar como delete remoto ya aplicado o resolver de forma consistente
 - `404` en update -> conflicto explícito
 - fallos de red -> mantener pendiente

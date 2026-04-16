@@ -63,7 +63,6 @@ Requests:
 - `schemaVersion`
 - `displayHint`
 - `payload`
-- `updatedAt` en update
 
 Responses:
 
@@ -77,6 +76,12 @@ Interpretación para Fase 4:
 - `displayHint` es metadato no sensible y vive fuera del payload cifrado.
 - `payload` es blob opaco, producido y entendido solo por el cliente.
 - `payloadVersion` y `deletedAt` deben existir ya en el modelo local para no rediseñar en Fase 5.
+
+Nota de alineación contractual (post Fase 4):
+
+- el OpenAPI actual de `PUT /vault/items/{itemId}` no exige `updatedAt` en request.
+- esta corrección documental no cambia el objetivo ni la implementación entregada en Fase 4.
+- `updatedAt` remoto sigue siendo relevante en respuestas y en la estrategia de sync de Fase 5.
 
 ---
 
