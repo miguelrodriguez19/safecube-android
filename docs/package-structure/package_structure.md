@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 16-04-2026 08:53:42
+Updated: 17-04-2026 10:23:46
 
 ```
 safecube-android/
@@ -425,6 +425,7 @@ safecube-android/
 │   ├── architecture/
 │   │   ├── crypto-v1.md
 │   │   ├── openapi-auth-contract-integration.md
+│   │   ├── openapi-vault-items-contract-integration.md
 │   │   ├── openapi-vault-key-material-contract-integration.md
 │   │   ├── secure-item-payload-v1.md
 │   │   ├── storage_decision.md
