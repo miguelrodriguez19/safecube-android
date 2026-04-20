@@ -31,6 +31,7 @@ class SecureItemTest {
         assertEquals(1, target.schemaVersion)
         assertEquals(1L, target.payloadVersion)
         assertEquals(updatedAt, target.updatedAt)
+        assertEquals(SecureItemSyncState.SYNCED, target.syncState)
         assertEquals(payload.toList(), target.payload.toList())
     }
 
@@ -102,6 +103,25 @@ class SecureItemTest {
                 payloadVersion = 1,
                 createdAt = now,
                 updatedAt = now,
+            )
+        }
+    }
+
+    @Test
+    fun `secure item when last sync error is blank then throws illegal argument exception`() {
+        val now = Instant.now()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            SecureItem(
+                logicalItemId = UUID.randomUUID(),
+                itemType = SecureItemType.NOTE,
+                schemaVersion = 1,
+                displayHint = "Example",
+                payload = byteArrayOf(1),
+                payloadVersion = 1,
+                createdAt = now,
+                updatedAt = now,
+                lastSyncError = " ",
             )
         }
     }

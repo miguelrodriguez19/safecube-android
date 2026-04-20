@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.storage
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.flow.first
@@ -136,6 +137,7 @@ class SecureItemDaoIntegrationTest {
         assertNotNull(persistedItem)
         assertEquals(deletedAt, persistedItem?.deletedAt)
         assertEquals(deletedAt, persistedItem?.updatedAt)
+        assertEquals(SecureItemSyncState.PENDING_DELETE.storageValue, persistedItem?.syncState)
         assertArrayEquals(item.payload, persistedItem?.payload)
     }
 

@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentDecodeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
@@ -130,6 +131,7 @@ class SecureItemMutationCoordinatorTest {
         assertEquals(1, itemSlot.captured.payloadVersion)
         assertEquals(CREATED_AT, itemSlot.captured.createdAt)
         assertEquals(CREATED_AT, itemSlot.captured.updatedAt)
+        assertEquals(SecureItemSyncState.PENDING_CREATE, itemSlot.captured.syncState)
         assertArrayEquals(byteArrayOf(9, 8, 7), itemSlot.captured.payload)
         verify(exactly = 1) { secureItemIdGenerator.generate() }
         verify(exactly = 1) { currentInstantProvider.now() }
@@ -404,6 +406,7 @@ class SecureItemMutationCoordinatorTest {
         assertArrayEquals(existingItem.payload, updatedItemSlot.captured.payload)
         assertEquals("Github updated", updatedItemSlot.captured.displayHint)
         assertEquals(UPDATED_AT, updatedItemSlot.captured.updatedAt)
+        assertEquals(SecureItemSyncState.PENDING_CREATE, updatedItemSlot.captured.syncState)
         coVerify(exactly = 1) { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) }
         verify(exactly = 1) { secureItemCryptoService.decrypt(existingItem) }
         verify(exactly = 0) { secureItemCryptoService.encrypt(any(), any(), any()) }
@@ -449,6 +452,7 @@ class SecureItemMutationCoordinatorTest {
         assertTrue(result is SecureItemMutationResult.Success)
         assertEquals(2, updatedItemSlot.captured.payloadVersion)
         assertArrayEquals(byteArrayOf(4, 5, 6), updatedItemSlot.captured.payload)
+        assertEquals(SecureItemSyncState.PENDING_CREATE, updatedItemSlot.captured.syncState)
         coVerify(exactly = 1) { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) }
         verify(exactly = 1) { secureItemCryptoService.decrypt(existingItem) }
         verify(exactly = 1) { secureItemCryptoService.encrypt(SAMPLE_LOGICAL_ITEM_ID, 2, newContent) }
@@ -686,6 +690,7 @@ class SecureItemMutationCoordinatorTest {
         result as SecureItemMutationResult.Success
         assertEquals(UPDATED_AT, result.item.updatedAt)
         assertEquals(UPDATED_AT, result.item.deletedAt)
+        assertEquals(SecureItemSyncState.PENDING_DELETE, result.item.syncState)
         verify(exactly = 1) { currentInstantProvider.now() }
         coVerify(exactly = 1) { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) }
         coVerify(exactly = 1) { secureItemRepository.softDelete(SAMPLE_LOGICAL_ITEM_ID, UPDATED_AT) }

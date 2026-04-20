@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 17-04-2026 10:23:46
+Updated: 20-04-2026 11:16:39
 
 ```
 safecube-android/
@@ -252,7 +252,8 @@ safecube-android/
 │   │   └── build.gradle.kts
 │   ├── storage/
 │   │   ├── schemas/com.miguelrodriguez19.safecube.core.storage.AppDatabase/
-│   │   │   └── 2.json
+│   │   │   ├── 2.json
+│   │   │   └── 3.json
 │   │   ├── src/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/
@@ -260,17 +261,23 @@ safecube-android/
 │   │   │   │   │   │   ├── StorageBindingsModule.kt
 │   │   │   │   │   │   └── StorageModule.kt
 │   │   │   │   │   ├── local/
-│   │   │   │   │   │   └── SecureItemLocalStorage.kt
+│   │   │   │   │   │   ├── SecureItemLocalStorage.kt
+│   │   │   │   │   │   └── SecureItemSyncCheckpointLocalStorage.kt
 │   │   │   │   │   ├── AppDatabase.kt
 │   │   │   │   │   ├── SecureItemDao.kt
 │   │   │   │   │   ├── SecureItemEntity.kt
+│   │   │   │   │   ├── SecureItemSyncCheckpointDao.kt
+│   │   │   │   │   ├── SecureItemSyncCheckpointEntity.kt
 │   │   │   │   │   ├── StorageMigrations.kt
 │   │   │   │   │   └── StorageTypeConverters.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/storage/
 │   │   │       ├── local/
-│   │   │       │   └── SecureItemLocalStorageTest.kt
+│   │   │       │   ├── SecureItemLocalStorageTest.kt
+│   │   │       │   └── SecureItemSyncCheckpointLocalStorageTest.kt
 │   │   │       ├── SecureItemDaoIntegrationTest.kt
+│   │   │       ├── SecureItemSyncCheckpointDaoIntegrationTest.kt
+│   │   │       ├── StorageMigrationsIntegrationTest.kt
 │   │   │       └── StorageTypeConvertersTest.kt
 │   │   └── build.gradle.kts
 │   ├── ui/
@@ -341,6 +348,7 @@ safecube-android/
 │   │   │   │   │       │   │   │   └── SecureItemContent.kt
 │   │   │   │   │       │   │   ├── EncodedSecureItemContent.kt
 │   │   │   │   │       │   │   ├── SecureItem.kt
+│   │   │   │   │       │   │   ├── SecureItemSyncState.kt
 │   │   │   │   │       │   │   └── SecureItemType.kt
 │   │   │   │   │       │   ├── unlock/
 │   │   │   │   │       │   │   ├── VaultUnlockError.kt
@@ -350,6 +358,7 @@ safecube-android/
 │   │   │   │   │       │   └── VaultState.kt
 │   │   │   │   │       ├── repository/
 │   │   │   │   │       │   ├── SecureItemRepository.kt
+│   │   │   │   │       │   ├── SecureItemSyncCheckpointRepository.kt
 │   │   │   │   │       │   ├── VaultKeyMaterialLocalRepository.kt
 │   │   │   │   │       │   └── VaultKeyMaterialRemoteRepository.kt
 │   │   │   │   │       ├── service/

@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
@@ -56,6 +57,7 @@ internal class SecureItemMutationCoordinator @Inject constructor(
                     payloadVersion = INITIAL_PAYLOAD_VERSION,
                     createdAt = createdAt,
                     updatedAt = createdAt,
+                    syncState = SecureItemSyncState.PENDING_CREATE,
                 )
                 secureItemRepository.insert(item)
                 SecureItemMutationResult.Success(item)
@@ -119,6 +121,8 @@ internal class SecureItemMutationCoordinator @Inject constructor(
                         payload = encryptionResult.payload.payload,
                         payloadVersion = existingItem.payloadVersion + 1,
                         updatedAt = updatedAt,
+                        syncState = existingItem.pendingSyncStateForMutation(),
+                        lastSyncError = null,
                     )
                 }
 
@@ -130,6 +134,8 @@ internal class SecureItemMutationCoordinator @Inject constructor(
             existingItem.copy(
                 displayHint = normalizedDisplayHint,
                 updatedAt = updatedAt,
+                syncState = existingItem.pendingSyncStateForMutation(),
+                lastSyncError = null,
             )
         }
 
@@ -157,6 +163,8 @@ internal class SecureItemMutationCoordinator @Inject constructor(
             existingItem.copy(
                 updatedAt = deletedAt,
                 deletedAt = deletedAt,
+                syncState = SecureItemSyncState.PENDING_DELETE,
+                lastSyncError = null,
             ),
         )
     }
@@ -189,3 +197,10 @@ internal class SecureItemMutationCoordinator @Inject constructor(
         private const val INITIAL_PAYLOAD_VERSION: Long = 1
     }
 }
+
+private fun SecureItem.pendingSyncStateForMutation(): SecureItemSyncState =
+    if (remoteItemId == null) {
+        SecureItemSyncState.PENDING_CREATE
+    } else {
+        SecureItemSyncState.PENDING_UPDATE
+    }

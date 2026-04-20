@@ -48,7 +48,9 @@ interface SecureItemDao {
         """
         UPDATE secure_items
         SET deleted_at = :deletedAt,
-            updated_at = :deletedAt
+            updated_at = :deletedAt,
+            sync_state = 'PENDING_DELETE',
+            last_sync_error = NULL
         WHERE logical_item_id = :logicalItemId
         """,
     )

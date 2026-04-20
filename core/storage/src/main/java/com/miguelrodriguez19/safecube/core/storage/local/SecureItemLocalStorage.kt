@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.core.storage.local
 import com.miguelrodriguez19.safecube.core.storage.SecureItemDao
 import com.miguelrodriguez19.safecube.core.storage.SecureItemEntity
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
 import java.time.Instant
 import java.util.UUID
@@ -57,6 +58,10 @@ private fun SecureItemEntity.toDomain(): SecureItem = SecureItem(
     createdAt = createdAt,
     updatedAt = updatedAt,
     deletedAt = deletedAt,
+    syncState = SecureItemSyncState.fromStorageValue(syncState)
+        ?: error("Unsupported SecureItemSyncState '$syncState' in local storage."),
+    lastSyncedAt = lastSyncedAt,
+    lastSyncError = lastSyncError,
 )
 
 private fun SecureItem.toEntity(): SecureItemEntity = SecureItemEntity(
@@ -70,4 +75,7 @@ private fun SecureItem.toEntity(): SecureItemEntity = SecureItemEntity(
     createdAt = createdAt,
     updatedAt = updatedAt,
     deletedAt = deletedAt,
+    syncState = syncState.storageValue,
+    lastSyncedAt = lastSyncedAt,
+    lastSyncError = lastSyncError,
 )

@@ -5,11 +5,13 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(
-    entities = [SecureItemEntity::class],
-    version = 2,
+    entities = [SecureItemEntity::class, SecureItemSyncCheckpointEntity::class],
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(StorageTypeConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun secureItemDao(): SecureItemDao
+
+    abstract fun secureItemSyncCheckpointDao(): SecureItemSyncCheckpointDao
 }

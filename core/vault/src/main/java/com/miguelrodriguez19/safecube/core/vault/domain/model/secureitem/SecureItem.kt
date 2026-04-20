@@ -14,11 +14,15 @@ data class SecureItem(
     val createdAt: Instant,
     val updatedAt: Instant,
     val deletedAt: Instant? = null,
+    val syncState: SecureItemSyncState = SecureItemSyncState.SYNCED,
+    val lastSyncedAt: Instant? = null,
+    val lastSyncError: String? = null,
 ) {
     init {
         require(displayHint.isNotBlank()) { "displayHint must not be blank." }
         require(schemaVersion > 0) { "schemaVersion must be positive." }
         require(payload.isNotEmpty()) { "payload must not be empty." }
         require(payloadVersion > 0) { "payloadVersion must be positive." }
+        require(lastSyncError?.isNotBlank() != false) { "lastSyncError must not be blank when present." }
     }
 }

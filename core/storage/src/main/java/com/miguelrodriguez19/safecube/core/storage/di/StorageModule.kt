@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.miguelrodriguez19.safecube.core.storage.AppDatabase
 import com.miguelrodriguez19.safecube.core.storage.SecureItemDao
+import com.miguelrodriguez19.safecube.core.storage.SecureItemSyncCheckpointDao
 import com.miguelrodriguez19.safecube.core.storage.StorageMigrations
 import dagger.Module
 import dagger.Provides
@@ -26,6 +27,7 @@ object StorageModule {
         DATABASE_NAME,
     ).addMigrations(
         StorageMigrations.MIGRATION_1_2,
+        StorageMigrations.MIGRATION_2_3,
     ).build()
 
     @Provides
@@ -33,6 +35,12 @@ object StorageModule {
     fun provideSecureItemDao(
         appDatabase: AppDatabase,
     ): SecureItemDao = appDatabase.secureItemDao()
+
+    @Provides
+    @Singleton
+    fun provideSecureItemSyncCheckpointDao(
+        appDatabase: AppDatabase,
+    ): SecureItemSyncCheckpointDao = appDatabase.secureItemSyncCheckpointDao()
 
     private const val DATABASE_NAME = "safecube.db"
 }

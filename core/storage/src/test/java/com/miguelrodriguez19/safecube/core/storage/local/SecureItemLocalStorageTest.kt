@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.core.storage.local
 import com.miguelrodriguez19.safecube.core.storage.SecureItemDao
 import com.miguelrodriguez19.safecube.core.storage.SecureItemEntity
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -22,6 +23,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.temporal.ChronoUnit
 
 class SecureItemLocalStorageTest {
 
@@ -58,6 +60,7 @@ class SecureItemLocalStorageTest {
                 result.map { it.itemType })
             assertArrayEquals(firstEntity.payload, result[0].payload)
             assertEquals(secondEntity.deletedAt, result[1].deletedAt)
+            assertEquals(SecureItemSyncState.SYNCED, result[0].syncState)
             verify(exactly = 1) { secureItemDao.observeActiveItems() }
             confirmVerified(secureItemDao)
         }
@@ -75,6 +78,7 @@ class SecureItemLocalStorageTest {
         assertEquals(SecureItemType.PASSWORD, result.itemType)
         assertEquals(entity.displayHint, result.displayHint)
         assertArrayEquals(entity.payload, result.payload)
+        assertEquals(SecureItemSyncState.SYNCED, result.syncState)
         verify(exactly = 1) { secureItemDao.observeItem(logicalItemId) }
         confirmVerified(secureItemDao)
     }
@@ -92,20 +96,22 @@ class SecureItemLocalStorageTest {
     }
 
     @Test
-    fun `observeItem when dao emits unsupported item type then throws illegal state exception`() = runBlocking {
-        val logicalItemId = UUID.randomUUID()
-        every { secureItemDao.observeItem(logicalItemId) } returns flowOf(
-            sampleEntity(logicalItemId = logicalItemId).copy(itemType = "CARD"),
-        )
+    fun `observeItem when dao emits unsupported item type then throws illegal state exception`() =
+        runBlocking {
+            val logicalItemId = UUID.randomUUID()
+            every { secureItemDao.observeItem(logicalItemId) } returns flowOf(
+                sampleEntity(logicalItemId = logicalItemId).copy(itemType = "CARD"),
+            )
 
-        val throwable = kotlin.runCatching { target.observeItem(logicalItemId).first() }.exceptionOrNull()
+            val throwable =
+                kotlin.runCatching { target.observeItem(logicalItemId).first() }.exceptionOrNull()
 
-        requireNotNull(throwable)
-        assertTrue(throwable is IllegalStateException)
-        assertEquals("Unsupported SecureItemType 'CARD' in local storage.", throwable.message)
-        verify(exactly = 1) { secureItemDao.observeItem(logicalItemId) }
-        confirmVerified(secureItemDao)
-    }
+            requireNotNull(throwable)
+            assertTrue(throwable is IllegalStateException)
+            assertEquals("Unsupported SecureItemType 'CARD' in local storage.", throwable.message)
+            verify(exactly = 1) { secureItemDao.observeItem(logicalItemId) }
+            confirmVerified(secureItemDao)
+        }
 
     @Test
     fun `getItem when dao finds entity then maps it into domain item`() = runBlocking {
@@ -154,6 +160,9 @@ class SecureItemLocalStorageTest {
         assertEquals(item.createdAt, entitySlot.captured.createdAt)
         assertEquals(item.updatedAt, entitySlot.captured.updatedAt)
         assertEquals(item.deletedAt, entitySlot.captured.deletedAt)
+        assertEquals(item.syncState.storageValue, entitySlot.captured.syncState)
+        assertEquals(item.lastSyncedAt, entitySlot.captured.lastSyncedAt)
+        assertEquals(item.lastSyncError, entitySlot.captured.lastSyncError)
         coVerify(exactly = 1) { secureItemDao.insert(any()) }
         confirmVerified(secureItemDao)
     }
@@ -174,6 +183,9 @@ class SecureItemLocalStorageTest {
         assertEquals(item.itemType.wireName, entitySlot.captured.itemType)
         assertArrayEquals(item.payload, entitySlot.captured.payload)
         assertEquals(item.deletedAt, entitySlot.captured.deletedAt)
+        assertEquals(item.syncState.storageValue, entitySlot.captured.syncState)
+        assertEquals(item.lastSyncedAt, entitySlot.captured.lastSyncedAt)
+        assertEquals(item.lastSyncError, entitySlot.captured.lastSyncError)
         coVerify(exactly = 1) { secureItemDao.update(any()) }
         confirmVerified(secureItemDao)
     }
@@ -227,6 +239,9 @@ private fun sampleEntity(
     createdAt = Instant.parse("2026-03-24T09:00:00Z"),
     updatedAt = Instant.parse("2026-03-24T10:00:00Z"),
     deletedAt = deletedAt,
+    syncState = SecureItemSyncState.SYNCED.storageValue,
+    lastSyncedAt = Instant.parse("2026-03-24T08:00:00Z"),
+    lastSyncError = null,
 )
 
 private fun sampleDomainItem(
@@ -234,15 +249,21 @@ private fun sampleDomainItem(
     itemType: SecureItemType = SecureItemType.PASSWORD,
     payload: ByteArray = byteArrayOf(1, 2, 3),
     deletedAt: Instant? = null,
-): SecureItem = SecureItem(
-    logicalItemId = logicalItemId,
-    remoteItemId = UUID.randomUUID(),
-    itemType = itemType,
-    schemaVersion = 1,
-    displayHint = "Example account",
-    payload = payload,
-    payloadVersion = 1,
-    createdAt = Instant.parse("2026-03-24T09:00:00Z"),
-    updatedAt = Instant.parse("2026-03-24T10:00:00Z"),
-    deletedAt = deletedAt,
-)
+): SecureItem {
+    val createdAt = Instant.now().minus(3, ChronoUnit.DAYS)
+    return SecureItem(
+        logicalItemId = logicalItemId,
+        remoteItemId = UUID.randomUUID(),
+        itemType = itemType,
+        schemaVersion = 1,
+        displayHint = "Example account",
+        payload = payload,
+        payloadVersion = 1,
+        createdAt = createdAt,
+        updatedAt = createdAt.plus(2, ChronoUnit.DAYS),
+        deletedAt = deletedAt,
+        syncState = SecureItemSyncState.PENDING_UPDATE,
+        lastSyncedAt = createdAt.plus(1, ChronoUnit.HOURS),
+        lastSyncError = "Network timeout",
+    )
+}

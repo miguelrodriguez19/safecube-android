@@ -43,4 +43,34 @@ object StorageMigrations {
             )
         }
     }
+
+    /**
+     * v3 introduces sync metadata at item level and incremental checkpoint persistence by account.
+     * Existing rows are backfilled as SYNCED to preserve current offline CRUD behavior.
+     */
+    val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE `secure_items` ADD COLUMN `sync_state` TEXT NOT NULL DEFAULT 'SYNCED'",
+            )
+            db.execSQL(
+                "ALTER TABLE `secure_items` ADD COLUMN `last_synced_at` INTEGER",
+            )
+            db.execSQL(
+                "ALTER TABLE `secure_items` ADD COLUMN `last_sync_error` TEXT",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_sync_state` ON `secure_items` (`sync_state`)",
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `secure_item_sync_checkpoints` (
+                    `account_id` TEXT NOT NULL,
+                    `last_pulled_at` INTEGER NOT NULL,
+                    PRIMARY KEY(`account_id`)
+                )
+                """.trimIndent(),
+            )
+        }
+    }
 }
