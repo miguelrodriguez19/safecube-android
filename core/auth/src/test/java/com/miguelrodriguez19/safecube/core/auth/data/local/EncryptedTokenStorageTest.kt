@@ -8,7 +8,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
-import java.time.OffsetDateTime
+import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -22,7 +22,7 @@ class EncryptedTokenStorageTest {
 
     @Test
     fun `saveTokens when issuedAt is provided then persists access refresh and issuedAt`() {
-        val issuedAt = OffsetDateTime.parse("2026-03-05T12:34:56Z")
+        val issuedAt = Instant.parse("2026-03-05T12:34:56Z")
         mockEditorChain()
 
         target.saveTokens(
@@ -107,7 +107,7 @@ class EncryptedTokenStorageTest {
 
     @Test
     fun `getIssuedAt when stored value is valid then returns parsed issuedAt`() {
-        val issuedAt = OffsetDateTime.parse("2026-03-05T12:34:56Z")
+        val issuedAt = Instant.parse("2026-03-05T12:34:56Z")
         every { encryptedPreferences.getString("issued_at", null) } returns issuedAt.toString()
 
         val result = target.getIssuedAt()

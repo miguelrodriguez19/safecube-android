@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 20-04-2026 11:16:39
+Updated: 28-04-2026 09:31:45
 
 ```
 safecube-android/
@@ -237,7 +237,8 @@ safecube-android/
 │   │   │   │   │   │       ├── TokenProvider.kt
 │   │   │   │   │   │       └── TokenRefreshHandler.kt
 │   │   │   │   │   └── serialization/
-│   │   │   │   │       └── Base64ByteArraySerializer.kt
+│   │   │   │   │       ├── Base64ByteArraySerializer.kt
+│   │   │   │   │       └── InstantIso8601Serializer.kt
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/
 │   │   │       ├── data/
@@ -332,6 +333,8 @@ safecube-android/
 │   │   │   │   │       │   │   ├── VaultInitializeError.kt
 │   │   │   │   │       │   │   └── VaultInitializeResult.kt
 │   │   │   │   │       │   ├── remote/
+│   │   │   │   │       │   │   ├── request/
+│   │   │   │   │       │   │   ├── result/
 │   │   │   │   │       │   │   └── VaultKeyMaterialRemoteResult.kt
 │   │   │   │   │       │   ├── secureitem/
 │   │   │   │   │       │   │   ├── crud/

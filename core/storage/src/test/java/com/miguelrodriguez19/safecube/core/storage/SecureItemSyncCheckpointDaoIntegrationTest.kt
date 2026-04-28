@@ -47,7 +47,7 @@ class SecureItemSyncCheckpointDaoIntegrationTest {
     @Test
     fun `upsert when called then stores and replaces checkpoint`() = runBlocking {
         val accountId = UUID.randomUUID()
-        val firstPulledAt = Instant.now()
+        val firstPulledAt = Instant.now().truncatedTo(ChronoUnit.MILLIS)
         val secondPulledAt = firstPulledAt.plus(1, ChronoUnit.HOURS)
         target.upsert(
             SecureItemSyncCheckpointEntity(

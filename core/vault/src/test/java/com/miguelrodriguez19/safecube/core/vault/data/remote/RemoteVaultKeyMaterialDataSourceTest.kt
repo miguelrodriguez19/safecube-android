@@ -12,7 +12,7 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import java.time.OffsetDateTime
+import java.time.Instant
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.runBlocking
 import okhttp3.ResponseBody
@@ -74,8 +74,8 @@ class RemoteVaultKeyMaterialDataSourceTest {
                 kdfParallelism = 1,
                 kdfOutputLen = 32,
                 cryptoVersion = "v1",
-                createdAt = OffsetDateTime.parse("2026-04-10T10:15:30Z"),
-                updatedAt = OffsetDateTime.parse("2026-04-10T10:16:30Z"),
+                createdAt = Instant.parse("2026-04-10T10:15:30Z"),
+                updatedAt = Instant.parse("2026-04-10T10:16:30Z"),
             ),
         )
 

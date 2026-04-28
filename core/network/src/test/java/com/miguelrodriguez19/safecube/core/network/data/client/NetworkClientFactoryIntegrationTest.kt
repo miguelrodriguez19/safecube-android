@@ -4,7 +4,7 @@ import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.VaultKeyMaterialResponse
 import io.mockk.mockk
-import java.time.OffsetDateTime
+import java.time.Instant
 import kotlinx.serialization.Serializable
 import okhttp3.Authenticator
 import okhttp3.Interceptor
@@ -127,7 +127,7 @@ class NetworkClientFactoryIntegrationTest {
 
         assertEquals("access-token", parsed.accessToken)
         assertEquals("refresh-token", parsed.refreshToken)
-        assertEquals(OffsetDateTime.parse(issuedAtRaw), parsed.issuedAt)
+        assertEquals(Instant.parse(issuedAtRaw), parsed.issuedAt)
     }
 
     @Test

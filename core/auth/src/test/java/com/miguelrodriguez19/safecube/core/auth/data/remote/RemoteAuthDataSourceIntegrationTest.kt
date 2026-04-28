@@ -8,7 +8,7 @@ import com.miguelrodriguez19.safecube.core.network.generated.model.AuthenticateA
 import com.miguelrodriguez19.safecube.core.network.generated.model.RefreshTokenRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountResult
-import java.time.OffsetDateTime
+import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -71,7 +71,7 @@ class RemoteAuthDataSourceIntegrationTest {
                 body = AuthTokensResponse(
                     accessToken = "access-token",
                     refreshToken = "refresh-token",
-                    issuedAt = OffsetDateTime.parse(issuedAtRaw),
+                    issuedAt = Instant.parse(issuedAtRaw),
                 ),
             ),
             result,
@@ -146,7 +146,7 @@ class RemoteAuthDataSourceIntegrationTest {
                 body = AuthTokensResponse(
                     accessToken = "rotated-access",
                     refreshToken = "rotated-refresh",
-                    issuedAt = OffsetDateTime.parse(issuedAtRaw),
+                    issuedAt = Instant.parse(issuedAtRaw),
                 ),
             ),
             result,

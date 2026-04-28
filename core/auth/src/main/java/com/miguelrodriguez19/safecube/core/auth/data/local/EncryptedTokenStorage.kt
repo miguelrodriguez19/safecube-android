@@ -3,7 +3,7 @@ package com.miguelrodriguez19.safecube.core.auth.data.local
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
-import java.time.OffsetDateTime
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,7 +28,7 @@ class EncryptedTokenStorage @Inject constructor(
     override fun saveTokens(
         accessToken: String,
         refreshToken: String,
-        issuedAt: OffsetDateTime?,
+        issuedAt: Instant?,
     ) {
         encryptedPreferences.edit {
             putString(KEY_ACCESS_TOKEN, accessToken)
@@ -42,10 +42,10 @@ class EncryptedTokenStorage @Inject constructor(
     override fun getRefreshToken(): String? =
         encryptedPreferences.getString(KEY_REFRESH_TOKEN, null)
 
-    override fun getIssuedAt(): OffsetDateTime? = encryptedPreferences
+    override fun getIssuedAt(): Instant? = encryptedPreferences
         .getString(KEY_ISSUED_AT, null)
         ?.let { storedIssuedAt ->
-            runCatching { OffsetDateTime.parse(storedIssuedAt) }.getOrNull()
+            runCatching { Instant.parse(storedIssuedAt) }.getOrNull()
         }
 
     override fun clear() {

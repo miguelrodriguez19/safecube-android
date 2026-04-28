@@ -16,7 +16,7 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.OffsetDateTime
+import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -35,7 +35,7 @@ class AuthRepositoryImplTest {
     @Test
     fun `register when data source returns success then maps registered account into domain result`() = runBlocking {
         val accountId = UUID.fromString("7ecf3225-6f88-4b95-a4be-2cc6fbf9a1f8")
-        val createdAt = OffsetDateTime.parse("2026-03-09T09:30:00Z")
+        val createdAt = Instant.parse("2026-03-09T09:30:00Z")
         coEvery { remoteAuthDataSource.register(any()) } returns NetworkResult.Success(
             httpCode = 200,
             body = RegisterAccountResult(
@@ -131,7 +131,7 @@ class AuthRepositoryImplTest {
 
     @Test
     fun `login when data source returns success with valid body then maps auth tokens into domain result`() = runBlocking {
-        val issuedAt = OffsetDateTime.parse("2026-03-06T12:11:35.524804768Z")
+        val issuedAt = Instant.parse("2026-03-06T12:11:35.524804768Z")
         coEvery { remoteAuthDataSource.login(any()) } returns NetworkResult.Success(
             httpCode = 200,
             body = AuthTokensResponse(
@@ -201,7 +201,7 @@ class AuthRepositoryImplTest {
             body = AuthTokensResponse(
                 accessToken = "",
                 refreshToken = "refresh-token",
-                issuedAt = OffsetDateTime.parse("2026-03-09T09:30:00Z"),
+                issuedAt = Instant.parse("2026-03-09T09:30:00Z"),
             ),
         )
 
@@ -231,7 +231,7 @@ class AuthRepositoryImplTest {
             body = AuthTokensResponse(
                 accessToken = "access-token",
                 refreshToken = "",
-                issuedAt = OffsetDateTime.parse("2026-03-09T09:30:00Z"),
+                issuedAt = Instant.parse("2026-03-09T09:30:00Z"),
             ),
         )
 
@@ -351,7 +351,7 @@ class AuthRepositoryImplTest {
 
     @Test
     fun `refresh when data source returns success with valid body then maps auth tokens into domain result`() = runBlocking {
-        val issuedAt = OffsetDateTime.parse("2026-03-06T12:11:35.524804768Z")
+        val issuedAt = Instant.parse("2026-03-06T12:11:35.524804768Z")
         coEvery { remoteAuthDataSource.refresh(any()) } returns NetworkResult.Success(
             httpCode = 200,
             body = AuthTokensResponse(

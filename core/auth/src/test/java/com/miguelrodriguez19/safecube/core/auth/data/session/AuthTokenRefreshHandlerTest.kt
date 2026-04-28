@@ -14,7 +14,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.Runs
 import io.mockk.verify
-import java.time.OffsetDateTime
+import java.time.Instant
 import javax.inject.Provider
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -75,7 +75,7 @@ class AuthTokenRefreshHandlerTest {
         val newTokens = AuthTokens(
             accessToken = "new-access",
             refreshToken = "new-refresh",
-            issuedAt = OffsetDateTime.parse("2026-03-05T00:00:00Z"),
+            issuedAt = Instant.parse("2026-03-05T00:00:00Z"),
         )
         every { tokenStorage.getAccessToken() } returns "expired-access"
         every { tokenStorage.getRefreshToken() } returns "current-refresh"
@@ -192,7 +192,7 @@ class AuthTokenRefreshHandlerTest {
         val newTokens = AuthTokens(
             accessToken = "new-access",
             refreshToken = "new-refresh",
-            issuedAt = OffsetDateTime.parse("2026-03-05T00:00:00Z"),
+            issuedAt = Instant.parse("2026-03-05T00:00:00Z"),
         )
         every { tokenStorage.getAccessToken() } returns "current-access"
         every { tokenStorage.getRefreshToken() } returns "refresh-token"

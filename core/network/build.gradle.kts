@@ -67,6 +67,18 @@ tasks.named<GenerateTask>("openApiGenerate") {
         )
     )
 
+    typeMappings.set(
+        mapOf(
+            "DateTime" to "java.time.Instant",
+        ),
+    )
+
+    importMappings.set(
+        mapOf(
+            "DateTime" to "java.time.Instant",
+        ),
+    )
+
     generateModelTests.set(false)
     generateApiTests.set(false)
     generateModelDocumentation.set(false)

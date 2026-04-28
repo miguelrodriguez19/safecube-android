@@ -12,7 +12,7 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.OffsetDateTime
+import java.time.Instant
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.runBlocking
 import okhttp3.ResponseBody
@@ -79,7 +79,7 @@ class RemoteAuthDataSourceTest {
         val body = AuthTokensResponse(
             accessToken = "access-token",
             refreshToken = "refresh-token",
-            issuedAt = OffsetDateTime.parse("2026-03-06T12:11:35.524804768Z"),
+            issuedAt = Instant.parse("2026-03-06T12:11:35.524804768Z"),
         )
         coEvery { authControllerApi.login(any()) } returns response
         every { response.isSuccessful } returns true

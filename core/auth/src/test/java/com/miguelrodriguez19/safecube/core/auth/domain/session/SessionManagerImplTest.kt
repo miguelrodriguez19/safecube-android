@@ -9,7 +9,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.OffsetDateTime
+import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -65,7 +65,7 @@ class SessionManagerImplTest {
 
     @Test
     fun `onLoginSuccess when tokens are provided then persists them and updates session state`() {
-        val issuedAt = OffsetDateTime.parse("2026-03-05T00:00:00Z")
+        val issuedAt = Instant.parse("2026-03-05T00:00:00Z")
         every { tokenStorage.getAccessToken() } returns null
         every { tokenStorage.getRefreshToken() } returns null
         every { tokenStorage.saveTokens("access-token", "refresh-token", issuedAt) } just Runs

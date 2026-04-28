@@ -1,16 +1,16 @@
 package com.miguelrodriguez19.safecube.core.auth.domain.repository
 
-import java.time.OffsetDateTime
+import java.time.Instant
 
 interface TokenStorage {
     fun saveTokens(
         accessToken: String,
         refreshToken: String,
-        issuedAt: OffsetDateTime?,
+        issuedAt: Instant?,
     )
 
     fun getAccessToken(): String?
     fun getRefreshToken(): String?
-    fun getIssuedAt(): OffsetDateTime?
+    fun getIssuedAt(): Instant?
     fun clear()
 }

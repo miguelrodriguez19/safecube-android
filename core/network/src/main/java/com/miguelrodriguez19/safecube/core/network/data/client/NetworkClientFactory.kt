@@ -2,8 +2,13 @@ package com.miguelrodriguez19.safecube.core.network.data.client
 
 import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.infrastructure.Serializer
+import com.miguelrodriguez19.safecube.core.network.serialization.Base64ByteArraySerializer
+import com.miguelrodriguez19.safecube.core.network.serialization.InstantIso8601Serializer
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.plus
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -11,9 +16,6 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import kotlinx.serialization.modules.SerializersModule
-import com.miguelrodriguez19.safecube.core.network.serialization.Base64ByteArraySerializer
-import kotlinx.serialization.modules.plus
 
 /**
  * Factory for configured Json, OkHttp and Retrofit instances.
@@ -29,6 +31,7 @@ object NetworkClientFactory {
 
         val appSerializers = SerializersModule {
             contextual(ByteArray::class, Base64ByteArraySerializer)
+            contextual(Instant::class, InstantIso8601Serializer)
         }
 
         serializersModule = Serializer.kotlinxSerializationJson.serializersModule + appSerializers
