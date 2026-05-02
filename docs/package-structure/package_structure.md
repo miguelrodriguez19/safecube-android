@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 02-05-2026 04:38:59
+Updated: 02-05-2026 06:48:02
 
 ```
 safecube-android/
@@ -330,7 +330,6 @@ safecube-android/
 │   │   │   │   │       │   └── SecureItemContentDecodeResult.kt
 │   │   │   │   │       ├── config/
 │   │   │   │   │       │   └── VaultCryptoDefaults.kt
-│   │   │   │   │       ├── crypto/
 │   │   │   │   │       ├── model/
 │   │   │   │   │       │   ├── initialize/
 │   │   │   │   │       │   │   ├── VaultInitializeError.kt
@@ -365,6 +364,15 @@ safecube-android/
 │   │   │   │   │       │   │   ├── SecureItem.kt
 │   │   │   │   │       │   │   ├── SecureItemSyncState.kt
 │   │   │   │   │       │   │   └── SecureItemType.kt
+│   │   │   │   │       │   ├── sync/
+│   │   │   │   │       │   │   ├── pull/
+│   │   │   │   │       │   │   │   ├── PullVaultDeltaApplyResults.kt
+│   │   │   │   │       │   │   │   ├── PullVaultDeltaError.kt
+│   │   │   │   │       │   │   │   ├── PullVaultDeltaFetchResults.kt
+│   │   │   │   │       │   │   │   └── PullVaultDeltaResult.kt
+│   │   │   │   │       │   │   ├── push/
+│   │   │   │   │       │   │   ├── PushLocalVaultChangesError.kt
+│   │   │   │   │       │   │   └── PushLocalVaultChangesResult.kt
 │   │   │   │   │       │   ├── unlock/
 │   │   │   │   │       │   │   ├── VaultUnlockError.kt
 │   │   │   │   │       │   │   └── VaultUnlockResult.kt
@@ -401,6 +409,14 @@ safecube-android/
 │   │   │   │   │           │   ├── SecureItemIdGenerator.kt
 │   │   │   │   │           │   ├── SecureItemMutationCoordinator.kt
 │   │   │   │   │           │   └── SoftDeleteSecureItemUseCase.kt
+│   │   │   │   │           ├── sync/
+│   │   │   │   │           │   ├── pull/
+│   │   │   │   │           │   │   ├── PullVaultDeltaMappings.kt
+│   │   │   │   │           │   │   └── PullVaultDeltaUseCase.kt
+│   │   │   │   │           │   └── push/
+│   │   │   │   │           │       ├── PushLocalVaultChangesInternal.kt
+│   │   │   │   │           │       ├── PushLocalVaultChangesMappings.kt
+│   │   │   │   │           │       └── PushLocalVaultChangesUseCase.kt
 │   │   │   │   │           └── vault/
 │   │   │   │   │               ├── VaultInitializeUseCase.kt
 │   │   │   │   │               ├── VaultUnlocker.kt
@@ -441,6 +457,8 @@ safecube-android/
 │   │   │               ├── CreateSecurePasswordUseCaseTest.kt
 │   │   │               ├── ObserveSecureItemDetailUseCaseTest.kt
 │   │   │               ├── ObserveVaultItemSummariesUseCaseTest.kt
+│   │   │               ├── PullVaultDeltaUseCaseTest.kt
+│   │   │               ├── PushLocalVaultChangesUseCaseTest.kt
 │   │   │               ├── SecureItemMutationCoordinatorTest.kt
 │   │   │               ├── SoftDeleteSecureItemUseCaseTest.kt
 │   │   │               ├── UpdateSecureNoteUseCaseTest.kt
