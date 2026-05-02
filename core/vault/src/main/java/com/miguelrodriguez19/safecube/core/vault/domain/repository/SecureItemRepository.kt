@@ -20,4 +20,49 @@ interface SecureItemRepository {
         logicalItemId: UUID,
         deletedAt: Instant,
     ): Boolean
+
+    suspend fun getPendingSyncItemsOrdered(): List<SecureItem>
+
+    suspend fun findByRemoteItemId(remoteItemId: UUID): SecureItem?
+
+    suspend fun markPendingCreate(logicalItemId: UUID): Boolean
+
+    suspend fun markPendingUpdate(logicalItemId: UUID): Boolean
+
+    suspend fun markPendingDelete(
+        logicalItemId: UUID,
+        deletedAt: Instant,
+    ): Boolean
+
+    suspend fun markSynced(
+        logicalItemId: UUID,
+        remoteItemId: UUID?,
+        payloadVersion: Long,
+        updatedAt: Instant,
+        deletedAt: Instant?,
+        lastSyncedAt: Instant,
+    ): Boolean
+
+    suspend fun markConflict(
+        logicalItemId: UUID,
+        lastSyncError: String,
+    ): Boolean
+
+    suspend fun applyRemoteUpsert(
+        item: SecureItem,
+        lastSyncedAt: Instant,
+    ): Boolean
+
+    suspend fun applyRemoteDelete(
+        remoteItemId: UUID,
+        deletedAt: Instant,
+        lastSyncedAt: Instant,
+    ): Boolean
+
+    suspend fun getSyncCheckpoint(accountId: UUID): Instant?
+
+    suspend fun updateSyncCheckpoint(
+        accountId: UUID,
+        lastPulledAt: Instant,
+    )
 }

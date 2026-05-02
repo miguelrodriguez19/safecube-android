@@ -18,4 +18,14 @@ class StorageTypeConverters {
 
     @TypeConverter
     fun toInstant(value: Long?): Instant? = value?.let(Instant::ofEpochMilli)
+
+    @TypeConverter
+    fun fromSecureItemSyncStateDb(value: SecureItemSyncStateDb): String = value.storageValue
+
+    @TypeConverter
+    fun toSecureItemSyncStateDb(value: String): SecureItemSyncStateDb = requireNotNull(
+        SecureItemSyncStateDb.fromStorageValue(value),
+    ) {
+        "Unsupported SecureItemSyncStateDb value: $value"
+    }
 }

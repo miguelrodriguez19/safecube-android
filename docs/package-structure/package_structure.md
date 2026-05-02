@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 02-05-2026 02:07:40
+Updated: 02-05-2026 04:38:59
 
 ```
 safecube-android/
@@ -254,7 +254,8 @@ safecube-android/
 │   ├── storage/
 │   │   ├── schemas/com.miguelrodriguez19.safecube.core.storage.AppDatabase/
 │   │   │   ├── 2.json
-│   │   │   └── 3.json
+│   │   │   ├── 3.json
+│   │   │   └── 4.json
 │   │   ├── src/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/
@@ -269,6 +270,7 @@ safecube-android/
 │   │   │   │   │   ├── SecureItemEntity.kt
 │   │   │   │   │   ├── SecureItemSyncCheckpointDao.kt
 │   │   │   │   │   ├── SecureItemSyncCheckpointEntity.kt
+│   │   │   │   │   ├── SecureItemSyncStateDb.kt
 │   │   │   │   │   ├── StorageMigrations.kt
 │   │   │   │   │   └── StorageTypeConverters.kt
 │   │   │   │   └── AndroidManifest.xml
@@ -518,83 +520,81 @@ safecube-android/
 │   └── vault/
 │       ├── src/
 │       │   ├── main/
-│       │   │   ├── java/com/miguelrodriguez19/safecube/feature/vault/
-│       │   │   │   ├── navigation/
-│       │   │   │   └── presentation/
-│       │   │   │       ├── create/
-│       │   │   │       │   ├── action/
-│       │   │   │       │   │   └── CreateVaultUiAction.kt
-│       │   │   │       │   ├── event/
-│       │   │   │       │   │   └── CreateVaultUiEvent.kt
-│       │   │   │       │   ├── state/
-│       │   │   │       │   │   └── CreateVaultUiState.kt
-│       │   │   │       │   ├── ui/
-│       │   │   │       │   │   └── CreateVaultScreen.kt
-│       │   │   │       │   └── viewmodel/
-│       │   │   │       │       └── CreateVaultViewModel.kt
-│       │   │   │       ├── folders/ui/
-│       │   │   │       │   └── VaultFoldersScreen.kt
-│       │   │   │       ├── home/
-│       │   │   │       │   ├── action/
-│       │   │   │       │   ├── state/
-│       │   │   │       │   │   └── VaultHomeUiState.kt
-│       │   │   │       │   ├── ui/
-│       │   │   │       │   │   └── VaultScreen.kt
-│       │   │   │       │   └── viewmodel/
-│       │   │   │       │       └── VaultHomeViewModel.kt
-│       │   │   │       ├── noteeditor/
-│       │   │   │       │   ├── action/
-│       │   │   │       │   │   └── NoteEditorUiAction.kt
-│       │   │   │       │   ├── event/
-│       │   │   │       │   │   └── NoteEditorUiEvent.kt
-│       │   │   │       │   ├── state/
-│       │   │   │       │   │   └── NoteEditorUiState.kt
-│       │   │   │       │   ├── ui/
-│       │   │   │       │   │   └── NoteEditorScreen.kt
-│       │   │   │       │   └── viewmodel/
-│       │   │   │       │       └── NoteEditorViewModel.kt
-│       │   │   │       ├── passwordeditor/
-│       │   │   │       │   ├── action/
-│       │   │   │       │   │   └── PasswordEditorUiAction.kt
-│       │   │   │       │   ├── event/
-│       │   │   │       │   │   └── PasswordEditorUiEvent.kt
-│       │   │   │       │   ├── state/
-│       │   │   │       │   │   └── PasswordEditorUiState.kt
-│       │   │   │       │   ├── ui/
-│       │   │   │       │   │   └── PasswordEditorScreen.kt
-│       │   │   │       │   └── viewmodel/
-│       │   │   │       │       └── PasswordEditorViewModel.kt
-│       │   │   │       ├── recovery/
-│       │   │   │       │   ├── action/
-│       │   │   │       │   │   └── RecoveryKeyUiAction.kt
-│       │   │   │       │   ├── event/
-│       │   │   │       │   │   └── RecoveryKeyUiEvent.kt
-│       │   │   │       │   ├── state/
-│       │   │   │       │   │   └── RecoveryKeyUiState.kt
-│       │   │   │       │   ├── ui/
-│       │   │   │       │   │   └── RecoveryKeyScreen.kt
-│       │   │   │       │   └── viewmodel/
-│       │   │   │       │       └── RecoveryKeyViewModel.kt
-│       │   │   │       ├── settings/ui/
-│       │   │   │       │   └── SettingsScreen.kt
-│       │   │   │       ├── shared/
-│       │   │   │       │   ├── editor/
-│       │   │   │       │   │   └── SecureItemEditorScaffold.kt
-│       │   │   │       │   ├── error/
-│       │   │   │       │   │   └── SecureItemCrudErrorMessageMapper.kt
-│       │   │   │       │   └── navigation/
-│       │   │   │       │       └── NavigationBar.kt
-│       │   │   │       └── unlock/
-│       │   │   │           ├── action/
-│       │   │   │           │   └── UnlockVaultUiAction.kt
-│       │   │   │           ├── event/
-│       │   │   │           │   └── UnlockVaultUiEvent.kt
-│       │   │   │           ├── state/
-│       │   │   │           │   └── UnlockVaultUiState.kt
-│       │   │   │           ├── ui/
-│       │   │   │           │   └── UnlockVaultScreen.kt
-│       │   │   │           └── viewmodel/
-│       │   │   │               └── UnlockVaultViewModel.kt
+│       │   │   ├── java/com/miguelrodriguez19/safecube/feature/vault/presentation/
+│       │   │   │   ├── create/
+│       │   │   │   │   ├── action/
+│       │   │   │   │   │   └── CreateVaultUiAction.kt
+│       │   │   │   │   ├── event/
+│       │   │   │   │   │   └── CreateVaultUiEvent.kt
+│       │   │   │   │   ├── state/
+│       │   │   │   │   │   └── CreateVaultUiState.kt
+│       │   │   │   │   ├── ui/
+│       │   │   │   │   │   └── CreateVaultScreen.kt
+│       │   │   │   │   └── viewmodel/
+│       │   │   │   │       └── CreateVaultViewModel.kt
+│       │   │   │   ├── folders/ui/
+│       │   │   │   │   └── VaultFoldersScreen.kt
+│       │   │   │   ├── home/
+│       │   │   │   │   ├── action/
+│       │   │   │   │   ├── state/
+│       │   │   │   │   │   └── VaultHomeUiState.kt
+│       │   │   │   │   ├── ui/
+│       │   │   │   │   │   └── VaultScreen.kt
+│       │   │   │   │   └── viewmodel/
+│       │   │   │   │       └── VaultHomeViewModel.kt
+│       │   │   │   ├── noteeditor/
+│       │   │   │   │   ├── action/
+│       │   │   │   │   │   └── NoteEditorUiAction.kt
+│       │   │   │   │   ├── event/
+│       │   │   │   │   │   └── NoteEditorUiEvent.kt
+│       │   │   │   │   ├── state/
+│       │   │   │   │   │   └── NoteEditorUiState.kt
+│       │   │   │   │   ├── ui/
+│       │   │   │   │   │   └── NoteEditorScreen.kt
+│       │   │   │   │   └── viewmodel/
+│       │   │   │   │       └── NoteEditorViewModel.kt
+│       │   │   │   ├── passwordeditor/
+│       │   │   │   │   ├── action/
+│       │   │   │   │   │   └── PasswordEditorUiAction.kt
+│       │   │   │   │   ├── event/
+│       │   │   │   │   │   └── PasswordEditorUiEvent.kt
+│       │   │   │   │   ├── state/
+│       │   │   │   │   │   └── PasswordEditorUiState.kt
+│       │   │   │   │   ├── ui/
+│       │   │   │   │   │   └── PasswordEditorScreen.kt
+│       │   │   │   │   └── viewmodel/
+│       │   │   │   │       └── PasswordEditorViewModel.kt
+│       │   │   │   ├── recovery/
+│       │   │   │   │   ├── action/
+│       │   │   │   │   │   └── RecoveryKeyUiAction.kt
+│       │   │   │   │   ├── event/
+│       │   │   │   │   │   └── RecoveryKeyUiEvent.kt
+│       │   │   │   │   ├── state/
+│       │   │   │   │   │   └── RecoveryKeyUiState.kt
+│       │   │   │   │   ├── ui/
+│       │   │   │   │   │   └── RecoveryKeyScreen.kt
+│       │   │   │   │   └── viewmodel/
+│       │   │   │   │       └── RecoveryKeyViewModel.kt
+│       │   │   │   ├── settings/ui/
+│       │   │   │   │   └── SettingsScreen.kt
+│       │   │   │   ├── shared/
+│       │   │   │   │   ├── editor/
+│       │   │   │   │   │   └── SecureItemEditorScaffold.kt
+│       │   │   │   │   ├── error/
+│       │   │   │   │   │   └── SecureItemCrudErrorMessageMapper.kt
+│       │   │   │   │   └── navigation/
+│       │   │   │   │       └── NavigationBar.kt
+│       │   │   │   └── unlock/
+│       │   │   │       ├── action/
+│       │   │   │       │   └── UnlockVaultUiAction.kt
+│       │   │   │       ├── event/
+│       │   │   │       │   └── UnlockVaultUiEvent.kt
+│       │   │   │       ├── state/
+│       │   │   │       │   └── UnlockVaultUiState.kt
+│       │   │   │       ├── ui/
+│       │   │   │       │   └── UnlockVaultScreen.kt
+│       │   │   │       └── viewmodel/
+│       │   │   │           └── UnlockVaultViewModel.kt
 │       │   │   └── AndroidManifest.xml
 │       │   └── test/java/com/miguelrodriguez19/safecube/feature/vault/
 │       │       ├── presentation/

@@ -2,8 +2,9 @@ package com.miguelrodriguez19.safecube.core.storage
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
+import com.miguelrodriguez19.safecube.core.storage.SecureItemSyncStateDb
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -43,20 +44,20 @@ class SecureItemDaoIntegrationTest {
     @Test
     fun `observeActiveItems when database contains active and deleted rows then emits active rows ordered by updatedAt descending`() = runBlocking {
         val newestActiveItem = sampleEntity(
-            logicalItemId = UUID.fromString("c555a6fc-df5d-4597-a211-45ea08e2a034"),
+            logicalItemId = UUID.randomUUID(),
             itemType = "NOTE",
             payload = byteArrayOf(9, 9, 9),
             updatedAt = Instant.parse("2026-04-09T09:30:00Z"),
         )
         val deletedItem = sampleEntity(
-            logicalItemId = UUID.fromString("62662317-ef51-4b48-ab7a-7ef44f34c241"),
+            logicalItemId = UUID.randomUUID(),
             itemType = "PASSWORD",
             payload = byteArrayOf(8, 8, 8),
             updatedAt = Instant.parse("2026-04-09T09:00:00Z"),
             deletedAt = Instant.parse("2026-04-09T09:45:00Z"),
         )
         val oldestActiveItem = sampleEntity(
-            logicalItemId = UUID.fromString("e7b39efd-f819-45f3-8c7c-27ac46fd7301"),
+            logicalItemId = UUID.randomUUID(),
             itemType = "PASSWORD",
             payload = byteArrayOf(7, 7, 7),
             updatedAt = Instant.parse("2026-04-09T08:00:00Z"),
@@ -79,8 +80,8 @@ class SecureItemDaoIntegrationTest {
     @Test
     fun `observeItem when row exists then emits matching secure item entity`() = runBlocking {
         val item = sampleEntity(
-            logicalItemId = UUID.fromString("489ed0ea-fcf7-42aa-91cc-7169cb1e59b8"),
-            remoteItemId = UUID.fromString("dfba8694-5f4c-4c81-a37a-8d6d8068bd5c"),
+            logicalItemId = UUID.randomUUID(),
+            remoteItemId = UUID.randomUUID(),
             itemType = "PASSWORD",
             payload = byteArrayOf(4, 5, 6),
             updatedAt = Instant.parse("2026-04-09T12:00:00Z"),
@@ -99,7 +100,7 @@ class SecureItemDaoIntegrationTest {
     @Test
     fun `getItem when row exists then returns matching secure item entity`() = runBlocking {
         val item = sampleEntity(
-            logicalItemId = UUID.fromString("3c5a8dda-cf81-4a6d-b2d7-63bc97f8786f"),
+            logicalItemId = UUID.randomUUID(),
             itemType = "NOTE",
             payload = byteArrayOf(1, 2, 3, 4),
             updatedAt = Instant.parse("2026-04-09T13:00:00Z"),
@@ -120,7 +121,7 @@ class SecureItemDaoIntegrationTest {
     @Test
     fun `softDelete when row exists then preserves row and excludes it from active list`() = runBlocking {
         val item = sampleEntity(
-            logicalItemId = UUID.fromString("d32f0b88-cf7e-42ae-aa94-ee361d399622"),
+            logicalItemId = UUID.randomUUID(),
             itemType = "PASSWORD",
             payload = byteArrayOf(2, 4, 6),
             updatedAt = Instant.parse("2026-04-09T14:00:00Z"),
@@ -128,7 +129,7 @@ class SecureItemDaoIntegrationTest {
         val deletedAt = Instant.parse("2026-04-09T15:00:00Z")
         target.insert(item)
 
-        val updatedRows = target.softDelete(item.logicalItemId, deletedAt)
+        val updatedRows = target.softDelete(item.logicalItemId, deletedAt, SecureItemSyncStateDb.PENDING_DELETE)
         val activeItems = target.observeActiveItems().first()
         val persistedItem = target.getItem(item.logicalItemId)
 
@@ -137,13 +138,255 @@ class SecureItemDaoIntegrationTest {
         assertNotNull(persistedItem)
         assertEquals(deletedAt, persistedItem?.deletedAt)
         assertEquals(deletedAt, persistedItem?.updatedAt)
-        assertEquals(SecureItemSyncState.PENDING_DELETE.storageValue, persistedItem?.syncState)
+        assertEquals(SecureItemSyncStateDb.PENDING_DELETE, persistedItem?.syncState)
         assertArrayEquals(item.payload, persistedItem?.payload)
     }
 
     @Test
+    fun `findByRemoteItemId when row exists then returns matching entity`() = runBlocking {
+        val remoteItemId = UUID.randomUUID()
+        val item = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            remoteItemId = remoteItemId,
+            itemType = "NOTE",
+            payload = byteArrayOf(5, 4, 3),
+            updatedAt = Instant.now(),
+        )
+        target.insert(item)
+
+        val result = target.findByRemoteItemId(remoteItemId)
+
+        assertNotNull(result)
+        assertEquals(item.logicalItemId, result?.logicalItemId)
+        assertEquals(remoteItemId, result?.remoteItemId)
+    }
+
+    @Test
+    fun `getPendingSyncItemsOrdered when mixed states then returns only pending sorted by updatedAt ascending`() = runBlocking {
+        val now = Instant.now()
+
+        val synced = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            itemType = "PASSWORD",
+            payload = byteArrayOf(1),
+            updatedAt = now,
+            syncState = SecureItemSyncStateDb.SYNCED,
+        )
+        val pendingCreate = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            itemType = "NOTE",
+            payload = byteArrayOf(2),
+            updatedAt = now.minus(1, ChronoUnit.HOURS),
+            syncState = SecureItemSyncStateDb.PENDING_CREATE,
+        )
+        val pendingDelete = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            itemType = "PASSWORD",
+            payload = byteArrayOf(3),
+            updatedAt = now.minus(2, ChronoUnit.HOURS),
+            syncState = SecureItemSyncStateDb.PENDING_DELETE,
+            deletedAt = now.minus(2, ChronoUnit.HOURS),
+        )
+        target.insert(synced)
+        target.insert(pendingCreate)
+        target.insert(pendingDelete)
+
+        val result = target.getPendingSyncItemsOrdered(
+            pendingCreateState = SecureItemSyncStateDb.PENDING_CREATE,
+            pendingUpdateState = SecureItemSyncStateDb.PENDING_UPDATE,
+            pendingDeleteState = SecureItemSyncStateDb.PENDING_DELETE,
+        )
+
+        assertEquals(
+            listOf(pendingDelete.logicalItemId, pendingCreate.logicalItemId),
+            result.map { it.logicalItemId },
+        )
+        assertTrue(result.all { it.syncState != SecureItemSyncStateDb.SYNCED })
+    }
+
+    @Test
+    fun `markPendingCreate when row exists then updates sync state and clears error`() = runBlocking {
+        val item = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            itemType = "NOTE",
+            payload = byteArrayOf(8, 8, 8),
+            updatedAt = Instant.now(),
+            syncState = SecureItemSyncStateDb.CONFLICT,
+            lastSyncError = "old error",
+        )
+        target.insert(item)
+
+        val updatedRows = target.markPendingCreate(
+            logicalItemId = item.logicalItemId,
+            syncState = SecureItemSyncStateDb.PENDING_CREATE,
+        )
+        val persisted = target.getItem(item.logicalItemId)
+
+        assertEquals(1, updatedRows)
+        assertEquals(SecureItemSyncStateDb.PENDING_CREATE, persisted?.syncState)
+        assertNull(persisted?.lastSyncError)
+    }
+
+    @Test
+    fun `markPendingUpdate when row exists then updates sync state and clears error`() = runBlocking {
+        val item = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            itemType = "NOTE",
+            payload = byteArrayOf(7, 7, 7),
+            updatedAt = Instant.now(),
+            syncState = SecureItemSyncStateDb.CONFLICT,
+            lastSyncError = "old error",
+        )
+        target.insert(item)
+
+        val updatedRows = target.markPendingUpdate(
+            logicalItemId = item.logicalItemId,
+            syncState = SecureItemSyncStateDb.PENDING_UPDATE,
+        )
+        val persisted = target.getItem(item.logicalItemId)
+
+        assertEquals(1, updatedRows)
+        assertEquals(SecureItemSyncStateDb.PENDING_UPDATE, persisted?.syncState)
+        assertNull(persisted?.lastSyncError)
+    }
+
+    @Test
+    fun `markPendingDelete when row exists then updates deletedAt updatedAt and sync state`() = runBlocking {
+        val item = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            itemType = "PASSWORD",
+            payload = byteArrayOf(6, 6, 6),
+            updatedAt = Instant.now(),
+        )
+        val deletedAt = item.updatedAt.plus(15, ChronoUnit.MINUTES)
+        target.insert(item)
+
+        val updatedRows = target.markPendingDelete(
+            logicalItemId = item.logicalItemId,
+            deletedAt = deletedAt,
+            syncState = SecureItemSyncStateDb.PENDING_DELETE,
+        )
+        val persisted = target.getItem(item.logicalItemId)
+        val activeRows = target.observeActiveItems().first()
+
+        assertEquals(1, updatedRows)
+        assertEquals(SecureItemSyncStateDb.PENDING_DELETE, persisted?.syncState)
+        assertEquals(deletedAt, persisted?.deletedAt)
+        assertEquals(deletedAt, persisted?.updatedAt)
+        assertNull(persisted?.lastSyncError)
+        assertTrue(activeRows.isEmpty())
+    }
+
+    @Test
+    fun `markSynced when row exists then updates remote metadata and clears errors`() = runBlocking {
+        val item = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            itemType = "PASSWORD",
+            payload = byteArrayOf(1, 3, 5),
+            updatedAt = Instant.now(),
+            syncState = SecureItemSyncStateDb.PENDING_UPDATE,
+            lastSyncError = "old error",
+        )
+        val remoteItemId = UUID.randomUUID()
+        val updatedAt = item.updatedAt.plus(30, ChronoUnit.MINUTES)
+        val deletedAt = updatedAt.plus(10, ChronoUnit.MINUTES)
+        val lastSyncedAt = updatedAt.plus(11, ChronoUnit.MINUTES)
+        target.insert(item)
+
+        val updatedRows = target.markSynced(
+            logicalItemId = item.logicalItemId,
+            remoteItemId = remoteItemId,
+            payloadVersion = 9,
+            updatedAt = updatedAt,
+            deletedAt = deletedAt,
+            syncState = SecureItemSyncStateDb.SYNCED,
+            lastSyncedAt = lastSyncedAt,
+        )
+        val persisted = target.getItem(item.logicalItemId)
+
+        assertEquals(1, updatedRows)
+        assertEquals(remoteItemId, persisted?.remoteItemId)
+        assertEquals(9L, persisted?.payloadVersion)
+        assertEquals(updatedAt, persisted?.updatedAt)
+        assertEquals(deletedAt, persisted?.deletedAt)
+        assertEquals(SecureItemSyncStateDb.SYNCED, persisted?.syncState)
+        assertEquals(lastSyncedAt, persisted?.lastSyncedAt)
+        assertNull(persisted?.lastSyncError)
+    }
+
+    @Test
+    fun `markConflict when row exists then persists conflict state and error`() = runBlocking {
+        val item = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            itemType = "NOTE",
+            payload = byteArrayOf(2, 2, 2),
+            updatedAt = Instant.now()
+        )
+        target.insert(item)
+
+        val updatedRows = target.markConflict(
+            logicalItemId = item.logicalItemId,
+            syncState = SecureItemSyncStateDb.CONFLICT,
+            lastSyncError = "stale write",
+        )
+        val persisted = target.getItem(item.logicalItemId)
+
+        assertEquals(1, updatedRows)
+        assertEquals(SecureItemSyncStateDb.CONFLICT, persisted?.syncState)
+        assertEquals("stale write", persisted?.lastSyncError)
+    }
+
+    @Test
+    fun `applyRemoteDelete when remote row exists then marks row deleted and synced`() = runBlocking {
+        val remoteItemId = UUID.randomUUID()
+        val item = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            remoteItemId = remoteItemId,
+            itemType = "NOTE",
+            payload = byteArrayOf(4, 4, 4),
+            updatedAt = Instant.now(),
+            syncState = SecureItemSyncStateDb.PENDING_UPDATE,
+            lastSyncError = "old error",
+        )
+        val deletedAt = item.updatedAt.plus(30, ChronoUnit.MINUTES)
+        val lastSyncedAt = deletedAt.plus(31, ChronoUnit.MINUTES)
+        target.insert(item)
+
+        val updatedRows = target.applyRemoteDelete(
+            remoteItemId = remoteItemId,
+            deletedAt = deletedAt,
+            syncState = SecureItemSyncStateDb.SYNCED,
+            lastSyncedAt = lastSyncedAt,
+        )
+        val persisted = target.getItem(item.logicalItemId)
+        val active = target.observeActiveItems().first()
+
+        assertEquals(1, updatedRows)
+        assertEquals(deletedAt, persisted?.deletedAt)
+        assertEquals(deletedAt, persisted?.updatedAt)
+        assertEquals(SecureItemSyncStateDb.SYNCED, persisted?.syncState)
+        assertEquals(lastSyncedAt, persisted?.lastSyncedAt)
+        assertNull(persisted?.lastSyncError)
+        assertTrue(active.isEmpty())
+    }
+
+    @Test
+    fun `applyRemoteDelete when remote row does not exist then returns zero rows`() = runBlocking {
+        val now = Instant.now()
+        val updatedRows = target.applyRemoteDelete(
+            remoteItemId = UUID.randomUUID(),
+            deletedAt = now,
+            syncState = SecureItemSyncStateDb.SYNCED,
+            lastSyncedAt = now.plus(1, ChronoUnit.MINUTES),
+        )
+
+        assertEquals(0, updatedRows)
+        assertTrue(target.observeActiveItems().first().isEmpty())
+    }
+
+    @Test
     fun `observeItem when row does not exist then emits null`() = runBlocking {
-        val result = target.observeItem(UUID.fromString("5c6d2f84-44e1-496d-b40a-055695328301")).first()
+        val result = target.observeItem(UUID.randomUUID()).first()
 
         assertNull(result)
     }
@@ -151,11 +394,14 @@ class SecureItemDaoIntegrationTest {
 
 private fun sampleEntity(
     logicalItemId: UUID,
-    remoteItemId: UUID? = UUID.fromString("6e177701-a2c8-44f2-a69b-f62df543155c"),
+    remoteItemId: UUID? = UUID.randomUUID(),
     itemType: String,
     payload: ByteArray,
     updatedAt: Instant,
     deletedAt: Instant? = null,
+    syncState: SecureItemSyncStateDb = SecureItemSyncStateDb.SYNCED,
+    lastSyncedAt: Instant? = null,
+    lastSyncError: String? = null,
 ): SecureItemEntity = SecureItemEntity(
     logicalItemId = logicalItemId,
     remoteItemId = remoteItemId,
@@ -164,7 +410,10 @@ private fun sampleEntity(
     displayHint = "Example item",
     payload = payload,
     payloadVersion = 1,
-    createdAt = Instant.parse("2026-04-09T07:00:00Z"),
-    updatedAt = updatedAt,
-    deletedAt = deletedAt,
+    createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS),
+    updatedAt = updatedAt.truncatedTo(ChronoUnit.MILLIS),
+    deletedAt = deletedAt?.truncatedTo(ChronoUnit.MILLIS),
+    syncState = syncState,
+    lastSyncedAt = lastSyncedAt,
+    lastSyncError = lastSyncError,
 )

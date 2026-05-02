@@ -4,7 +4,6 @@ import androidx.room.Room
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
@@ -31,7 +30,7 @@ class StorageMigrationsIntegrationTest {
     }
 
     @Test
-    fun `migration 2 to 3 when applied then keeps secure items and adds sync columns plus checkpoint table`() =
+    fun `migration 2 to 4 when applied then keeps secure items and adds sync columns plus checkpoint table`() =
         runBlocking {
             createVersion2Database()
 
@@ -41,13 +40,14 @@ class StorageMigrationsIntegrationTest {
                 TEST_DATABASE_NAME,
             )
                 .addMigrations(StorageMigrations.MIGRATION_2_3)
+                .addMigrations(StorageMigrations.MIGRATION_3_4)
                 .build()
 
             val migratedItem = migratedDatabase.secureItemDao().getItem(SAMPLE_LOGICAL_ITEM_ID)
             requireNotNull(migratedItem)
             assertEquals(SAMPLE_REMOTE_ITEM_ID, migratedItem.remoteItemId)
             assertEquals(SAMPLE_UPDATED_AT, migratedItem.updatedAt)
-            assertEquals(SecureItemSyncState.SYNCED.storageValue, migratedItem.syncState)
+            assertEquals(SecureItemSyncStateDb.SYNCED, migratedItem.syncState)
             assertNull(migratedItem.lastSyncedAt)
             assertNull(migratedItem.lastSyncError)
 
@@ -145,9 +145,9 @@ class StorageMigrationsIntegrationTest {
 
     private companion object {
         private const val TEST_DATABASE_NAME = "storage-migration-test.db"
-        private val SAMPLE_LOGICAL_ITEM_ID = UUID.fromString("9f2d67d0-11fb-4b4a-9d11-af483f0f5097")
-        private val SAMPLE_REMOTE_ITEM_ID = UUID.fromString("45ed8c6d-e6f4-44a8-b402-4d8ce95f50a0")
-        private val SAMPLE_ACCOUNT_ID = UUID.fromString("f4ff01cb-4b53-482f-8f93-2435fc8e72db")
+        private val SAMPLE_LOGICAL_ITEM_ID = UUID.randomUUID()
+        private val SAMPLE_REMOTE_ITEM_ID = UUID.randomUUID()
+        private val SAMPLE_ACCOUNT_ID = UUID.randomUUID()
         private val SAMPLE_CREATED_AT = Instant.parse("2026-04-15T10:00:00Z")
         private val SAMPLE_UPDATED_AT = Instant.parse("2026-04-16T10:00:00Z")
         private val SAMPLE_LAST_PULLED_AT = Instant.parse("2026-04-17T12:45:00Z")

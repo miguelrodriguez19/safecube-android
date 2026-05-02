@@ -6,7 +6,7 @@ import androidx.room.TypeConverters
 
 @Database(
     entities = [SecureItemEntity::class, SecureItemSyncCheckpointEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(StorageTypeConverters::class)

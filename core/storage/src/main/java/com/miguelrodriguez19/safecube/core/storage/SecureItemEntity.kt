@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import java.time.Instant
 import java.util.UUID
 
@@ -41,7 +40,7 @@ data class SecureItemEntity(
     @ColumnInfo(name = "deleted_at")
     val deletedAt: Instant? = null,
     @ColumnInfo(name = "sync_state")
-    val syncState: String = SecureItemSyncState.SYNCED.storageValue,
+    val syncState: SecureItemSyncStateDb = SecureItemSyncStateDb.SYNCED,
     @ColumnInfo(name = "last_synced_at")
     val lastSyncedAt: Instant? = null,
     @ColumnInfo(name = "last_sync_error")
