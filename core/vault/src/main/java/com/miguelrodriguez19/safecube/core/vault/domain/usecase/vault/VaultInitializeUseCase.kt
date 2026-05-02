@@ -9,8 +9,8 @@ import com.miguelrodriguez19.safecube.core.vault.domain.config.VaultCryptoDefaul
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import java.nio.charset.StandardCharsets

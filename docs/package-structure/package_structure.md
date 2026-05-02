@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 28-04-2026 09:31:45
+Updated: 02-05-2026 02:07:40
 
 ```
 safecube-android/
@@ -314,6 +314,7 @@ safecube-android/
 │   │   │   │   │   │   │   ├── EncryptedVaultKeyMaterialPrefs.kt
 │   │   │   │   │   │   │   └── VaultKeyMaterialCache.kt
 │   │   │   │   │   │   ├── remote/
+│   │   │   │   │   │   │   ├── RemoteSecureItemDataSource.kt
 │   │   │   │   │   │   │   └── RemoteVaultKeyMaterialDataSource.kt
 │   │   │   │   │   │   └── session/
 │   │   │   │   │   │       ├── VaultInMemoryKekStore.kt
@@ -334,8 +335,17 @@ safecube-android/
 │   │   │   │   │       │   │   └── VaultInitializeResult.kt
 │   │   │   │   │       │   ├── remote/
 │   │   │   │   │       │   │   ├── request/
+│   │   │   │   │       │   │   │   ├── RemoteCreateSecureItemRequest.kt
+│   │   │   │   │       │   │   │   └── RemoteUpdateSecureItemRequest.kt
 │   │   │   │   │       │   │   ├── result/
-│   │   │   │   │       │   │   └── VaultKeyMaterialRemoteResult.kt
+│   │   │   │   │       │   │   │   ├── RemoteCreateSecureItemResult.kt
+│   │   │   │   │       │   │   │   ├── RemoteDeleteSecureItemResult.kt
+│   │   │   │   │       │   │   │   ├── RemoteUpdateSecureItemResult.kt
+│   │   │   │   │       │   │   │   ├── SecureItemRemoteResult.kt
+│   │   │   │   │       │   │   │   └── VaultKeyMaterialRemoteResult.kt
+│   │   │   │   │       │   │   ├── RemoteListVaultItemsRequestParams.kt
+│   │   │   │   │       │   │   ├── RemoteSecureItem.kt
+│   │   │   │   │       │   │   └── RemoteSecureItemSummary.kt
 │   │   │   │   │       │   ├── secureitem/
 │   │   │   │   │       │   │   ├── crud/
 │   │   │   │   │       │   │   │   ├── ObserveSecureItemDetailResult.kt
@@ -360,6 +370,7 @@ safecube-android/
 │   │   │   │   │       │   ├── VaultKeyMaterial.kt
 │   │   │   │   │       │   └── VaultState.kt
 │   │   │   │   │       ├── repository/
+│   │   │   │   │       │   ├── SecureItemRemoteRepository.kt
 │   │   │   │   │       │   ├── SecureItemRepository.kt
 │   │   │   │   │       │   ├── SecureItemSyncCheckpointRepository.kt
 │   │   │   │   │       │   ├── VaultKeyMaterialLocalRepository.kt
@@ -406,6 +417,8 @@ safecube-android/
 │   │   │       │   ├── local/
 │   │   │       │   │   └── VaultKeyMaterialCacheTest.kt
 │   │   │       │   ├── remote/
+│   │   │       │   │   ├── RemoteSecureItemDataSourceIntegrationTest.kt
+│   │   │       │   │   ├── RemoteSecureItemDataSourceTest.kt
 │   │   │       │   │   ├── RemoteVaultKeyMaterialDataSourceIntegrationTest.kt
 │   │   │       │   │   └── RemoteVaultKeyMaterialDataSourceTest.kt
 │   │   │       │   └── session/

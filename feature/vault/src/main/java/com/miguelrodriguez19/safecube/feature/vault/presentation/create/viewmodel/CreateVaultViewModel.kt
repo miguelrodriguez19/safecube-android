@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultInitializeUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.action.CreateVaultUiAction

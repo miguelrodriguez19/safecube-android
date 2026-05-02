@@ -4,8 +4,8 @@ import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMateria
 import com.miguelrodriguez19.safecube.core.network.generated.model.InitVaultKeyMaterialRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateMasterWrappedKekRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.VaultKeyMaterialResponse
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
@@ -17,7 +17,6 @@ import java.util.concurrent.CancellationException
 import kotlinx.coroutines.runBlocking
 import okhttp3.ResponseBody
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test

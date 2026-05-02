@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.core.vault.domain.model.remote
+package com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result
 
 sealed interface VaultKeyMaterialRemoteResult<out T> {
     data class Success<T>(

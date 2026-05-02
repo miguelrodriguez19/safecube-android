@@ -4,8 +4,8 @@ import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMateria
 import com.miguelrodriguez19.safecube.core.network.generated.model.InitVaultKeyMaterialRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateMasterWrappedKekRequest
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import javax.inject.Inject
 import javax.inject.Singleton

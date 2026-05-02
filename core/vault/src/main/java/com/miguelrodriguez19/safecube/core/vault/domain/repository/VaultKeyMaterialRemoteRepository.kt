@@ -1,7 +1,7 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.repository
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
 
 interface VaultKeyMaterialRemoteRepository {
     suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterial>

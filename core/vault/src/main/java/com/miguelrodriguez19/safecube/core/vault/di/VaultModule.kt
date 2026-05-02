@@ -8,7 +8,9 @@ import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMat
 import com.miguelrodriguez19.safecube.core.vault.data.codec.JsonSecureItemContentCodec
 import com.miguelrodriguez19.safecube.core.vault.data.crypto.VaultItemCipher
 import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
+import com.miguelrodriguez19.safecube.core.vault.data.remote.RemoteSecureItemDataSource
 import com.miguelrodriguez19.safecube.core.vault.data.remote.RemoteVaultKeyMaterialDataSource
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.data.session.VaultSessionManagerImpl
 import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentCodec
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
@@ -49,6 +51,12 @@ abstract class VaultModule {
     abstract fun bindVaultKeyMaterialLocalRepository(
         vaultKeyMaterialCache: VaultKeyMaterialCache,
     ): VaultKeyMaterialLocalRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSecureItemRemoteRepository(
+        remoteSecureItemDataSource: RemoteSecureItemDataSource,
+    ): SecureItemRemoteRepository
 
     @Binds
     @Singleton

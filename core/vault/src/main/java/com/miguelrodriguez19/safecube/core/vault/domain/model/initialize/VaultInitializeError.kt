@@ -1,6 +1,6 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.model.initialize
 
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.VaultKeyMaterialRemoteError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 
 sealed interface VaultInitializeError {
     data class Remote(
