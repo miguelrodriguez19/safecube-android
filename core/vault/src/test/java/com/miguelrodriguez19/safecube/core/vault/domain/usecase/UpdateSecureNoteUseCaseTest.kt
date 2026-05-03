@@ -1,6 +1,8 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureNoteDraft
@@ -8,12 +10,14 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcon
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SecureItemMutationCoordinator
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.UpdateSecureNoteUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.NoteDraftToContentMapper
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.VaultSyncTrigger
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -23,21 +27,23 @@ class UpdateSecureNoteUseCaseTest {
 
     private val secureItemMutationCoordinator = mockk<SecureItemMutationCoordinator>()
     private val noteDraftToContentMapper = mockk<NoteDraftToContentMapper>()
+    private val vaultSyncTrigger = mockk<VaultSyncTrigger>(relaxed = true)
 
     private val target = UpdateSecureNoteUseCase(
         secureItemMutationCoordinator = secureItemMutationCoordinator,
         noteDraftToContentMapper = noteDraftToContentMapper,
+        vaultSyncTrigger = vaultSyncTrigger,
     )
 
     @Test
-    fun `invoke when draft is valid then maps note content and delegates update`() = runBlocking {
-        val logicalItemId = UUID.fromString("11111111-1111-1111-1111-111111111111")
+    fun `invoke when draft is valid and local mutation succeeds then triggers opportunistic sync`() = runBlocking {
+        val logicalItemId = UUID.randomUUID()
         val draft = SecureNoteDraft(
             displayHint = "API key",
             body = "secret body",
         )
         val content = NoteSecureItemContent(body = "secret body")
-        val expectedResult = SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound)
+        val expectedResult = SecureItemMutationResult.Success(sampleUpdatedNoteItem(logicalItemId))
         every { noteDraftToContentMapper.map(draft) } returns content
         coEvery {
             secureItemMutationCoordinator.update(
@@ -63,12 +69,13 @@ class UpdateSecureNoteUseCaseTest {
                 content = content,
             )
         }
-        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
+        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored() }
+        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
     }
 
     @Test
     fun `invoke when mapper rejects draft then returns validation error without delegating`() = runBlocking {
-        val logicalItemId = UUID.fromString("11111111-1111-1111-1111-111111111111")
+        val logicalItemId = UUID.randomUUID()
         val draft = SecureNoteDraft(
             displayHint = "API key",
             body = " ",
@@ -90,12 +97,13 @@ class UpdateSecureNoteUseCaseTest {
         )
         verify(exactly = 1) { noteDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.update(any(), any(), any(), any()) }
-        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
     }
 
     @Test
     fun `invoke when mapper rejects draft without message then returns fallback validation error`() = runBlocking {
-        val logicalItemId = UUID.fromString("11111111-1111-1111-1111-111111111111")
+        val logicalItemId = UUID.randomUUID()
         val draft = SecureNoteDraft(
             displayHint = "API key",
             body = "secret body",
@@ -115,6 +123,23 @@ class UpdateSecureNoteUseCaseTest {
         )
         verify(exactly = 1) { noteDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.update(any(), any(), any(), any()) }
-        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
     }
+}
+
+private fun sampleUpdatedNoteItem(logicalItemId: UUID): SecureItem {
+    val now = Instant.now()
+    return SecureItem(
+        logicalItemId = logicalItemId,
+        remoteItemId = UUID.randomUUID(),
+        itemType = SecureItemType.NOTE,
+        schemaVersion = 1,
+        displayHint = "API key",
+        payload = byteArrayOf(7, 8, 9),
+        payloadVersion = 2,
+        createdAt = now,
+        updatedAt = now,
+        syncState = SecureItemSyncState.PENDING_UPDATE,
+    )
 }

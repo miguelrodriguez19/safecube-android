@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 04-05-2026 12:49:23
+Updated: 04-05-2026 01:33:57
 
 ```
 safecube-android/
@@ -419,6 +419,8 @@ safecube-android/
 │   │   │   │   │           │   ├── push/
 │   │   │   │   │           │   │   ├── PushLocalVaultChangesMappings.kt
 │   │   │   │   │           │   │   └── PushLocalVaultChangesUseCase.kt
+│   │   │   │   │           │   ├── VaultSyncExecutionLock.kt
+│   │   │   │   │           │   ├── VaultSyncTrigger.kt
 │   │   │   │   │           │   └── VaultSyncUseCase.kt
 │   │   │   │   │           └── vault/
 │   │   │   │   │               ├── VaultInitializeUseCase.kt
@@ -467,6 +469,8 @@ safecube-android/
 │   │   │               ├── UpdateSecureNoteUseCaseTest.kt
 │   │   │               ├── UpdateSecurePasswordUseCaseTest.kt
 │   │   │               ├── VaultInitializeUseCaseTest.kt
+│   │   │               ├── VaultSyncExecutionLockTest.kt
+│   │   │               ├── VaultSyncTriggerTest.kt
 │   │   │               ├── VaultSyncUseCaseTest.kt
 │   │   │               └── VaultUnlockUseCaseTest.kt
 │   │   └── build.gradle.kts

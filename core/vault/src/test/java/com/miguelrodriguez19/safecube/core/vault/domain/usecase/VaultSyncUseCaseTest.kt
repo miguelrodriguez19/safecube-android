@@ -9,6 +9,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLoca
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLocalVaultChangesResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.VaultSyncExecutionLock
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.VaultSyncUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.pull.PullVaultDeltaUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.push.PushLocalVaultChangesUseCase
@@ -42,11 +43,13 @@ class VaultSyncUseCaseTest {
 
     private val pushLocalVaultChangesUseCase = mockk<PushLocalVaultChangesUseCase>()
     private val pullVaultDeltaUseCase = mockk<PullVaultDeltaUseCase>()
+    private val vaultSyncExecutionLock = VaultSyncExecutionLock()
 
     private val target = VaultSyncUseCase(
         vaultSessionManager = vaultSessionManager,
         pushLocalVaultChangesUseCase = pushLocalVaultChangesUseCase,
         pullVaultDeltaUseCase = pullVaultDeltaUseCase,
+        vaultSyncExecutionLock = vaultSyncExecutionLock,
     )
 
     @Test

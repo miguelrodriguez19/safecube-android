@@ -1,16 +1,22 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note
 
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureNoteDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SecureItemMutationCoordinator
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.VaultSyncTrigger
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.time.Instant
+import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -19,20 +25,22 @@ class CreateSecureNoteUseCaseTest {
 
     private val secureItemMutationCoordinator = mockk<SecureItemMutationCoordinator>()
     private val noteDraftToContentMapper = mockk<NoteDraftToContentMapper>()
+    private val vaultSyncTrigger = mockk<VaultSyncTrigger>(relaxed = true)
 
     private val target = CreateSecureNoteUseCase(
         secureItemMutationCoordinator = secureItemMutationCoordinator,
         noteDraftToContentMapper = noteDraftToContentMapper,
+        vaultSyncTrigger = vaultSyncTrigger,
     )
 
     @Test
-    fun `invoke when draft is valid then maps note content and delegates create`() = runBlocking {
+    fun `invoke when draft is valid and local mutation succeeds then triggers opportunistic sync`() = runBlocking {
         val draft = SecureNoteDraft(
             displayHint = "API key",
             body = "secret body",
         )
         val content = NoteSecureItemContent(body = "secret body")
-        val expectedResult = SecureItemMutationResult.Error(SecureItemCrudError.VaultLocked)
+        val expectedResult = SecureItemMutationResult.Success(sampleCreatedNoteItem())
         every { noteDraftToContentMapper.map(draft) } returns content
         coEvery {
             secureItemMutationCoordinator.create(
@@ -51,7 +59,8 @@ class CreateSecureNoteUseCaseTest {
                 content = content,
             )
         }
-        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
+        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored() }
+        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
     }
 
     @Test
@@ -74,7 +83,8 @@ class CreateSecureNoteUseCaseTest {
         )
         verify(exactly = 1) { noteDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.create(any(), any()) }
-        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
     }
 
     @Test
@@ -95,6 +105,22 @@ class CreateSecureNoteUseCaseTest {
         )
         verify(exactly = 1) { noteDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.create(any(), any()) }
-        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
     }
+}
+
+private fun sampleCreatedNoteItem(): SecureItem {
+    val now = Instant.now()
+    return SecureItem(
+        logicalItemId = UUID.randomUUID(),
+        itemType = SecureItemType.NOTE,
+        schemaVersion = 1,
+        displayHint = "API key",
+        payload = byteArrayOf(4, 5, 6),
+        payloadVersion = 1,
+        createdAt = now,
+        updatedAt = now,
+        syncState = SecureItemSyncState.PENDING_CREATE,
+    )
 }

@@ -6,6 +6,7 @@ import com.miguelrodriguez19.safecube.core.network.data.auth.TokenRefreshAuthent
 import com.miguelrodriguez19.safecube.core.network.data.client.NetworkClientFactory
 import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
+import com.miguelrodriguez19.safecube.core.network.generated.api.VaultControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMaterialControllerApi
 import dagger.Module
 import dagger.Provides
@@ -114,6 +115,15 @@ object NetworkModule {
     fun provideVaultKeyMaterialControllerApi(
         retrofit: Retrofit,
     ): VaultKeyMaterialControllerApi = retrofit.create(VaultKeyMaterialControllerApi::class.java)
+
+    /**
+     * Provides the generated vault items API bound to the primary Retrofit stack.
+     */
+    @Provides
+    @Singleton
+    fun provideVaultControllerApi(
+        retrofit: Retrofit,
+    ): VaultControllerApi = retrofit.create(VaultControllerApi::class.java)
 
     /**
      * Provides the generated auth API bound to the refresh Retrofit stack.

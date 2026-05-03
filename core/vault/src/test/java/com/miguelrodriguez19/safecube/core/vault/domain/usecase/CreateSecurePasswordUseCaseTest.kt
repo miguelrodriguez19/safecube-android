@@ -1,5 +1,8 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecurePasswordDraft
@@ -7,11 +10,15 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcon
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SecureItemMutationCoordinator
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.password.CreateSecurePasswordUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.password.PasswordDraftToContentMapper
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.VaultSyncTrigger
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import java.time.Instant
+import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -20,14 +27,16 @@ class CreateSecurePasswordUseCaseTest {
 
     private val secureItemMutationCoordinator = mockk<SecureItemMutationCoordinator>()
     private val passwordDraftToContentMapper = mockk<PasswordDraftToContentMapper>()
+    private val vaultSyncTrigger = mockk<VaultSyncTrigger>(relaxed = true)
 
     private val target = CreateSecurePasswordUseCase(
         secureItemMutationCoordinator = secureItemMutationCoordinator,
         passwordDraftToContentMapper = passwordDraftToContentMapper,
+        vaultSyncTrigger = vaultSyncTrigger,
     )
 
     @Test
-    fun `invoke when draft is valid then maps password content and delegates to coordinator`() = runBlocking {
+    fun `invoke when draft is valid and local mutation succeeds then triggers opportunistic sync`() = runBlocking {
         val draft = SecurePasswordDraft(
             displayHint = "Github",
             username = "user",
@@ -38,9 +47,7 @@ class CreateSecurePasswordUseCaseTest {
             email = null,
             password = "secret",
         )
-        val expectedResult = SecureItemMutationResult.Error(
-            SecureItemCrudError.VaultLocked,
-        )
+        val expectedResult = SecureItemMutationResult.Success(sampleSecureItem())
         every { passwordDraftToContentMapper.map(draft) } returns content
         coEvery {
             secureItemMutationCoordinator.create(
@@ -53,8 +60,9 @@ class CreateSecurePasswordUseCaseTest {
 
         assertEquals(expectedResult, result)
         coVerify(exactly = 1) { secureItemMutationCoordinator.create("Github", content) }
-        io.mockk.verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
-        confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper)
+        verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
+        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored() }
+        confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper, vaultSyncTrigger)
     }
 
     @Test
@@ -75,9 +83,10 @@ class CreateSecurePasswordUseCaseTest {
             ),
             result,
         )
-        io.mockk.verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
+        verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.create(any(), any()) }
-        confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper)
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper, vaultSyncTrigger)
     }
 
     @Test
@@ -96,8 +105,24 @@ class CreateSecurePasswordUseCaseTest {
             ),
             result,
         )
-        io.mockk.verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
+        verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.create(any(), any()) }
-        confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper)
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper, vaultSyncTrigger)
     }
+}
+
+private fun sampleSecureItem(): SecureItem {
+    val now = Instant.now()
+    return SecureItem(
+        logicalItemId = UUID.randomUUID(),
+        itemType = SecureItemType.PASSWORD,
+        schemaVersion = 1,
+        displayHint = "Github",
+        payload = byteArrayOf(1, 2, 3),
+        payloadVersion = 1,
+        createdAt = now,
+        updatedAt = now,
+        syncState = SecureItemSyncState.PENDING_CREATE,
+    )
 }

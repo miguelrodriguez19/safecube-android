@@ -11,20 +11,17 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.pull.PullVa
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.push.PushLocalVaultChangesUseCase
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 @Singleton
 class VaultSyncUseCase @Inject constructor(
     private val vaultSessionManager: VaultSessionManager,
     private val pushLocalVaultChangesUseCase: PushLocalVaultChangesUseCase,
     private val pullVaultDeltaUseCase: PullVaultDeltaUseCase,
+    private val vaultSyncExecutionLock: VaultSyncExecutionLock,
 ) {
-    private val syncMutex = Mutex()
-
     suspend operator fun invoke(
         pullLimit: Int? = null,
-    ): VaultSyncResult = syncMutex.withLock {
+    ): VaultSyncResult = vaultSyncExecutionLock.withLock {
         executeSync(pullLimit)
     }
 
