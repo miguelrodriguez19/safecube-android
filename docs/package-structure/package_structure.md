@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 02-05-2026 06:48:02
+Updated: 03-05-2026 09:06:02
 
 ```
 safecube-android/
@@ -371,8 +371,11 @@ safecube-android/
 │   │   │   │   │       │   │   │   ├── PullVaultDeltaFetchResults.kt
 │   │   │   │   │       │   │   │   └── PullVaultDeltaResult.kt
 │   │   │   │   │       │   │   ├── push/
-│   │   │   │   │       │   │   ├── PushLocalVaultChangesError.kt
-│   │   │   │   │       │   │   └── PushLocalVaultChangesResult.kt
+│   │   │   │   │       │   │   │   ├── PushLocalVaultChangesError.kt
+│   │   │   │   │       │   │   │   ├── PushLocalVaultChangesInternal.kt
+│   │   │   │   │       │   │   │   └── PushLocalVaultChangesResult.kt
+│   │   │   │   │       │   │   ├── VaultSyncError.kt
+│   │   │   │   │       │   │   └── VaultSyncResult.kt
 │   │   │   │   │       │   ├── unlock/
 │   │   │   │   │       │   │   ├── VaultUnlockError.kt
 │   │   │   │   │       │   │   └── VaultUnlockResult.kt
@@ -413,10 +416,10 @@ safecube-android/
 │   │   │   │   │           │   ├── pull/
 │   │   │   │   │           │   │   ├── PullVaultDeltaMappings.kt
 │   │   │   │   │           │   │   └── PullVaultDeltaUseCase.kt
-│   │   │   │   │           │   └── push/
-│   │   │   │   │           │       ├── PushLocalVaultChangesInternal.kt
-│   │   │   │   │           │       ├── PushLocalVaultChangesMappings.kt
-│   │   │   │   │           │       └── PushLocalVaultChangesUseCase.kt
+│   │   │   │   │           │   ├── push/
+│   │   │   │   │           │   │   ├── PushLocalVaultChangesMappings.kt
+│   │   │   │   │           │   │   └── PushLocalVaultChangesUseCase.kt
+│   │   │   │   │           │   └── VaultSyncUseCase.kt
 │   │   │   │   │           └── vault/
 │   │   │   │   │               ├── VaultInitializeUseCase.kt
 │   │   │   │   │               ├── VaultUnlocker.kt
@@ -464,6 +467,7 @@ safecube-android/
 │   │   │               ├── UpdateSecureNoteUseCaseTest.kt
 │   │   │               ├── UpdateSecurePasswordUseCaseTest.kt
 │   │   │               ├── VaultInitializeUseCaseTest.kt
+│   │   │               ├── VaultSyncUseCaseTest.kt
 │   │   │               └── VaultUnlockUseCaseTest.kt
 │   │   └── build.gradle.kts
 ├── docs/
