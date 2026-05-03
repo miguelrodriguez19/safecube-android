@@ -795,7 +795,86 @@ Orquesta los casos de uso ya adaptados al contrato real de `/vault/items`.
 
 ---
 
-# 8) Exponer estado mínimo de sync en `feature:vault`
+# 8) Implementar `VaultSyncTrigger` para push oportunista
+
+## Main Story (How, I Want, To)
+
+Como developer, quiero disparar un intento de subida tras cada mutación local, para que los cambios
+lleguen al backend cuanto antes sin romper offline-first.
+
+## Context, Functional Description & Goal
+
+Fase 5 mantiene `Room` como source of truth visible para UI. Tras crear, editar o borrar un item, el
+cambio debe quedar persistido localmente y marcado como pendiente. Si hay sesión y red, la app puede
+intentar subirlo de forma best-effort.
+
+Esta tarea no sustituye al sync completo `push -> pull`. Añade un modo oportunista orientado a
+mutaciones locales, mientras `VaultSyncUseCase` sigue siendo la entrada de sync completo para
+desbloqueo, entrada al vault, refresh manual o vuelta a foreground.
+
+## Steps/Scope
+
+### In Scope
+
+Crear un trigger/orquestador simple, por ejemplo:
+
+```text
+VaultSyncTrigger
+```
+
+Integrarlo tras mutaciones locales de vault:
+
+- `CreateSecurePasswordUseCase`
+- `UpdateSecurePasswordUseCase`
+- `CreateSecureNoteUseCase`
+- `UpdateSecureNoteUseCase`
+- `SoftDeleteSecureItemUseCase`
+
+Reglas:
+
+- la operación funcional siempre escribe primero en `Room`
+- la UI no espera a la red para considerar guardado el cambio local
+- si hay sesión y red, se intenta subir el cambio pendiente de forma best-effort
+- si el push falla por red, transporte o `5xx`, el item permanece pendiente
+- si el backend devuelve `409`, el item pasa a `CONFLICT`
+- si ya hay sync en curso, la petición se coalesce o se delega al coordinador existente
+- no se ejecuta pull completo obligatorio tras cada mutación
+
+### Out of Scope (if applies)
+
+- `WorkManager`
+- background sync periódico
+- retry exponencial avanzado
+- notificaciones del sistema
+- pull remoto tras cada mutación local
+- resolución visual o semántica avanzada de conflictos
+
+## Additional Information and Configuration
+
+### API Contract and Expected Behavior (if applies)
+
+Usa `POST`, `PUT` y `DELETE` de `/vault/items` a través de la capa remota ya encapsulada. `409` se
+trata como conflicto observable.
+
+El trigger puede usar `PushLocalVaultChangesUseCase` completo para MVP. Si aparece coste o
+contención innecesaria, se puede introducir después una variante targeted por item sin cambiar el
+contrato de UI.
+
+### Acceptance Criteria (ACs)
+
+- crear un item intenta subirlo tras guardarlo localmente
+- editar un item intenta subirlo tras guardarlo localmente
+- borrar un item intenta sincronizar el tombstone si tiene `remoteItemId`
+- si no hay red o sesión usable, el item queda pendiente sin romper el éxito local
+- si hay sync concurrente, no se lanza una segunda ejecución solapada
+- no se dispara pull completo obligatorio después de cada mutación
+- Pasar `./gradlew clean verifyCoverage`.
+- Los tests están basados en `@TESTING_STANDARD.md`.
+- Se hace uso de la clean architecture, principios SOLID y clean code.
+
+---
+
+# 9) Exponer estado mínimo de sync en `feature:vault`
 
 ## Main Story (How, I Want, To)
 
@@ -855,7 +934,7 @@ La presentación consume el resultado de `VaultSyncUseCase` y el estado persisti
 
 ---
 
-# 9) Añadir tests de sync end-to-end a nivel de módulos
+# 10) Añadir tests de sync end-to-end a nivel de módulos
 
 ## Main Story (How, I Want, To)
 
@@ -879,6 +958,7 @@ Cubrir como mínimo:
 - `PullVaultDeltaUseCase`
 - `PushLocalVaultChangesUseCase`
 - `VaultSyncUseCase`
+- `VaultSyncTrigger`
 - conflicto `409`
 - propagación de tombstones
 - caso “create offline -> delete offline antes de sync”
