@@ -26,6 +26,10 @@ internal class VaultSessionManagerImpl @Inject constructor(
 
     override val vaultState: StateFlow<VaultState> = state.asStateFlow()
 
+    override fun isUnlocked(): Boolean {
+        return state.value == VaultState.Unlocked
+    }
+
     override suspend fun refreshVaultState() {
         state.value = VaultState.Unknown
 
@@ -51,7 +55,7 @@ internal class VaultSessionManagerImpl @Inject constructor(
 
                     is VaultKeyMaterialRemoteError.HttpError,
                     is VaultKeyMaterialRemoteError.NetworkError,
-                    -> {
+                        -> {
                         state.value = resolveStateForRemoteFailure()
                     }
 
@@ -108,15 +112,17 @@ internal class VaultSessionManagerImpl @Inject constructor(
         vaultInMemoryKekStore.clear()
     }
 
-    private fun initialVaultState(): VaultState = if (vaultKeyMaterialLocalRepository.get() == null) {
-        VaultState.NotInitialized
-    } else {
-        VaultState.Locked
-    }
+    private fun initialVaultState(): VaultState =
+        if (vaultKeyMaterialLocalRepository.get() == null) {
+            VaultState.NotInitialized
+        } else {
+            VaultState.Locked
+        }
 
-    private fun resolveStateForRemoteFailure(): VaultState = if (vaultKeyMaterialLocalRepository.get() == null) {
-        VaultState.Unknown
-    } else {
-        VaultState.Locked
-    }
+    private fun resolveStateForRemoteFailure(): VaultState =
+        if (vaultKeyMaterialLocalRepository.get() == null) {
+            VaultState.Unknown
+        } else {
+            VaultState.Locked
+        }
 }

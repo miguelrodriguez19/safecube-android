@@ -41,6 +41,7 @@ class SecureItemMutationCoordinatorTest {
     private val vaultState = MutableStateFlow<VaultState>(VaultState.Locked)
     private val vaultSessionManager = object : VaultSessionManager {
         override val vaultState = this@SecureItemMutationCoordinatorTest.vaultState
+        override fun isUnlocked(): Boolean = error("Not required in test")
         override suspend fun refreshVaultState() = error("Not required in test")
         override fun unlockWithPassphrase(passphrase: String) = error("Not required in test")
         override fun unlockWithRecoveryKey(recoveryKey: ByteArray) = error("Not required in test")

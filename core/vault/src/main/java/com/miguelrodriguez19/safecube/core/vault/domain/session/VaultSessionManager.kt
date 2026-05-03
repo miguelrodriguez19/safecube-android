@@ -9,6 +9,8 @@ interface VaultSessionManager {
 
     suspend fun refreshVaultState()
 
+    fun isUnlocked(): Boolean
+
     fun unlockWithPassphrase(passphrase: String): VaultUnlockError?
 
     fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockError?

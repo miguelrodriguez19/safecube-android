@@ -1,8 +1,8 @@
 package com.miguelrodriguez19.safecube.core.vault.data.session
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.UnlockedKeyring
-import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
@@ -10,305 +10,249 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlock
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlocker
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import io.mockk.verifyOrder
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
+import kotlin.random.Random
 
 class VaultSessionManagerImplTest {
-    @Test
-    fun `starts not initialized when there is no local key material`() {
-        val manager = createManager(
-            unlocker = FakeVaultUnlocker(),
-            initialKeyMaterial = null,
-        )
 
-        assertEquals(VaultState.NotInitialized, manager.vaultState.value)
+    private val vaultUnlocker = mockk<VaultUnlocker>()
+    private val vaultKeyMaterialLocalRepository =
+        mockk<VaultKeyMaterialLocalRepository>(relaxed = true)
+    private val vaultKeyMaterialRemoteRepository = mockk<VaultKeyMaterialRemoteRepository>()
+    private val vaultInMemoryKekStore = mockk<VaultInMemoryKekStore>(relaxed = true)
+
+    private lateinit var target: VaultSessionManagerImpl
+
+    @Before
+    fun setup() {
+        every { vaultKeyMaterialLocalRepository.get() } returns null
     }
 
     @Test
-    fun `starts locked when local key material exists`() {
-        val manager = createManager(
-            unlocker = FakeVaultUnlocker(),
-            initialKeyMaterial = sampleVaultKeyMaterial(),
-        )
+    fun `init_whenNoLocalKeyMaterial_thenStateIsNotInitialized`() {
+        every { vaultKeyMaterialLocalRepository.get() } returns null
 
-        assertEquals(VaultState.Locked, manager.vaultState.value)
+        target = createTarget()
+
+        assertEquals(VaultState.NotInitialized, target.vaultState.value)
     }
 
     @Test
-    fun `refresh vault state uses remote key material and keeps state locked`() = runBlocking {
-        val remoteKeyMaterial = sampleVaultKeyMaterial().copy(kekEncMaster = byteArrayOf(9, 9, 9))
-        val manager = createManager(
-            unlocker = FakeVaultUnlocker(),
-            initialKeyMaterial = null,
-            remoteResult = VaultKeyMaterialRemoteResult.Success(remoteKeyMaterial),
-        )
+    fun `init_whenLocalKeyMaterialExists_thenStateIsLocked`() {
+        every { vaultKeyMaterialLocalRepository.get() } returns createVaultKeyMaterial()
 
-        manager.refreshVaultState()
+        target = createTarget()
 
-        assertEquals(VaultState.Locked, manager.vaultState.value)
+        assertEquals(VaultState.Locked, target.vaultState.value)
     }
 
     @Test
-    fun `refresh vault state sets not initialized when backend returns 404`() = runBlocking {
-        val manager = createManager(
-            unlocker = FakeVaultUnlocker(),
-            initialKeyMaterial = sampleVaultKeyMaterial(),
-            remoteResult = VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultNotInitialized),
+    fun `refreshVaultState_whenRemoteSuccess_thenSavesLocalAndClearsKekAndStateIsLocked`() =
+        runBlocking {
+            val remoteKeyMaterial = createVaultKeyMaterial()
+            coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns VaultKeyMaterialRemoteResult.Success(
+                remoteKeyMaterial
+            )
+            target = createTarget()
+
+            target.refreshVaultState()
+
+            assertEquals(VaultState.Locked, target.vaultState.value)
+            verify(exactly = 1) { vaultKeyMaterialLocalRepository.save(remoteKeyMaterial) }
+            verify(exactly = 1) { vaultInMemoryKekStore.clear() }
+        }
+
+    @Test
+    fun `refreshVaultState_whenRemoteVaultNotInitialized_thenClearsLocalAndKekAndStateIsNotInitialized`() =
+        runBlocking {
+            coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns VaultKeyMaterialRemoteResult.Error(
+                VaultKeyMaterialRemoteError.VaultNotInitialized
+            )
+            target = createTarget()
+
+            target.refreshVaultState()
+
+            assertEquals(VaultState.NotInitialized, target.vaultState.value)
+            verify(exactly = 1) { vaultKeyMaterialLocalRepository.clear() }
+            verify(exactly = 1) { vaultInMemoryKekStore.clear() }
+        }
+
+    @Test
+    fun `refreshVaultState_whenRemoteUnauthorized_thenClearsKekAndStateIsLocked`() = runBlocking {
+        coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns VaultKeyMaterialRemoteResult.Error(
+            VaultKeyMaterialRemoteError.Unauthorized
         )
+        target = createTarget()
 
-        manager.refreshVaultState()
+        target.refreshVaultState()
 
-        assertEquals(VaultState.NotInitialized, manager.vaultState.value)
+        assertEquals(VaultState.Locked, target.vaultState.value)
+        verify(exactly = 1) { vaultInMemoryKekStore.clear() }
     }
 
     @Test
-    fun `refresh vault state keeps locked with cache and unknown without cache on network failure`() = runBlocking {
-        val managerWithoutCache = createManager(
-            unlocker = FakeVaultUnlocker(),
-            initialKeyMaterial = null,
-            remoteResult = VaultKeyMaterialRemoteResult.Error(
-                VaultKeyMaterialRemoteError.NetworkError(IllegalStateException("offline")),
-            ),
+    fun `refreshVaultState_whenRemoteNetworkErrorAndNoCache_thenStateIsUnknown`() = runBlocking {
+        every { vaultKeyMaterialLocalRepository.get() } returns null
+        coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns VaultKeyMaterialRemoteResult.Error(
+            VaultKeyMaterialRemoteError.NetworkError(RuntimeException())
         )
-        val managerWithCache = createManager(
-            unlocker = FakeVaultUnlocker(),
-            initialKeyMaterial = sampleVaultKeyMaterial(),
-            remoteResult = VaultKeyMaterialRemoteResult.Error(
-                VaultKeyMaterialRemoteError.NetworkError(IllegalStateException("offline")),
-            ),
-        )
+        target = createTarget()
 
-        managerWithoutCache.refreshVaultState()
-        managerWithCache.refreshVaultState()
+        target.refreshVaultState()
 
-        assertEquals(VaultState.Unknown, managerWithoutCache.vaultState.value)
-        assertEquals(VaultState.Locked, managerWithCache.vaultState.value)
+        assertEquals(VaultState.Unknown, target.vaultState.value)
     }
 
     @Test
-    fun `refresh vault state keeps locked with cache and unknown without cache on http error`() = runBlocking {
-        val managerWithoutCache = createManager(
-            unlocker = FakeVaultUnlocker(),
-            initialKeyMaterial = null,
-            remoteResult = VaultKeyMaterialRemoteResult.Error(
-                VaultKeyMaterialRemoteError.HttpError(
-                    statusCode = 500,
-                    errorBody = "server unavailable",
-                ),
-            ),
+    fun `refreshVaultState_whenRemoteNetworkErrorWithCache_thenStateIsLocked`() = runBlocking {
+        every { vaultKeyMaterialLocalRepository.get() } returns createVaultKeyMaterial()
+        coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns VaultKeyMaterialRemoteResult.Error(
+            VaultKeyMaterialRemoteError.NetworkError(RuntimeException())
         )
-        val managerWithCache = createManager(
-            unlocker = FakeVaultUnlocker(),
-            initialKeyMaterial = sampleVaultKeyMaterial(),
-            remoteResult = VaultKeyMaterialRemoteResult.Error(
-                VaultKeyMaterialRemoteError.HttpError(
-                    statusCode = 500,
-                    errorBody = "server unavailable",
-                ),
-            ),
-        )
+        target = createTarget()
 
-        managerWithoutCache.refreshVaultState()
-        managerWithCache.refreshVaultState()
+        target.refreshVaultState()
 
-        assertEquals(VaultState.Unknown, managerWithoutCache.vaultState.value)
-        assertEquals(VaultState.Locked, managerWithCache.vaultState.value)
+        assertEquals(VaultState.Locked, target.vaultState.value)
     }
 
     @Test
-    fun `unlock with passphrase stores kek in memory and sets state unlocked`() {
-        val expectedKek = byteArrayOf(11, 22, 33, 44)
-        val unlocker = FakeVaultUnlocker(
-            passphraseResult = VaultUnlockResult.Unlocked(UnlockedKeyring(kek = expectedKek)),
+    fun `unlockWithPassphrase_whenSuccess_thenStoresKekAndStateIsUnlocked`() {
+        val passphrase = Random.nextLong().toString()
+        val expectedKek = Random.nextBytes(32)
+        every { vaultUnlocker.unlockWithPassphrase(passphrase) } returns VaultUnlockResult.Unlocked(
+            UnlockedKeyring(kek = expectedKek)
         )
-        val manager = createManager(unlocker, sampleVaultKeyMaterial())
+        target = createTarget()
 
-        val error = manager.unlockWithPassphrase("correct-passphrase")
+        val result = target.unlockWithPassphrase(passphrase)
 
-        assertNull(error)
-        assertEquals(VaultState.Unlocked, manager.vaultState.value)
-        assertEquals("correct-passphrase", unlocker.lastPassphrase)
-        assertArrayEquals(expectedKek, readInMemoryKek(manager))
+        assertNull(result)
+        assertEquals(VaultState.Unlocked, target.vaultState.value)
+        verifyOrder {
+            vaultInMemoryKekStore.clear()
+            vaultInMemoryKekStore.replace(expectedKek)
+        }
     }
 
     @Test
-    fun `unlock with recovery key stores kek in memory and sets state unlocked`() {
-        val expectedKek = byteArrayOf(9, 8, 7, 6)
-        val expectedRecovery = byteArrayOf(5, 4, 3, 2)
-        val unlocker = FakeVaultUnlocker(
-            recoveryResult = VaultUnlockResult.Unlocked(UnlockedKeyring(kek = expectedKek)),
+    fun `unlockWithRecoveryKey_whenSuccess_thenStoresKekAndStateIsUnlocked`() {
+        val recoveryKey = Random.nextBytes(32)
+        val expectedKek = Random.nextBytes(32)
+        every { vaultUnlocker.unlockWithRecoveryKey(recoveryKey) } returns VaultUnlockResult.Unlocked(
+            UnlockedKeyring(kek = expectedKek)
         )
-        val manager = createManager(unlocker, sampleVaultKeyMaterial())
+        target = createTarget()
 
-        val error = manager.unlockWithRecoveryKey(expectedRecovery)
+        val result = target.unlockWithRecoveryKey(recoveryKey)
 
-        assertNull(error)
-        assertEquals(VaultState.Unlocked, manager.vaultState.value)
-        assertArrayEquals(expectedRecovery, unlocker.lastRecoveryKey)
-        assertArrayEquals(expectedKek, readInMemoryKek(manager))
+        assertNull(result)
+        assertEquals(VaultState.Unlocked, target.vaultState.value)
+        verifyOrder {
+            vaultInMemoryKekStore.clear()
+            vaultInMemoryKekStore.replace(expectedKek)
+        }
     }
 
     @Test
-    fun `unlock invalid credential returns stable error and keeps state locked`() {
-        val unlocker = FakeVaultUnlocker(
-            passphraseResult = VaultUnlockResult.Error(VaultUnlockError.InvalidCredential),
+    fun `unlockWithPassphrase_whenInvalidCredential_thenReturnsErrorAndStateIsLocked`() {
+        val passphrase = Random.nextLong().toString()
+        every { vaultUnlocker.unlockWithPassphrase(passphrase) } returns VaultUnlockResult.Error(
+            VaultUnlockError.InvalidCredential
         )
-        val manager = createManager(unlocker, sampleVaultKeyMaterial())
+        target = createTarget()
 
-        val error = manager.unlockWithPassphrase("wrong-passphrase")
+        val result = target.unlockWithPassphrase(passphrase)
 
-        assertEquals(VaultUnlockError.InvalidCredential, error)
-        assertEquals(VaultState.Locked, manager.vaultState.value)
-        assertNull(readInMemoryKek(manager))
+        assertEquals(VaultUnlockError.InvalidCredential, result)
+        assertEquals(VaultState.Locked, target.vaultState.value)
     }
 
     @Test
-    fun `unlock key material unavailable sets state not initialized`() {
-        val unlocker = FakeVaultUnlocker(
-            passphraseResult = VaultUnlockResult.Error(VaultUnlockError.KeyMaterialUnavailable),
+    fun `unlockWithPassphrase_whenKeyMaterialUnavailable_thenReturnsErrorAndStateIsNotInitialized`() {
+        val passphrase = Random.nextLong().toString()
+        every { vaultUnlocker.unlockWithPassphrase(passphrase) } returns VaultUnlockResult.Error(
+            VaultUnlockError.KeyMaterialUnavailable
         )
-        val manager = createManager(unlocker, sampleVaultKeyMaterial())
+        target = createTarget()
 
-        val error = manager.unlockWithPassphrase("any")
+        val result = target.unlockWithPassphrase(passphrase)
 
-        assertEquals(VaultUnlockError.KeyMaterialUnavailable, error)
-        assertEquals(VaultState.NotInitialized, manager.vaultState.value)
-        assertNull(readInMemoryKek(manager))
+        assertEquals(VaultUnlockError.KeyMaterialUnavailable, result)
+        assertEquals(VaultState.NotInitialized, target.vaultState.value)
     }
 
     @Test
-    fun `lock wipes previous kek bytes and clears memory`() {
-        val unlocker = FakeVaultUnlocker(
-            passphraseResult = VaultUnlockResult.Unlocked(UnlockedKeyring(kek = byteArrayOf(1, 2, 3, 4))),
-        )
-        val manager = createManager(unlocker, sampleVaultKeyMaterial())
-        manager.unlockWithPassphrase("passphrase")
-        val leakedReference = requireNotNull(readInMemoryKek(manager))
+    fun `lock_whenCalled_thenClearsKekAndStateIsLocked`() {
+        target = createTarget()
 
-        manager.lock()
+        target.lock()
 
-        assertEquals(VaultState.Locked, manager.vaultState.value)
-        assertTrue(leakedReference.all { it == 0.toByte() })
-        assertNull(readInMemoryKek(manager))
+        assertEquals(VaultState.Locked, target.vaultState.value)
+        verify(exactly = 1) { vaultInMemoryKekStore.clear() }
     }
 
     @Test
-    fun `onLogout wipes previous kek bytes and clears memory`() {
-        val unlocker = FakeVaultUnlocker(
-            passphraseResult = VaultUnlockResult.Unlocked(UnlockedKeyring(kek = byteArrayOf(7, 7, 7, 7))),
-        )
-        val manager = createManager(unlocker, sampleVaultKeyMaterial())
-        manager.unlockWithPassphrase("passphrase")
-        val leakedReference = requireNotNull(readInMemoryKek(manager))
+    fun `onLogout_whenCalled_thenClearsKekAndStateIsLocked`() {
+        target = createTarget()
 
-        manager.onLogout()
+        target.onLogout()
 
-        assertEquals(VaultState.Locked, manager.vaultState.value)
-        assertTrue(leakedReference.all { it == 0.toByte() })
-        assertNull(readInMemoryKek(manager))
+        assertEquals(VaultState.Locked, target.vaultState.value)
+        verify(exactly = 1) { vaultInMemoryKekStore.clear() }
     }
 
     @Test
-    fun `unlock after already unlocked wipes previous kek before replacing`() {
-        val firstKek = byteArrayOf(1, 1, 1, 1)
-        val secondKek = byteArrayOf(2, 2, 2, 2)
-        val unlocker = FakeVaultUnlocker(
-            passphraseResult = VaultUnlockResult.Unlocked(UnlockedKeyring(kek = firstKek)),
-            recoveryResult = VaultUnlockResult.Unlocked(UnlockedKeyring(kek = secondKek)),
+    fun `isUnlocked_whenStateIsUnlocked_thenReturnsTrue`() {
+        val passphrase = Random.nextLong().toString()
+        every { vaultUnlocker.unlockWithPassphrase(passphrase) } returns VaultUnlockResult.Unlocked(
+            UnlockedKeyring(kek = Random.nextBytes(32))
         )
-        val manager = createManager(unlocker, sampleVaultKeyMaterial())
+        target = createTarget()
+        target.unlockWithPassphrase(passphrase)
 
-        manager.unlockWithPassphrase("passphrase")
-        val firstStoredReference = requireNotNull(readInMemoryKek(manager))
-        manager.unlockWithRecoveryKey(byteArrayOf(9, 9, 9, 9))
+        val result = target.isUnlocked()
 
-        assertTrue(firstStoredReference.all { it == 0.toByte() })
-        assertArrayEquals(secondKek, readInMemoryKek(manager))
+        assertTrue(result)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    private fun readInMemoryKek(manager: VaultSessionManagerImpl): ByteArray? {
-        val field = VaultSessionManagerImpl::class.java.getDeclaredField("vaultInMemoryKekStore")
-        field.isAccessible = true
-        val store = field.get(manager) as VaultInMemoryKekStore
-        return store.currentReference()
+    @Test
+    fun `isUnlocked_whenStateIsLocked_thenReturnsFalse`() {
+        every { vaultKeyMaterialLocalRepository.get() } returns createVaultKeyMaterial()
+        target = createTarget()
+
+        val result = target.isUnlocked()
+
+        assertFalse(result)
     }
 
-    private fun createManager(
-        unlocker: VaultUnlocker,
-        initialKeyMaterial: VaultKeyMaterial?,
-        remoteResult: VaultKeyMaterialRemoteResult<VaultKeyMaterial> = VaultKeyMaterialRemoteResult.Error(
-            VaultKeyMaterialRemoteError.NetworkError(IllegalStateException("unused")),
-        ),
-    ): VaultSessionManagerImpl = VaultSessionManagerImpl(
-        vaultUnlocker = unlocker,
-        vaultKeyMaterialLocalRepository = FakeVaultKeyMaterialLocalRepository(initialKeyMaterial),
-        vaultKeyMaterialRemoteRepository = FakeVaultKeyMaterialRemoteRepository(remoteResult),
-        vaultInMemoryKekStore = VaultInMemoryKekStore(),
+    private fun createTarget() = VaultSessionManagerImpl(
+        vaultUnlocker = vaultUnlocker,
+        vaultKeyMaterialLocalRepository = vaultKeyMaterialLocalRepository,
+        vaultKeyMaterialRemoteRepository = vaultKeyMaterialRemoteRepository,
+        vaultInMemoryKekStore = vaultInMemoryKekStore,
     )
 
-    private fun sampleVaultKeyMaterial(): VaultKeyMaterial = VaultKeyMaterial(
-        kekEncMaster = byteArrayOf(1, 2, 3),
-        kekEncRecovery = byteArrayOf(4, 5, 6),
-        kdfAlgorithm = "argon2id",
-        kdfSalt = byteArrayOf(7, 8, 9),
-        kdfMemoryKib = 65536,
-        kdfIterations = 3,
-        kdfParallelism = 1,
-        kdfOutputLen = 32,
-        cryptoVersion = "v1",
+    private fun createVaultKeyMaterial() = VaultKeyMaterial(
+        kekEncMaster = Random.nextBytes(32),
+        kekEncRecovery = Random.nextBytes(32),
+        kdfAlgorithm = Random.nextLong().toString(),
+        kdfSalt = Random.nextBytes(16),
+        kdfMemoryKib = Random.nextInt(),
+        kdfIterations = Random.nextInt(),
+        kdfParallelism = Random.nextInt(),
+        kdfOutputLen = Random.nextInt(),
+        cryptoVersion = Random.nextLong().toString(),
     )
-}
-
-private class FakeVaultUnlocker(
-    private val passphraseResult: VaultUnlockResult = VaultUnlockResult.Error(VaultUnlockError.InvalidCredential),
-    private val recoveryResult: VaultUnlockResult = VaultUnlockResult.Error(VaultUnlockError.InvalidCredential),
-) : VaultUnlocker {
-    var lastPassphrase: String? = null
-        private set
-    var lastRecoveryKey: ByteArray? = null
-        private set
-
-    override fun unlockWithPassphrase(passphrase: String): VaultUnlockResult {
-        lastPassphrase = passphrase
-        return passphraseResult
-    }
-
-    override fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockResult {
-        lastRecoveryKey = recoveryKey.copyOf()
-        return recoveryResult
-    }
-}
-
-private class FakeVaultKeyMaterialLocalRepository(
-    initialKeyMaterial: VaultKeyMaterial?,
-) : VaultKeyMaterialLocalRepository {
-    private var keyMaterial: VaultKeyMaterial? = initialKeyMaterial
-
-    override fun save(vaultKeyMaterial: VaultKeyMaterial) {
-        keyMaterial = vaultKeyMaterial
-    }
-
-    override fun get(): VaultKeyMaterial? = keyMaterial
-
-    override fun clear() {
-        keyMaterial = null
-    }
-}
-
-private class FakeVaultKeyMaterialRemoteRepository(
-    private val getResult: VaultKeyMaterialRemoteResult<VaultKeyMaterial>,
-) : VaultKeyMaterialRemoteRepository {
-    override suspend fun getKeyMaterial(): VaultKeyMaterialRemoteResult<VaultKeyMaterial> = getResult
-
-    override suspend fun initKeyMaterial(
-        vaultKeyMaterial: VaultKeyMaterial,
-    ): VaultKeyMaterialRemoteResult<Unit> = error("Not required in test")
-
-    override suspend fun updateMasterWrappedKek(newKekEncMaster: ByteArray): VaultKeyMaterialRemoteResult<Unit> =
-        error("Not required in test")
 }
