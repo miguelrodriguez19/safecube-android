@@ -9,13 +9,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.action.NoteEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.event.NoteEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.state.NoteEditorUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.viewmodel.NoteEditorViewModel
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.SecureItemEditorScaffold
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.asUiLabel
 
 @Composable
 fun NoteEditorScreen(
@@ -55,9 +58,19 @@ private fun NoteEditorContent(
         isEditMode = uiState.isEditMode,
         isLoading = uiState.isLoading,
         isSaving = uiState.isSaving,
+        isSyncing = uiState.isSyncing,
+        syncStatusLabel = if (uiState.isSyncing) {
+            stringResource(UiR.string.sync_status_syncing)
+        } else {
+            uiState.itemSyncState?.asUiLabel()
+        },
+        lastSyncMessage = null,
+        lastSyncErrorMessage = uiState.itemSyncError,
         errorMessage = uiState.errorMessage,
         onBack = onBack,
         onSave = { onAction(NoteEditorUiAction.SaveClicked) },
+        showSyncAction = false,
+        onSyncNow = null,
         onDelete = if (uiState.isEditMode) {
             { onAction(NoteEditorUiAction.DeleteClicked) }
         } else {

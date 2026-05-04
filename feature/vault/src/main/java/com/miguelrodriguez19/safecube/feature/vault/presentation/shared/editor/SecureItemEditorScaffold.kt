@@ -23,6 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import androidx.compose.ui.res.stringResource
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.SyncIconButton
 
 @Composable
 internal fun SecureItemEditorScaffold(
@@ -30,9 +33,15 @@ internal fun SecureItemEditorScaffold(
     isEditMode: Boolean,
     isLoading: Boolean,
     isSaving: Boolean,
+    isSyncing: Boolean,
+    syncStatusLabel: String?,
+    lastSyncMessage: String?,
+    lastSyncErrorMessage: String?,
     errorMessage: String?,
     onBack: () -> Unit,
     onSave: () -> Unit,
+    showSyncAction: Boolean,
+    onSyncNow: (() -> Unit)?,
     onDelete: (() -> Unit)?,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -46,22 +55,31 @@ internal fun SecureItemEditorScaffold(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    IconButton(
-                        onClick = onBack,
-                        enabled = !isSaving,
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        IconButton(
+                            onClick = onBack,
+                            enabled = !isSaving,
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                            )
+                        }
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(top = 12.dp),
                         )
                     }
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(top = 12.dp),
-                    )
+                    if (showSyncAction && onSyncNow != null) {
+                        SyncIconButton(
+                            isSyncing = isSyncing,
+                            onClick = onSyncNow,
+                            contentDescription = stringResource(UiR.string.sync_now_action),
+                        )
+                    }
                 }
             }
         },
@@ -74,6 +92,28 @@ internal fun SecureItemEditorScaffold(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            syncStatusLabel?.let { statusLabel ->
+                Text(
+                    text = statusLabel,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+            lastSyncMessage?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            lastSyncErrorMessage?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+
             if (isLoading) {
                 Text(
                     text = "Loading item...",

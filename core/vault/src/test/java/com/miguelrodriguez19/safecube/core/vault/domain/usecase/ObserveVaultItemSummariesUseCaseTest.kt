@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveVaultItemSummariesUseCase
@@ -33,12 +34,16 @@ class ObserveVaultItemSummariesUseCaseTest {
                     itemType = SecureItemType.PASSWORD,
                     displayHint = "Github",
                     updatedAt = Instant.parse("2026-03-27T10:00:00Z"),
+                    syncState = SecureItemSyncState.PENDING_UPDATE,
+                    lastSyncError = null,
                 ),
                 sampleSecureItem(
                     logicalItemId = UUID.fromString("22222222-2222-2222-2222-222222222222"),
                     itemType = SecureItemType.NOTE,
                     displayHint = "WiFi",
                     updatedAt = Instant.parse("2026-03-27T09:00:00Z"),
+                    syncState = SecureItemSyncState.CONFLICT,
+                    lastSyncError = "Conflict detected",
                 ),
             ),
         )
@@ -49,8 +54,11 @@ class ObserveVaultItemSummariesUseCaseTest {
         assertEquals("Github", result[0].displayHint)
         assertEquals(SecureItemType.PASSWORD, result[0].itemType)
         assertEquals(Instant.parse("2026-03-27T10:00:00Z"), result[0].updatedAt)
+        assertEquals(SecureItemSyncState.PENDING_UPDATE, result[0].syncState)
         assertEquals("WiFi", result[1].displayHint)
         assertEquals(SecureItemType.NOTE, result[1].itemType)
+        assertEquals(SecureItemSyncState.CONFLICT, result[1].syncState)
+        assertEquals("Conflict detected", result[1].lastSyncError)
         verify(exactly = 1) { secureItemRepository.observeActiveItems() }
         confirmVerified(secureItemRepository)
     }
@@ -61,6 +69,8 @@ private fun sampleSecureItem(
     itemType: SecureItemType,
     displayHint: String,
     updatedAt: Instant,
+    syncState: SecureItemSyncState,
+    lastSyncError: String?,
 ): SecureItem = SecureItem(
     logicalItemId = logicalItemId,
     itemType = itemType,
@@ -70,4 +80,6 @@ private fun sampleSecureItem(
     payloadVersion = 1,
     createdAt = Instant.parse("2026-03-27T08:00:00Z"),
     updatedAt = updatedAt,
+    syncState = syncState,
+    lastSyncError = lastSyncError,
 )

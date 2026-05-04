@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 04-05-2026 01:33:57
+Updated: 04-05-2026 06:41:09
 
 ```
 safecube-android/
@@ -419,6 +419,8 @@ safecube-android/
 │   │   │   │   │           │   ├── push/
 │   │   │   │   │           │   │   ├── PushLocalVaultChangesMappings.kt
 │   │   │   │   │           │   │   └── PushLocalVaultChangesUseCase.kt
+│   │   │   │   │           │   ├── ObserveVaultSyncingUseCase.kt
+│   │   │   │   │           │   ├── SyncVaultNowUseCase.kt
 │   │   │   │   │           │   ├── VaultSyncExecutionLock.kt
 │   │   │   │   │           │   ├── VaultSyncTrigger.kt
 │   │   │   │   │           │   └── VaultSyncUseCase.kt
@@ -608,8 +610,11 @@ safecube-android/
 │       │   │   │   │   │   └── SecureItemEditorScaffold.kt
 │       │   │   │   │   ├── error/
 │       │   │   │   │   │   └── SecureItemCrudErrorMessageMapper.kt
-│       │   │   │   │   └── navigation/
-│       │   │   │   │       └── NavigationBar.kt
+│       │   │   │   │   ├── navigation/
+│       │   │   │   │   │   └── NavigationBar.kt
+│       │   │   │   │   └── sync/
+│       │   │   │   │       ├── SyncIconButton.kt
+│       │   │   │   │       └── VaultSyncUiMapper.kt
 │       │   │   │   └── unlock/
 │       │   │   │       ├── action/
 │       │   │   │       │   └── UnlockVaultUiAction.kt

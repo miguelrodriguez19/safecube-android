@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,15 +23,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultItemSummaryUiModel
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.viewmodel.VaultHomeViewModel
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.SyncIconButton
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation.AppTab
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation.NavigationBar
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -49,6 +57,8 @@ fun VaultScreen(
     viewModel: VaultHomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val syncingMessage = stringResource(UiR.string.sync_status_syncing)
 
     VaultContent(
         uiState = uiState,
@@ -59,6 +69,10 @@ fun VaultScreen(
         onVault = onVault,
         onVaultFolders = onVaultFolders,
         onSettings = onSettings,
+        onSyncNow = {
+            Toast.makeText(context, syncingMessage, Toast.LENGTH_SHORT).show()
+            viewModel.syncNow()
+        },
     )
 }
 
@@ -72,6 +86,7 @@ private fun VaultContent(
     onVault: () -> Unit,
     onVaultFolders: () -> Unit,
     onSettings: () -> Unit,
+    onSyncNow: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -79,11 +94,24 @@ private fun VaultContent(
                 shadowElevation = 2.dp,
                 modifier = Modifier.statusBarsPadding(),
             ) {
-                Text(
-                    text = "Vault",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = stringResource(UiR.string.vault_label),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    )
+                    SyncIconButton(
+                        isSyncing = uiState.isSyncing,
+                        onClick = onSyncNow,
+                        contentDescription = stringResource(UiR.string.sync_now_action),
+                    )
+                }
             }
         },
         bottomBar = {
@@ -102,6 +130,10 @@ private fun VaultContent(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            VaultSyncFeedback(
+                uiState = uiState,
+                modifier = Modifier.fillMaxWidth(),
+            )
             VaultPrimaryActions(
                 onCreatePassword = onCreatePassword,
                 onCreateNote = onCreateNote,
@@ -222,6 +254,26 @@ private fun VaultItemCard(
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
+            if (item.isConflict) {
+                Text(
+                    text = stringResource(UiR.string.sync_status_conflict),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                item.lastSyncError?.let { conflictReason ->
+                    Text(
+                        text = conflictReason,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            } else if (item.isPendingSync) {
+                Text(
+                    text = stringResource(UiR.string.sync_status_pending),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
             Text(
                 text = "Updated ${item.updatedAt.asListTimestamp()}",
                 style = MaterialTheme.typography.bodySmall,
@@ -231,9 +283,51 @@ private fun VaultItemCard(
     }
 }
 
+@Composable
+private fun VaultSyncFeedback(
+    uiState: VaultHomeUiState,
+    modifier: Modifier = Modifier,
+) {
+    val syncResult = uiState.lastSyncResult
+    val message = when {
+        uiState.isSyncing -> stringResource(UiR.string.sync_status_syncing)
+        syncResult is VaultSyncResult.Success -> stringResource(
+            UiR.string.sync_last_result_success,
+            syncResult.uploadedCount,
+            syncResult.downloadedCount,
+            syncResult.conflictCount,
+        )
+
+        syncResult is VaultSyncResult.Error -> stringResource(
+            UiR.string.sync_last_result_error_with_reason,
+            syncResult.reason.asUiLabel(),
+        )
+
+        else -> null
+    } ?: return
+
+    Text(
+        text = message,
+        modifier = modifier,
+        style = MaterialTheme.typography.bodyMedium,
+        color = if (uiState.lastSyncError == null) {
+            MaterialTheme.colorScheme.onSurface
+        } else {
+            MaterialTheme.colorScheme.error
+        },
+    )
+}
+
 private fun SecureItemType.asLabel(): String = when (this) {
     SecureItemType.PASSWORD -> "Password"
     SecureItemType.NOTE -> "Note"
+}
+
+@Composable
+private fun VaultSyncError.asUiLabel(): String = when (this) {
+    is VaultSyncError.InvalidVaultState -> stringResource(UiR.string.sync_error_invalid_vault_state)
+    is VaultSyncError.PushFailed -> stringResource(UiR.string.sync_error_push_failed)
+    is VaultSyncError.PullFailed -> stringResource(UiR.string.sync_error_pull_failed)
 }
 
 private fun Instant.asListTimestamp(): String = DateTimeFormatter

@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud
 
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import java.time.Instant
 import java.util.UUID
@@ -9,4 +10,6 @@ data class VaultItemSummary(
     val itemType: SecureItemType,
     val displayHint: String,
     val updatedAt: Instant,
+    val syncState: SecureItemSyncState,
+    val lastSyncError: String?,
 )

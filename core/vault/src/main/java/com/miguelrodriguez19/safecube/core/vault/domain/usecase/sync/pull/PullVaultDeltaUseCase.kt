@@ -117,7 +117,7 @@ class PullVaultDeltaUseCase @Inject constructor(
             if (localItem != null && localItem.syncState.blocksRemotePullOverwrite()) {
                 secureItemRepository.markConflict(
                     logicalItemId = localItem.logicalItemId,
-                    lastSyncError = "Remote pull skipped: local item has pending changes.",
+                    lastSyncError = "Pull skipped: local changes pending. Push/retry required before applying remote update.",
                 )
                 counters.skippedDirtyOrConflict++
                 continue

@@ -10,9 +10,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.asUiLabel
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.action.PasswordEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.event.PasswordEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.state.PasswordEditorUiState
@@ -57,9 +60,19 @@ private fun PasswordEditorContent(
         isEditMode = uiState.isEditMode,
         isLoading = uiState.isLoading,
         isSaving = uiState.isSaving,
+        isSyncing = uiState.isSyncing,
+        syncStatusLabel = if (uiState.isSyncing) {
+            stringResource(UiR.string.sync_status_syncing)
+        } else {
+            uiState.itemSyncState?.asUiLabel()
+        },
+        lastSyncMessage = null,
+        lastSyncErrorMessage = uiState.itemSyncError,
         errorMessage = uiState.errorMessage,
         onBack = onBack,
         onSave = { onAction(PasswordEditorUiAction.SaveClicked) },
+        showSyncAction = false,
+        onSyncNow = null,
         onDelete = if (uiState.isEditMode) {
             { onAction(PasswordEditorUiAction.DeleteClicked) }
         } else {

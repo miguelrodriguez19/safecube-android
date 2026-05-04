@@ -85,7 +85,7 @@ class PushLocalVaultChangesUseCase @Inject constructor(
             is SecureItemRemoteResult.Error -> when (remoteResult.error) {
                 SecureItemRemoteError.Conflict -> markConflictOrFatal(
                     item = item,
-                    message = "Remote conflict while creating item.",
+                    message = "409 Conflict on create. Resolve by reopening the item and saving again.",
                 )
                 SecureItemRemoteError.ItemNotFound,
                 SecureItemRemoteError.Unauthorized,
@@ -126,7 +126,12 @@ class PushLocalVaultChangesUseCase @Inject constructor(
                 SecureItemRemoteError.ItemNotFound,
                 -> markConflictOrFatal(
                     item = item,
-                    message = "Remote update rejected: ${remoteResult.error.javaClass.simpleName}.",
+                    message = when (remoteResult.error) {
+                        SecureItemRemoteError.Conflict ->
+                            "409 Conflict on update. Remote version changed."
+                        SecureItemRemoteError.ItemNotFound ->
+                            "404 Not Found on update. Remote item no longer exists."
+                    },
                 )
 
                 SecureItemRemoteError.Unauthorized,
@@ -191,7 +196,7 @@ class PushLocalVaultChangesUseCase @Inject constructor(
 
                 SecureItemRemoteError.Conflict -> markConflictOrFatal(
                     item = item,
-                    message = "Remote conflict while deleting item.",
+                    message = "409 Conflict on delete. Remote state changed.",
                 )
 
                 SecureItemRemoteError.Unauthorized,

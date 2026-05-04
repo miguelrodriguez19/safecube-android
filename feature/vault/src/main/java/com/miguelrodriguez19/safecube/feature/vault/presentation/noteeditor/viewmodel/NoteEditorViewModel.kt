@@ -11,6 +11,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.Obser
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SoftDeleteSecureItemUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.CreateSecureNoteUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.UpdateSecureNoteUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.action.NoteEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.event.NoteEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.state.NoteEditorUiState
@@ -24,8 +25,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -34,16 +36,31 @@ class NoteEditorViewModel @Inject constructor(
     private val createSecureNoteUseCase: CreateSecureNoteUseCase,
     private val updateSecureNoteUseCase: UpdateSecureNoteUseCase,
     private val softDeleteSecureItemUseCase: SoftDeleteSecureItemUseCase,
+    observeVaultSyncingUseCase: ObserveVaultSyncingUseCase,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(NoteEditorUiState())
     val uiState: StateFlow<NoteEditorUiState> = mutableUiState.asStateFlow()
 
     private val mutableEvents = MutableSharedFlow<NoteEditorUiEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<NoteEditorUiEvent> = mutableEvents.asSharedFlow()
+    private var observeItemJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            observeVaultSyncingUseCase().collect { isSyncing ->
+                mutableUiState.update { state ->
+                    state.copy(isSyncing = isSyncing)
+                }
+            }
+        }
+    }
 
     fun load(logicalItemId: String?) {
+        stopObservingItem()
         if (logicalItemId == null) {
-            mutableUiState.value = NoteEditorUiState()
+            mutableUiState.value = NoteEditorUiState(
+                isSyncing = mutableUiState.value.isSyncing,
+            )
             return
         }
 
@@ -53,15 +70,21 @@ class NoteEditorViewModel @Inject constructor(
             return
         }
 
-        mutableUiState.value = NoteEditorUiState(
-            logicalItemId = parsedLogicalItemId,
-            isLoading = true,
-        )
+        mutableUiState.update { state ->
+            state.copy(
+                logicalItemId = parsedLogicalItemId,
+                isLoading = true,
+                errorMessage = null,
+                hasUnsavedLocalChanges = false,
+            )
+        }
 
-        viewModelScope.launch {
-            when (val result = observeSecureItemDetailUseCase(parsedLogicalItemId).first()) {
-                is ObserveSecureItemDetailResult.Success -> showDetail(result)
-                is ObserveSecureItemDetailResult.Error -> showError(result.reason)
+        observeItemJob = viewModelScope.launch {
+            observeSecureItemDetailUseCase(parsedLogicalItemId).collect { result ->
+                when (result) {
+                    is ObserveSecureItemDetailResult.Success -> showDetail(result)
+                    is ObserveSecureItemDetailResult.Error -> showError(result.reason)
+                }
             }
         }
     }
@@ -82,15 +105,32 @@ class NoteEditorViewModel @Inject constructor(
             return
         }
 
+        val shouldPreserveDraft = mutableUiState.value.hasUnsavedLocalChanges &&
+            mutableUiState.value.logicalItemId == result.detail.logicalItemId
+
         mutableUiState.update { state ->
-            state.copy(
-                logicalItemId = result.detail.logicalItemId,
-                displayHint = result.detail.displayHint,
-                body = content.body,
-                isLoading = false,
-                isSaving = false,
-                errorMessage = null,
-            )
+            if (shouldPreserveDraft) {
+                state.copy(
+                    logicalItemId = result.detail.logicalItemId,
+                    itemSyncState = result.detail.syncState,
+                    itemSyncError = result.detail.lastSyncError,
+                    isLoading = false,
+                    isSaving = false,
+                    errorMessage = null,
+                )
+            } else {
+                state.copy(
+                    logicalItemId = result.detail.logicalItemId,
+                    displayHint = result.detail.displayHint,
+                    body = content.body,
+                    itemSyncState = result.detail.syncState,
+                    itemSyncError = result.detail.lastSyncError,
+                    isLoading = false,
+                    isSaving = false,
+                    hasUnsavedLocalChanges = false,
+                    errorMessage = null,
+                )
+            }
         }
     }
 
@@ -99,6 +139,7 @@ class NoteEditorViewModel @Inject constructor(
             state.transform().copy(
                 errorMessage = null,
                 isLoading = false,
+                hasUnsavedLocalChanges = true,
             )
         }
     }
@@ -148,7 +189,10 @@ class NoteEditorViewModel @Inject constructor(
     private suspend fun handleMutationResult(result: SecureItemMutationResult) {
         when (result) {
             is SecureItemMutationResult.Success -> {
-                mutableUiState.value = NoteEditorUiState()
+                stopObservingItem()
+                mutableUiState.value = NoteEditorUiState(
+                    isSyncing = mutableUiState.value.isSyncing,
+                )
                 mutableEvents.emit(NoteEditorUiEvent.NavigateBack)
             }
 
@@ -166,6 +210,16 @@ class NoteEditorViewModel @Inject constructor(
                 errorMessage = error.asUiMessage(),
             )
         }
+    }
+
+    override fun onCleared() {
+        stopObservingItem()
+        super.onCleared()
+    }
+
+    private fun stopObservingItem() {
+        observeItemJob?.cancel()
+        observeItemJob = null
     }
 }
 

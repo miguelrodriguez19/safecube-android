@@ -53,6 +53,8 @@ class ObserveSecureItemDetailUseCase @Inject constructor(
                     payloadVersion = item.payloadVersion,
                     createdAt = item.createdAt,
                     updatedAt = item.updatedAt,
+                    syncState = item.syncState,
+                    lastSyncError = item.lastSyncError,
                     content = decryptionResult.content,
                 ),
             )

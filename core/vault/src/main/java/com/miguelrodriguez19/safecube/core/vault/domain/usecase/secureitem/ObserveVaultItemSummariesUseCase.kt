@@ -18,6 +18,8 @@ class ObserveVaultItemSummariesUseCase @Inject constructor(
                 itemType = item.itemType,
                 displayHint = item.displayHint,
                 updatedAt = item.updatedAt,
+                syncState = item.syncState,
+                lastSyncError = item.lastSyncError,
             )
         }
     }

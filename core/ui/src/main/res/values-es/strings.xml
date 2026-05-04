@@ -18,4 +18,14 @@
     <string name="auth_error_email_invalid">Formato de correo invalido</string>
     <string name="auth_error_password_invalid">Formato de contrasena invalido</string>
     <string name="auth_error_confirm_password_invalid">Valor de confirmacion de contrasena invalido</string>
+    <string name="sync_now_action">Sincronizar ahora</string>
+    <string name="sync_status_syncing">Sincronizando...</string>
+    <string name="sync_status_pending">Sincronizacion pendiente</string>
+    <string name="sync_status_conflict">Conflicto</string>
+    <string name="sync_status_synced">Sincronizado</string>
+    <string name="sync_last_result_success">Sincronizado: %1$d subidos, %2$d descargados, %3$d conflictos</string>
+    <string name="sync_last_result_error_with_reason">Error de sincronizacion: %1$s</string>
+    <string name="sync_error_invalid_vault_state">Vault bloqueado o no disponible</string>
+    <string name="sync_error_push_failed">No se pudieron subir los cambios locales</string>
+    <string name="sync_error_pull_failed">No se pudieron refrescar los cambios remotos</string>
 </resources>

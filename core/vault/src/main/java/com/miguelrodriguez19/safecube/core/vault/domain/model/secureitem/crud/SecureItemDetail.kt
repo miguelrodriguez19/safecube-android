@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud
 
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.SecureItemContent
 import java.time.Instant
@@ -14,5 +15,7 @@ data class SecureItemDetail(
     val payloadVersion: Long,
     val createdAt: Instant,
     val updatedAt: Instant,
+    val syncState: SecureItemSyncState,
+    val lastSyncError: String?,
     val content: SecureItemContent,
 )
