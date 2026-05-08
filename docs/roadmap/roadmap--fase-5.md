@@ -11,7 +11,7 @@ Incluye:
 - pull incremental remoto
 - push de cambios locales pendientes
 - propagación de soft delete
-- manejo simple y explícito de conflictos
+- manejo simple y explícito de conflictos mediante drafts locales cuando aplique
 - checkpoint de sync por cuenta
 - estado mínimo de sync visible en UI
 
@@ -211,12 +211,15 @@ El sync solo enlaza ambos mundos; no cambia el protocolo crypto local.
 
 El manejo de conflictos en esta fase será deliberadamente simple:
 
-- `409` remoto se traduce a conflicto explícito
+- `409` remoto en update/delete contra item activo se representa como draft local cuando sea posible
 - no hay merge de secretos
 - no hay last-writer-wins silencioso
-- no se sobreescribe un item local dirty con datos remotos sin decisión explícita
+- `secure_items` representa la version oficial de backend
+- `secure_items_draft` representa la propuesta local no oficial
+- un item borrado por backend gana y no se restaura automáticamente desde draft
+- `CONFLICT` queda reservado para estados que no pueda representar el modelo de draft
 
-### 9) Pull remoto nunca pisa cambios locales pendientes
+### 9) Pull remoto nunca pisa cambios locales pendientes sin aplicar política de draft
 
 Si existe un item local en:
 
@@ -226,6 +229,12 @@ Si existe un item local en:
 - `CONFLICT`
 
 el pull no debe sobreescribirlo silenciosamente.
+
+Reglas tras el [ADR de drafts](../architecture/vault-sync-conflict-draft-resolution.md):
+
+- remoto activo + `PENDING_UPDATE` local -> crear draft `UPDATE` y aplicar remoto como oficial
+- remoto activo + `PENDING_DELETE` local -> crear draft `DELETE` y aplicar remoto como oficial
+- tombstone remoto + cambio local pendiente -> tombstone remoto gana, sin draft `RESTORE`
 
 ### 10) Delete local de item nunca sincronizado no llama al backend
 
@@ -256,7 +265,7 @@ En esta fase solo entra la UX mínima necesaria para que sync sea usable:
 
 - estado syncing
 - error/retry mínimo
-- badge o marcador de conflicto / pendiente
+- badge o marcador de draft / conflicto / pendiente
 - feedback básico de último sync
 
 Lo visualmente más rico, polished y consistente debe mantenerse en Fase 6.
@@ -270,7 +279,7 @@ Lo visualmente más rico, polished y consistente debe mantenerse en Fase 6.
 - background sync periódico
 - `WorkManager`
 - sync de `UserProfile`
-- conflict resolution UI avanzada
+- UI avanzada de resolución/merge de conflictos
 - merge semántico de payloads
 - search
 - folders reales
@@ -318,17 +327,18 @@ Definir explícitamente:
 - uso de `lastPulledAt`
 - regla `list summaries -> get detail`
 - ciclo recomendado `push -> pull`
-- política de conflicto MVP (`CONFLICT`, sin merge automático)
+- política inicial de conflicto y evolución a drafts locales según ADR
 - tratamiento de `409` como contrato observable (sin asumir `request.updatedAt`)
 - regla de no pisar items dirty
 - relación entre `logicalItemId` y `remoteItemId`
 - qué significa `syncState`
 - qué datos son source of truth local vs remoto
+- relación entre `vault-sync-v1.md` y `vault-sync-conflict-draft-resolution.md`
 
 ### Out of Scope (if applies)
 
 - implementación de código
-- UI de resolución de conflictos
+- UI avanzada de resolución de conflictos
 
 ## Additional Information and Configuration
 
@@ -710,9 +720,10 @@ Actualizar estado local en success:
 
 Reglas mínimas de error:
 
-- `409` en update/delete -> `CONFLICT`
+- `409` en update/delete -> conflicto observable; las tareas 10-12 lo evolucionan a draft cuando
+  el remoto siga activo
 - `404` en delete -> tratar como delete remoto ya aplicado o resolver de forma consistente
-- `404` en update -> conflicto explícito
+- `404` en update -> item remoto no disponible; tombstone local oficial, sin restore automático
 - fallos de red -> mantener pendiente
 
 ### Out of Scope (if applies)
@@ -726,6 +737,12 @@ Reglas mínimas de error:
 ### API Contract and Expected Behavior (if applies)
 
 Debe usar únicamente el contrato observable actual y tratar `409` como conflicto explícito.
+
+Nota posterior al ADR de drafts:
+
+- el resultado final deseado no deja `409` de update/delete activo como `CONFLICT` terminal si puede
+  representarse como draft local
+- `CONFLICT` queda como fallback para estados no representables por `secure_items_draft`
 
 ### Acceptance Criteria (ACs)
 
@@ -836,7 +853,8 @@ Reglas:
 - la UI no espera a la red para considerar guardado el cambio local
 - si hay sesión y red, se intenta subir el cambio pendiente de forma best-effort
 - si el push falla por red, transporte o `5xx`, el item permanece pendiente
-- si el backend devuelve `409`, el item pasa a `CONFLICT`
+- si el backend devuelve `409`, se delega en la politica de push: draft cuando sea representable,
+  `CONFLICT` solo como fallback
 - si ya hay sync en curso, la petición se coalesce o se delega al coordinador existente
 - no se ejecuta pull completo obligatorio tras cada mutación
 
@@ -878,8 +896,8 @@ contrato de UI.
 
 ## Main Story (How, I Want, To)
 
-Como usuario, quiero saber si mis cambios están pendientes, sincronizando o en conflicto, para
-confiar en el comportamiento multi-dispositivo sin necesidad de una UI avanzada todavía.
+Como usuario, quiero saber si mis cambios están pendientes, sincronizando, en conflicto o en draft,
+para confiar en el comportamiento multi-dispositivo sin necesidad de una UI avanzada todavía.
 
 ## Context, Functional Description & Goal
 
@@ -900,14 +918,14 @@ Añadir estado mínimo de presentación:
 
 - `isSyncing`
 - `lastSyncResult` / `lastSyncError`
-- marcador de item pendiente o en conflicto
+- marcador de item pendiente, en conflicto o en draft
 - acción manual `syncNow()`
 
 UX mínima aceptada:
 
 - feedback de sync en home
 - retry manual
-- conflictos visibles de forma simple
+- conflictos/drafts visibles de forma simple
 - sin rediseño visual grande
 
 ### Out of Scope (if applies)
@@ -925,7 +943,7 @@ La presentación consume el resultado de `VaultSyncUseCase` y el estado persisti
 ### Acceptance Criteria (ACs)
 
 - desde la home del vault se puede lanzar sync manual
-- el usuario ve al menos estado pendiente / syncing / conflict
+- el usuario ve al menos estado pendiente / syncing / conflict / draft
 - la UI sigue observando estado local persistido, no respuestas remotas directas
 - no se introduce una segunda fuente de verdad en presentación
 - Pasar `./gradlew clean verifyCoverage`.
@@ -934,7 +952,281 @@ La presentación consume el resultado de `VaultSyncUseCase` y el estado persisti
 
 ---
 
-# 10) Añadir tests de sync end-to-end a nivel de módulos
+# 10) Añadir storage local para `secure_items_draft`
+
+## Main Story (How, I Want, To)
+
+Como developer, quiero persistir drafts locales separados de la fila oficial, para representar
+cambios no aceptados por backend sin mezclar version oficial y propuesta local.
+
+## Context, Functional Description & Goal
+
+Tras el ADR [vault-sync-conflict-draft-resolution.md](../architecture/vault-sync-conflict-draft-resolution.md),
+`secure_items` debe representar la version oficial conocida del backend. Los cambios locales que no
+han sido aceptados por backend deben vivir en una tabla espejo, por ejemplo:
+
+```text
+secure_items_draft
+```
+
+Esto evita que un item quede atrapado en `CONFLICT` y permite que la UI muestre claramente:
+
+- version oficial remota
+- draft local no oficial
+- acciones posteriores de publicar o descartar draft
+
+## Steps/Scope
+
+### In Scope
+
+Crear storage Room para drafts con una estructura espejo de `secure_items`, incluyendo como minimo:
+
+- `logicalItemId`
+- `remoteItemId`
+- `itemType`
+- `schemaVersion`
+- `displayHint`
+- `payload`
+- `payloadVersion`
+- `createdAt`
+- `updatedAt`
+- `deletedAt`
+- `lastSyncedAt`
+- `lastSyncError`
+- `draftType`
+- `basePayloadVersion`
+- `baseUpdatedAt`
+- `lastPublishError`
+
+Definir `draftType` cerrado, como enum de bbdd y dominio:
+
+- `UPDATE`
+- `DELETE`
+
+Actualizar:
+
+- `AppDatabase`
+- migraciones Room
+- entidad Room `SecureItemDraftEntity`
+- DAO local de drafts
+- API local/repository necesaria para `core:vault`
+- tests de migracion y DAO con Room in-memory
+
+Reglas:
+
+- `secure_items` sigue siendo la fila oficial visible como mirror del backend
+- `secure_items_draft` no reemplaza la fila oficial
+- no existe draft `RESTORE`
+- un item borrado por backend no se recrea automaticamente desde draft
+
+### Out of Scope (if applies)
+
+- UI de resolucion
+- publish/discard de drafts
+- merge semantico de payloads descifrados
+
+## Additional Information and Configuration
+
+### API Contract and Expected Behavior (if applies)
+
+No requiere cambios de contrato HTTP. Es almacenamiento local para soportar la politica decidida en
+el ADR de resolucion por draft.
+
+### Acceptance Criteria (ACs)
+
+- existe tabla local `secure_items_draft` separada de `secure_items`
+- el schema representa drafts `UPDATE` y `DELETE` con enum cerrado
+- las migraciones son coherentes y testeadas
+- la capa de dominio puede leer, crear, actualizar y borrar drafts sin conocer Room
+- no se modifica la semantica de `secure_items` como mirror oficial
+- Pasar `./gradlew clean verifyCoverage`.
+- Los tests están basados en `@TESTING_STANDARD.md`.
+- Se hace uso de la clean architecture, principios SOLID y clean code.
+
+---
+
+# 11) Adaptar sync a la politica `official item + local draft`
+
+## Main Story (How, I Want, To)
+
+Como developer, quiero que push/pull conviertan conflictos observables en drafts locales cuando el
+backend tenga una version activa mas reciente, para evitar estados bloqueados y preservar la
+autoridad del backend.
+
+## Context, Functional Description & Goal
+
+La implementacion actual marca `CONFLICT` ante ciertos `409` y evita pisar cambios locales durante
+pull. Con la decision del ADR, `CONFLICT` no debe ser el estado terminal habitual para updates
+stale sobre un item remoto activo.
+
+La regla nueva es:
+
+```text
+secure_items = version oficial backend
+secure_items_draft = propuesta local no oficial
+```
+
+## Steps/Scope
+
+### In Scope
+
+Actualizar `PushLocalVaultChangesUseCase` y/o colaboradores para:
+
+- `PENDING_UPDATE` + `409`:
+    - guardar la version local rechazada como draft `UPDATE`
+    - pedir `GET /vault/items/{remoteItemId}`
+    - aplicar la version remota activa en `secure_items`
+    - limpiar el estado pendiente/conflictivo de la fila oficial
+- `PENDING_UPDATE` + `404`:
+    - aplicar tombstone local oficial
+    - descartar la edicion local rechazada
+    - no crear draft ni restore automatico
+- `PENDING_DELETE` + `409` contra remoto activo:
+    - guardar intencion local como draft `DELETE`
+    - pedir y aplicar version remota activa en `secure_items`
+- `PENDING_DELETE` contra remoto ya borrado o `404`:
+    - tratar como delete ya aplicado
+    - mantener/aplicar tombstone oficial
+    - no crear draft
+
+Actualizar `PullVaultDeltaUseCase` para:
+
+- si llega remoto activo y local tiene `PENDING_UPDATE`, crear draft `UPDATE` con el estado local y
+  aplicar remoto como oficial
+- si llega remoto activo y local tiene `PENDING_DELETE`, crear draft `DELETE` y aplicar remoto como
+  oficial
+- si llega tombstone remoto y local tiene cambios pendientes, aplicar tombstone oficial y descartar
+  cambios locales; no crear restore draft
+- mantener checkpoint solo si el pull fue consistente
+
+Crear o ajustar use cases de dominio para:
+
+- publicar draft `UPDATE`
+- publicar draft `DELETE`
+- descartar draft
+
+Reglas:
+
+- el backend sigue siendo la autoridad oficial
+- no hay merge semantico de payloads
+- no se recrean items borrados por backend
+- `syncState = CONFLICT` queda reservado para estados que no pueda representar el modelo de draft
+
+### Out of Scope (if applies)
+
+- UI final de resolucion visual rica
+- cambios de contrato backend
+- `WorkManager`
+- historial de versiones
+
+## Additional Information and Configuration
+
+### API Contract and Expected Behavior (if applies)
+
+Basado en el contrato actual de `/vault/items`:
+
+- `POST` no genera conflictos funcionales esperados
+- `PUT` puede devolver `409` observable, aunque el backend actual no detecta todos los conflictos
+  clasicos multi-device
+- `404` en update/delete no debe filtrar existencia entre cuentas
+
+### Acceptance Criteria (ACs)
+
+- un `409` de update contra remoto activo crea draft `UPDATE` y deja `secure_items` con version
+  oficial remota
+- un `409` de delete contra remoto activo crea draft `DELETE` y deja `secure_items` con version
+  oficial remota
+- un remoto borrado gana siempre y no crea draft `RESTORE`
+- publicar draft usa `PUT` o `DELETE` segun `draftType`
+- descartar draft elimina la propuesta local sin llamada remota obligatoria
+- `CONFLICT` deja de ser el resultado normal para updates/deletes stale representables como draft
+- Pasar `./gradlew clean verifyCoverage`.
+- Los tests están basados en `@TESTING_STANDARD.md`.
+- Se hace uso de la clean architecture, principios SOLID y clean code.
+
+---
+
+# 12) Exponer drafts y resolucion minima en `feature:vault`
+
+## Main Story (How, I Want, To)
+
+Como usuario, quiero ver cuando un item tiene cambios locales en draft y poder publicarlos o
+descartarlos, para entender que datos son oficiales y cuales aun no han sido aceptados por backend.
+
+## Context, Functional Description & Goal
+
+Fase 5 ya expone estado minimo de sync. Tras introducir `secure_items_draft`, la presentacion debe
+mostrar una capa minima de draft sin rediseñar el vault ni implementar merge visual avanzado.
+
+La UI debe dejar clara esta distincion:
+
+- oficial: version sincronizada/aceptada por backend
+- draft: propuesta local guardada en el dispositivo
+
+## Steps/Scope
+
+### In Scope
+
+Actualizar, como minimo:
+
+- `VaultHomeViewModel`
+- `VaultScreen`
+- `NoteEditorViewModel`
+- `NoteEditorScreen`
+- `PasswordEditorViewModel`
+- `PasswordEditorScreen`
+
+Añadir estado de presentacion:
+
+- `hasDraft`
+- `draftType`
+- `lastDraftError` / `lastPublishError`
+- acciones `publishDraft()` y `discardDraft()` donde aplique
+
+UX minima:
+
+- Home muestra badge/label `Draft` para items con draft local
+- Editor carga el draft como valor editable cuando exista
+- Editor muestra un banner sencillo indicando que los cambios son draft local
+- usuario puede publicar draft
+- usuario puede descartar draft y volver a la version oficial
+- si backend borro el item, se informa al usuario y no se ofrece restore automatico
+
+Reglas:
+
+- no se dispara sync completo obligatorio al entrar al editor
+- no se mezcla respuesta remota directa con UI; la UI observa estado persistido local
+- no se reintroduce boton de sync manual en editores
+
+### Out of Scope (if applies)
+
+- diff visual entre oficial y draft
+- merge semantico campo a campo
+- restore automatico de items borrados por backend
+- rediseño completo de `VaultScreen`
+
+## Additional Information and Configuration
+
+### API Contract and Expected Behavior (if applies)
+
+La UI consume use cases de dominio para observar item oficial + draft local. Publicar draft delega
+en la capa de sync/dominio y sigue usando `/vault/items`.
+
+### Acceptance Criteria (ACs)
+
+- Home identifica items con draft local
+- Editor diferencia visualmente draft local de version oficial
+- publicar draft actualiza estado local tras exito y elimina draft
+- descartar draft elimina propuesta local y muestra la version oficial
+- no existe accion de restore automatico para items borrados por backend
+- la UI sigue observando `Room` como source of truth visible
+- Pasar `./gradlew clean verifyCoverage`.
+- Los tests están basados en `@TESTING_STANDARD.md`.
+- Se hace uso de la clean architecture, principios SOLID y clean code.
+
+---
+
+# 13) Añadir tests de sync end-to-end a nivel de módulos
 
 ## Main Story (How, I Want, To)
 
@@ -953,6 +1245,7 @@ intermedios.
 Cubrir como mínimo:
 
 - migración del schema con metadata de sync
+- migración y DAO de `secure_items_draft`
 - checkpoint store
 - `RemoteSecureItemDataSource` con `MockWebServer`
 - `PullVaultDeltaUseCase`
@@ -960,10 +1253,15 @@ Cubrir como mínimo:
 - `VaultSyncUseCase`
 - `VaultSyncTrigger`
 - conflicto `409`
+- `409` update activo -> draft `UPDATE` + remoto oficial aplicado
+- `409` delete activo -> draft `DELETE` + remoto oficial aplicado
+- `404` update -> tombstone oficial sin restore
+- publish/discard de drafts
 - propagación de tombstones
 - caso “create offline -> delete offline antes de sync”
 - caso `list summaries -> get detail`
 - estado de `VaultHomeViewModel` durante sync
+- estado de `VaultHomeViewModel` / editores con draft local
 
 Preferencias:
 
@@ -982,11 +1280,14 @@ Preferencias:
 ### API Contract and Expected Behavior (if applies)
 
 Basado en el OpenAPI actual de `vault/items` y en la estrategia documentada en `vault-sync-v1.md`.
+Debe incluir tambien la politica de drafts documentada en
+`docs/architecture/vault-sync-conflict-draft-resolution.md`.
 
 ### Acceptance Criteria (ACs)
 
 - el flujo crítico `push -> pull` queda cubierto por tests
-- tombstones y conflictos tienen tests explícitos
+- tombstones, drafts y conflictos no representables tienen tests explícitos
+- publish/discard de drafts queda cubierto en dominio y presentacion
 - la fase no reduce el rigor actual de `core:vault`, `core:storage` y `feature:vault`
 - Pasar `./gradlew clean verifyCoverage`.
 - Los tests están basados en `@TESTING_STANDARD.md`.
@@ -1004,8 +1305,10 @@ La app debería poder:
 4. descargar cambios hechos desde otros dispositivos
 5. propagar borrados lógicos entre dispositivos
 6. mantener `Room` como verdad local visible para la UI
-7. detectar conflictos remotos y marcarlos de forma explícita
-8. seguir siendo usable aunque el sync falle temporalmente
+7. representar cambios locales no aceptados como drafts cuando el remoto activo sea la verdad
+   oficial
+8. descartar cambios locales cuando el backend ya haya borrado el item, sin restore automatico
+9. seguir siendo usable aunque el sync falle temporalmente
 
 Resultado:
 

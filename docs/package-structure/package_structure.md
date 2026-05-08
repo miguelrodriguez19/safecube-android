@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 04-05-2026 06:41:09
+Updated: 08-05-2026 07:47:33
 
 ```
 safecube-android/
@@ -484,6 +484,7 @@ safecube-android/
 │   │   ├── openapi-vault-key-material-contract-integration.md
 │   │   ├── secure-item-payload-v1.md
 │   │   ├── storage_decision.md
+│   │   ├── vault-sync-conflict-draft-resolution.md
 │   │   └── vault-sync-v1.md
 │   ├── package-structure/
 │   │   └── package_structure.md
