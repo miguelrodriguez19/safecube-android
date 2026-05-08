@@ -28,4 +28,14 @@ class StorageTypeConverters {
     ) {
         "Unsupported SecureItemSyncStateDb value: $value"
     }
+
+    @TypeConverter
+    fun fromSecureItemDraftTypeDb(value: SecureItemDraftTypeDb): String = value.storageValue
+
+    @TypeConverter
+    fun toSecureItemDraftTypeDb(value: String): SecureItemDraftTypeDb = requireNotNull(
+        SecureItemDraftTypeDb.fromStorageValue(value),
+    ) {
+        "Unsupported SecureItemDraftTypeDb value: $value"
+    }
 }

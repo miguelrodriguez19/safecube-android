@@ -6,6 +6,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 object StorageMigrations {
     private const val SECURE_ITEM_SYNC_STATE_CHECK =
         "'SYNCED','PENDING_CREATE','PENDING_UPDATE','PENDING_DELETE','CONFLICT'"
+    private const val SECURE_ITEM_DRAFT_TYPE_CHECK = "'UPDATE','DELETE'"
     /**
      * v1 shipped only a placeholder secure_items table with an auto-generated numeric id and no
      * user data contract. v2 introduces the first real offline schema, so the table is recreated
@@ -154,6 +155,49 @@ object StorageMigrations {
             )
             db.execSQL(
                 "CREATE INDEX IF NOT EXISTS `index_secure_items_sync_state` ON `secure_items` (`sync_state`)",
+            )
+        }
+    }
+
+    /**
+     * v5 introduces mirror-style draft storage for non-official local proposals.
+     */
+    val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `secure_items_draft` (
+                    `logical_item_id` TEXT NOT NULL,
+                    `remote_item_id` TEXT,
+                    `item_type` TEXT NOT NULL,
+                    `schema_version` INTEGER NOT NULL,
+                    `display_hint` TEXT NOT NULL,
+                    `payload` BLOB NOT NULL,
+                    `payload_version` INTEGER NOT NULL,
+                    `created_at` INTEGER NOT NULL,
+                    `updated_at` INTEGER NOT NULL,
+                    `deleted_at` INTEGER,
+                    `last_synced_at` INTEGER,
+                    `last_sync_error` TEXT,
+                    `draft_type` TEXT NOT NULL CHECK(`draft_type` IN ($SECURE_ITEM_DRAFT_TYPE_CHECK)),
+                    `base_payload_version` INTEGER NOT NULL,
+                    `base_updated_at` INTEGER NOT NULL,
+                    `last_publish_error` TEXT,
+                    PRIMARY KEY(`logical_item_id`)
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_draft_remote_item_id` ON `secure_items_draft` (`remote_item_id`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_draft_deleted_at` ON `secure_items_draft` (`deleted_at`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_draft_updated_at` ON `secure_items_draft` (`updated_at`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_draft_draft_type` ON `secure_items_draft` (`draft_type`)",
             )
         }
     }

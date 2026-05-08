@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 08-05-2026 07:47:33
+Updated: 08-05-2026 08:15:15
 
 ```
 safecube-android/
@@ -255,7 +255,8 @@ safecube-android/
 │   │   ├── schemas/com.miguelrodriguez19.safecube.core.storage.AppDatabase/
 │   │   │   ├── 2.json
 │   │   │   ├── 3.json
-│   │   │   └── 4.json
+│   │   │   ├── 4.json
+│   │   │   └── 5.json
 │   │   ├── src/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/
@@ -263,10 +264,15 @@ safecube-android/
 │   │   │   │   │   │   ├── StorageBindingsModule.kt
 │   │   │   │   │   │   └── StorageModule.kt
 │   │   │   │   │   ├── local/
+│   │   │   │   │   │   ├── SecureItemDraftEntityMapper.kt
+│   │   │   │   │   │   ├── SecureItemDraftLocalStorage.kt
 │   │   │   │   │   │   ├── SecureItemLocalStorage.kt
 │   │   │   │   │   │   └── SecureItemSyncCheckpointLocalStorage.kt
 │   │   │   │   │   ├── AppDatabase.kt
 │   │   │   │   │   ├── SecureItemDao.kt
+│   │   │   │   │   ├── SecureItemDraftDao.kt
+│   │   │   │   │   ├── SecureItemDraftEntity.kt
+│   │   │   │   │   ├── SecureItemDraftTypeDb.kt
 │   │   │   │   │   ├── SecureItemEntity.kt
 │   │   │   │   │   ├── SecureItemSyncCheckpointDao.kt
 │   │   │   │   │   ├── SecureItemSyncCheckpointEntity.kt
@@ -276,9 +282,13 @@ safecube-android/
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/storage/
 │   │   │       ├── local/
+│   │   │       │   ├── SecureItemDraftEntityMapperTest.kt
+│   │   │       │   ├── SecureItemDraftLocalStorageTest.kt
 │   │   │       │   ├── SecureItemLocalStorageTest.kt
 │   │   │       │   └── SecureItemSyncCheckpointLocalStorageTest.kt
 │   │   │       ├── SecureItemDaoIntegrationTest.kt
+│   │   │       ├── SecureItemDraftDaoIntegrationTest.kt
+│   │   │       ├── SecureItemDraftTypeDbTest.kt
 │   │   │       ├── SecureItemSyncCheckpointDaoIntegrationTest.kt
 │   │   │       ├── StorageMigrationsIntegrationTest.kt
 │   │   │       └── StorageTypeConvertersTest.kt
@@ -362,6 +372,8 @@ safecube-android/
 │   │   │   │   │       │   │   │   └── SecureItemContent.kt
 │   │   │   │   │       │   │   ├── EncodedSecureItemContent.kt
 │   │   │   │   │       │   │   ├── SecureItem.kt
+│   │   │   │   │       │   │   ├── SecureItemDraftType.kt
+│   │   │   │   │       │   │   ├── SecureItemSyncDraft.kt
 │   │   │   │   │       │   │   ├── SecureItemSyncState.kt
 │   │   │   │   │       │   │   └── SecureItemType.kt
 │   │   │   │   │       │   ├── sync/
@@ -383,6 +395,7 @@ safecube-android/
 │   │   │   │   │       │   ├── VaultKeyMaterial.kt
 │   │   │   │   │       │   └── VaultState.kt
 │   │   │   │   │       ├── repository/
+│   │   │   │   │       │   ├── SecureItemDraftRepository.kt
 │   │   │   │   │       │   ├── SecureItemRemoteRepository.kt
 │   │   │   │   │       │   ├── SecureItemRepository.kt
 │   │   │   │   │       │   ├── SecureItemSyncCheckpointRepository.kt
@@ -454,6 +467,7 @@ safecube-android/
 │   │   │           │   ├── itemcontent/
 │   │   │           │   │   └── NoteSecureItemContentTest.kt
 │   │   │           │   ├── SecureItemContentTest.kt
+│   │   │           │   ├── SecureItemSyncDraftTest.kt
 │   │   │           │   └── SecureItemTest.kt
 │   │   │           └── usecase/
 │   │   │               ├── note/

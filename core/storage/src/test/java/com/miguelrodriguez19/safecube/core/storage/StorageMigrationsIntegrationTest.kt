@@ -5,11 +5,13 @@ import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,7 +32,7 @@ class StorageMigrationsIntegrationTest {
     }
 
     @Test
-    fun `migration 2 to 4 when applied then keeps secure items and adds sync columns plus checkpoint table`() =
+    fun `migration 2 to 5 when applied then keeps secure items and adds sync metadata checkpoint and draft tables`() =
         runBlocking {
             createVersion2Database()
 
@@ -41,6 +43,7 @@ class StorageMigrationsIntegrationTest {
             )
                 .addMigrations(StorageMigrations.MIGRATION_2_3)
                 .addMigrations(StorageMigrations.MIGRATION_3_4)
+                .addMigrations(StorageMigrations.MIGRATION_4_5)
                 .build()
 
             val migratedItem = migratedDatabase.secureItemDao().getItem(SAMPLE_LOGICAL_ITEM_ID)
@@ -60,6 +63,33 @@ class StorageMigrationsIntegrationTest {
                 ),
             )
             assertEquals(SAMPLE_LAST_PULLED_AT, checkpointDao.getLastPulledAt(SAMPLE_ACCOUNT_ID))
+
+            val draftDao = migratedDatabase.secureItemDraftDao()
+            assertNull(draftDao.getDraft(SAMPLE_LOGICAL_ITEM_ID))
+            draftDao.upsert(
+                SecureItemDraftEntity(
+                    logicalItemId = SAMPLE_LOGICAL_ITEM_ID,
+                    remoteItemId = SAMPLE_REMOTE_ITEM_ID,
+                    itemType = "PASSWORD",
+                    schemaVersion = 1,
+                    displayHint = "Migrated draft",
+                    payload = byteArrayOf(9, 8, 7),
+                    payloadVersion = 3,
+                    createdAt = SAMPLE_CREATED_AT,
+                    updatedAt = SAMPLE_UPDATED_AT.plusSeconds(60),
+                    deletedAt = null,
+                    lastSyncedAt = SAMPLE_UPDATED_AT,
+                    lastSyncError = null,
+                    draftType = SecureItemDraftTypeDb.UPDATE,
+                    basePayloadVersion = 2,
+                    baseUpdatedAt = SAMPLE_UPDATED_AT,
+                    lastPublishError = null,
+                ),
+            )
+            val storedDraft = draftDao.getDraft(SAMPLE_LOGICAL_ITEM_ID)
+            assertNotNull(storedDraft)
+            assertEquals(SecureItemDraftTypeDb.UPDATE, storedDraft?.draftType)
+            assertEquals(2L, storedDraft?.basePayloadVersion)
 
             migratedDatabase.close()
         }
@@ -145,11 +175,12 @@ class StorageMigrationsIntegrationTest {
 
     private companion object {
         private const val TEST_DATABASE_NAME = "storage-migration-test.db"
+        private val NOW = Instant.now().truncatedTo(ChronoUnit.MILLIS)
         private val SAMPLE_LOGICAL_ITEM_ID = UUID.randomUUID()
         private val SAMPLE_REMOTE_ITEM_ID = UUID.randomUUID()
         private val SAMPLE_ACCOUNT_ID = UUID.randomUUID()
-        private val SAMPLE_CREATED_AT = Instant.parse("2026-04-15T10:00:00Z")
-        private val SAMPLE_UPDATED_AT = Instant.parse("2026-04-16T10:00:00Z")
-        private val SAMPLE_LAST_PULLED_AT = Instant.parse("2026-04-17T12:45:00Z")
+        private val SAMPLE_CREATED_AT = NOW.minus(3, ChronoUnit.DAYS)
+        private val SAMPLE_UPDATED_AT = NOW.minus(2, ChronoUnit.DAYS)
+        private val SAMPLE_LAST_PULLED_AT = NOW.minus(1, ChronoUnit.DAYS)
     }
 }

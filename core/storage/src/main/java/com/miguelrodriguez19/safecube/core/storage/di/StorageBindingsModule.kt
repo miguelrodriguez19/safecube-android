@@ -1,7 +1,9 @@
 package com.miguelrodriguez19.safecube.core.storage.di
 
 import com.miguelrodriguez19.safecube.core.storage.local.SecureItemLocalStorage
+import com.miguelrodriguez19.safecube.core.storage.local.SecureItemDraftLocalStorage
 import com.miguelrodriguez19.safecube.core.storage.local.SecureItemSyncCheckpointLocalStorage
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemDraftRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemSyncCheckpointRepository
 import dagger.Binds
@@ -18,6 +20,12 @@ abstract class StorageBindingsModule {
     abstract fun bindSecureItemRepository(
         secureItemLocalStorage: SecureItemLocalStorage,
     ): SecureItemRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSecureItemDraftRepository(
+        secureItemDraftLocalStorage: SecureItemDraftLocalStorage,
+    ): SecureItemDraftRepository
 
     @Binds
     @Singleton

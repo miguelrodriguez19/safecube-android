@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.core.storage.di
 import android.content.Context
 import androidx.room.Room
 import com.miguelrodriguez19.safecube.core.storage.AppDatabase
+import com.miguelrodriguez19.safecube.core.storage.SecureItemDraftDao
 import com.miguelrodriguez19.safecube.core.storage.SecureItemDao
 import com.miguelrodriguez19.safecube.core.storage.SecureItemSyncCheckpointDao
 import com.miguelrodriguez19.safecube.core.storage.StorageMigrations
@@ -29,6 +30,7 @@ object StorageModule {
         StorageMigrations.MIGRATION_1_2,
         StorageMigrations.MIGRATION_2_3,
         StorageMigrations.MIGRATION_3_4,
+        StorageMigrations.MIGRATION_4_5,
     ).build()
 
     @Provides
@@ -36,6 +38,12 @@ object StorageModule {
     fun provideSecureItemDao(
         appDatabase: AppDatabase,
     ): SecureItemDao = appDatabase.secureItemDao()
+
+    @Provides
+    @Singleton
+    fun provideSecureItemDraftDao(
+        appDatabase: AppDatabase,
+    ): SecureItemDraftDao = appDatabase.secureItemDraftDao()
 
     @Provides
     @Singleton
