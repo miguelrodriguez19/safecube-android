@@ -4,6 +4,9 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteListV
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItemSummary
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.SecureItemRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.ApplyDeltaCounters
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.DeltaApplyResult
@@ -14,6 +17,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.SummaryF
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.SecureItemDraftPolicyCoordinator
 import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
@@ -24,6 +28,7 @@ class PullVaultDeltaUseCase @Inject constructor(
     private val secureItemRepository: SecureItemRepository,
     private val secureItemRemoteRepository: SecureItemRemoteRepository,
     private val vaultKeyMaterialLocalRepository: VaultKeyMaterialLocalRepository,
+    private val secureItemDraftPolicyCoordinator: SecureItemDraftPolicyCoordinator,
 ) {
     suspend operator fun invoke(limit: Int? = null): PullVaultDeltaResult {
         val accountId = vaultKeyMaterialLocalRepository.get().accountIdOrNull()
@@ -114,23 +119,22 @@ class PullVaultDeltaUseCase @Inject constructor(
 
         for (summary in summaries) {
             val localItem = secureItemRepository.findByRemoteItemId(summary.itemId)
-            if (localItem != null && localItem.syncState.blocksRemotePullOverwrite()) {
-                secureItemRepository.markConflict(
-                    logicalItemId = localItem.logicalItemId,
-                    lastSyncError = "Pull skipped: local changes pending. Push/retry required before applying remote update.",
-                )
-                counters.skippedDirtyOrConflict++
-                continue
-            }
-
             if (summary.deletedAt != null) {
-                val deleted = secureItemRepository.applyRemoteDelete(
-                    remoteItemId = summary.itemId,
-                    deletedAt = summary.deletedAt,
-                    lastSyncedAt = summary.updatedAt,
+                val deleteResult = applyRemoteDeleteSummary(
+                    summary = summary,
+                    localItem = localItem,
                 )
-                if (deleted) {
-                    counters.appliedDeletes++
+                when (deleteResult) {
+                    RemoteDeltaItemResult.Applied -> counters.appliedDeletes++
+                    RemoteDeltaItemResult.Skipped -> counters.skippedDirtyOrConflict++
+                    RemoteDeltaItemResult.Failed -> {
+                        return DeltaApplyResult.Error(
+                            PullVaultDeltaError.LocalApplyFailed(
+                                itemId = summary.itemId,
+                                operation = "DELETE",
+                            ),
+                        )
+                    }
                 }
                 continue
             }
@@ -147,28 +151,147 @@ class PullVaultDeltaUseCase @Inject constructor(
                     ),
                 )
 
-            val upserted = secureItemRepository.applyRemoteUpsert(
-                item = detail.toLocalSecureItem(
-                    logicalItemId = localItem?.logicalItemId ?: UUID.randomUUID(),
-                    itemType = itemType,
-                    createdAt = localItem?.createdAt ?: detail.updatedAt,
-                ),
-                lastSyncedAt = summary.updatedAt,
+            val applyResult = applyRemoteActiveSummary(
+                summary = summary,
+                detail = detail,
+                itemType = itemType,
+                localItem = localItem,
             )
-            if (!upserted) {
-                return DeltaApplyResult.Error(
-                    PullVaultDeltaError.LocalApplyFailed(
-                        itemId = summary.itemId,
-                        operation = "UPSERT",
-                    ),
-                )
+            when (applyResult) {
+                RemoteDeltaItemResult.Applied -> counters.appliedUpserts++
+                RemoteDeltaItemResult.Skipped -> counters.skippedDirtyOrConflict++
+                RemoteDeltaItemResult.Failed -> {
+                    return DeltaApplyResult.Error(
+                        PullVaultDeltaError.LocalApplyFailed(
+                            itemId = summary.itemId,
+                            operation = "UPSERT",
+                        ),
+                    )
+                }
             }
-
-            counters.appliedUpserts++
         }
 
         return DeltaApplyResult.Success(counters)
     }
+
+    private suspend fun applyRemoteDeleteSummary(
+        summary: RemoteSecureItemSummary,
+        localItem: SecureItem?,
+    ): RemoteDeltaItemResult {
+        val deletedAt = requireNotNull(summary.deletedAt)
+
+        if (localItem == null) {
+            secureItemRepository.applyRemoteDelete(
+                remoteItemId = summary.itemId,
+                deletedAt = deletedAt,
+                lastSyncedAt = summary.updatedAt,
+            )
+            return RemoteDeltaItemResult.Applied
+        }
+
+        return when (localItem.syncState) {
+            SecureItemSyncState.PENDING_UPDATE,
+            SecureItemSyncState.PENDING_DELETE,
+                -> appliedOrFailedIf {
+                secureItemDraftPolicyCoordinator.applyRemoteDeleteAndDiscardLocalChanges(
+                    logicalItemId = localItem.logicalItemId,
+                    remoteItemId = summary.itemId,
+                    deletedAt = deletedAt,
+                    lastSyncedAt = summary.updatedAt,
+                )
+            }
+
+            SecureItemSyncState.PENDING_CREATE,
+            SecureItemSyncState.CONFLICT,
+                -> skippedOrFailedIf {
+                secureItemRepository.markConflict(
+                    logicalItemId = localItem.logicalItemId,
+                    lastSyncError = "Pull skipped: local changes cannot be reconciled with remote tombstone automatically.",
+                )
+            }
+
+
+            SecureItemSyncState.SYNCED -> appliedOrFailedIf {
+                secureItemRepository.applyRemoteDelete(
+                    remoteItemId = summary.itemId,
+                    deletedAt = deletedAt,
+                    lastSyncedAt = summary.updatedAt,
+                )
+            }
+        }
+    }
+
+    private suspend fun applyRemoteActiveSummary(
+        summary: RemoteSecureItemSummary,
+        detail: RemoteSecureItem,
+        itemType: SecureItemType,
+        localItem: SecureItem?,
+    ): RemoteDeltaItemResult {
+        val remoteOfficialItem = detail.toLocalSecureItem(
+            logicalItemId = localItem?.logicalItemId ?: UUID.randomUUID(),
+            itemType = itemType,
+            createdAt = localItem?.createdAt ?: detail.updatedAt,
+        )
+
+        if (localItem == null) {
+            return appliedOrFailedIf {
+                secureItemRepository.applyRemoteUpsert(
+                    item = remoteOfficialItem,
+                    lastSyncedAt = summary.updatedAt,
+                )
+            }
+        }
+
+        return when (localItem.syncState) {
+            SecureItemSyncState.PENDING_UPDATE -> appliedOrFailedIf {
+                secureItemDraftPolicyCoordinator.replaceOfficialItemWithRemoteAndDraft(
+                    localItem = localItem,
+                    remoteItem = remoteOfficialItem,
+                    draftType = SecureItemDraftType.UPDATE,
+                    lastSyncedAt = summary.updatedAt,
+                )
+            }
+
+            SecureItemSyncState.PENDING_DELETE -> appliedOrFailedIf {
+                secureItemDraftPolicyCoordinator.replaceOfficialItemWithRemoteAndDraft(
+                    localItem = localItem,
+                    remoteItem = remoteOfficialItem,
+                    draftType = SecureItemDraftType.DELETE,
+                    lastSyncedAt = summary.updatedAt,
+                )
+            }
+
+            SecureItemSyncState.PENDING_CREATE,
+            SecureItemSyncState.CONFLICT,
+                -> skippedOrFailedIf {
+                secureItemRepository.markConflict(
+                    logicalItemId = localItem.logicalItemId,
+                    lastSyncError = "Pull skipped: local changes pending. Push/retry required before applying remote update.",
+                )
+            }
+
+            SecureItemSyncState.SYNCED -> appliedOrFailedIf {
+                secureItemRepository.applyRemoteUpsert(
+                    item = remoteOfficialItem,
+                    lastSyncedAt = summary.updatedAt,
+                )
+            }
+        }
+    }
+
+    private suspend fun appliedOrFailedIf(action: suspend () -> Boolean): RemoteDeltaItemResult =
+        if (action()) {
+            RemoteDeltaItemResult.Applied
+        } else {
+            RemoteDeltaItemResult.Failed
+        }
+
+    private suspend fun skippedOrFailedIf(action: suspend () -> Boolean): RemoteDeltaItemResult =
+        if (action()) {
+            RemoteDeltaItemResult.Skipped
+        } else {
+            RemoteDeltaItemResult.Failed
+        }
 
     private suspend fun updateCheckpointIfPresent(accountId: UUID, checkpoint: Instant?) {
         if (checkpoint != null) {
@@ -178,4 +301,10 @@ class PullVaultDeltaUseCase @Inject constructor(
             )
         }
     }
+}
+
+private enum class RemoteDeltaItemResult {
+    Applied,
+    Skipped,
+    Failed,
 }

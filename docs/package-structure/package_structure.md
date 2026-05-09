@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 08-05-2026 08:15:15
+Updated: 10-05-2026 12:19:34
 
 ```
 safecube-android/
@@ -377,6 +377,9 @@ safecube-android/
 │   │   │   │   │       │   │   ├── SecureItemSyncState.kt
 │   │   │   │   │       │   │   └── SecureItemType.kt
 │   │   │   │   │       │   ├── sync/
+│   │   │   │   │       │   │   ├── draft/
+│   │   │   │   │       │   │   │   ├── DiscardSecureItemDraftResult.kt
+│   │   │   │   │       │   │   │   └── PublishSecureItemDraftResult.kt
 │   │   │   │   │       │   │   ├── pull/
 │   │   │   │   │       │   │   │   ├── PullVaultDeltaApplyResults.kt
 │   │   │   │   │       │   │   │   ├── PullVaultDeltaError.kt
@@ -426,6 +429,11 @@ safecube-android/
 │   │   │   │   │           │   ├── SecureItemMutationCoordinator.kt
 │   │   │   │   │           │   └── SoftDeleteSecureItemUseCase.kt
 │   │   │   │   │           ├── sync/
+│   │   │   │   │           │   ├── draft/
+│   │   │   │   │           │   │   ├── DiscardSecureItemDraftUseCase.kt
+│   │   │   │   │           │   │   ├── PublishSecureItemDraftUseCase.kt
+│   │   │   │   │           │   │   ├── SecureItemDraftPolicyCoordinator.kt
+│   │   │   │   │           │   │   └── SecureItemDraftPolicyMappings.kt
 │   │   │   │   │           │   ├── pull/
 │   │   │   │   │           │   │   ├── PullVaultDeltaMappings.kt
 │   │   │   │   │           │   │   └── PullVaultDeltaUseCase.kt
@@ -470,6 +478,10 @@ safecube-android/
 │   │   │           │   ├── SecureItemSyncDraftTest.kt
 │   │   │           │   └── SecureItemTest.kt
 │   │   │           └── usecase/
+│   │   │               ├── draft/
+│   │   │               │   ├── DiscardSecureItemDraftUseCaseTest.kt
+│   │   │               │   ├── PublishSecureItemDraftUseCaseTest.kt
+│   │   │               │   └── SecureItemDraftPolicyCoordinatorTest.kt
 │   │   │               ├── note/
 │   │   │               │   └── NoteDraftToContentMapperTest.kt
 │   │   │               ├── password/
