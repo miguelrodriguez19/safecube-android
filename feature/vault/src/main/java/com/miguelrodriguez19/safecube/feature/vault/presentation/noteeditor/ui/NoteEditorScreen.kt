@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.action.NoteEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.event.NoteEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.state.NoteEditorUiState
@@ -64,8 +65,15 @@ private fun NoteEditorContent(
         } else {
             uiState.itemSyncState?.asUiLabel()
         },
-        lastSyncMessage = null,
-        lastSyncErrorMessage = uiState.itemSyncError,
+        lastSyncMessage = uiState.lastPublishError?.let { publishError ->
+            stringResource(UiR.string.draft_last_publish_error_with_reason, publishError)
+        },
+        lastSyncErrorMessage = uiState.lastDraftError ?: uiState.itemSyncError,
+        draftBannerMessage = uiState.draftType?.asBannerLabel(),
+        showDraftActions = uiState.hasDraft,
+        onPublishDraft = { onAction(NoteEditorUiAction.PublishDraftClicked) },
+        onDiscardDraft = { onAction(NoteEditorUiAction.DiscardDraftClicked) },
+        isDraftActionInProgress = uiState.isDraftActionInProgress,
         errorMessage = uiState.errorMessage,
         onBack = onBack,
         onSave = { onAction(NoteEditorUiAction.SaveClicked) },
@@ -95,4 +103,10 @@ private fun NoteEditorContent(
             enabled = !uiState.isSaving,
         )
     }
+}
+
+@Composable
+private fun SecureItemDraftType.asBannerLabel(): String = when (this) {
+    SecureItemDraftType.UPDATE -> stringResource(UiR.string.draft_banner_update)
+    SecureItemDraftType.DELETE -> stringResource(UiR.string.draft_banner_delete)
 }

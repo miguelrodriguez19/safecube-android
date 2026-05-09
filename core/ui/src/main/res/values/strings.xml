@@ -42,5 +42,13 @@
     <string name="sync_error_invalid_vault_state">Vault is locked or unavailable</string>
     <string name="sync_error_push_failed">Could not upload local changes</string>
     <string name="sync_error_pull_failed">Could not refresh remote changes</string>
+    <string name="draft_badge_label">Draft</string>
+    <string name="draft_type_update">Draft update</string>
+    <string name="draft_type_delete">Draft delete</string>
+    <string name="draft_banner_update">You are editing a local draft. Changes are not official yet.</string>
+    <string name="draft_banner_delete">This item has a local delete draft. Publish to delete remotely or discard to keep official data.</string>
+    <string name="draft_action_publish">Publish draft</string>
+    <string name="draft_action_discard">Discard draft</string>
+    <string name="draft_last_publish_error_with_reason">Last draft publish error: %1$s</string>
 
 </resources>

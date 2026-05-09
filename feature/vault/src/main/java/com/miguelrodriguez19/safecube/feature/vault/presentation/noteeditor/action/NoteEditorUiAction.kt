@@ -8,4 +8,8 @@ sealed interface NoteEditorUiAction {
     data object SaveClicked : NoteEditorUiAction
 
     data object DeleteClicked : NoteEditorUiAction
+
+    data object PublishDraftClicked : NoteEditorUiAction
+
+    data object DiscardDraftClicked : NoteEditorUiAction
 }

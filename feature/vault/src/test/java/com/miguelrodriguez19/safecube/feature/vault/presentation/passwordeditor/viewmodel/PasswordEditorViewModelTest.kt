@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.viewmodel
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDraftDetailResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDetailResult
@@ -9,10 +10,13 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.Se
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordWebsiteSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDetailUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDraftDetailUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SoftDeleteSecureItemUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.password.CreateSecurePasswordUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.password.UpdateSecurePasswordUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.DiscardSecureItemDraftUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.PublishSecureItemDraftUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.action.PasswordEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.event.PasswordEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.test.MainDispatcherRule
@@ -42,9 +46,12 @@ class PasswordEditorViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val observeSecureItemDetailUseCase = mockk<ObserveSecureItemDetailUseCase>()
+    private val observeSecureItemDraftDetailUseCase = mockk<ObserveSecureItemDraftDetailUseCase>()
     private val createSecurePasswordUseCase = mockk<CreateSecurePasswordUseCase>()
     private val updateSecurePasswordUseCase = mockk<UpdateSecurePasswordUseCase>()
     private val softDeleteSecureItemUseCase = mockk<SoftDeleteSecureItemUseCase>()
+    private val publishSecureItemDraftUseCase = mockk<PublishSecureItemDraftUseCase>()
+    private val discardSecureItemDraftUseCase = mockk<DiscardSecureItemDraftUseCase>()
     private val observeVaultSyncingUseCase = mockk<ObserveVaultSyncingUseCase>()
     private val isSyncingFlow = MutableStateFlow(false)
 
@@ -52,11 +59,17 @@ class PasswordEditorViewModelTest {
 
     private fun buildTarget(): PasswordEditorViewModel {
         every { observeVaultSyncingUseCase.invoke() } returns isSyncingFlow
+        every { observeSecureItemDraftDetailUseCase.invoke(any()) } returns flowOf(
+            ObserveSecureItemDraftDetailResult.NotFound,
+        )
         return PasswordEditorViewModel(
             observeSecureItemDetailUseCase = observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase = observeSecureItemDraftDetailUseCase,
             createSecurePasswordUseCase = createSecurePasswordUseCase,
             updateSecurePasswordUseCase = updateSecurePasswordUseCase,
             softDeleteSecureItemUseCase = softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase = publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase = discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase = observeVaultSyncingUseCase,
         )
     }
@@ -100,12 +113,16 @@ class PasswordEditorViewModelTest {
         assertEquals("personal account", target.uiState.value.notes)
         assertEquals(SecureItemSyncState.PENDING_UPDATE, target.uiState.value.itemSyncState)
         verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
+        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
         confirmVerified(
             observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase,
             createSecurePasswordUseCase,
             updateSecurePasswordUseCase,
             softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase,
         )
     }
@@ -142,9 +159,12 @@ class PasswordEditorViewModelTest {
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
         confirmVerified(
             observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase,
             createSecurePasswordUseCase,
             updateSecurePasswordUseCase,
             softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase,
         )
     }
@@ -192,6 +212,7 @@ class PasswordEditorViewModelTest {
 
         assertEquals(PasswordEditorUiEvent.NavigateBack, event.await())
         verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
+        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
         coVerify(exactly = 1) {
             updateSecurePasswordUseCase(
                 logicalItemId = logicalItemId,
@@ -205,9 +226,12 @@ class PasswordEditorViewModelTest {
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
         confirmVerified(
             observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase,
             createSecurePasswordUseCase,
             updateSecurePasswordUseCase,
             softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase,
         )
     }
@@ -251,13 +275,17 @@ class PasswordEditorViewModelTest {
 
         assertEquals(PasswordEditorUiEvent.NavigateBack, event.await())
         verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
+        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
         coVerify(exactly = 1) { softDeleteSecureItemUseCase(logicalItemId) }
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
         confirmVerified(
             observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase,
             createSecurePasswordUseCase,
             updateSecurePasswordUseCase,
             softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase,
         )
     }
@@ -306,13 +334,17 @@ class PasswordEditorViewModelTest {
         assertEquals(logicalItemId, target.uiState.value.logicalItemId)
         assertEquals("Github", target.uiState.value.displayHint)
         verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
+        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
         coVerify(exactly = 1) { createSecurePasswordUseCase(any()) }
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
         confirmVerified(
             observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase,
             createSecurePasswordUseCase,
             updateSecurePasswordUseCase,
             softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase,
         )
     }

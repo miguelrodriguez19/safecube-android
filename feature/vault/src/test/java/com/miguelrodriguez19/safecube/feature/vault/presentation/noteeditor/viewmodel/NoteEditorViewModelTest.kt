@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.viewmodel
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDraftDetailResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDetailResult
@@ -8,10 +9,13 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.Se
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDetailUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDraftDetailUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SoftDeleteSecureItemUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.CreateSecureNoteUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.UpdateSecureNoteUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.DiscardSecureItemDraftUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.PublishSecureItemDraftUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.action.NoteEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.event.NoteEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.test.MainDispatcherRule
@@ -41,9 +45,12 @@ class NoteEditorViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val observeSecureItemDetailUseCase = mockk<ObserveSecureItemDetailUseCase>()
+    private val observeSecureItemDraftDetailUseCase = mockk<ObserveSecureItemDraftDetailUseCase>()
     private val createSecureNoteUseCase = mockk<CreateSecureNoteUseCase>()
     private val updateSecureNoteUseCase = mockk<UpdateSecureNoteUseCase>()
     private val softDeleteSecureItemUseCase = mockk<SoftDeleteSecureItemUseCase>()
+    private val publishSecureItemDraftUseCase = mockk<PublishSecureItemDraftUseCase>()
+    private val discardSecureItemDraftUseCase = mockk<DiscardSecureItemDraftUseCase>()
     private val observeVaultSyncingUseCase = mockk<ObserveVaultSyncingUseCase>()
     private val isSyncingFlow = MutableStateFlow(false)
 
@@ -51,11 +58,17 @@ class NoteEditorViewModelTest {
 
     private fun buildTarget(): NoteEditorViewModel {
         every { observeVaultSyncingUseCase.invoke() } returns isSyncingFlow
+        every { observeSecureItemDraftDetailUseCase.invoke(any()) } returns flowOf(
+            ObserveSecureItemDraftDetailResult.NotFound,
+        )
         return NoteEditorViewModel(
             observeSecureItemDetailUseCase = observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase = observeSecureItemDraftDetailUseCase,
             createSecureNoteUseCase = createSecureNoteUseCase,
             updateSecureNoteUseCase = updateSecureNoteUseCase,
             softDeleteSecureItemUseCase = softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase = publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase = discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase = observeVaultSyncingUseCase,
         )
     }
@@ -90,12 +103,16 @@ class NoteEditorViewModelTest {
         assertEquals("ssh-rsa ...", target.uiState.value.body)
         assertEquals(SecureItemSyncState.PENDING_UPDATE, target.uiState.value.itemSyncState)
         verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
+        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
         confirmVerified(
             observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase,
             createSecureNoteUseCase,
             updateSecureNoteUseCase,
             softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase,
         )
     }
@@ -125,9 +142,12 @@ class NoteEditorViewModelTest {
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
         confirmVerified(
             observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase,
             createSecureNoteUseCase,
             updateSecureNoteUseCase,
             softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase,
         )
     }
@@ -173,6 +193,7 @@ class NoteEditorViewModelTest {
 
         assertEquals(NoteEditorUiEvent.NavigateBack, event.await())
         verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
+        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
         coVerify(exactly = 1) {
             updateSecureNoteUseCase(
                 logicalItemId = logicalItemId,
@@ -185,9 +206,12 @@ class NoteEditorViewModelTest {
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
         confirmVerified(
             observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase,
             createSecureNoteUseCase,
             updateSecureNoteUseCase,
             softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase,
         )
     }
@@ -228,13 +252,17 @@ class NoteEditorViewModelTest {
 
         assertEquals(NoteEditorUiEvent.NavigateBack, event.await())
         verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
+        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
         coVerify(exactly = 1) { softDeleteSecureItemUseCase(logicalItemId) }
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
         confirmVerified(
             observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase,
             createSecureNoteUseCase,
             updateSecureNoteUseCase,
             softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase,
         )
     }
@@ -277,13 +305,17 @@ class NoteEditorViewModelTest {
         assertEquals(logicalItemId, target.uiState.value.logicalItemId)
         assertEquals("Server keys", target.uiState.value.displayHint)
         verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
+        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
         coVerify(exactly = 1) { createSecureNoteUseCase(any()) }
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
         confirmVerified(
             observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase,
             createSecureNoteUseCase,
             updateSecureNoteUseCase,
             softDeleteSecureItemUseCase,
+            publishSecureItemDraftUseCase,
+            discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase,
         )
     }

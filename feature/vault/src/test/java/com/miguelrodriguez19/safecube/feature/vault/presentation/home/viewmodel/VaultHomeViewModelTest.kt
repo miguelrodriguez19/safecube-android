@@ -1,9 +1,12 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.home.viewmodel
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.VaultItemDraftSummary
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.VaultItemSummary
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveVaultDraftSummariesUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveVaultItemSummariesUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.SyncVaultNowUseCase
@@ -30,13 +33,16 @@ class VaultHomeViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val observeVaultItemSummariesUseCase = mockk<ObserveVaultItemSummariesUseCase>()
+    private val observeVaultDraftSummariesUseCase = mockk<ObserveVaultDraftSummariesUseCase>()
     private val observeVaultSyncingUseCase = mockk<ObserveVaultSyncingUseCase>()
     private val syncVaultNowUseCase = mockk<SyncVaultNowUseCase>()
     private val summariesFlow = MutableStateFlow<List<VaultItemSummary>>(emptyList())
+    private val draftSummariesFlow = MutableStateFlow<List<VaultItemDraftSummary>>(emptyList())
     private val isSyncingFlow = MutableStateFlow(false)
 
     private fun buildTarget(): VaultHomeViewModel = VaultHomeViewModel(
         observeVaultItemSummariesUseCase = observeVaultItemSummariesUseCase,
+        observeVaultDraftSummariesUseCase = observeVaultDraftSummariesUseCase,
         observeVaultSyncingUseCase = observeVaultSyncingUseCase,
         syncVaultNowUseCase = syncVaultNowUseCase,
     )
@@ -44,18 +50,27 @@ class VaultHomeViewModelTest {
     @Test
     fun `init when summaries flow emits then exposes local vault items`() = runTest {
         every { observeVaultItemSummariesUseCase.invoke() } returns summariesFlow
+        every { observeVaultDraftSummariesUseCase.invoke() } returns draftSummariesFlow
         every { observeVaultSyncingUseCase.invoke() } returns isSyncingFlow
+        val itemId = UUID.randomUUID()
         val updatedAt = Instant.parse("2026-04-10T10:15:30Z")
         val target = buildTarget()
 
         summariesFlow.value = listOf(
             VaultItemSummary(
-                logicalItemId = UUID.randomUUID(),
+                logicalItemId = itemId,
                 itemType = SecureItemType.PASSWORD,
                 displayHint = "Github",
                 updatedAt = updatedAt,
                 syncState = SecureItemSyncState.PENDING_UPDATE,
                 lastSyncError = null,
+            ),
+        )
+        draftSummariesFlow.value = listOf(
+            VaultItemDraftSummary(
+                logicalItemId = itemId,
+                draftType = SecureItemDraftType.UPDATE,
+                lastPublishError = "Conflict",
             ),
         )
 
@@ -65,14 +80,23 @@ class VaultHomeViewModelTest {
         assertEquals("Github", target.uiState.value.items.first().displayHint)
         assertEquals(SecureItemType.PASSWORD, target.uiState.value.items.first().itemType)
         assertEquals(true, target.uiState.value.items.first().isPendingSync)
+        assertEquals(true, target.uiState.value.items.first().hasDraft)
+        assertEquals(SecureItemDraftType.UPDATE, target.uiState.value.items.first().draftType)
         verify(exactly = 1) { observeVaultItemSummariesUseCase.invoke() }
+        verify(exactly = 1) { observeVaultDraftSummariesUseCase.invoke() }
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
-        confirmVerified(observeVaultItemSummariesUseCase, observeVaultSyncingUseCase, syncVaultNowUseCase)
+        confirmVerified(
+            observeVaultItemSummariesUseCase,
+            observeVaultDraftSummariesUseCase,
+            observeVaultSyncingUseCase,
+            syncVaultNowUseCase,
+        )
     }
 
     @Test
     fun `syncNow when called and not syncing then stores last sync result`() = runTest {
         every { observeVaultItemSummariesUseCase.invoke() } returns summariesFlow
+        every { observeVaultDraftSummariesUseCase.invoke() } returns draftSummariesFlow
         every { observeVaultSyncingUseCase.invoke() } returns isSyncingFlow
         coEvery { syncVaultNowUseCase.invoke() } returns VaultSyncResult.Success(
             uploadedCount = 2,
@@ -95,7 +119,13 @@ class VaultHomeViewModelTest {
         )
         coVerify(exactly = 1) { syncVaultNowUseCase.invoke() }
         verify(exactly = 1) { observeVaultItemSummariesUseCase.invoke() }
+        verify(exactly = 1) { observeVaultDraftSummariesUseCase.invoke() }
         verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
-        confirmVerified(observeVaultItemSummariesUseCase, observeVaultSyncingUseCase, syncVaultNowUseCase)
+        confirmVerified(
+            observeVaultItemSummariesUseCase,
+            observeVaultDraftSummariesUseCase,
+            observeVaultSyncingUseCase,
+            syncVaultNowUseCase,
+        )
     }
 }

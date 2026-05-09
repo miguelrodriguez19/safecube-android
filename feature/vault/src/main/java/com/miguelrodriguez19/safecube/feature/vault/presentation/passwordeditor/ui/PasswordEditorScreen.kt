@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.asUiLabel
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.action.PasswordEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.event.PasswordEditorUiEvent
@@ -66,8 +67,15 @@ private fun PasswordEditorContent(
         } else {
             uiState.itemSyncState?.asUiLabel()
         },
-        lastSyncMessage = null,
-        lastSyncErrorMessage = uiState.itemSyncError,
+        lastSyncMessage = uiState.lastPublishError?.let { publishError ->
+            stringResource(UiR.string.draft_last_publish_error_with_reason, publishError)
+        },
+        lastSyncErrorMessage = uiState.lastDraftError ?: uiState.itemSyncError,
+        draftBannerMessage = uiState.draftType?.asBannerLabel(),
+        showDraftActions = uiState.hasDraft,
+        onPublishDraft = { onAction(PasswordEditorUiAction.PublishDraftClicked) },
+        onDiscardDraft = { onAction(PasswordEditorUiAction.DiscardDraftClicked) },
+        isDraftActionInProgress = uiState.isDraftActionInProgress,
         errorMessage = uiState.errorMessage,
         onBack = onBack,
         onSave = { onAction(PasswordEditorUiAction.SaveClicked) },
@@ -124,4 +132,10 @@ private fun PasswordEditorContent(
             )
         }
     }
+}
+
+@Composable
+private fun SecureItemDraftType.asBannerLabel(): String = when (this) {
+    SecureItemDraftType.UPDATE -> stringResource(UiR.string.draft_banner_update)
+    SecureItemDraftType.DELETE -> stringResource(UiR.string.draft_banner_delete)
 }

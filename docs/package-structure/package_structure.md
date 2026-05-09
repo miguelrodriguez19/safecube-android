@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-05-2026 12:19:34
+Updated: 10-05-2026 01:07:02
 
 ```
 safecube-android/
@@ -360,11 +360,14 @@ safecube-android/
 │   │   │   │   │       │   ├── secureitem/
 │   │   │   │   │       │   │   ├── crud/
 │   │   │   │   │       │   │   │   ├── ObserveSecureItemDetailResult.kt
+│   │   │   │   │       │   │   │   ├── ObserveSecureItemDraftDetailResult.kt
 │   │   │   │   │       │   │   │   ├── SecureItemCrudError.kt
 │   │   │   │   │       │   │   │   ├── SecureItemDetail.kt
+│   │   │   │   │       │   │   │   ├── SecureItemDraftDetail.kt
 │   │   │   │   │       │   │   │   ├── SecureItemMutationResult.kt
 │   │   │   │   │       │   │   │   ├── SecureNoteDraft.kt
 │   │   │   │   │       │   │   │   ├── SecurePasswordDraft.kt
+│   │   │   │   │       │   │   │   ├── VaultItemDraftSummary.kt
 │   │   │   │   │       │   │   │   └── VaultItemSummary.kt
 │   │   │   │   │       │   │   ├── itemcontent/
 │   │   │   │   │       │   │   │   ├── NoteSecureItemContent.kt
@@ -424,6 +427,8 @@ safecube-android/
 │   │   │   │   │           │   │   └── UpdateSecurePasswordUseCase.kt
 │   │   │   │   │           │   ├── CurrentInstantProvider.kt
 │   │   │   │   │           │   ├── ObserveSecureItemDetailUseCase.kt
+│   │   │   │   │           │   ├── ObserveSecureItemDraftDetailUseCase.kt
+│   │   │   │   │           │   ├── ObserveVaultDraftSummariesUseCase.kt
 │   │   │   │   │           │   ├── ObserveVaultItemSummariesUseCase.kt
 │   │   │   │   │           │   ├── SecureItemIdGenerator.kt
 │   │   │   │   │           │   ├── SecureItemMutationCoordinator.kt
@@ -489,6 +494,8 @@ safecube-android/
 │   │   │               ├── CreateSecureNoteUseCaseTest.kt
 │   │   │               ├── CreateSecurePasswordUseCaseTest.kt
 │   │   │               ├── ObserveSecureItemDetailUseCaseTest.kt
+│   │   │               ├── ObserveSecureItemDraftDetailUseCaseTest.kt
+│   │   │               ├── ObserveVaultDraftSummariesUseCaseTest.kt
 │   │   │               ├── ObserveVaultItemSummariesUseCaseTest.kt
 │   │   │               ├── PullVaultDeltaUseCaseTest.kt
 │   │   │               ├── PushLocalVaultChangesUseCaseTest.kt
@@ -636,7 +643,8 @@ safecube-android/
 │       │   │   │   │   ├── editor/
 │       │   │   │   │   │   └── SecureItemEditorScaffold.kt
 │       │   │   │   │   ├── error/
-│       │   │   │   │   │   └── SecureItemCrudErrorMessageMapper.kt
+│       │   │   │   │   │   ├── SecureItemCrudErrorMessageMapper.kt
+│       │   │   │   │   │   └── SecureItemDraftErrorMessageMapper.kt
 │       │   │   │   │   ├── navigation/
 │       │   │   │   │   │   └── NavigationBar.kt
 │       │   │   │   │   └── sync/

@@ -30,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultItemSummaryUiModel
@@ -254,6 +255,30 @@ private fun VaultItemCard(
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
+            if (item.hasDraft) {
+                Text(
+                    text = stringResource(UiR.string.draft_badge_label),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+                item.draftType?.let { draftType ->
+                    Text(
+                        text = draftType.asLabel(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                item.lastPublishError?.let { lastPublishError ->
+                    Text(
+                        text = stringResource(
+                            UiR.string.draft_last_publish_error_with_reason,
+                            lastPublishError,
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
             if (item.isConflict) {
                 Text(
                     text = stringResource(UiR.string.sync_status_conflict),
@@ -321,6 +346,12 @@ private fun VaultSyncFeedback(
 private fun SecureItemType.asLabel(): String = when (this) {
     SecureItemType.PASSWORD -> "Password"
     SecureItemType.NOTE -> "Note"
+}
+
+@Composable
+private fun SecureItemDraftType.asLabel(): String = when (this) {
+    SecureItemDraftType.UPDATE -> stringResource(UiR.string.draft_type_update)
+    SecureItemDraftType.DELETE -> stringResource(UiR.string.draft_type_delete)
 }
 
 @Composable

@@ -3,16 +3,24 @@ package com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDetailResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDraftDetailResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemDetail
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemDraftDetail
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecurePasswordDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecurePasswordWebsiteDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordSecureItemContent
+import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.DiscardSecureItemDraftResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.PublishSecureItemDraftResult
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDetailUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDraftDetailUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SoftDeleteSecureItemUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.password.CreateSecurePasswordUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.password.UpdateSecurePasswordUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.DiscardSecureItemDraftUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.PublishSecureItemDraftUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.action.PasswordEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.event.PasswordEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.state.PasswordEditorUiState
@@ -20,6 +28,7 @@ import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.error.as
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,15 +37,17 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class PasswordEditorViewModel @Inject constructor(
     private val observeSecureItemDetailUseCase: ObserveSecureItemDetailUseCase,
+    private val observeSecureItemDraftDetailUseCase: ObserveSecureItemDraftDetailUseCase,
     private val createSecurePasswordUseCase: CreateSecurePasswordUseCase,
     private val updateSecurePasswordUseCase: UpdateSecurePasswordUseCase,
     private val softDeleteSecureItemUseCase: SoftDeleteSecureItemUseCase,
+    private val publishSecureItemDraftUseCase: PublishSecureItemDraftUseCase,
+    private val discardSecureItemDraftUseCase: DiscardSecureItemDraftUseCase,
     observeVaultSyncingUseCase: ObserveVaultSyncingUseCase,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(PasswordEditorUiState())
@@ -45,6 +56,9 @@ class PasswordEditorViewModel @Inject constructor(
     private val mutableEvents = MutableSharedFlow<PasswordEditorUiEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<PasswordEditorUiEvent> = mutableEvents.asSharedFlow()
     private var observeItemJob: Job? = null
+    private var observeDraftJob: Job? = null
+    private var latestOfficialDetail: SecureItemDetail? = null
+    private var latestDraftDetail: SecureItemDraftDetail? = null
 
     init {
         viewModelScope.launch {
@@ -58,6 +72,8 @@ class PasswordEditorViewModel @Inject constructor(
 
     fun load(logicalItemId: String?) {
         stopObservingItem()
+        latestOfficialDetail = null
+        latestDraftDetail = null
         if (logicalItemId == null) {
             mutableUiState.value = PasswordEditorUiState(
                 isSyncing = mutableUiState.value.isSyncing,
@@ -77,14 +93,24 @@ class PasswordEditorViewModel @Inject constructor(
                 isLoading = true,
                 errorMessage = null,
                 hasUnsavedLocalChanges = false,
+                lastDraftError = null,
             )
         }
 
         observeItemJob = viewModelScope.launch {
             observeSecureItemDetailUseCase(parsedLogicalItemId).collect { result ->
                 when (result) {
-                    is ObserveSecureItemDetailResult.Success -> showDetail(result)
+                    is ObserveSecureItemDetailResult.Success -> showOfficialDetail(result.detail)
                     is ObserveSecureItemDetailResult.Error -> showError(result.reason)
+                }
+            }
+        }
+        observeDraftJob = viewModelScope.launch {
+            observeSecureItemDraftDetailUseCase(parsedLogicalItemId).collect { result ->
+                when (result) {
+                    is ObserveSecureItemDraftDetailResult.Success -> showDraftDetail(result)
+                    ObserveSecureItemDraftDetailResult.NotFound -> clearDraft()
+                    is ObserveSecureItemDraftDetailResult.Error -> showDraftError(result.reason)
                 }
             }
         }
@@ -99,45 +125,112 @@ class PasswordEditorViewModel @Inject constructor(
             is PasswordEditorUiAction.NotesChanged -> updateState { copy(notes = action.value) }
             PasswordEditorUiAction.SaveClicked -> save()
             PasswordEditorUiAction.DeleteClicked -> delete()
+            PasswordEditorUiAction.PublishDraftClicked -> publishDraft()
+            PasswordEditorUiAction.DiscardDraftClicked -> discardDraft()
         }
     }
 
-    private fun showDetail(result: ObserveSecureItemDetailResult.Success) {
-        val content = result.detail.content as? PasswordSecureItemContent
+    private fun showOfficialDetail(detail: SecureItemDetail) {
+        val content = detail.content as? PasswordSecureItemContent
         if (content == null) {
             showError(SecureItemCrudError.ItemNotFound)
             return
         }
+        latestOfficialDetail = detail
+        renderObservedState(officialContent = content)
+    }
 
-        val shouldPreserveDraft = mutableUiState.value.hasUnsavedLocalChanges &&
-            mutableUiState.value.logicalItemId == result.detail.logicalItemId
+    private fun showDraftDetail(result: ObserveSecureItemDraftDetailResult.Success) {
+        val content = result.detail.content as? PasswordSecureItemContent
+        if (content == null) {
+            showDraftError(SecureItemCrudError.CorruptedPayload)
+            return
+        }
+        latestDraftDetail = result.detail
+        mutableUiState.update { state ->
+            state.copy(
+                hasDraft = true,
+                draftType = result.detail.draftType,
+                lastPublishError = result.detail.lastPublishError,
+                lastDraftError = null,
+            )
+        }
+        renderObservedState(officialContent = null)
+    }
+
+    private fun clearDraft() {
+        latestDraftDetail = null
+        mutableUiState.update { state ->
+            state.copy(
+                hasDraft = false,
+                draftType = null,
+                lastPublishError = null,
+                lastDraftError = null,
+            )
+        }
+        renderObservedState(officialContent = null)
+    }
+
+    private fun showDraftError(error: SecureItemCrudError) {
+        latestDraftDetail = null
+        mutableUiState.update { state ->
+            state.copy(
+                hasDraft = false,
+                draftType = null,
+                lastPublishError = null,
+                lastDraftError = error.asUiMessage(),
+            )
+        }
+        renderObservedState(officialContent = null)
+    }
+
+    private fun renderObservedState(officialContent: PasswordSecureItemContent?) {
+        val detail = latestOfficialDetail ?: return
+        val resolvedOfficialContent = officialContent ?: (detail.content as? PasswordSecureItemContent) ?: return
+        val draftDetail = latestDraftDetail
+        val draftContent = draftDetail?.content as? PasswordSecureItemContent
 
         mutableUiState.update { state ->
-            if (shouldPreserveDraft) {
-                state.copy(
-                    logicalItemId = result.detail.logicalItemId,
-                    itemSyncState = result.detail.syncState,
-                    itemSyncError = result.detail.lastSyncError,
-                    isLoading = false,
-                    isSaving = false,
-                    errorMessage = null,
-                )
-            } else {
-                state.copy(
-                    logicalItemId = result.detail.logicalItemId,
-                    displayHint = result.detail.displayHint,
-                    username = content.username ?: content.email.orEmpty(),
-                    password = content.password,
-                    websiteUrl = content.website?.url.orEmpty(),
-                    notes = content.notes.orEmpty(),
-                    itemSyncState = result.detail.syncState,
-                    itemSyncError = result.detail.lastSyncError,
-                    isLoading = false,
-                    isSaving = false,
-                    hasUnsavedLocalChanges = false,
-                    errorMessage = null,
-                )
+            val preserveDraft = state.hasUnsavedLocalChanges && state.logicalItemId == detail.logicalItemId
+            val username = when {
+                preserveDraft -> state.username
+                draftContent != null -> draftContent.username ?: draftContent.email.orEmpty()
+                else -> resolvedOfficialContent.username ?: resolvedOfficialContent.email.orEmpty()
             }
+            val password = when {
+                preserveDraft -> state.password
+                draftContent != null -> draftContent.password
+                else -> resolvedOfficialContent.password
+            }
+            val websiteUrl = when {
+                preserveDraft -> state.websiteUrl
+                draftContent != null -> draftContent.website?.url.orEmpty()
+                else -> resolvedOfficialContent.website?.url.orEmpty()
+            }
+            val notes = when {
+                preserveDraft -> state.notes
+                draftContent != null -> draftContent.notes.orEmpty()
+                else -> resolvedOfficialContent.notes.orEmpty()
+            }
+            state.copy(
+                logicalItemId = detail.logicalItemId,
+                displayHint = when {
+                    preserveDraft -> state.displayHint
+                    draftDetail != null -> draftDetail.displayHint
+                    else -> detail.displayHint
+                },
+                username = username,
+                password = password,
+                websiteUrl = websiteUrl,
+                notes = notes,
+                itemSyncState = detail.syncState,
+                itemSyncError = detail.lastSyncError,
+                isLoading = false,
+                isSaving = false,
+                isDraftActionInProgress = false,
+                hasUnsavedLocalChanges = preserveDraft,
+                errorMessage = null,
+            )
         }
     }
 
@@ -151,9 +244,81 @@ class PasswordEditorViewModel @Inject constructor(
         }
     }
 
+    private fun publishDraft() {
+        val state = mutableUiState.value
+        val logicalItemId = state.logicalItemId ?: return
+        if (!state.hasDraft || state.isLoading || state.isSaving || state.isDraftActionInProgress) return
+
+        mutableUiState.update { current ->
+            current.copy(
+                isDraftActionInProgress = true,
+                errorMessage = null,
+                lastDraftError = null,
+            )
+        }
+
+        viewModelScope.launch {
+            when (val result = publishSecureItemDraftUseCase(logicalItemId)) {
+                is PublishSecureItemDraftResult.Success -> {
+                    mutableUiState.update { current ->
+                        current.copy(
+                            isDraftActionInProgress = false,
+                            lastDraftError = null,
+                        )
+                    }
+                }
+
+                is PublishSecureItemDraftResult.Error -> {
+                    mutableUiState.update { current ->
+                        current.copy(
+                            isDraftActionInProgress = false,
+                            lastDraftError = result.reason.asUiMessage(),
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun discardDraft() {
+        val state = mutableUiState.value
+        val logicalItemId = state.logicalItemId ?: return
+        if (!state.hasDraft || state.isLoading || state.isSaving || state.isDraftActionInProgress) return
+
+        mutableUiState.update { current ->
+            current.copy(
+                isDraftActionInProgress = true,
+                errorMessage = null,
+                lastDraftError = null,
+            )
+        }
+
+        viewModelScope.launch {
+            when (val result = discardSecureItemDraftUseCase(logicalItemId)) {
+                is DiscardSecureItemDraftResult.Success -> {
+                    mutableUiState.update { current ->
+                        current.copy(
+                            isDraftActionInProgress = false,
+                            lastDraftError = null,
+                        )
+                    }
+                }
+
+                is DiscardSecureItemDraftResult.Error -> {
+                    mutableUiState.update { current ->
+                        current.copy(
+                            isDraftActionInProgress = false,
+                            lastDraftError = result.reason.asUiMessage(),
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private fun save() {
         val state = mutableUiState.value
-        if (state.isLoading || state.isSaving) return
+        if (state.isLoading || state.isSaving || state.isDraftActionInProgress) return
 
         mutableUiState.update { current ->
             current.copy(
@@ -185,7 +350,7 @@ class PasswordEditorViewModel @Inject constructor(
     private fun delete() {
         val state = mutableUiState.value
         val logicalItemId = state.logicalItemId ?: return
-        if (state.isLoading || state.isSaving) return
+        if (state.isLoading || state.isSaving || state.isDraftActionInProgress) return
 
         mutableUiState.update { current ->
             current.copy(
@@ -220,6 +385,7 @@ class PasswordEditorViewModel @Inject constructor(
             state.copy(
                 isLoading = false,
                 isSaving = false,
+                isDraftActionInProgress = false,
                 errorMessage = error.asUiMessage(),
             )
         }
@@ -233,6 +399,8 @@ class PasswordEditorViewModel @Inject constructor(
     private fun stopObservingItem() {
         observeItemJob?.cancel()
         observeItemJob = null
+        observeDraftJob?.cancel()
+        observeDraftJob = null
     }
 }
 

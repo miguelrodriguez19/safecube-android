@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.home.state
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResult
@@ -21,6 +22,9 @@ data class VaultItemSummaryUiModel(
     val updatedAt: Instant,
     val syncState: SecureItemSyncState,
     val lastSyncError: String?,
+    val hasDraft: Boolean,
+    val draftType: SecureItemDraftType?,
+    val lastPublishError: String?,
 ) {
     val isPendingSync: Boolean
         get() = when (syncState) {

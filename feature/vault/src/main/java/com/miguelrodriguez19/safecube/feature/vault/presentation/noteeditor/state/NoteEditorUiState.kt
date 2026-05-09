@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.state
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import java.util.UUID
 
 data class NoteEditorUiState(
@@ -10,6 +11,11 @@ data class NoteEditorUiState(
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val isSyncing: Boolean = false,
+    val hasDraft: Boolean = false,
+    val draftType: SecureItemDraftType? = null,
+    val lastPublishError: String? = null,
+    val lastDraftError: String? = null,
+    val isDraftActionInProgress: Boolean = false,
     val itemSyncState: SecureItemSyncState? = null,
     val itemSyncError: String? = null,
     val hasUnsavedLocalChanges: Boolean = false,

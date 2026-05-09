@@ -37,6 +37,11 @@ internal fun SecureItemEditorScaffold(
     syncStatusLabel: String?,
     lastSyncMessage: String?,
     lastSyncErrorMessage: String?,
+    draftBannerMessage: String?,
+    showDraftActions: Boolean,
+    onPublishDraft: (() -> Unit)?,
+    onDiscardDraft: (() -> Unit)?,
+    isDraftActionInProgress: Boolean,
     errorMessage: String?,
     onBack: () -> Unit,
     onSave: () -> Unit,
@@ -112,6 +117,40 @@ internal fun SecureItemEditorScaffold(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
+            }
+            draftBannerMessage?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+            if (showDraftActions) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = { onDiscardDraft?.invoke() },
+                        enabled = !isLoading && !isSaving && !isDraftActionInProgress,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(stringResource(UiR.string.draft_action_discard))
+                    }
+                    Button(
+                        onClick = { onPublishDraft?.invoke() },
+                        enabled = !isLoading && !isSaving && !isDraftActionInProgress,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            if (isDraftActionInProgress) {
+                                stringResource(UiR.string.sync_status_syncing)
+                            } else {
+                                stringResource(UiR.string.draft_action_publish)
+                            },
+                        )
+                    }
+                }
             }
 
             if (isLoading) {
