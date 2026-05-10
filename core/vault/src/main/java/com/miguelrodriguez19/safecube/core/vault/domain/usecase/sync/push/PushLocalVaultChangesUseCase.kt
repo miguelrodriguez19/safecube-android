@@ -26,9 +26,27 @@ class PushLocalVaultChangesUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(): PushLocalVaultChangesResult {
         val pendingItems = secureItemRepository.getPendingSyncItemsOrdered()
+        return processPendingItems(pendingItems)
+    }
+
+    suspend operator fun invoke(logicalItemId: UUID): PushLocalVaultChangesResult {
+        val item = secureItemRepository.getItem(logicalItemId)
+            ?.takeIf { it.syncState.isPendingPushState() }
+            ?: return PushLocalVaultChangesResult.Success(
+                processedCount = 0,
+                syncedCount = 0,
+                conflictCount = 0,
+                keptPendingCount = 0,
+                locallyResolvedDeleteCount = 0,
+            )
+
+        return processPendingItems(listOf(item))
+    }
+
+    private suspend fun processPendingItems(items: List<SecureItem>): PushLocalVaultChangesResult {
         val counters = PushProgressCounters()
 
-        for (item in pendingItems) {
+        for (item in items) {
             val result = processPendingItem(item)
             counters.processedCount++
             when (result) {

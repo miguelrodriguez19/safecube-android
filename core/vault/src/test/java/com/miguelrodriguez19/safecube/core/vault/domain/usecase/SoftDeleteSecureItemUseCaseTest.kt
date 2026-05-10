@@ -54,7 +54,7 @@ class SoftDeleteSecureItemUseCaseTest {
 
         assertEquals(expectedResult, result)
         coVerify(exactly = 1) { secureItemMutationCoordinator.softDelete(logicalItemId) }
-        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored(logicalItemId) }
         confirmVerified(secureItemMutationCoordinator, vaultSyncTrigger)
     }
 
@@ -68,7 +68,7 @@ class SoftDeleteSecureItemUseCaseTest {
 
         assertEquals(expectedResult, result)
         coVerify(exactly = 1) { secureItemMutationCoordinator.softDelete(logicalItemId) }
-        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored(any()) }
         confirmVerified(secureItemMutationCoordinator, vaultSyncTrigger)
     }
 }

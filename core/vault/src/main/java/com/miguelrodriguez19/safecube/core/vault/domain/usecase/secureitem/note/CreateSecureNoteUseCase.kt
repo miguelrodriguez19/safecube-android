@@ -20,7 +20,7 @@ class CreateSecureNoteUseCase @Inject internal constructor(
             content = noteDraftToContentMapper.map(draft),
         )
         if (result is SecureItemMutationResult.Success) {
-            vaultSyncTrigger.onLocalMutationStored()
+            vaultSyncTrigger.onLocalMutationStored(result.item.logicalItemId)
         }
         result
     } catch (illegalArgumentException: IllegalArgumentException) {

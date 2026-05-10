@@ -82,6 +82,74 @@ class PushLocalVaultChangesUseCaseTest {
     }
 
     @Test
+    fun `invoke targeted when pending item exists then pushes only that item without loading global queue`() = runBlocking {
+        val logicalItemId = UUID.randomUUID()
+        val remoteItemId = UUID.randomUUID()
+        val createdAt = Instant.now()
+        val item = sampleItem(
+            logicalItemId = logicalItemId,
+            remoteItemId = null,
+            syncState = SecureItemSyncState.PENDING_CREATE,
+        )
+        coEvery { secureItemRepository.getItem(logicalItemId) } returns item
+        coEvery { secureItemRemoteRepository.createVaultItem(any()) } returns SecureItemRemoteResult.Success(
+            RemoteCreateSecureItemResult(
+                itemId = remoteItemId,
+                createdAt = createdAt,
+            ),
+        )
+        coEvery {
+            secureItemRepository.markSynced(
+                logicalItemId = logicalItemId,
+                remoteItemId = remoteItemId,
+                payloadVersion = item.payloadVersion,
+                updatedAt = createdAt,
+                deletedAt = null,
+                lastSyncedAt = createdAt,
+            )
+        } returns true
+
+        val result = target(logicalItemId)
+
+        assertEquals(
+            PushLocalVaultChangesResult.Success(
+                processedCount = 1,
+                syncedCount = 1,
+                conflictCount = 0,
+                keptPendingCount = 0,
+                locallyResolvedDeleteCount = 0,
+            ),
+            result,
+        )
+        coVerify(exactly = 1) { secureItemRepository.getItem(logicalItemId) }
+        coVerify(exactly = 0) { secureItemRepository.getPendingSyncItemsOrdered() }
+    }
+
+    @Test
+    fun `invoke targeted when item is missing or no longer pending then returns empty success without remote calls`() = runBlocking {
+        val logicalItemId = UUID.randomUUID()
+        coEvery { secureItemRepository.getItem(logicalItemId) } returns null
+
+        val result = target(logicalItemId)
+
+        assertEquals(
+            PushLocalVaultChangesResult.Success(
+                processedCount = 0,
+                syncedCount = 0,
+                conflictCount = 0,
+                keptPendingCount = 0,
+                locallyResolvedDeleteCount = 0,
+            ),
+            result,
+        )
+        coVerify(exactly = 1) { secureItemRepository.getItem(logicalItemId) }
+        coVerify(exactly = 0) { secureItemRepository.getPendingSyncItemsOrdered() }
+        coVerify(exactly = 0) { secureItemRemoteRepository.createVaultItem(any()) }
+        coVerify(exactly = 0) { secureItemRemoteRepository.updateVaultItem(any(), any()) }
+        coVerify(exactly = 0) { secureItemRemoteRepository.deleteVaultItem(any()) }
+    }
+
+    @Test
     fun `invoke when pending update succeeds then uses remote payload version and updatedAt`() = runBlocking {
         val logicalItemId = UUID.randomUUID()
         val remoteItemId = UUID.randomUUID()

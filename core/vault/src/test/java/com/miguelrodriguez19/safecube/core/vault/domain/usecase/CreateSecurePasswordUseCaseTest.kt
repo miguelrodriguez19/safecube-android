@@ -61,7 +61,7 @@ class CreateSecurePasswordUseCaseTest {
         assertEquals(expectedResult, result)
         coVerify(exactly = 1) { secureItemMutationCoordinator.create("Github", content) }
         verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
-        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored(expectedResult.item.logicalItemId) }
         confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper, vaultSyncTrigger)
     }
 
@@ -85,7 +85,7 @@ class CreateSecurePasswordUseCaseTest {
         )
         verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.create(any(), any()) }
-        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored(any()) }
         confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper, vaultSyncTrigger)
     }
 
@@ -107,7 +107,7 @@ class CreateSecurePasswordUseCaseTest {
         )
         verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.create(any(), any()) }
-        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored(any()) }
         confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper, vaultSyncTrigger)
     }
 }

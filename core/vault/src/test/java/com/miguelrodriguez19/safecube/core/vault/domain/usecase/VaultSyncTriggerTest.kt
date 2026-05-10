@@ -10,6 +10,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.push.PushLo
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
@@ -42,61 +43,66 @@ class VaultSyncTriggerTest {
     @Test
     fun `onLocalMutationStored when vault is locked then skips opportunistic push`() = runBlocking {
         vaultState.value = VaultState.Locked
+        val logicalItemId = UUID.randomUUID()
 
-        target.onLocalMutationStored()
+        target.onLocalMutationStored(logicalItemId)
         delay(50)
 
-        coVerify(exactly = 0) { pushLocalVaultChangesUseCase.invoke() }
+        coVerify(exactly = 0) { pushLocalVaultChangesUseCase.invoke(any<UUID>()) }
     }
 
     @Test
     fun `onLocalMutationStored when vault is unlocked then runs opportunistic push asynchronously`() = runBlocking {
         vaultState.value = VaultState.Unlocked
-        coEvery { pushLocalVaultChangesUseCase.invoke() } returns successResult()
+        val logicalItemId = UUID.randomUUID()
+        coEvery { pushLocalVaultChangesUseCase.invoke(logicalItemId) } returns successResult()
 
-        target.onLocalMutationStored()
+        target.onLocalMutationStored(logicalItemId)
 
-        coVerify(timeout = 2_000, exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
+        coVerify(timeout = 2_000, exactly = 1) { pushLocalVaultChangesUseCase.invoke(logicalItemId) }
     }
 
     @Test
     fun `onLocalMutationStored when sync is in progress then coalesces without second push`() = runBlocking {
         vaultState.value = VaultState.Unlocked
+        val logicalItemId = UUID.randomUUID()
         val lockAcquired = vaultSyncExecutionLock.tryLock()
         assertTrue(lockAcquired)
 
-        target.onLocalMutationStored()
+        target.onLocalMutationStored(logicalItemId)
         delay(50)
 
-        coVerify(exactly = 0) { pushLocalVaultChangesUseCase.invoke() }
+        coVerify(exactly = 0) { pushLocalVaultChangesUseCase.invoke(any<UUID>()) }
         vaultSyncExecutionLock.unlock()
     }
 
     @Test
     fun `onLocalMutationStored when push fails then releases lock for next trigger`() = runBlocking {
         vaultState.value = VaultState.Unlocked
+        val logicalItemId = UUID.randomUUID()
         val pushCalls = AtomicInteger(0)
-        coEvery { pushLocalVaultChangesUseCase.invoke() } coAnswers {
+        coEvery { pushLocalVaultChangesUseCase.invoke(logicalItemId) } coAnswers {
             if (pushCalls.incrementAndGet() == 1) {
                 throw RuntimeException("network down")
             }
             successResult()
         }
 
-        target.onLocalMutationStored()
-        coVerify(timeout = 2_000, exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
+        target.onLocalMutationStored(logicalItemId)
+        coVerify(timeout = 2_000, exactly = 1) { pushLocalVaultChangesUseCase.invoke(logicalItemId) }
 
-        target.onLocalMutationStored()
-        coVerify(timeout = 2_000, exactly = 2) { pushLocalVaultChangesUseCase.invoke() }
+        target.onLocalMutationStored(logicalItemId)
+        coVerify(timeout = 2_000, exactly = 2) { pushLocalVaultChangesUseCase.invoke(logicalItemId) }
     }
 
     @Test
     fun `onLocalMutationStored when called while push is running then keeps single in flight execution`() = runBlocking {
         vaultState.value = VaultState.Unlocked
+        val logicalItemId = UUID.randomUUID()
         val pushCalls = AtomicInteger(0)
         val enteredFirstPush = CompletableDeferred<Unit>()
         val releaseFirstPush = CompletableDeferred<Unit>()
-        coEvery { pushLocalVaultChangesUseCase.invoke() } coAnswers {
+        coEvery { pushLocalVaultChangesUseCase.invoke(logicalItemId) } coAnswers {
             val callNumber = pushCalls.incrementAndGet()
             if (callNumber == 1) {
                 enteredFirstPush.complete(Unit)
@@ -105,15 +111,15 @@ class VaultSyncTriggerTest {
             successResult()
         }
 
-        target.onLocalMutationStored()
+        target.onLocalMutationStored(logicalItemId)
         enteredFirstPush.await()
-        target.onLocalMutationStored()
+        target.onLocalMutationStored(logicalItemId)
         delay(50)
 
-        coVerify(exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
+        coVerify(exactly = 1) { pushLocalVaultChangesUseCase.invoke(logicalItemId) }
 
         releaseFirstPush.complete(Unit)
-        coVerify(timeout = 2_000, exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
+        coVerify(timeout = 2_000, exactly = 1) { pushLocalVaultChangesUseCase.invoke(logicalItemId) }
     }
 }
 

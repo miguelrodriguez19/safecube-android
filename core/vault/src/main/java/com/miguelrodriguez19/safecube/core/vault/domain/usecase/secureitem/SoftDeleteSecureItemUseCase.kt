@@ -14,7 +14,7 @@ class SoftDeleteSecureItemUseCase @Inject internal constructor(
     suspend operator fun invoke(logicalItemId: UUID): SecureItemMutationResult {
         val result = secureItemMutationCoordinator.softDelete(logicalItemId)
         if (result is SecureItemMutationResult.Success) {
-            vaultSyncTrigger.onLocalMutationStored()
+            vaultSyncTrigger.onLocalMutationStored(result.item.logicalItemId)
         }
         return result
     }

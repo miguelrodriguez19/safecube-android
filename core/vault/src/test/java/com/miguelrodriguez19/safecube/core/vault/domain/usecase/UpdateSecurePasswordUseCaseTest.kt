@@ -74,7 +74,7 @@ class UpdateSecurePasswordUseCaseTest {
                 content = content,
             )
         }
-        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored(expectedResult.item.logicalItemId) }
         confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper, vaultSyncTrigger)
     }
 
@@ -102,7 +102,7 @@ class UpdateSecurePasswordUseCaseTest {
         )
         verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.update(any(), any(), any(), any()) }
-        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored(any()) }
         confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper, vaultSyncTrigger)
     }
 
@@ -128,7 +128,7 @@ class UpdateSecurePasswordUseCaseTest {
         )
         verify(exactly = 1) { passwordDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.update(any(), any(), any(), any()) }
-        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored(any()) }
         confirmVerified(secureItemMutationCoordinator, passwordDraftToContentMapper, vaultSyncTrigger)
     }
 }

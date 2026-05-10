@@ -59,7 +59,7 @@ class CreateSecureNoteUseCaseTest {
                 content = content,
             )
         }
-        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored(expectedResult.item.logicalItemId) }
         confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
     }
 
@@ -83,7 +83,7 @@ class CreateSecureNoteUseCaseTest {
         )
         verify(exactly = 1) { noteDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.create(any(), any()) }
-        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored(any()) }
         confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
     }
 
@@ -105,7 +105,7 @@ class CreateSecureNoteUseCaseTest {
         )
         verify(exactly = 1) { noteDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.create(any(), any()) }
-        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored() }
+        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored(any()) }
         confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
     }
 }

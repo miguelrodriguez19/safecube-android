@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @Singleton
 class VaultSyncTrigger @Inject constructor(
@@ -18,7 +19,7 @@ class VaultSyncTrigger @Inject constructor(
 ) {
     private val triggerScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    fun onLocalMutationStored() {
+    fun onLocalMutationStored(logicalItemId: UUID) {
         if (!vaultSessionManager.isUnlocked()) {
             return
         }
@@ -28,11 +29,10 @@ class VaultSyncTrigger @Inject constructor(
 
         triggerScope.launch {
             try {
-                pushLocalVaultChangesUseCase()
+                pushLocalVaultChangesUseCase(logicalItemId)
             } catch (cancellationException: CancellationException) {
                 throw cancellationException
             } catch (_: Throwable) {
-                Unit
             } finally {
                 vaultSyncExecutionLock.unlock()
             }
