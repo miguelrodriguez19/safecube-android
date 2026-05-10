@@ -72,20 +72,20 @@ class VaultSyncUseCaseTest {
     }
 
     @Test
-    fun `invoke when push succeeds and pull succeeds then returns merged summary`() = runBlocking {
-        coEvery { pushLocalVaultChangesUseCase.invoke() } returns PushLocalVaultChangesResult.Success(
-            processedCount = 4,
-            syncedCount = 3,
-            conflictCount = 1,
-            keptPendingCount = 0,
-            locallyResolvedDeleteCount = 0,
-        )
+    fun `invoke when pull succeeds and push succeeds then returns merged summary`() = runBlocking {
         coEvery { pullVaultDeltaUseCase.invoke(50) } returns PullVaultDeltaResult.Success(
             processedSummaryCount = 5,
             appliedUpsertCount = 2,
             appliedDeleteCount = 1,
             skippedDirtyOrConflictCount = 2,
             checkpointUpdatedTo = null,
+        )
+        coEvery { pushLocalVaultChangesUseCase.invoke() } returns PushLocalVaultChangesResult.Success(
+            processedCount = 4,
+            syncedCount = 3,
+            conflictCount = 1,
+            keptPendingCount = 0,
+            locallyResolvedDeleteCount = 0,
         )
 
         val result = target(pullLimit = 50)
@@ -101,11 +101,36 @@ class VaultSyncUseCaseTest {
     }
 
     @Test
-    fun `invoke when push fails then returns global error and does not call pull`() = runBlocking {
+    fun `invoke when pull fails then returns global error and does not call push`() = runBlocking {
+        val pullError = PullVaultDeltaError.AccountIdUnavailable
+        coEvery { pullVaultDeltaUseCase.invoke(null) } returns PullVaultDeltaResult.Error(
+            pullError,
+        )
+
+        val result = target()
+
+        assertTrue(result is VaultSyncResult.Error)
+        assertEquals(
+            VaultSyncError.PullFailed(pullError),
+            (result as VaultSyncResult.Error).reason,
+        )
+        coVerify(exactly = 1) { pullVaultDeltaUseCase.invoke(null) }
+        coVerify(exactly = 0) { pushLocalVaultChangesUseCase.invoke() }
+    }
+
+    @Test
+    fun `invoke when push fails then returns global error preserving pull counters`() = runBlocking {
         val logicalItemId = UUID.randomUUID()
         val pushError = PushLocalVaultChangesError.LocalStateUpdateFailed(
             logicalItemId = logicalItemId,
             operation = "CREATE",
+        )
+        coEvery { pullVaultDeltaUseCase.invoke(null) } returns PullVaultDeltaResult.Success(
+            processedSummaryCount = 2,
+            appliedUpsertCount = 1,
+            appliedDeleteCount = 1,
+            skippedDirtyOrConflictCount = 1,
+            checkpointUpdatedTo = null,
         )
         coEvery { pushLocalVaultChangesUseCase.invoke() } returns PushLocalVaultChangesResult.Error(
             pushError,
@@ -113,84 +138,60 @@ class VaultSyncUseCaseTest {
 
         val result = target()
 
-        assertTrue(result is VaultSyncResult.Error)
-        assertEquals(
-            VaultSyncError.PushFailed(pushError),
-            (result as VaultSyncResult.Error).reason,
-        )
-        coVerify(exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
-        coVerify(exactly = 0) { pullVaultDeltaUseCase.invoke(any()) }
-    }
-
-    @Test
-    fun `invoke when pull fails then returns global error preserving push counters`() = runBlocking {
-        coEvery { pushLocalVaultChangesUseCase.invoke() } returns PushLocalVaultChangesResult.Success(
-            processedCount = 2,
-            syncedCount = 2,
-            conflictCount = 1,
-            keptPendingCount = 0,
-            locallyResolvedDeleteCount = 0,
-        )
-        coEvery { pullVaultDeltaUseCase.invoke(null) } returns PullVaultDeltaResult.Error(
-            PullVaultDeltaError.AccountIdUnavailable,
-        )
-
-        val result = target()
-
         assertEquals(
             VaultSyncResult.Error(
-                reason = VaultSyncError.PullFailed(PullVaultDeltaError.AccountIdUnavailable),
-                uploadedCount = 2,
-                downloadedCount = 0,
+                reason = VaultSyncError.PushFailed(pushError),
+                uploadedCount = 0,
+                downloadedCount = 2,
                 conflictCount = 1,
             ),
             result,
         )
-        coVerify(exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
         coVerify(exactly = 1) { pullVaultDeltaUseCase.invoke(null) }
+        coVerify(exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
     }
 
     @Test
     fun `invoke when two syncs run concurrently then serializes executions with mutex`() = runBlocking {
-        val enteredPush = CompletableDeferred<Unit>()
-        val releasePush = CompletableDeferred<Unit>()
-        val pushCalls = AtomicInteger(0)
-        coEvery { pushLocalVaultChangesUseCase.invoke() } coAnswers {
-            val callNumber = pushCalls.incrementAndGet()
+        val enteredPull = CompletableDeferred<Unit>()
+        val releasePull = CompletableDeferred<Unit>()
+        val pullCalls = AtomicInteger(0)
+        coEvery { pullVaultDeltaUseCase.invoke(null) } coAnswers {
+            val callNumber = pullCalls.incrementAndGet()
             if (callNumber == 1) {
-                enteredPush.complete(Unit)
-                releasePush.await()
+                enteredPull.complete(Unit)
+                releasePull.await()
             }
-            PushLocalVaultChangesResult.Success(
-                processedCount = 0,
-                syncedCount = 0,
-                conflictCount = 0,
-                keptPendingCount = 0,
-                locallyResolvedDeleteCount = 0,
+            PullVaultDeltaResult.Success(
+                processedSummaryCount = 0,
+                appliedUpsertCount = 0,
+                appliedDeleteCount = 0,
+                skippedDirtyOrConflictCount = 0,
+                checkpointUpdatedTo = null,
             )
         }
-        coEvery { pullVaultDeltaUseCase.invoke(null) } returns PullVaultDeltaResult.Success(
-            processedSummaryCount = 0,
-            appliedUpsertCount = 0,
-            appliedDeleteCount = 0,
-            skippedDirtyOrConflictCount = 0,
-            checkpointUpdatedTo = null,
+        coEvery { pushLocalVaultChangesUseCase.invoke() } returns PushLocalVaultChangesResult.Success(
+            processedCount = 0,
+            syncedCount = 0,
+            conflictCount = 0,
+            keptPendingCount = 0,
+            locallyResolvedDeleteCount = 0,
         )
 
         val first = async { target() }
-        enteredPush.await()
+        enteredPull.await()
         val second = async { target() }
 
         delay(50)
-        coVerify(exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
+        coVerify(exactly = 1) { pullVaultDeltaUseCase.invoke(null) }
 
-        releasePush.complete(Unit)
+        releasePull.complete(Unit)
 
         withTimeout(5_000) {
             first.await()
             second.await()
         }
-        coVerify(exactly = 2) { pushLocalVaultChangesUseCase.invoke() }
         coVerify(exactly = 2) { pullVaultDeltaUseCase.invoke(null) }
+        coVerify(exactly = 2) { pushLocalVaultChangesUseCase.invoke() }
     }
 }

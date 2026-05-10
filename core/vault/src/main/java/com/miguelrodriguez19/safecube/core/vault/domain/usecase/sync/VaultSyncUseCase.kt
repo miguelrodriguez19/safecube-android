@@ -1,8 +1,8 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync
 
-import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.PullVaultDeltaError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.PullVaultDeltaResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLocalVaultChangesError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLocalVaultChangesResult
@@ -28,30 +28,30 @@ class VaultSyncUseCase @Inject constructor(
     private suspend fun executeSync(pullLimit: Int?): VaultSyncResult {
         validateUnlockedState()?.let { return it }
 
-        val pushOutcome = when (val pushPhaseResult = runPushPhase()) {
-            is PushPhaseResult.Success -> pushPhaseResult.outcome
-            is PushPhaseResult.Error -> {
+        val pullOutcome = when (val pullPhaseResult = runPullPhase(limit = pullLimit)) {
+            is PullPhaseResult.Success -> pullPhaseResult.outcome
+            is PullPhaseResult.Error -> {
                 return VaultSyncResult.Error(
-                    reason = VaultSyncError.PushFailed(pushPhaseResult.reason)
+                    reason = VaultSyncError.PullFailed(pullPhaseResult.reason),
                 )
             }
         }
 
-        return when (val pullResult = pullVaultDeltaUseCase(limit = pullLimit)) {
-            is PullVaultDeltaResult.Success -> {
+        return when (val pushPhaseResult = runPushPhase()) {
+            is PushPhaseResult.Success -> {
                 VaultSyncResult.Success(
-                    uploadedCount = pushOutcome.uploadedCount,
-                    downloadedCount = pullResult.appliedUpsertCount + pullResult.appliedDeleteCount,
-                    conflictCount = pushOutcome.conflictCount + pullResult.skippedDirtyOrConflictCount,
+                    uploadedCount = pushPhaseResult.outcome.uploadedCount,
+                    downloadedCount = pullOutcome.downloadedCount,
+                    conflictCount = pushPhaseResult.outcome.conflictCount + pullOutcome.conflictCount,
                 )
             }
 
-            is PullVaultDeltaResult.Error -> {
+            is PushPhaseResult.Error -> {
                 VaultSyncResult.Error(
-                    reason = VaultSyncError.PullFailed(pullResult.reason),
-                    uploadedCount = pushOutcome.uploadedCount,
-                    downloadedCount = 0,
-                    conflictCount = pushOutcome.conflictCount,
+                    reason = VaultSyncError.PushFailed(pushPhaseResult.reason),
+                    uploadedCount = 0,
+                    downloadedCount = pullOutcome.downloadedCount,
+                    conflictCount = pullOutcome.conflictCount,
                 )
             }
         }
@@ -82,8 +82,25 @@ class VaultSyncUseCase @Inject constructor(
             is PushLocalVaultChangesResult.Error -> PushPhaseResult.Error(pushResult.reason)
         }
 
+    private suspend fun runPullPhase(limit: Int?): PullPhaseResult =
+        when (val pullResult = pullVaultDeltaUseCase(limit = limit)) {
+            is PullVaultDeltaResult.Success -> PullPhaseResult.Success(
+                PullOutcome(
+                    downloadedCount = pullResult.appliedUpsertCount + pullResult.appliedDeleteCount,
+                    conflictCount = pullResult.skippedDirtyOrConflictCount,
+                ),
+            )
+
+            is PullVaultDeltaResult.Error -> PullPhaseResult.Error(pullResult.reason)
+        }
+
     private data class PushOutcome(
         val uploadedCount: Int,
+        val conflictCount: Int,
+    )
+
+    private data class PullOutcome(
+        val downloadedCount: Int,
         val conflictCount: Int,
     )
 
@@ -95,5 +112,15 @@ class VaultSyncUseCase @Inject constructor(
         data class Error(
             val reason: PushLocalVaultChangesError,
         ) : PushPhaseResult
+    }
+
+    private sealed interface PullPhaseResult {
+        data class Success(
+            val outcome: PullOutcome,
+        ) : PullPhaseResult
+
+        data class Error(
+            val reason: PullVaultDeltaError,
+        ) : PullPhaseResult
     }
 }
