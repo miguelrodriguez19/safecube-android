@@ -6,6 +6,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMaterialPrefs
 import com.miguelrodriguez19.safecube.core.vault.data.codec.JsonSecureItemContentCodec
+import com.miguelrodriguez19.safecube.core.vault.data.crypto.SecureItemPayloadEnvelopeIdentityReader
 import com.miguelrodriguez19.safecube.core.vault.data.crypto.VaultItemCipher
 import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
 import com.miguelrodriguez19.safecube.core.vault.data.remote.RemoteSecureItemDataSource
@@ -17,6 +18,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
+import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemPayloadIdentityReader
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.CurrentInstantProvider
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.RandomSecureItemIdGenerator
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SecureItemIdGenerator
@@ -75,6 +77,12 @@ abstract class VaultModule {
     internal abstract fun bindSecureItemCryptoService(
         vaultItemCipher: VaultItemCipher,
     ): SecureItemCryptoService
+
+    @Binds
+    @Singleton
+    internal abstract fun bindSecureItemPayloadIdentityReader(
+        secureItemPayloadEnvelopeIdentityReader: SecureItemPayloadEnvelopeIdentityReader,
+    ): SecureItemPayloadIdentityReader
 
     @Binds
     @Singleton

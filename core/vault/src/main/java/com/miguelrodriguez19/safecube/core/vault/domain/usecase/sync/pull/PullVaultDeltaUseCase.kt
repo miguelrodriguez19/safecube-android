@@ -17,6 +17,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.SummaryF
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemPayloadIdentityReader
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.SecureItemDraftPolicyCoordinator
 import java.time.Instant
 import java.util.UUID
@@ -28,6 +29,7 @@ class PullVaultDeltaUseCase @Inject constructor(
     private val secureItemRepository: SecureItemRepository,
     private val secureItemRemoteRepository: SecureItemRemoteRepository,
     private val vaultKeyMaterialLocalRepository: VaultKeyMaterialLocalRepository,
+    private val secureItemPayloadIdentityReader: SecureItemPayloadIdentityReader,
     private val secureItemDraftPolicyCoordinator: SecureItemDraftPolicyCoordinator,
 ) {
     suspend operator fun invoke(limit: Int? = null): PullVaultDeltaResult {
@@ -226,14 +228,36 @@ class PullVaultDeltaUseCase @Inject constructor(
         detail: RemoteSecureItem,
         itemType: SecureItemType,
         localItem: SecureItem?,
-    ): RemoteDeltaItemResult {
+    ): RemoteDeltaItemResult { // TODO: mirar en bbdd si podemos recuperar en base al remoteItemId y sino significa que no existe por lo que lo tendremos que crear recuperando primero el logicalItemId del detail.payload
+        val payloadLogicalItemId = secureItemPayloadIdentityReader.readLogicalItemId(detail.payload)
+            ?: return RemoteDeltaItemResult.Failed
+
+        val localItemWithSharedIdentity = if (localItem == null) {
+            secureItemRepository.getItem(payloadLogicalItemId)
+        } else {
+            null
+        }
+
+        val resolvedLocalItem = localItem ?: localItemWithSharedIdentity
+        val resolvedLogicalItemId = when {
+            localItem != null && localItem.logicalItemId != payloadLogicalItemId ->
+                return RemoteDeltaItemResult.Failed
+
+            localItemWithSharedIdentity != null &&
+                localItemWithSharedIdentity.remoteItemId != null &&
+                localItemWithSharedIdentity.remoteItemId != summary.itemId ->
+                return RemoteDeltaItemResult.Failed
+
+            resolvedLocalItem != null -> resolvedLocalItem.logicalItemId
+            else -> payloadLogicalItemId
+        }
         val remoteOfficialItem = detail.toLocalSecureItem(
-            logicalItemId = localItem?.logicalItemId ?: UUID.randomUUID(),
+            logicalItemId = resolvedLogicalItemId,
             itemType = itemType,
-            createdAt = localItem?.createdAt ?: detail.updatedAt,
+            createdAt = resolvedLocalItem?.createdAt ?: detail.updatedAt,
         )
 
-        if (localItem == null) {
+        if (resolvedLocalItem == null) {
             return appliedOrFailedIf {
                 secureItemRepository.applyRemoteUpsert(
                     item = remoteOfficialItem,
@@ -242,10 +266,10 @@ class PullVaultDeltaUseCase @Inject constructor(
             }
         }
 
-        return when (localItem.syncState) {
+        return when (resolvedLocalItem.syncState) {
             SecureItemSyncState.PENDING_UPDATE -> appliedOrFailedIf {
                 secureItemDraftPolicyCoordinator.replaceOfficialItemWithRemoteAndDraft(
-                    localItem = localItem,
+                    localItem = resolvedLocalItem,
                     remoteItem = remoteOfficialItem,
                     draftType = SecureItemDraftType.UPDATE,
                     lastSyncedAt = summary.updatedAt,
@@ -254,7 +278,7 @@ class PullVaultDeltaUseCase @Inject constructor(
 
             SecureItemSyncState.PENDING_DELETE -> appliedOrFailedIf {
                 secureItemDraftPolicyCoordinator.replaceOfficialItemWithRemoteAndDraft(
-                    localItem = localItem,
+                    localItem = resolvedLocalItem,
                     remoteItem = remoteOfficialItem,
                     draftType = SecureItemDraftType.DELETE,
                     lastSyncedAt = summary.updatedAt,
@@ -265,7 +289,7 @@ class PullVaultDeltaUseCase @Inject constructor(
             SecureItemSyncState.CONFLICT,
                 -> skippedOrFailedIf {
                 secureItemRepository.markConflict(
-                    logicalItemId = localItem.logicalItemId,
+                    logicalItemId = resolvedLocalItem.logicalItemId,
                     lastSyncError = "Pull skipped: local changes pending. Push/retry required before applying remote update.",
                 )
             }
