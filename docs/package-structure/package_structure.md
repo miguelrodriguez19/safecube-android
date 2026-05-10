@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-05-2026 01:07:02
+Updated: 10-05-2026 11:23:46
 
 ```
 safecube-android/
@@ -256,7 +256,8 @@ safecube-android/
 │   │   │   ├── 2.json
 │   │   │   ├── 3.json
 │   │   │   ├── 4.json
-│   │   │   └── 5.json
+│   │   │   ├── 5.json
+│   │   │   └── 6.json
 │   │   ├── src/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/storage/
@@ -320,6 +321,7 @@ safecube-android/
 │   │   │   │   │   │   ├── crypto/
 │   │   │   │   │   │   │   ├── SecureItemCryptoContextProvider.kt
 │   │   │   │   │   │   │   ├── SecureItemPayloadAadFactory.kt
+│   │   │   │   │   │   │   ├── SecureItemPayloadEnvelopeIdentityReader.kt
 │   │   │   │   │   │   │   ├── SecureItemPayloadEnvelopeV1Codec.kt
 │   │   │   │   │   │   │   └── VaultItemCipher.kt
 │   │   │   │   │   │   ├── local/
@@ -412,7 +414,8 @@ safecube-android/
 │   │   │   │   │       │   ├── SecureItemCryptoError.kt
 │   │   │   │   │       │   ├── SecureItemCryptoService.kt
 │   │   │   │   │       │   ├── SecureItemDecryptionResult.kt
-│   │   │   │   │       │   └── SecureItemEncryptionResult.kt
+│   │   │   │   │       │   ├── SecureItemEncryptionResult.kt
+│   │   │   │   │       │   └── SecureItemPayloadIdentityReader.kt
 │   │   │   │   │       ├── session/
 │   │   │   │   │       │   └── VaultSessionManager.kt
 │   │   │   │   │       └── usecase/

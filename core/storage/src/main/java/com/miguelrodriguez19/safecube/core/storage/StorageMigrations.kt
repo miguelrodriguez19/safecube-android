@@ -4,6 +4,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object StorageMigrations {
+    private const val NANOS_PER_MILLI = 1_000_000L
     private const val SECURE_ITEM_SYNC_STATE_CHECK =
         "'SYNCED','PENDING_CREATE','PENDING_UPDATE','PENDING_DELETE','CONFLICT'"
     private const val SECURE_ITEM_DRAFT_TYPE_CHECK = "'UPDATE','DELETE'"
@@ -198,6 +199,52 @@ object StorageMigrations {
             )
             db.execSQL(
                 "CREATE INDEX IF NOT EXISTS `index_secure_items_draft_draft_type` ON `secure_items_draft` (`draft_type`)",
+            )
+        }
+    }
+
+    /**
+     * v6 preserves sub-millisecond timestamp precision by storing Instants as epoch nanos.
+     * Existing rows are migrated from epoch millis deterministically.
+     */
+    val MIGRATION_5_6: Migration = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                UPDATE `secure_items`
+                SET `created_at` = `created_at` * $NANOS_PER_MILLI,
+                    `updated_at` = `updated_at` * $NANOS_PER_MILLI,
+                    `deleted_at` = CASE
+                        WHEN `deleted_at` IS NULL THEN NULL
+                        ELSE `deleted_at` * $NANOS_PER_MILLI
+                    END,
+                    `last_synced_at` = CASE
+                        WHEN `last_synced_at` IS NULL THEN NULL
+                        ELSE `last_synced_at` * $NANOS_PER_MILLI
+                    END
+                """.trimIndent(),
+            )
+            db.execSQL(
+                """
+                UPDATE `secure_item_sync_checkpoints`
+                SET `last_pulled_at` = `last_pulled_at` * $NANOS_PER_MILLI
+                """.trimIndent(),
+            )
+            db.execSQL(
+                """
+                UPDATE `secure_items_draft`
+                SET `created_at` = `created_at` * $NANOS_PER_MILLI,
+                    `updated_at` = `updated_at` * $NANOS_PER_MILLI,
+                    `deleted_at` = CASE
+                        WHEN `deleted_at` IS NULL THEN NULL
+                        ELSE `deleted_at` * $NANOS_PER_MILLI
+                    END,
+                    `last_synced_at` = CASE
+                        WHEN `last_synced_at` IS NULL THEN NULL
+                        ELSE `last_synced_at` * $NANOS_PER_MILLI
+                    END,
+                    `base_updated_at` = `base_updated_at` * $NANOS_PER_MILLI
+                """.trimIndent(),
             )
         }
     }

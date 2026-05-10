@@ -2,7 +2,6 @@ package com.miguelrodriguez19.safecube.core.storage
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.miguelrodriguez19.safecube.core.storage.SecureItemSyncStateDb
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -116,6 +115,30 @@ class SecureItemDaoIntegrationTest {
         assertEquals(item.createdAt, result?.createdAt)
         assertEquals(item.updatedAt, result?.updatedAt)
         assertArrayEquals(item.payload, result?.payload)
+    }
+
+    @Test
+    fun `getItem when timestamps contain nanos then preserves full precision`() = runBlocking {
+        val createdAt = Instant.parse("2026-05-10T12:38:07.814455123Z")
+        val updatedAt = Instant.parse("2026-05-10T12:38:08.999000456Z")
+        val deletedAt = Instant.parse("2026-05-10T12:39:09.000123789Z")
+        val item = sampleEntity(
+            logicalItemId = UUID.randomUUID(),
+            itemType = "NOTE",
+            payload = byteArrayOf(1, 2, 3, 4),
+            updatedAt = updatedAt,
+            deletedAt = deletedAt,
+            lastSyncedAt = Instant.parse("2026-05-10T12:40:10.111222333Z"),
+        ).copy(createdAt = createdAt)
+        target.insert(item)
+
+        val result = target.getItem(item.logicalItemId)
+
+        assertNotNull(result)
+        assertEquals(createdAt, result?.createdAt)
+        assertEquals(updatedAt, result?.updatedAt)
+        assertEquals(deletedAt, result?.deletedAt)
+        assertEquals(item.lastSyncedAt, result?.lastSyncedAt)
     }
 
     @Test
@@ -410,9 +433,9 @@ private fun sampleEntity(
     displayHint = "Example item",
     payload = payload,
     payloadVersion = 1,
-    createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS),
-    updatedAt = updatedAt.truncatedTo(ChronoUnit.MILLIS),
-    deletedAt = deletedAt?.truncatedTo(ChronoUnit.MILLIS),
+    createdAt = Instant.now(),
+    updatedAt = updatedAt,
+    deletedAt = deletedAt,
     syncState = syncState,
     lastSyncedAt = lastSyncedAt,
     lastSyncError = lastSyncError,

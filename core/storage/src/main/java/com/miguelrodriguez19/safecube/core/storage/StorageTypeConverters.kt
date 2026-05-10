@@ -5,6 +5,10 @@ import java.time.Instant
 import java.util.UUID
 
 class StorageTypeConverters {
+    private companion object {
+        private const val NANOS_PER_SECOND = 1_000_000_000L
+    }
+
     @TypeConverter
     fun fromUuid(value: UUID?): String? = value?.toString()
 
@@ -14,10 +18,19 @@ class StorageTypeConverters {
         ?.let { UUID.fromString(it) }
 
     @TypeConverter
-    fun fromInstant(value: Instant?): Long? = value?.toEpochMilli()
+    fun fromInstant(value: Instant?): Long? = value?.let { instant ->
+        Math.addExact(
+            Math.multiplyExact(instant.epochSecond, NANOS_PER_SECOND),
+            instant.nano.toLong(),
+        )
+    }
 
     @TypeConverter
-    fun toInstant(value: Long?): Instant? = value?.let(Instant::ofEpochMilli)
+    fun toInstant(value: Long?): Instant? = value?.let { epochNanos ->
+        val epochSeconds = Math.floorDiv(epochNanos, NANOS_PER_SECOND)
+        val nanosAdjustment = Math.floorMod(epochNanos, NANOS_PER_SECOND)
+        Instant.ofEpochSecond(epochSeconds, nanosAdjustment)
+    }
 
     @TypeConverter
     fun fromSecureItemSyncStateDb(value: SecureItemSyncStateDb): String = value.storageValue
