@@ -13,6 +13,7 @@ data class VaultHomeUiState(
     val isSyncing: Boolean = false,
     val lastSyncResult: VaultSyncResult? = null,
     val lastSyncError: VaultSyncError? = null,
+    val isDirty: Boolean = false,
 )
 
 data class VaultItemSummaryUiModel(
@@ -27,16 +28,7 @@ data class VaultItemSummaryUiModel(
     val lastPublishError: String?,
 ) {
     val isPendingSync: Boolean
-        get() = when (syncState) {
-            SecureItemSyncState.PENDING_CREATE,
-            SecureItemSyncState.PENDING_UPDATE,
-            SecureItemSyncState.PENDING_DELETE,
-            -> true
-
-            SecureItemSyncState.SYNCED,
-            SecureItemSyncState.CONFLICT,
-            -> false
-        }
+        get() = syncState.isPendingPushState()
 
     val isConflict: Boolean
         get() = syncState == SecureItemSyncState.CONFLICT

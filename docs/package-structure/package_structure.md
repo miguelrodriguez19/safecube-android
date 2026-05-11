@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-05-2026 11:33:58
+Updated: 11-05-2026 05:08:03
 
 ```
 safecube-android/
@@ -448,10 +448,10 @@ safecube-android/
 │   │   │   │   │           │   ├── push/
 │   │   │   │   │           │   │   ├── PushLocalVaultChangesMappings.kt
 │   │   │   │   │           │   │   └── PushLocalVaultChangesUseCase.kt
+│   │   │   │   │           │   ├── ObserveVaultDirtyStateUseCase.kt
 │   │   │   │   │           │   ├── ObserveVaultSyncingUseCase.kt
 │   │   │   │   │           │   ├── SyncVaultNowUseCase.kt
 │   │   │   │   │           │   ├── VaultSyncExecutionLock.kt
-│   │   │   │   │           │   ├── VaultSyncTrigger.kt
 │   │   │   │   │           │   └── VaultSyncUseCase.kt
 │   │   │   │   │           └── vault/
 │   │   │   │   │               ├── VaultInitializeUseCase.kt
@@ -498,6 +498,7 @@ safecube-android/
 │   │   │               ├── CreateSecurePasswordUseCaseTest.kt
 │   │   │               ├── ObserveSecureItemDetailUseCaseTest.kt
 │   │   │               ├── ObserveSecureItemDraftDetailUseCaseTest.kt
+│   │   │               ├── ObserveVaultDirtyStateUseCaseTest.kt
 │   │   │               ├── ObserveVaultDraftSummariesUseCaseTest.kt
 │   │   │               ├── ObserveVaultItemSummariesUseCaseTest.kt
 │   │   │               ├── PullVaultDeltaUseCaseTest.kt
@@ -508,7 +509,6 @@ safecube-android/
 │   │   │               ├── UpdateSecurePasswordUseCaseTest.kt
 │   │   │               ├── VaultInitializeUseCaseTest.kt
 │   │   │               ├── VaultSyncExecutionLockTest.kt
-│   │   │               ├── VaultSyncTriggerTest.kt
 │   │   │               ├── VaultSyncUseCaseTest.kt
 │   │   │               └── VaultUnlockUseCaseTest.kt
 │   │   └── build.gradle.kts

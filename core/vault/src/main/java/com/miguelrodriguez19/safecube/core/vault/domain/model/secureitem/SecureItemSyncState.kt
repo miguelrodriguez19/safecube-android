@@ -14,4 +14,15 @@ enum class SecureItemSyncState(
             state.storageValue == value
         }
     }
+
+    fun isPendingPushState(): Boolean = when (this) {
+        PENDING_CREATE,
+        PENDING_UPDATE,
+        PENDING_DELETE,
+        -> true
+
+        SYNCED,
+        CONFLICT,
+        -> false
+    }
 }

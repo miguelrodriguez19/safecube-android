@@ -4,7 +4,6 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.Rem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.RemoteUpdateSecureItemRequest
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncDraft
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import java.time.Instant
 
 internal fun SecureItem.toRemoteCreateRequest(): RemoteCreateSecureItemRequest = RemoteCreateSecureItemRequest(
@@ -29,14 +28,3 @@ internal fun SecureItemSyncDraft.toPublishedUpdateRequest(): RemoteUpdateSecureI
 )
 
 internal fun SecureItem.localDeleteTimestamp(): Instant = deletedAt ?: updatedAt
-
-internal fun SecureItemSyncState.isPendingPushState(): Boolean = when (this) {
-    SecureItemSyncState.PENDING_CREATE,
-    SecureItemSyncState.PENDING_UPDATE,
-    SecureItemSyncState.PENDING_DELETE,
-    -> true
-
-    SecureItemSyncState.SYNCED,
-    SecureItemSyncState.CONFLICT,
-    -> false
-}

@@ -8,7 +8,6 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.Se
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureNoteDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SecureItemMutationCoordinator
-import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.VaultSyncTrigger
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
@@ -25,16 +24,14 @@ class CreateSecureNoteUseCaseTest {
 
     private val secureItemMutationCoordinator = mockk<SecureItemMutationCoordinator>()
     private val noteDraftToContentMapper = mockk<NoteDraftToContentMapper>()
-    private val vaultSyncTrigger = mockk<VaultSyncTrigger>(relaxed = true)
 
     private val target = CreateSecureNoteUseCase(
         secureItemMutationCoordinator = secureItemMutationCoordinator,
         noteDraftToContentMapper = noteDraftToContentMapper,
-        vaultSyncTrigger = vaultSyncTrigger,
     )
 
     @Test
-    fun `invoke when draft is valid and local mutation succeeds then triggers opportunistic sync`() = runBlocking {
+    fun `invoke when draft is valid and local mutation succeeds then returns created item`() = runBlocking {
         val draft = SecureNoteDraft(
             displayHint = "API key",
             body = "secret body",
@@ -59,8 +56,7 @@ class CreateSecureNoteUseCaseTest {
                 content = content,
             )
         }
-        verify(exactly = 1) { vaultSyncTrigger.onLocalMutationStored(expectedResult.item.logicalItemId) }
-        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
+        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
     }
 
     @Test
@@ -83,8 +79,7 @@ class CreateSecureNoteUseCaseTest {
         )
         verify(exactly = 1) { noteDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.create(any(), any()) }
-        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored(any()) }
-        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
+        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
     }
 
     @Test
@@ -105,8 +100,7 @@ class CreateSecureNoteUseCaseTest {
         )
         verify(exactly = 1) { noteDraftToContentMapper.map(draft) }
         coVerify(exactly = 0) { secureItemMutationCoordinator.create(any(), any()) }
-        verify(exactly = 0) { vaultSyncTrigger.onLocalMutationStored(any()) }
-        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper, vaultSyncTrigger)
+        confirmVerified(secureItemMutationCoordinator, noteDraftToContentMapper)
     }
 }
 

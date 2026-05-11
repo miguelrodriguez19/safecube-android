@@ -386,13 +386,26 @@ class SecureItemMutationCoordinatorTest {
     }
 
     @Test
-    fun `update when decrypted content is unchanged then keeps payload version and updates metadata only`() = runBlocking {
+    fun `update when decrypted content is unchanged then re encrypts and increments payload version`() = runBlocking {
         val updatedItemSlot = slot<SecureItem>()
         val existingItem = samplePasswordItem()
         vaultState.value = VaultState.Unlocked
         coEvery { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) } returns existingItem
         every { secureItemCryptoService.decrypt(existingItem) } returns SecureItemDecryptionResult.Success(validPasswordContent())
         every { currentInstantProvider.now() } returns UPDATED_AT
+        every {
+            secureItemCryptoService.encrypt(
+                logicalItemId = SAMPLE_LOGICAL_ITEM_ID,
+                payloadVersion = 2,
+                content = validPasswordContent(),
+            )
+        } returns SecureItemEncryptionResult.Success(
+            payload = EncryptedSecureItemPayload(
+                itemType = SecureItemType.PASSWORD,
+                schemaVersion = 1,
+                payload = byteArrayOf(4, 5, 6),
+            ),
+        )
         coEvery { secureItemRepository.update(capture(updatedItemSlot)) } returns Unit
 
         val result = target.update(
@@ -403,14 +416,14 @@ class SecureItemMutationCoordinatorTest {
         )
 
         assertTrue(result is SecureItemMutationResult.Success)
-        assertEquals(1, updatedItemSlot.captured.payloadVersion)
-        assertArrayEquals(existingItem.payload, updatedItemSlot.captured.payload)
+        assertEquals(2, updatedItemSlot.captured.payloadVersion)
+        assertArrayEquals(byteArrayOf(4, 5, 6), updatedItemSlot.captured.payload)
         assertEquals("Github updated", updatedItemSlot.captured.displayHint)
         assertEquals(UPDATED_AT, updatedItemSlot.captured.updatedAt)
         assertEquals(SecureItemSyncState.PENDING_CREATE, updatedItemSlot.captured.syncState)
         coVerify(exactly = 1) { secureItemRepository.getItem(SAMPLE_LOGICAL_ITEM_ID) }
         verify(exactly = 1) { secureItemCryptoService.decrypt(existingItem) }
-        verify(exactly = 0) { secureItemCryptoService.encrypt(any(), any(), any()) }
+        verify(exactly = 1) { secureItemCryptoService.encrypt(SAMPLE_LOGICAL_ITEM_ID, 2, validPasswordContent()) }
         verify(exactly = 1) { currentInstantProvider.now() }
         coVerify(exactly = 1) { secureItemRepository.update(any()) }
         confirmVerified(secureItemRepository, secureItemCryptoService, currentInstantProvider)

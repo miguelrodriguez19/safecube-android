@@ -7,16 +7,17 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.Va
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.VaultItemSummary
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveVaultDraftSummariesUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveVaultItemSummariesUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultDirtyStateUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.SyncVaultNowUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultItemSummaryUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -24,11 +25,16 @@ import kotlinx.coroutines.launch
 class VaultHomeViewModel @Inject constructor(
     observeVaultItemSummariesUseCase: ObserveVaultItemSummariesUseCase,
     observeVaultDraftSummariesUseCase: ObserveVaultDraftSummariesUseCase,
+    observeVaultDirtyStateUseCase: ObserveVaultDirtyStateUseCase,
     observeVaultSyncingUseCase: ObserveVaultSyncingUseCase,
     private val syncVaultNowUseCase: SyncVaultNowUseCase,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(VaultHomeUiState())
     val uiState = mutableUiState.asStateFlow()
+    private var isVaultScreenVisible = false
+    private var hasTriggeredInitialSync = false
+    private var dirtyState = false
+    private var syncJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -49,12 +55,40 @@ class VaultHomeViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            observeVaultDirtyStateUseCase().collect { isDirty ->
+                val wasDirty = dirtyState
+                dirtyState = isDirty
+                mutableUiState.update { state ->
+                    state.copy(isDirty = isDirty)
+                }
+                if (isVaultScreenVisible && isDirty && !wasDirty) {
+                    requestSync()
+                }
+            }
+        }
+        viewModelScope.launch {
             observeVaultSyncingUseCase().collect { isSyncing ->
                 mutableUiState.update { state ->
                     state.copy(isSyncing = isSyncing)
                 }
             }
         }
+    }
+
+    fun onVaultScreenShown() {
+        isVaultScreenVisible = true
+        if (!hasTriggeredInitialSync) {
+            hasTriggeredInitialSync = true
+            requestSync()
+            return
+        }
+        if (dirtyState) {
+            requestSync()
+        }
+    }
+
+    fun onVaultScreenHidden() {
+        isVaultScreenVisible = false
     }
 
     private fun mapToUiItems(
@@ -79,10 +113,14 @@ class VaultHomeViewModel @Inject constructor(
     }
 
     fun syncNow() {
-        if (mutableUiState.value.isSyncing) {
+        requestSync()
+    }
+
+    private fun requestSync() {
+        if (mutableUiState.value.isSyncing || syncJob?.isActive == true) {
             return
         }
-        viewModelScope.launch {
+        syncJob = viewModelScope.launch {
             val result = syncVaultNowUseCase()
             mutableUiState.update { state ->
                 state.copy(

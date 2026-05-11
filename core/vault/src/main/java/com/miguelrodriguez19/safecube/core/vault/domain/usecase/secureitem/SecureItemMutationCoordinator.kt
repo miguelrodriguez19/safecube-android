@@ -95,7 +95,7 @@ internal class SecureItemMutationCoordinator @Inject constructor(
                 SecureItemCrudError.ValidationError("displayHint must not be blank."),
             )
 
-        val decryptedContent = when (val decryptionResult = secureItemCryptoService.decrypt(existingItem)) {
+        when (val decryptionResult = secureItemCryptoService.decrypt(existingItem)) {
             is SecureItemDecryptionResult.Success -> decryptionResult.content
             is SecureItemDecryptionResult.Error -> {
                 return SecureItemMutationResult.Error(mapDecryptionError(decryptionResult.reason))
@@ -103,40 +103,29 @@ internal class SecureItemMutationCoordinator @Inject constructor(
         }
 
         val updatedAt = currentInstantProvider.now()
-        val payloadChanged = decryptedContent != content
-
-        val updatedItem = if (payloadChanged) {
-            when (
-                val encryptionResult = secureItemCryptoService.encrypt(
-                    logicalItemId = logicalItemId,
-                    payloadVersion = existingItem.payloadVersion + 1,
-                    content = content,
-                )
-            ) {
-                is SecureItemEncryptionResult.Success -> {
-                    existingItem.copy(
-                        itemType = encryptionResult.payload.itemType,
-                        schemaVersion = encryptionResult.payload.schemaVersion,
-                        displayHint = normalizedDisplayHint,
-                        payload = encryptionResult.payload.payload,
-                        payloadVersion = existingItem.payloadVersion + 1,
-                        updatedAt = updatedAt,
-                        syncState = existingItem.pendingSyncStateForMutation(),
-                        lastSyncError = null,
-                    )
-                }
-
-                is SecureItemEncryptionResult.Error -> {
-                    return SecureItemMutationResult.Error(mapEncryptionError(encryptionResult.reason))
-                }
-            }
-        } else {
-            existingItem.copy(
-                displayHint = normalizedDisplayHint,
-                updatedAt = updatedAt,
-                syncState = existingItem.pendingSyncStateForMutation(),
-                lastSyncError = null,
+        val updatedItem = when (
+            val encryptionResult = secureItemCryptoService.encrypt(
+                logicalItemId = logicalItemId,
+                payloadVersion = existingItem.payloadVersion + 1,
+                content = content,
             )
+        ) {
+            is SecureItemEncryptionResult.Success -> {
+                existingItem.copy(
+                    itemType = encryptionResult.payload.itemType,
+                    schemaVersion = encryptionResult.payload.schemaVersion,
+                    displayHint = normalizedDisplayHint,
+                    payload = encryptionResult.payload.payload,
+                    payloadVersion = existingItem.payloadVersion + 1,
+                    updatedAt = updatedAt,
+                    syncState = existingItem.pendingSyncStateForMutation(),
+                    lastSyncError = null,
+                )
+            }
+
+            is SecureItemEncryptionResult.Error -> {
+                return SecureItemMutationResult.Error(mapEncryptionError(encryptionResult.reason))
+            }
         }
 
         secureItemRepository.update(updatedItem)

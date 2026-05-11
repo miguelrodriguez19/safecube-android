@@ -128,6 +128,7 @@ class PullVaultDeltaUseCase @Inject constructor(
                 )
                 when (deleteResult) {
                     RemoteDeltaItemResult.Applied -> counters.appliedDeletes++
+                    RemoteDeltaItemResult.Unchanged -> Unit
                     RemoteDeltaItemResult.Skipped -> counters.skippedDirtyOrConflict++
                     RemoteDeltaItemResult.Failed -> {
                         return DeltaApplyResult.Error(
@@ -161,6 +162,7 @@ class PullVaultDeltaUseCase @Inject constructor(
             )
             when (applyResult) {
                 RemoteDeltaItemResult.Applied -> counters.appliedUpserts++
+                RemoteDeltaItemResult.Unchanged -> Unit
                 RemoteDeltaItemResult.Skipped -> counters.skippedDirtyOrConflict++
                 RemoteDeltaItemResult.Failed -> {
                     return DeltaApplyResult.Error(
@@ -228,7 +230,7 @@ class PullVaultDeltaUseCase @Inject constructor(
         detail: RemoteSecureItem,
         itemType: SecureItemType,
         localItem: SecureItem?,
-    ): RemoteDeltaItemResult { // TODO: mirar en bbdd si podemos recuperar en base al remoteItemId y sino significa que no existe por lo que lo tendremos que crear recuperando primero el logicalItemId del detail.payload
+    ): RemoteDeltaItemResult {
         val payloadLogicalItemId = secureItemPayloadIdentityReader.readLogicalItemId(detail.payload)
             ?: return RemoteDeltaItemResult.Failed
 
@@ -256,6 +258,14 @@ class PullVaultDeltaUseCase @Inject constructor(
             itemType = itemType,
             createdAt = resolvedLocalItem?.createdAt ?: detail.updatedAt,
         )
+
+        if (
+            resolvedLocalItem != null &&
+            resolvedLocalItem.syncState == SecureItemSyncState.SYNCED &&
+            resolvedLocalItem.matchesOfficialRemoteState(remoteOfficialItem)
+        ) {
+            return RemoteDeltaItemResult.Unchanged
+        }
 
         if (resolvedLocalItem == null) {
             return appliedOrFailedIf {
@@ -329,6 +339,7 @@ class PullVaultDeltaUseCase @Inject constructor(
 
 private enum class RemoteDeltaItemResult {
     Applied,
+    Unchanged,
     Skipped,
     Failed,
 }

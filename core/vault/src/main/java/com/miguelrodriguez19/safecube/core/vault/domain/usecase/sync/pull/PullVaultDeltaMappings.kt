@@ -17,13 +17,14 @@ internal fun SecureItemSyncState.blocksRemotePullOverwrite(): Boolean = when (th
     SecureItemSyncState.PENDING_UPDATE,
     SecureItemSyncState.PENDING_DELETE,
     SecureItemSyncState.CONFLICT,
-    -> true
+        -> true
 }
 
-internal fun List<RemoteSecureItemSummary>.deduplicateByItemIdKeepingLatest(): List<RemoteSecureItemSummary> = this
-    .groupBy(RemoteSecureItemSummary::itemId)
-    .values
-    .map(::pickLatestSummary)
+internal fun List<RemoteSecureItemSummary>.deduplicateByItemIdKeepingLatest(): List<RemoteSecureItemSummary> =
+    this
+        .groupBy(RemoteSecureItemSummary::itemId)
+        .values
+        .map(::pickLatestSummary)
 
 private fun pickLatestSummary(candidates: List<RemoteSecureItemSummary>): RemoteSecureItemSummary =
     candidates.reduce { current, candidate ->
@@ -54,3 +55,17 @@ internal fun RemoteSecureItem.toLocalSecureItem(
     lastSyncedAt = updatedAt,
     lastSyncError = null,
 )
+
+internal fun SecureItem.matchesOfficialRemoteState(other: SecureItem): Boolean {
+
+    return logicalItemId == other.logicalItemId &&
+            remoteItemId == other.remoteItemId &&
+            itemType == other.itemType &&
+            schemaVersion == other.schemaVersion &&
+            displayHint == other.displayHint &&
+            payload.contentEquals(other.payload) &&
+            payloadVersion == other.payloadVersion &&
+            createdAt == other.createdAt &&
+            updatedAt == other.updatedAt &&
+            deletedAt == other.deletedAt
+}

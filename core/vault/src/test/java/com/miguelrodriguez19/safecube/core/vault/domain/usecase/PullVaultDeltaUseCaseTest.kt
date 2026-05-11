@@ -452,6 +452,64 @@ class PullVaultDeltaUseCaseTest {
     }
 
     @Test
+    fun `invoke when remote active item matches synced local state then skips redundant upsert`() = runBlocking {
+        val accountId = UUID.randomUUID()
+        val itemId = UUID.randomUUID()
+        val payloadLogicalItemId = UUID.randomUUID()
+        val updatedAt = Instant.now()
+        val payload = byteArrayOf(1, 1, 1)
+        val localItem = SecureItem(
+            logicalItemId = payloadLogicalItemId,
+            remoteItemId = itemId,
+            itemType = SecureItemType.NOTE,
+            schemaVersion = 1,
+            displayHint = "remote",
+            payload = payload,
+            payloadVersion = 2,
+            createdAt = updatedAt.minusSeconds(3600),
+            updatedAt = updatedAt,
+            deletedAt = null,
+            syncState = SecureItemSyncState.SYNCED,
+            lastSyncedAt = updatedAt,
+            lastSyncError = null,
+        )
+        every { vaultKeyMaterialLocalRepository.get() } returns sampleVaultKeyMaterial(accountId)
+        coEvery { secureItemRepository.getSyncCheckpoint(accountId) } returns null
+        coEvery { secureItemRemoteRepository.listVaultItems(any()) } returns SecureItemRemoteResult.Success(
+            listOf(sampleSummary(itemId = itemId, updatedAt = updatedAt, deletedAt = null)),
+        )
+        coEvery { secureItemRemoteRepository.getVaultItem(itemId) } returns SecureItemRemoteResult.Success(
+            RemoteSecureItem(
+                itemId = itemId,
+                itemType = SecureItemType.NOTE.wireName,
+                schemaVersion = 1,
+                displayHint = "remote",
+                payload = payload,
+                payloadVersion = 2,
+                updatedAt = updatedAt,
+                deletedAt = null,
+            ),
+        )
+        every { secureItemPayloadIdentityReader.readLogicalItemId(any()) } returns payloadLogicalItemId
+        coEvery { secureItemRepository.findByRemoteItemId(itemId) } returns localItem
+        coEvery { secureItemRepository.updateSyncCheckpoint(accountId, updatedAt) } returns Unit
+
+        val result = target()
+
+        assertEquals(
+            PullVaultDeltaResult.Success(
+                processedSummaryCount = 1,
+                appliedUpsertCount = 0,
+                appliedDeleteCount = 0,
+                skippedDirtyOrConflictCount = 0,
+                checkpointUpdatedTo = updatedAt,
+            ),
+            result,
+        )
+        coVerify(exactly = 0) { secureItemRepository.applyRemoteUpsert(any(), any()) }
+    }
+
+    @Test
     fun `invoke when remote active item arrives for synced local item and upsert fails then returns local apply failed`() = runBlocking {
         val accountId = UUID.randomUUID()
         val itemId = UUID.randomUUID()
