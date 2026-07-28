@@ -61,9 +61,7 @@ class RemoteSecureItemDataSourceIntegrationTest {
                     """.trimIndent(),
                 ),
         )
-        val target = RemoteSecureItemDataSource(
-            vaultControllerApi = createVaultApi(server),
-        )
+        val target = createTarget()
         val now = Instant.now()
         val result = target.listVaultItems(
             requestParams = RemoteListVaultItemsRequestParams(
@@ -110,9 +108,7 @@ class RemoteSecureItemDataSourceIntegrationTest {
                     """.trimIndent(),
                 ),
         )
-        val target = RemoteSecureItemDataSource(
-            vaultControllerApi = createVaultApi(server),
-        )
+        val target = createTarget()
 
         val result = target.getVaultItem(itemId)
 
@@ -146,9 +142,7 @@ class RemoteSecureItemDataSourceIntegrationTest {
                     """.trimIndent(),
                 ),
         )
-        val target = RemoteSecureItemDataSource(
-            vaultControllerApi = createVaultApi(server),
-        )
+        val target = createTarget()
 
         val result = target.createVaultItem(
             request = RemoteCreateSecureItemRequest(
@@ -178,9 +172,7 @@ class RemoteSecureItemDataSourceIntegrationTest {
                 .addHeader("Content-Type", "application/json")
                 .setBody("""{"error":"Conflict"}"""),
         )
-        val target = RemoteSecureItemDataSource(
-            vaultControllerApi = createVaultApi(server),
-        )
+        val target = createTarget()
 
         val result = target.updateVaultItem(
             remoteItemId = itemId,
@@ -214,9 +206,7 @@ class RemoteSecureItemDataSourceIntegrationTest {
                 .addHeader("Content-Type", "application/json")
                 .setBody("""{"error":"Not found"}"""),
         )
-        val target = RemoteSecureItemDataSource(
-            vaultControllerApi = createVaultApi(server),
-        )
+        val target = createTarget()
 
         val mutationId = UUID.randomUUID()
         val result = target.deleteVaultItem(
@@ -244,5 +234,11 @@ class RemoteSecureItemDataSourceIntegrationTest {
                 baseUrl = server.url("/").toString(),
                 isDebug = false,
             ),
+        )
+
+    private fun createTarget(): RemoteSecureItemDataSource =
+        RemoteSecureItemDataSource(
+            vaultControllerApi = createVaultApi(server),
+            json = NetworkClientFactory.createJson(),
         )
 }

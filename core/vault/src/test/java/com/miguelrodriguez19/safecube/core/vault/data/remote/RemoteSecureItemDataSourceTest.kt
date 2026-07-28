@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.core.vault.data.remote
 
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultControllerApi
+import com.miguelrodriguez19.safecube.core.network.data.client.NetworkClientFactory
 import com.miguelrodriguez19.safecube.core.network.generated.model.CreateSecureItemRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.CreateSecureItemResult
 import com.miguelrodriguez19.safecube.core.network.generated.model.ListSecureItemChangesResponse
@@ -26,7 +27,10 @@ import retrofit2.Response
 
 class RemoteSecureItemDataSourceTest {
     private val vaultControllerApi = mockk<VaultControllerApi>()
-    private val target = RemoteSecureItemDataSource(vaultControllerApi)
+    private val target = RemoteSecureItemDataSource(
+        vaultControllerApi = vaultControllerApi,
+        json = NetworkClientFactory.createJson(),
+    )
 
     @Test
     fun `create forwards idempotency and client payload version`() = runBlocking {
@@ -119,6 +123,38 @@ class RemoteSecureItemDataSourceTest {
 
         assertEquals(
             SecureItemRemoteResult.Error(SecureItemRemoteError.IdempotencyConflict),
+            result,
+        )
+    }
+
+    @Test
+    fun `create maps validation response fields`() = runBlocking {
+        val request = RemoteCreateSecureItemRequest(
+            itemType = "NOTE",
+            schemaVersion = 1,
+            displayHint = "New note",
+            payload = byteArrayOf(1),
+            payloadVersion = 2,
+            mutationId = UUID.randomUUID(),
+        )
+        coEvery {
+            vaultControllerApi.createVaultItem(request.mutationId, any())
+        } returns Response.error(
+            400,
+            ResponseBody.create(
+                null,
+                """{"error":"VALIDATION_FAILED","fields":{"payloadVersion":"must be positive"}}""",
+            ),
+        )
+
+        val result = target.createVaultItem(request)
+
+        assertEquals(
+            SecureItemRemoteResult.Error(
+                SecureItemRemoteError.ValidationFailed(
+                    fields = mapOf("payloadVersion" to "must be positive"),
+                ),
+            ),
             result,
         )
     }

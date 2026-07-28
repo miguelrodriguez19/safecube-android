@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecur
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.RemoteCreateSecureItemResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.SecureItemRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.SecureItemRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLocalVaultChangesError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLocalVaultChangesResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemDraftRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRemoteRepository
@@ -11,6 +12,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.Secur
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.push.PushLocalVaultChangesUseCase
 import com.miguelrodriguez19.safecube.core.vault.test.testSecureItemDraft
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import java.time.Instant
 import java.util.UUID
@@ -106,5 +108,36 @@ class PushLocalVaultChangesUseCaseTest {
             ),
             result,
         )
+    }
+
+    @Test
+    fun `invoke when create is rejected as invalid then keeps draft and stops push`() = runBlocking {
+        val draft = testSecureItemDraft(
+            remoteItemId = null,
+            draftType = com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType.CREATE,
+        )
+        coEvery { secureItemDraftRepository.getSyncableDraftsOrdered() } returns listOf(draft)
+        coEvery {
+            secureItemRemoteRepository.createVaultItem(any())
+        } returns SecureItemRemoteResult.Error(
+            SecureItemRemoteError.ValidationFailed(
+                fields = mapOf("payloadVersion" to "must be positive"),
+            ),
+        )
+
+        val result = target()
+
+        assertEquals(
+            PushLocalVaultChangesResult.Error(
+                PushLocalVaultChangesError.ProtocolIntegrityFailed(
+                    logicalItemId = draft.logicalItemId,
+                    operation = "CREATE_VALIDATION",
+                ),
+            ),
+            result,
+        )
+        coVerify(exactly = 0) {
+            secureItemDraftSyncCoordinator.officializeCreatedDraft(any(), any())
+        }
     }
 }

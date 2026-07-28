@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.vault.data.remote
 
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.CreateSecureItemRequest
+import com.miguelrodriguez19.safecube.core.network.generated.model.ErrorResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateSecureItemRequest
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItemChangesPage
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.RemoteCreateSecureItemRequest
@@ -20,11 +21,13 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.json.Json
 import retrofit2.Response
 
 @Singleton
 class RemoteSecureItemDataSource @Inject constructor(
     private val vaultControllerApi: VaultControllerApi,
+    private val json: Json,
 ) : SecureItemRemoteRepository {
     override suspend fun listVaultItems(
         requestParams: RemoteListVaultItemsRequestParams,
@@ -223,6 +226,9 @@ class RemoteSecureItemDataSource @Inject constructor(
         statusCode: Int,
         errorBody: String?,
     ): SecureItemRemoteError = when (statusCode) {
+        400 -> SecureItemRemoteError.ValidationFailed(
+            fields = decodeErrorResponse(errorBody)?.fields.orEmpty(),
+        )
         401, 403 -> SecureItemRemoteError.Unauthorized
         404 -> SecureItemRemoteError.ItemNotFound
         409 -> SecureItemRemoteError.IdempotencyConflict
@@ -233,6 +239,13 @@ class RemoteSecureItemDataSource @Inject constructor(
             errorBody = errorBody,
         )
     }
+
+    private fun decodeErrorResponse(errorBody: String?): ErrorResponse? =
+        errorBody?.let { body ->
+            runCatching {
+                json.decodeFromString<ErrorResponse>(body)
+            }.getOrNull()
+        }
 
     private inline fun <T, R> SecureItemRemoteResult<T>.mapSuccess(
         transform: (T) -> R,

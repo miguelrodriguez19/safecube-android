@@ -21,6 +21,10 @@ sealed interface SecureItemRemoteError {
 
     data object IdempotencyConflict : SecureItemRemoteError
 
+    data class ValidationFailed(
+        val fields: Map<String, String>,
+    ) : SecureItemRemoteError
+
     data class HttpError(
         val statusCode: Int,
         val errorBody: String?,

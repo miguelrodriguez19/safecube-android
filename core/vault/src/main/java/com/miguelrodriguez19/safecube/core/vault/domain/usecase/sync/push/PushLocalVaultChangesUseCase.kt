@@ -69,6 +69,7 @@ class PushLocalVaultChangesUseCase @Inject constructor(
 
         is SecureItemRemoteResult.Error -> when (remoteResult.error) {
             SecureItemRemoteError.IdempotencyConflict -> integrityFailure(draft, "CREATE_IDEMPOTENCY")
+            is SecureItemRemoteError.ValidationFailed -> integrityFailure(draft, "CREATE_VALIDATION")
             SecureItemRemoteError.PreconditionFailed,
             SecureItemRemoteError.PreconditionRequired,
                 -> integrityFailure(draft, "CREATE_PRECONDITION")
@@ -111,6 +112,8 @@ class PushLocalVaultChangesUseCase @Inject constructor(
                 SecureItemRemoteError.IdempotencyConflict,
                 SecureItemRemoteError.PreconditionRequired,
                     -> integrityFailure(draft, "UPDATE_PROTOCOL")
+                is SecureItemRemoteError.ValidationFailed ->
+                    integrityFailure(draft, "UPDATE_VALIDATION")
                 SecureItemRemoteError.Unauthorized,
                 is SecureItemRemoteError.HttpError,
                 is SecureItemRemoteError.NetworkError,
@@ -157,6 +160,8 @@ class PushLocalVaultChangesUseCase @Inject constructor(
                 SecureItemRemoteError.IdempotencyConflict,
                 SecureItemRemoteError.PreconditionRequired,
                     -> integrityFailure(draft, "DELETE_PROTOCOL")
+                is SecureItemRemoteError.ValidationFailed ->
+                    integrityFailure(draft, "DELETE_VALIDATION")
 
                 SecureItemRemoteError.Unauthorized,
                 is SecureItemRemoteError.HttpError,
