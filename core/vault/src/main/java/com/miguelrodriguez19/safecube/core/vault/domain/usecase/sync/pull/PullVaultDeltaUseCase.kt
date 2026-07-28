@@ -1,25 +1,22 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.pull
 
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteListVaultItemsRequestParams
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItem
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItemSummary
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.SecureItemRemoteResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.ApplyDeltaCounters
-import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.DeltaApplyResult
-import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.DetailsFetchResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.PullVaultDeltaError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.PullVaultDeltaResult
-import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.SummaryFetchResult
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemDraftRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
+import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemDecryptionResult
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemPayloadIdentityReader
-import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.SecureItemDraftPolicyCoordinator
-import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,319 +24,216 @@ import javax.inject.Singleton
 @Singleton
 class PullVaultDeltaUseCase @Inject constructor(
     private val secureItemRepository: SecureItemRepository,
+    private val secureItemDraftRepository: SecureItemDraftRepository,
     private val secureItemRemoteRepository: SecureItemRemoteRepository,
     private val vaultKeyMaterialLocalRepository: VaultKeyMaterialLocalRepository,
     private val secureItemPayloadIdentityReader: SecureItemPayloadIdentityReader,
-    private val secureItemDraftPolicyCoordinator: SecureItemDraftPolicyCoordinator,
+    private val secureItemCryptoService: SecureItemCryptoService,
 ) {
     suspend operator fun invoke(limit: Int? = null): PullVaultDeltaResult {
         val accountId = vaultKeyMaterialLocalRepository.get().accountIdOrNull()
             ?: return PullVaultDeltaResult.Error(PullVaultDeltaError.AccountIdUnavailable)
+        val pageLimit = limit ?: DEFAULT_PAGE_LIMIT
+        var cursor = secureItemRepository.getSyncCheckpoint(accountId) ?: INITIAL_CURSOR
+        var hasMore = true
+        val counters = ApplyDeltaCounters()
+        var processedCount = 0
+        var checkpointUpdated = false
 
-        val summaries =
-            when (val summariesResult = fetchSummaries(accountId = accountId, limit = limit)) {
-                is SummaryFetchResult.Success -> summariesResult.summaries
-                is SummaryFetchResult.Error ->
-                    return PullVaultDeltaResult.Error(summariesResult.error)
+        while (hasMore) {
+            val page = when (
+                val result = secureItemRemoteRepository.listVaultItemChanges(
+                    after = cursor,
+                    limit = pageLimit,
+                )
+            ) {
+                is SecureItemRemoteResult.Success -> result.value
+                is SecureItemRemoteResult.Error -> {
+                    return PullVaultDeltaResult.Error(PullVaultDeltaError.RemoteListFailed(result.error))
+                }
+            }
+            if (page.nextCursor < cursor) {
+                return PullVaultDeltaResult.Error(
+                    PullVaultDeltaError.LocalApplyFailed(
+                        itemId = ZERO_UUID,
+                        operation = "NON_MONOTONIC_CHANGE_CURSOR",
+                    ),
+                )
+            }
+            if (page.items.isEmpty()) {
+                if (page.hasMore) {
+                    return PullVaultDeltaResult.Error(
+                        PullVaultDeltaError.LocalApplyFailed(
+                            itemId = ZERO_UUID,
+                            operation = "EMPTY_CHANGE_PAGE_WITH_MORE_RESULTS",
+                        ),
+                    )
+                }
+                break
+            }
+            val pageSequences = page.items.map(RemoteSecureItem::changeSequence)
+            if (
+                pageSequences.first() <= cursor ||
+                pageSequences.zipWithNext().any { (current, next) -> next <= current } ||
+                pageSequences.last() != page.nextCursor
+            ) {
+                return PullVaultDeltaResult.Error(
+                    PullVaultDeltaError.LocalApplyFailed(
+                        itemId = ZERO_UUID,
+                        operation = "INVALID_CHANGE_PAGE_ORDER",
+                    ),
+                )
             }
 
-        val detailsByItemId = when (val detailsResult = fetchRequiredDetails(summaries)) {
-            is DetailsFetchResult.Success -> detailsResult.detailsByItemId
-            is DetailsFetchResult.Error ->
-                return PullVaultDeltaResult.Error(detailsResult.error)
-        }
+            val preparedPage = when (val preparation = preparePage(page.items)) {
+                is PagePreparationResult.Success -> preparation.page
+                is PagePreparationResult.Error -> return PullVaultDeltaResult.Error(preparation.error)
+            }
+            val lastSyncedAt = page.items.maxOf(RemoteSecureItem::updatedAt)
 
-        val counters = when (val applyResult =
-            applyRemoteDelta(summaries = summaries, detailsByItemId = detailsByItemId)) {
-            is DeltaApplyResult.Success -> applyResult.counters
-            is DeltaApplyResult.Error ->
-                return PullVaultDeltaResult.Error(applyResult.error)
-        }
+            val applied = secureItemRepository.applyRemotePage(
+                accountId = accountId,
+                items = preparedPage.officialItems,
+                conflictedDrafts = preparedPage.conflictedDrafts,
+                draftsToDelete = preparedPage.draftsToDelete,
+                lastAppliedChangeSequence = page.nextCursor,
+                lastSyncedAt = lastSyncedAt,
+            )
+            if (!applied) {
+                return PullVaultDeltaResult.Error(
+                    PullVaultDeltaError.LocalApplyFailed(
+                        itemId = preparedPage.officialItems.lastOrNull()?.remoteItemId ?: ZERO_UUID,
+                        operation = "APPLY_CHANGE_PAGE",
+                    ),
+                )
+            }
 
-        val checkpoint = summaries.maxOfOrNull(RemoteSecureItemSummary::updatedAt)
-        updateCheckpointIfPresent(accountId = accountId, checkpoint = checkpoint)
+            processedCount += page.items.size
+            counters.appliedUpserts += preparedPage.officialItems.count { it.deletedAt == null }
+            counters.appliedDeletes += preparedPage.officialItems.count { it.deletedAt != null }
+            counters.skippedDirtyOrConflict += preparedPage.conflictedDrafts.size
+            cursor = page.nextCursor
+            checkpointUpdated = true
+            hasMore = page.hasMore
+        }
 
         return PullVaultDeltaResult.Success(
-            processedSummaryCount = summaries.size,
+            processedSummaryCount = processedCount,
             appliedUpsertCount = counters.appliedUpserts,
             appliedDeleteCount = counters.appliedDeletes,
             skippedDirtyOrConflictCount = counters.skippedDirtyOrConflict,
-            checkpointUpdatedTo = checkpoint,
+            checkpointUpdatedTo = cursor.takeIf { checkpointUpdated },
         )
     }
 
-    private suspend fun fetchSummaries(accountId: UUID, limit: Int?): SummaryFetchResult {
-        val lastPulledAt = secureItemRepository.getSyncCheckpoint(accountId)
-        return when (val listResult = secureItemRemoteRepository.listVaultItems(
-            requestParams = RemoteListVaultItemsRequestParams(
-                updatedAfter = lastPulledAt,
-                includeDeleted = true,
-                limit = limit,
-            ),
-        )) {
-            is SecureItemRemoteResult.Success -> {
-                val summaries = listResult.value.deduplicateByItemIdKeepingLatest()
-                    .sortedBy(RemoteSecureItemSummary::updatedAt)
-                SummaryFetchResult.Success(summaries)
-            }
+    private suspend fun preparePage(items: List<RemoteSecureItem>): PagePreparationResult {
+        val officialItems = mutableListOf<SecureItem>()
+        val conflictedDrafts = mutableListOf<SecureItemSyncDraft>()
+        val draftsToDelete = mutableSetOf<UUID>()
 
-            is SecureItemRemoteResult.Error -> {
-                SummaryFetchResult.Error(PullVaultDeltaError.RemoteListFailed(listResult.error))
-            }
-        }
-    }
-
-    private suspend fun fetchRequiredDetails(summaries: List<RemoteSecureItemSummary>): DetailsFetchResult {
-        val detailsByItemId = mutableMapOf<UUID, RemoteSecureItem>()
-
-        for (summary in summaries) {
-            if (summary.deletedAt != null) continue
-
-            when (val detailResult = secureItemRemoteRepository.getVaultItem(summary.itemId)) {
-                is SecureItemRemoteResult.Success -> detailsByItemId[summary.itemId] =
-                    detailResult.value
-
-                is SecureItemRemoteResult.Error -> {
-                    return DetailsFetchResult.Error(
-                        PullVaultDeltaError.RemoteDetailFailed(
-                            itemId = summary.itemId,
-                            error = detailResult.error,
-                        ),
-                    )
-                }
-            }
-        }
-
-        return DetailsFetchResult.Success(detailsByItemId)
-    }
-
-    private suspend fun applyRemoteDelta(
-        summaries: List<RemoteSecureItemSummary>,
-        detailsByItemId: Map<UUID, RemoteSecureItem>,
-    ): DeltaApplyResult {
-        val counters = ApplyDeltaCounters()
-
-        for (summary in summaries) {
-            val localItem = secureItemRepository.findByRemoteItemId(summary.itemId)
-            if (summary.deletedAt != null) {
-                val deleteResult = applyRemoteDeleteSummary(
-                    summary = summary,
-                    localItem = localItem,
-                )
-                when (deleteResult) {
-                    RemoteDeltaItemResult.Applied -> counters.appliedDeletes++
-                    RemoteDeltaItemResult.Unchanged -> Unit
-                    RemoteDeltaItemResult.Skipped -> counters.skippedDirtyOrConflict++
-                    RemoteDeltaItemResult.Failed -> {
-                        return DeltaApplyResult.Error(
-                            PullVaultDeltaError.LocalApplyFailed(
-                                itemId = summary.itemId,
-                                operation = "DELETE",
-                            ),
-                        )
-                    }
-                }
-                continue
-            }
-
-            val detail = detailsByItemId[summary.itemId] ?: return DeltaApplyResult.Error(
-                PullVaultDeltaError.RemoteDetailMissing(summary.itemId)
-            )
-
-            val itemType =
-                SecureItemType.fromWireName(detail.itemType) ?: return DeltaApplyResult.Error(
+        for (remote in items) {
+            val itemType = SecureItemType.fromWireName(remote.itemType)
+            if (itemType == null) {
+                return PagePreparationResult.Error(
                     PullVaultDeltaError.UnsupportedRemoteItemType(
-                        itemId = summary.itemId,
-                        wireType = detail.itemType,
+                        itemId = remote.itemId,
+                        wireType = remote.itemType,
                     ),
                 )
-
-            val applyResult = applyRemoteActiveSummary(
-                summary = summary,
-                detail = detail,
+            }
+            val payloadLogicalItemId = secureItemPayloadIdentityReader.readLogicalItemId(remote.payload)
+            if (payloadLogicalItemId == null) {
+                return PagePreparationResult.Error(
+                    PullVaultDeltaError.LocalApplyFailed(
+                        itemId = remote.itemId,
+                        operation = "READ_PAYLOAD_IDENTITY",
+                    ),
+                )
+            }
+            val localOfficial = secureItemRepository.findByRemoteItemId(remote.itemId)
+                ?: secureItemRepository.getItem(payloadLogicalItemId)
+            val localDraft = secureItemDraftRepository.findByRemoteItemId(remote.itemId)
+                ?: secureItemDraftRepository.getDraft(payloadLogicalItemId)
+            val logicalItemId = localOfficial?.logicalItemId
+                ?: localDraft?.logicalItemId
+                ?: payloadLogicalItemId
+            val remoteOfficial = remote.toLocalSecureItem(
+                logicalItemId = logicalItemId,
                 itemType = itemType,
-                localItem = localItem,
+                createdAt = localOfficial?.createdAt ?: localDraft?.createdAt ?: remote.updatedAt,
             )
-            when (applyResult) {
-                RemoteDeltaItemResult.Applied -> counters.appliedUpserts++
-                RemoteDeltaItemResult.Unchanged -> Unit
-                RemoteDeltaItemResult.Skipped -> counters.skippedDirtyOrConflict++
-                RemoteDeltaItemResult.Failed -> {
-                    return DeltaApplyResult.Error(
-                        PullVaultDeltaError.LocalApplyFailed(
-                            itemId = summary.itemId,
-                            operation = "UPSERT",
-                        ),
-                    )
-                }
-            }
-        }
-
-        return DeltaApplyResult.Success(counters)
-    }
-
-    private suspend fun applyRemoteDeleteSummary(
-        summary: RemoteSecureItemSummary,
-        localItem: SecureItem?,
-    ): RemoteDeltaItemResult {
-        val deletedAt = requireNotNull(summary.deletedAt)
-
-        if (localItem == null) {
-            secureItemRepository.applyRemoteDelete(
-                remoteItemId = summary.itemId,
-                deletedAt = deletedAt,
-                lastSyncedAt = summary.updatedAt,
-            )
-            return RemoteDeltaItemResult.Applied
-        }
-
-        return when (localItem.syncState) {
-            SecureItemSyncState.PENDING_UPDATE,
-            SecureItemSyncState.PENDING_DELETE,
-                -> appliedOrFailedIf {
-                secureItemDraftPolicyCoordinator.applyRemoteDeleteAndDiscardLocalChanges(
-                    logicalItemId = localItem.logicalItemId,
-                    remoteItemId = summary.itemId,
-                    deletedAt = deletedAt,
-                    lastSyncedAt = summary.updatedAt,
+            if (secureItemCryptoService.decrypt(remoteOfficial) !is SecureItemDecryptionResult.Success) {
+                return PagePreparationResult.Error(
+                    PullVaultDeltaError.LocalApplyFailed(
+                        itemId = remote.itemId,
+                        operation = "DECRYPT_REMOTE_SNAPSHOT",
+                    ),
                 )
             }
 
-            SecureItemSyncState.PENDING_CREATE,
-            SecureItemSyncState.CONFLICT,
-                -> skippedOrFailedIf {
-                secureItemRepository.markConflict(
-                    logicalItemId = localItem.logicalItemId,
-                    lastSyncError = "Pull skipped: local changes cannot be reconciled with remote tombstone automatically.",
-                )
+            officialItems += remoteOfficial
+            if (localDraft == null) {
+                continue
             }
-
-
-            SecureItemSyncState.SYNCED -> appliedOrFailedIf {
-                secureItemRepository.applyRemoteDelete(
-                    remoteItemId = summary.itemId,
-                    deletedAt = deletedAt,
-                    lastSyncedAt = summary.updatedAt,
+            when {
+                remoteConfirmsDraft(localDraft, remoteOfficial) -> draftsToDelete += localDraft.logicalItemId
+                localDraft.baseItemRevision == remote.itemRevision -> Unit
+                else -> conflictedDrafts += localDraft.copy(
+                    remoteItemId = remote.itemId,
+                    draftSyncStatus = SecureItemDraftSyncStatus.CONFLICT,
+                    lastSyncError = conflictMessage(localDraft, remoteOfficial),
                 )
             }
         }
-    }
-
-    private suspend fun applyRemoteActiveSummary(
-        summary: RemoteSecureItemSummary,
-        detail: RemoteSecureItem,
-        itemType: SecureItemType,
-        localItem: SecureItem?,
-    ): RemoteDeltaItemResult {
-        val payloadLogicalItemId = secureItemPayloadIdentityReader.readLogicalItemId(detail.payload)
-            ?: return RemoteDeltaItemResult.Failed
-
-        val localItemWithSharedIdentity = if (localItem == null) {
-            secureItemRepository.getItem(payloadLogicalItemId)
-        } else {
-            null
-        }
-
-        val resolvedLocalItem = localItem ?: localItemWithSharedIdentity
-        val resolvedLogicalItemId = when {
-            localItem != null && localItem.logicalItemId != payloadLogicalItemId ->
-                return RemoteDeltaItemResult.Failed
-
-            localItemWithSharedIdentity != null &&
-                localItemWithSharedIdentity.remoteItemId != null &&
-                localItemWithSharedIdentity.remoteItemId != summary.itemId ->
-                return RemoteDeltaItemResult.Failed
-
-            resolvedLocalItem != null -> resolvedLocalItem.logicalItemId
-            else -> payloadLogicalItemId
-        }
-        val remoteOfficialItem = detail.toLocalSecureItem(
-            logicalItemId = resolvedLogicalItemId,
-            itemType = itemType,
-            createdAt = resolvedLocalItem?.createdAt ?: detail.updatedAt,
+        return PagePreparationResult.Success(
+            PreparedPage(
+                officialItems = officialItems,
+                conflictedDrafts = conflictedDrafts,
+                draftsToDelete = draftsToDelete,
+            ),
         )
-
-        if (
-            resolvedLocalItem != null &&
-            resolvedLocalItem.syncState == SecureItemSyncState.SYNCED &&
-            resolvedLocalItem.matchesOfficialRemoteState(remoteOfficialItem)
-        ) {
-            return RemoteDeltaItemResult.Unchanged
-        }
-
-        if (resolvedLocalItem == null) {
-            return appliedOrFailedIf {
-                secureItemRepository.applyRemoteUpsert(
-                    item = remoteOfficialItem,
-                    lastSyncedAt = summary.updatedAt,
-                )
-            }
-        }
-
-        return when (resolvedLocalItem.syncState) {
-            SecureItemSyncState.PENDING_UPDATE -> appliedOrFailedIf {
-                secureItemDraftPolicyCoordinator.replaceOfficialItemWithRemoteAndDraft(
-                    localItem = resolvedLocalItem,
-                    remoteItem = remoteOfficialItem,
-                    draftType = SecureItemDraftType.UPDATE,
-                    lastSyncedAt = summary.updatedAt,
-                )
-            }
-
-            SecureItemSyncState.PENDING_DELETE -> appliedOrFailedIf {
-                secureItemDraftPolicyCoordinator.replaceOfficialItemWithRemoteAndDraft(
-                    localItem = resolvedLocalItem,
-                    remoteItem = remoteOfficialItem,
-                    draftType = SecureItemDraftType.DELETE,
-                    lastSyncedAt = summary.updatedAt,
-                )
-            }
-
-            SecureItemSyncState.PENDING_CREATE,
-            SecureItemSyncState.CONFLICT,
-                -> skippedOrFailedIf {
-                secureItemRepository.markConflict(
-                    logicalItemId = resolvedLocalItem.logicalItemId,
-                    lastSyncError = "Pull skipped: local changes pending. Push/retry required before applying remote update.",
-                )
-            }
-
-            SecureItemSyncState.SYNCED -> appliedOrFailedIf {
-                secureItemRepository.applyRemoteUpsert(
-                    item = remoteOfficialItem,
-                    lastSyncedAt = summary.updatedAt,
-                )
-            }
-        }
     }
 
-    private suspend fun appliedOrFailedIf(action: suspend () -> Boolean): RemoteDeltaItemResult =
-        if (action()) {
-            RemoteDeltaItemResult.Applied
-        } else {
-            RemoteDeltaItemResult.Failed
-        }
+    private fun remoteConfirmsDraft(
+        draft: SecureItemSyncDraft,
+        remote: SecureItem,
+    ): Boolean = when (draft.draftType) {
+        SecureItemDraftType.CREATE,
+        SecureItemDraftType.UPDATE,
+            -> remote.deletedAt == null &&
+                remote.payloadVersion == draft.payloadVersion &&
+                remote.payload.contentEquals(draft.payload)
 
-    private suspend fun skippedOrFailedIf(action: suspend () -> Boolean): RemoteDeltaItemResult =
-        if (action()) {
-            RemoteDeltaItemResult.Skipped
-        } else {
-            RemoteDeltaItemResult.Failed
-        }
-
-    private suspend fun updateCheckpointIfPresent(accountId: UUID, checkpoint: Instant?) {
-        if (checkpoint != null) {
-            secureItemRepository.updateSyncCheckpoint(
-                accountId = accountId,
-                lastPulledAt = checkpoint
-            )
-        }
+        SecureItemDraftType.DELETE -> remote.deletedAt != null
     }
-}
 
-private enum class RemoteDeltaItemResult {
-    Applied,
-    Unchanged,
-    Skipped,
-    Failed,
+    private fun conflictMessage(
+        draft: SecureItemSyncDraft,
+        remote: SecureItem,
+    ): String = when {
+        draft.draftType == SecureItemDraftType.UPDATE && remote.deletedAt != null ->
+            "Item was deleted remotely. Save the local proposal as a new item or discard it."
+
+        draft.draftType == SecureItemDraftType.DELETE ->
+            "Item changed remotely before the local deletion could be applied."
+
+        else -> "Item changed remotely while a local proposal existed."
+    }
+
+    private data class PreparedPage(
+        val officialItems: List<SecureItem>,
+        val conflictedDrafts: List<SecureItemSyncDraft>,
+        val draftsToDelete: Set<UUID>,
+    )
+
+    private sealed interface PagePreparationResult {
+        data class Success(val page: PreparedPage) : PagePreparationResult
+        data class Error(val error: PullVaultDeltaError) : PagePreparationResult
+    }
+
+    private companion object {
+        private const val DEFAULT_PAGE_LIMIT = 100
+        private const val INITIAL_CURSOR = 0L
+        private val ZERO_UUID: UUID = UUID(0, 0)
+    }
 }

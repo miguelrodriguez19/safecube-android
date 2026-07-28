@@ -5,5 +5,9 @@ import java.util.UUID
 
 data class RemoteCreateSecureItemResult(
     val itemId: UUID,
-    val createdAt: Instant,
+    val mutationId: UUID,
+    val payloadVersion: Long,
+    val itemRevision: Long,
+    val changeSequence: Long,
+    val updatedAt: Instant,
 )

@@ -15,7 +15,11 @@ sealed interface SecureItemRemoteError {
 
     data object ItemNotFound : SecureItemRemoteError
 
-    data object Conflict : SecureItemRemoteError
+    data object PreconditionFailed : SecureItemRemoteError
+
+    data object PreconditionRequired : SecureItemRemoteError
+
+    data object IdempotencyConflict : SecureItemRemoteError
 
     data class HttpError(
         val statusCode: Int,

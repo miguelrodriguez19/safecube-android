@@ -3,7 +3,9 @@ package com.miguelrodriguez19.safecube.core.vault.data.remote
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.CreateSecureItemRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateSecureItemRequest
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItemChangesPage
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.RemoteCreateSecureItemRequest
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.RemoteDeleteSecureItemRequest
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.RemoteCreateSecureItemResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.RemoteDeleteSecureItemResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteListVaultItemsRequestParams
@@ -45,6 +47,8 @@ class RemoteSecureItemDataSource @Inject constructor(
                     schemaVersion = item.schemaVersion,
                     displayHint = item.displayHint,
                     payloadVersion = item.payloadVersion,
+                    itemRevision = item.itemRevision,
+                    changeSequence = item.changeSequence,
                     updatedAt = item.updatedAt,
                     deletedAt = item.deletedAt,
                 )
@@ -63,8 +67,41 @@ class RemoteSecureItemDataSource @Inject constructor(
                 displayHint = response.displayHint,
                 payload = response.payload,
                 payloadVersion = response.payloadVersion,
+                itemRevision = response.itemRevision,
+                changeSequence = response.changeSequence,
                 updatedAt = response.updatedAt,
                 deletedAt = response.deletedAt,
+            )
+        }
+    }
+
+    override suspend fun listVaultItemChanges(
+        after: Long,
+        limit: Int,
+    ): SecureItemRemoteResult<RemoteSecureItemChangesPage> = executeSafely {
+        executeWithBody {
+            vaultControllerApi.listVaultItemChanges(
+                after = after,
+                limit = limit,
+            )
+        }.mapSuccess { response ->
+            RemoteSecureItemChangesPage(
+                items = response.items.map { item ->
+                    RemoteSecureItem(
+                        itemId = item.itemId,
+                        itemType = item.itemType,
+                        schemaVersion = item.schemaVersion,
+                        displayHint = item.displayHint,
+                        payload = item.payload,
+                        payloadVersion = item.payloadVersion,
+                        itemRevision = item.itemRevision,
+                        changeSequence = item.changeSequence,
+                        updatedAt = item.updatedAt,
+                        deletedAt = item.deletedAt,
+                    )
+                },
+                nextCursor = response.nextCursor,
+                hasMore = response.hasMore,
             )
         }
     }
@@ -74,17 +111,23 @@ class RemoteSecureItemDataSource @Inject constructor(
     ): SecureItemRemoteResult<RemoteCreateSecureItemResult> = executeSafely {
         executeWithBody {
             vaultControllerApi.createVaultItem(
-                CreateSecureItemRequest(
+                idempotencyKey = request.mutationId,
+                createSecureItemRequest = CreateSecureItemRequest(
                     itemType = request.itemType,
                     schemaVersion = request.schemaVersion,
                     displayHint = request.displayHint,
                     payload = request.payload,
+                    payloadVersion = request.payloadVersion,
                 ),
             )
         }.mapSuccess { response ->
             RemoteCreateSecureItemResult(
                 itemId = response.itemId,
-                createdAt = response.createdAt,
+                mutationId = response.mutationId,
+                payloadVersion = response.payloadVersion,
+                itemRevision = response.itemRevision,
+                changeSequence = response.changeSequence,
+                updatedAt = response.updatedAt,
             )
         }
     }
@@ -96,17 +139,23 @@ class RemoteSecureItemDataSource @Inject constructor(
         executeWithBody {
             vaultControllerApi.updateVaultItem(
                 itemId = remoteItemId,
+                idempotencyKey = request.mutationId,
+                ifMatch = request.baseItemRevision.toIfMatchHeader(),
                 updateSecureItemRequest = UpdateSecureItemRequest(
                     itemType = request.itemType,
                     schemaVersion = request.schemaVersion,
                     displayHint = request.displayHint,
                     payload = request.payload,
+                    payloadVersion = request.payloadVersion,
                 ),
             )
         }.mapSuccess { response ->
             RemoteUpdateSecureItemResult(
                 itemId = response.itemId,
+                mutationId = response.mutationId,
                 payloadVersion = response.payloadVersion,
+                itemRevision = response.itemRevision,
+                changeSequence = response.changeSequence,
                 updatedAt = response.updatedAt,
             )
         }
@@ -114,12 +163,21 @@ class RemoteSecureItemDataSource @Inject constructor(
 
     override suspend fun deleteVaultItem(
         remoteItemId: UUID,
+        request: RemoteDeleteSecureItemRequest,
     ): SecureItemRemoteResult<RemoteDeleteSecureItemResult> = executeSafely {
         executeWithBody {
-            vaultControllerApi.deleteVaultItem(remoteItemId)
+            vaultControllerApi.deleteVaultItem(
+                itemId = remoteItemId,
+                idempotencyKey = request.mutationId,
+                ifMatch = request.baseItemRevision.toIfMatchHeader(),
+            )
         }.mapSuccess { response ->
             RemoteDeleteSecureItemResult(
                 itemId = response.itemId,
+                mutationId = response.mutationId,
+                payloadVersion = response.payloadVersion,
+                itemRevision = response.itemRevision,
+                changeSequence = response.changeSequence,
                 deletedAt = response.deletedAt,
             )
         }
@@ -167,7 +225,9 @@ class RemoteSecureItemDataSource @Inject constructor(
     ): SecureItemRemoteError = when (statusCode) {
         401, 403 -> SecureItemRemoteError.Unauthorized
         404 -> SecureItemRemoteError.ItemNotFound
-        409 -> SecureItemRemoteError.Conflict
+        409 -> SecureItemRemoteError.IdempotencyConflict
+        412 -> SecureItemRemoteError.PreconditionFailed
+        428 -> SecureItemRemoteError.PreconditionRequired
         else -> SecureItemRemoteError.HttpError(
             statusCode = statusCode,
             errorBody = errorBody,
@@ -183,4 +243,7 @@ class RemoteSecureItemDataSource @Inject constructor(
 
         is SecureItemRemoteResult.Error -> this
     }
+
+    private fun Long.toIfMatchHeader(): String = "\"$this\""
+
 }

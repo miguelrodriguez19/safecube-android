@@ -5,5 +5,9 @@ import java.util.UUID
 
 data class RemoteDeleteSecureItemResult(
     val itemId: UUID,
+    val mutationId: UUID,
+    val payloadVersion: Long,
+    val itemRevision: Long,
+    val changeSequence: Long,
     val deletedAt: Instant,
 )

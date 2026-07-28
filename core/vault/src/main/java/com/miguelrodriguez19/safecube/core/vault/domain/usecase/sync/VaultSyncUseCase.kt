@@ -28,7 +28,7 @@ class VaultSyncUseCase @Inject constructor(
     private suspend fun executeSync(pullLimit: Int?): VaultSyncResult {
         validateUnlockedState()?.let { return it }
 
-        val pullOutcome = when (val pullPhaseResult = runPullPhase(limit = pullLimit)) {
+        val initialPullOutcome = when (val pullPhaseResult = runPullPhase(limit = pullLimit)) {
             is PullPhaseResult.Success -> pullPhaseResult.outcome
             is PullPhaseResult.Error -> {
                 return VaultSyncResult.Error(
@@ -37,21 +37,35 @@ class VaultSyncUseCase @Inject constructor(
             }
         }
 
-        return when (val pushPhaseResult = runPushPhase()) {
-            is PushPhaseResult.Success -> {
+        val pushOutcome = when (val pushPhaseResult = runPushPhase()) {
+            is PushPhaseResult.Success -> pushPhaseResult.outcome
+            is PushPhaseResult.Error -> {
+                return VaultSyncResult.Error(
+                    reason = VaultSyncError.PushFailed(pushPhaseResult.reason),
+                    downloadedCount = initialPullOutcome.downloadedCount,
+                    conflictCount = initialPullOutcome.conflictCount,
+                )
+            }
+        }
+
+        return when (val pullPhaseResult = runPullPhase(limit = pullLimit)) {
+            is PullPhaseResult.Success -> {
                 VaultSyncResult.Success(
-                    uploadedCount = pushPhaseResult.outcome.uploadedCount,
-                    downloadedCount = pullOutcome.downloadedCount,
-                    conflictCount = pushPhaseResult.outcome.conflictCount + pullOutcome.conflictCount,
+                    uploadedCount = pushOutcome.uploadedCount,
+                    downloadedCount = initialPullOutcome.downloadedCount +
+                        pullPhaseResult.outcome.downloadedCount,
+                    conflictCount = initialPullOutcome.conflictCount +
+                        pushOutcome.conflictCount +
+                        pullPhaseResult.outcome.conflictCount,
                 )
             }
 
-            is PushPhaseResult.Error -> {
+            is PullPhaseResult.Error -> {
                 VaultSyncResult.Error(
-                    reason = VaultSyncError.PushFailed(pushPhaseResult.reason),
-                    uploadedCount = 0,
-                    downloadedCount = pullOutcome.downloadedCount,
-                    conflictCount = pullOutcome.conflictCount,
+                    reason = VaultSyncError.PullFailed(pullPhaseResult.reason),
+                    uploadedCount = pushOutcome.uploadedCount,
+                    downloadedCount = initialPullOutcome.downloadedCount,
+                    conflictCount = initialPullOutcome.conflictCount + pushOutcome.conflictCount,
                 )
             }
         }

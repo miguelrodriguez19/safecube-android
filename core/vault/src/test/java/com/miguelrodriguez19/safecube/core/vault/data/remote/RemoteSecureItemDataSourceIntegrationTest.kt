@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.core.network.data.client.NetworkClientFact
 import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultControllerApi
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.RemoteCreateSecureItemRequest
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.RemoteDeleteSecureItemRequest
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteListVaultItemsRequestParams
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.RemoteUpdateSecureItemRequest
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.SecureItemRemoteError
@@ -50,6 +51,8 @@ class RemoteSecureItemDataSourceIntegrationTest {
                           "schemaVersion":1,
                           "displayHint":"List item",
                           "payloadVersion":2,
+                          "itemRevision":3,
+                          "changeSequence":14,
                           "updatedAt":"2026-04-20T11:00:00Z",
                           "deletedAt":null
                         }
@@ -99,6 +102,8 @@ class RemoteSecureItemDataSourceIntegrationTest {
                       "displayHint":"Github",
                       "payload":"AQID",
                       "payloadVersion":4,
+                      "itemRevision":5,
+                      "changeSequence":15,
                       "updatedAt":"2026-04-20T11:30:00Z",
                       "deletedAt":null
                     }
@@ -123,6 +128,7 @@ class RemoteSecureItemDataSourceIntegrationTest {
     @Test
     fun `createVaultItem when response is successful then returns created result`() = runBlocking {
         val itemId = UUID.fromString("1baf1d87-7736-4f14-b587-f4c3f4f4655c")
+        val mutationId = UUID.randomUUID()
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -131,7 +137,11 @@ class RemoteSecureItemDataSourceIntegrationTest {
                     """
                     {
                       "itemId":"$itemId",
-                      "createdAt":"2026-04-20T12:00:00Z"
+                      "mutationId":"$mutationId",
+                      "payloadVersion":1,
+                      "itemRevision":1,
+                      "changeSequence":16,
+                      "updatedAt":"2026-04-20T12:00:00Z"
                     }
                     """.trimIndent(),
                 ),
@@ -146,6 +156,8 @@ class RemoteSecureItemDataSourceIntegrationTest {
                 schemaVersion = 1,
                 displayHint = "New note",
                 payload = byteArrayOf(1, 2, 3),
+                payloadVersion = 1,
+                mutationId = mutationId,
             ),
         )
 
@@ -153,11 +165,12 @@ class RemoteSecureItemDataSourceIntegrationTest {
         val request = server.takeRequest()
         assertEquals("/vault/items", request.path)
         assertEquals("POST", request.method)
+        assertEquals(mutationId.toString(), request.getHeader("Idempotency-Key"))
         assertTrue(request.body.readUtf8().contains("\"displayHint\":\"New note\""))
     }
 
     @Test
-    fun `updateVaultItem when status is 409 then maps to conflict`() = runBlocking {
+    fun `updateVaultItem when status is 409 then maps to idempotency conflict`() = runBlocking {
         val itemId = UUID.fromString("7cecde73-4f60-4dff-96a0-55f9cb4f4f12")
         server.enqueue(
             MockResponse()
@@ -176,16 +189,20 @@ class RemoteSecureItemDataSourceIntegrationTest {
                 schemaVersion = 1,
                 displayHint = "Updated note",
                 payload = byteArrayOf(9, 8, 7),
+                payloadVersion = 4,
+                baseItemRevision = 3,
+                mutationId = UUID.randomUUID(),
             ),
         )
 
         assertEquals(
-            SecureItemRemoteResult.Error(SecureItemRemoteError.Conflict),
+            SecureItemRemoteResult.Error(SecureItemRemoteError.IdempotencyConflict),
             result,
         )
         val request = server.takeRequest()
         assertEquals("/vault/items/$itemId", request.path)
         assertEquals("PUT", request.method)
+        assertEquals("\"3\"", request.getHeader("If-Match"))
     }
 
     @Test
@@ -201,7 +218,14 @@ class RemoteSecureItemDataSourceIntegrationTest {
             vaultControllerApi = createVaultApi(server),
         )
 
-        val result = target.deleteVaultItem(itemId)
+        val mutationId = UUID.randomUUID()
+        val result = target.deleteVaultItem(
+            itemId,
+            RemoteDeleteSecureItemRequest(
+                baseItemRevision = 4,
+                mutationId = mutationId,
+            ),
+        )
 
         assertEquals(
             SecureItemRemoteResult.Error(SecureItemRemoteError.ItemNotFound),
@@ -210,6 +234,8 @@ class RemoteSecureItemDataSourceIntegrationTest {
         val request = server.takeRequest()
         assertEquals("/vault/items/$itemId", request.path)
         assertEquals("DELETE", request.method)
+        assertEquals("\"4\"", request.getHeader("If-Match"))
+        assertEquals(mutationId.toString(), request.getHeader("Idempotency-Key"))
     }
 
     private fun createVaultApi(server: MockWebServer): VaultControllerApi =

@@ -93,62 +93,65 @@ class VaultSyncUseCaseTest {
         assertEquals(
             VaultSyncResult.Success(
                 uploadedCount = 3,
-                downloadedCount = 3,
-                conflictCount = 3,
+                downloadedCount = 6,
+                conflictCount = 5,
             ),
             result,
         )
     }
 
     @Test
-    fun `invoke when pull fails then returns global error and does not call push`() = runBlocking {
-        val pullError = PullVaultDeltaError.AccountIdUnavailable
-        coEvery { pullVaultDeltaUseCase.invoke(null) } returns PullVaultDeltaResult.Error(
-            pullError,
-        )
-
-        val result = target()
-
-        assertTrue(result is VaultSyncResult.Error)
-        assertEquals(
-            VaultSyncError.PullFailed(pullError),
-            (result as VaultSyncResult.Error).reason,
-        )
-        coVerify(exactly = 1) { pullVaultDeltaUseCase.invoke(null) }
-        coVerify(exactly = 0) { pushLocalVaultChangesUseCase.invoke() }
-    }
-
-    @Test
-    fun `invoke when push fails then returns global error preserving pull counters`() = runBlocking {
+    fun `invoke when push fails then returns global error and does not call pull`() = runBlocking {
         val logicalItemId = UUID.randomUUID()
         val pushError = PushLocalVaultChangesError.LocalStateUpdateFailed(
             logicalItemId = logicalItemId,
             operation = "CREATE",
         )
-        coEvery { pullVaultDeltaUseCase.invoke(null) } returns PullVaultDeltaResult.Success(
-            processedSummaryCount = 2,
-            appliedUpsertCount = 1,
-            appliedDeleteCount = 1,
-            skippedDirtyOrConflictCount = 1,
-            checkpointUpdatedTo = null,
-        )
+        coEvery { pullVaultDeltaUseCase.invoke(null) } returns emptyPullSuccess()
         coEvery { pushLocalVaultChangesUseCase.invoke() } returns PushLocalVaultChangesResult.Error(
             pushError,
         )
 
         val result = target()
 
+        assertTrue(result is VaultSyncResult.Error)
+        assertEquals(
+            VaultSyncError.PushFailed(pushError),
+            (result as VaultSyncResult.Error).reason,
+        )
+        coVerify(exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
+        coVerify(exactly = 1) { pullVaultDeltaUseCase.invoke(any()) }
+    }
+
+    @Test
+    fun `invoke when pull fails then returns global error preserving uploaded counters`() = runBlocking {
+        val logicalItemId = UUID.randomUUID()
+        val pullError = PullVaultDeltaError.RemoteDetailMissing(logicalItemId)
+        coEvery { pushLocalVaultChangesUseCase.invoke() } returns PushLocalVaultChangesResult.Success(
+            processedCount = 2,
+            syncedCount = 1,
+            conflictCount = 1,
+            keptPendingCount = 0,
+            locallyResolvedDeleteCount = 0,
+        )
+        coEvery { pullVaultDeltaUseCase.invoke(null) } returnsMany listOf(
+            emptyPullSuccess(),
+            PullVaultDeltaResult.Error(pullError),
+        )
+
+        val result = target()
+
         assertEquals(
             VaultSyncResult.Error(
-                reason = VaultSyncError.PushFailed(pushError),
-                uploadedCount = 0,
-                downloadedCount = 2,
+                reason = VaultSyncError.PullFailed(pullError),
+                uploadedCount = 1,
+                downloadedCount = 0,
                 conflictCount = 1,
             ),
             result,
         )
-        coVerify(exactly = 1) { pullVaultDeltaUseCase.invoke(null) }
         coVerify(exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
+        coVerify(exactly = 2) { pullVaultDeltaUseCase.invoke(null) }
     }
 
     @Test
@@ -191,7 +194,15 @@ class VaultSyncUseCaseTest {
             first.await()
             second.await()
         }
-        coVerify(exactly = 2) { pullVaultDeltaUseCase.invoke(null) }
+        coVerify(exactly = 4) { pullVaultDeltaUseCase.invoke(null) }
         coVerify(exactly = 2) { pushLocalVaultChangesUseCase.invoke() }
     }
+
+    private fun emptyPullSuccess(): PullVaultDeltaResult.Success = PullVaultDeltaResult.Success(
+        processedSummaryCount = 0,
+        appliedUpsertCount = 0,
+        appliedDeleteCount = 0,
+        skippedDirtyOrConflictCount = 0,
+        checkpointUpdatedTo = null,
+    )
 }

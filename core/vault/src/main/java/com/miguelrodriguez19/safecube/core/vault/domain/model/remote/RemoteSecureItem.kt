@@ -10,6 +10,8 @@ data class RemoteSecureItem(
     val displayHint: String,
     val payload: ByteArray,
     val payloadVersion: Long,
+    val itemRevision: Long,
+    val changeSequence: Long,
     val updatedAt: Instant,
     val deletedAt: Instant?,
 )

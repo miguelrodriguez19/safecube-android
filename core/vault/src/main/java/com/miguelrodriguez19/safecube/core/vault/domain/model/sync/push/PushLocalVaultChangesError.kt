@@ -7,4 +7,9 @@ sealed interface PushLocalVaultChangesError {
         val logicalItemId: UUID,
         val operation: String,
     ) : PushLocalVaultChangesError
+
+    data class ProtocolIntegrityFailed(
+        val logicalItemId: UUID,
+        val operation: String,
+    ) : PushLocalVaultChangesError
 }

@@ -2,7 +2,6 @@ package com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.pull
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItem
-import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItemSummary
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
@@ -10,31 +9,6 @@ import java.time.Instant
 import java.util.UUID
 
 internal fun VaultKeyMaterial?.accountIdOrNull(): UUID? = this?.accountId
-
-internal fun SecureItemSyncState.blocksRemotePullOverwrite(): Boolean = when (this) {
-    SecureItemSyncState.SYNCED -> false
-    SecureItemSyncState.PENDING_CREATE,
-    SecureItemSyncState.PENDING_UPDATE,
-    SecureItemSyncState.PENDING_DELETE,
-    SecureItemSyncState.CONFLICT,
-        -> true
-}
-
-internal fun List<RemoteSecureItemSummary>.deduplicateByItemIdKeepingLatest(): List<RemoteSecureItemSummary> =
-    this
-        .groupBy(RemoteSecureItemSummary::itemId)
-        .values
-        .map(::pickLatestSummary)
-
-private fun pickLatestSummary(candidates: List<RemoteSecureItemSummary>): RemoteSecureItemSummary =
-    candidates.reduce { current, candidate ->
-        when {
-            candidate.updatedAt > current.updatedAt -> candidate
-            candidate.updatedAt < current.updatedAt -> current
-            candidate.deletedAt != null && current.deletedAt == null -> candidate
-            else -> current
-        }
-    }
 
 internal fun RemoteSecureItem.toLocalSecureItem(
     logicalItemId: UUID,
@@ -48,6 +22,8 @@ internal fun RemoteSecureItem.toLocalSecureItem(
     displayHint = displayHint,
     payload = payload,
     payloadVersion = payloadVersion,
+    itemRevision = itemRevision,
+    changeSequence = changeSequence,
     createdAt = createdAt,
     updatedAt = updatedAt,
     deletedAt = deletedAt,
@@ -56,16 +32,16 @@ internal fun RemoteSecureItem.toLocalSecureItem(
     lastSyncError = null,
 )
 
-internal fun SecureItem.matchesOfficialRemoteState(other: SecureItem): Boolean {
-
-    return logicalItemId == other.logicalItemId &&
-            remoteItemId == other.remoteItemId &&
-            itemType == other.itemType &&
-            schemaVersion == other.schemaVersion &&
-            displayHint == other.displayHint &&
-            payload.contentEquals(other.payload) &&
-            payloadVersion == other.payloadVersion &&
-            createdAt == other.createdAt &&
-            updatedAt == other.updatedAt &&
-            deletedAt == other.deletedAt
-}
+internal fun SecureItem.matchesOfficialRemoteState(other: SecureItem): Boolean =
+    logicalItemId == other.logicalItemId &&
+        remoteItemId == other.remoteItemId &&
+        itemType == other.itemType &&
+        schemaVersion == other.schemaVersion &&
+        displayHint == other.displayHint &&
+        payload.contentEquals(other.payload) &&
+        payloadVersion == other.payloadVersion &&
+        itemRevision == other.itemRevision &&
+        changeSequence == other.changeSequence &&
+        createdAt == other.createdAt &&
+        updatedAt == other.updatedAt &&
+        deletedAt == other.deletedAt

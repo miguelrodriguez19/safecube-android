@@ -96,6 +96,14 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -154,6 +162,24 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Quoted server-owned item revision.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -169,6 +195,34 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSecureItemResult"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSecureItemResult"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition required",
             "content": {
               "application/json": {
                 "schema": {
@@ -227,11 +281,57 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Quoted server-owned item revision.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteSecureItemResult"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteSecureItemResult"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition required",
             "content": {
               "application/json": {
                 "schema": {
@@ -690,6 +790,17 @@
         "summary": "Create vault item",
         "description": "Creates a new vault item for the authenticated account. The payload is opaque encrypted data.",
         "operationId": "createVaultItem",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -701,8 +812,16 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "201": {
+            "description": "Created",
+            "headers": {
+              "ETag": {
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -987,6 +1106,83 @@
         },
         "security": []
       }
+    },
+    "/vault/items/changes": {
+      "get": {
+        "tags": [
+          "vault-controller"
+        ],
+        "summary": "List ordered vault item changes",
+        "description": "Returns complete encrypted snapshots ordered by a server-owned change cursor.",
+        "operationId": "listVaultItemChanges",
+        "parameters": [
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100,
+              "exclusiveMinimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListSecureItemChangesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1024,7 +1220,7 @@
       },
       "UpdateSecureItemRequest": {
         "type": "object",
-        "description": "Request to update a vault item. The payload is opaque encrypted data produced by the client; the backend does not inspect it. The updatedAt field is used for optimistic concurrency.",
+        "description": "Request to update a vault item. The payload is opaque encrypted data produced by the client; the backend does not inspect it. Concurrency is enforced through the If-Match item revision.",
         "properties": {
           "itemType": {
             "type": "string",
@@ -1046,12 +1242,18 @@
             "type": "string",
             "format": "byte",
             "description": "Opaque encrypted payload bytes."
+          },
+          "payloadVersion": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Client-owned cryptographic payload generation."
           }
         },
         "required": [
           "displayHint",
           "itemType",
           "payload",
+          "payloadVersion",
           "schemaVersion"
         ]
       },
@@ -1062,7 +1264,19 @@
             "type": "string",
             "format": "uuid"
           },
+          "mutationId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "payloadVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "itemRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "changeSequence": {
             "type": "integer",
             "format": "int64"
           },
@@ -1072,7 +1286,10 @@
           }
         },
         "required": [
+          "changeSequence",
           "itemId",
+          "itemRevision",
+          "mutationId",
           "payloadVersion",
           "updatedAt"
         ]
@@ -1205,12 +1422,18 @@
             "type": "string",
             "format": "byte",
             "description": "Opaque encrypted payload bytes."
+          },
+          "payloadVersion": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Client-owned cryptographic payload generation."
           }
         },
         "required": [
           "displayHint",
           "itemType",
           "payload",
+          "payloadVersion",
           "schemaVersion"
         ]
       },
@@ -1221,14 +1444,34 @@
             "type": "string",
             "format": "uuid"
           },
-          "createdAt": {
+          "mutationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "payloadVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "itemRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "changeSequence": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "updatedAt": {
             "type": "string",
             "format": "date-time"
           }
         },
         "required": [
-          "createdAt",
-          "itemId"
+          "changeSequence",
+          "itemId",
+          "itemRevision",
+          "mutationId",
+          "payloadVersion",
+          "updatedAt"
         ]
       },
       "CreateUserProfileRequest": {
@@ -1449,6 +1692,14 @@
             "type": "integer",
             "format": "int64"
           },
+          "itemRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "changeSequence": {
+            "type": "integer",
+            "format": "int64"
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time"
@@ -1459,8 +1710,10 @@
           }
         },
         "required": [
+          "changeSequence",
           "displayHint",
           "itemId",
+          "itemRevision",
           "itemType",
           "payloadVersion",
           "schemaVersion",
@@ -1492,6 +1745,14 @@
             "type": "integer",
             "format": "int64"
           },
+          "itemRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "changeSequence": {
+            "type": "integer",
+            "format": "int64"
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time"
@@ -1502,8 +1763,87 @@
           }
         },
         "required": [
+          "changeSequence",
           "displayHint",
           "itemId",
+          "itemRevision",
+          "itemType",
+          "payload",
+          "payloadVersion",
+          "schemaVersion",
+          "updatedAt"
+        ]
+      },
+      "ListSecureItemChangesResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecureItemChangeResponse"
+            }
+          },
+          "nextCursor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "hasMore",
+          "items",
+          "nextCursor"
+        ]
+      },
+      "SecureItemChangeResponse": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "displayHint": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "string",
+            "format": "byte"
+          },
+          "payloadVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "itemRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "changeSequence": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "changeSequence",
+          "displayHint",
+          "itemId",
+          "itemRevision",
           "itemType",
           "payload",
           "payloadVersion",
@@ -1518,14 +1858,34 @@
             "type": "string",
             "format": "uuid"
           },
+          "mutationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "payloadVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "itemRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "changeSequence": {
+            "type": "integer",
+            "format": "int64"
+          },
           "deletedAt": {
             "type": "string",
             "format": "date-time"
           }
         },
         "required": [
+          "changeSequence",
           "deletedAt",
-          "itemId"
+          "itemId",
+          "itemRevision",
+          "mutationId",
+          "payloadVersion"
         ]
       }
     },

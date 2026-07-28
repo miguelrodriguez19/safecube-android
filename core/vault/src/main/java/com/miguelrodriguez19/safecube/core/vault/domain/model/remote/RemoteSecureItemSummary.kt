@@ -9,6 +9,8 @@ data class RemoteSecureItemSummary(
     val schemaVersion: Int,
     val displayHint: String,
     val payloadVersion: Long,
+    val itemRevision: Long,
+    val changeSequence: Long,
     val updatedAt: Instant,
     val deletedAt: Instant?,
 )
