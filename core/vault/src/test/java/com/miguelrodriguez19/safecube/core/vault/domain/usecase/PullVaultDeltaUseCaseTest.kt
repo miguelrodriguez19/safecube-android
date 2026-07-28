@@ -19,6 +19,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.pull.PullVa
 import com.miguelrodriguez19.safecube.core.vault.test.testSecureItemDraft
 import com.miguelrodriguez19.safecube.core.vault.test.testVaultKeyMaterial
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import java.time.Instant
@@ -119,6 +120,77 @@ class PullVaultDeltaUseCaseTest {
 
         assertTrue(result is PullVaultDeltaResult.Success)
         assertEquals(setOf(logicalItemId), draftsToDelete.captured)
+    }
+
+    @Test
+    fun `pull accepts increasing account cursor values that are not contiguous`() = runBlocking {
+        val accountId = UUID.randomUUID()
+        val firstLogicalId = UUID.randomUUID()
+        val secondLogicalId = UUID.randomUUID()
+        val firstRemote = remoteItem(
+            itemRevision = 2,
+            changeSequence = 7,
+            payload = byteArrayOf(1),
+        )
+        val secondRemote = remoteItem(
+            itemRevision = 4,
+            changeSequence = 10,
+            payload = byteArrayOf(2),
+        )
+        io.mockk.every {
+            vaultKeyMaterialLocalRepository.get()
+        } returns testVaultKeyMaterial(accountId)
+        coEvery { secureItemRepository.getSyncCheckpoint(accountId) } returns 5
+        coEvery {
+            secureItemRemoteRepository.listVaultItemChanges(after = 5, limit = 100)
+        } returns SecureItemRemoteResult.Success(
+            RemoteSecureItemChangesPage(
+                items = listOf(firstRemote, secondRemote),
+                nextCursor = 10,
+                hasMore = false,
+            ),
+        )
+        listOf(
+            firstRemote to firstLogicalId,
+            secondRemote to secondLogicalId,
+        ).forEach { (remote, logicalId) ->
+            coEvery { secureItemRepository.findByRemoteItemId(remote.itemId) } returns null
+            coEvery { secureItemRepository.getItem(logicalId) } returns null
+            coEvery { secureItemDraftRepository.findByRemoteItemId(remote.itemId) } returns null
+            coEvery { secureItemDraftRepository.getDraft(logicalId) } returns null
+            io.mockk.every {
+                secureItemPayloadIdentityReader.readLogicalItemId(remote.payload)
+            } returns logicalId
+        }
+        io.mockk.every {
+            secureItemCryptoService.decrypt(any())
+        } returns SecureItemDecryptionResult.Success(NoteSecureItemContent("remote"))
+        coEvery {
+            secureItemRepository.applyRemotePage(
+                accountId = accountId,
+                items = any(),
+                conflictedDrafts = emptyList(),
+                draftsToDelete = emptySet(),
+                lastAppliedChangeSequence = 10,
+                lastSyncedAt = any(),
+            )
+        } returns true
+
+        val result = target()
+
+        assertEquals(
+            PullVaultDeltaResult.Success(
+                processedSummaryCount = 2,
+                appliedUpsertCount = 2,
+                appliedDeleteCount = 0,
+                skippedDirtyOrConflictCount = 0,
+                checkpointUpdatedTo = 10,
+            ),
+            result,
+        )
+        coVerify(exactly = 1) {
+            secureItemRemoteRepository.listVaultItemChanges(after = 5, limit = 100)
+        }
     }
 
     private fun everyBasePull(

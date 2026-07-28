@@ -149,4 +149,21 @@ class SecureItemDraftSyncCoordinatorTest {
         coVerify(exactly = 0) { secureItemRepository.officializeDraft(any(), any()) }
         coVerify(exactly = 0) { secureItemDraftRepository.delete(any()) }
     }
+
+    @Test
+    fun `officialize update rejects mismatched payload version without deleting draft`() = runBlocking {
+        val draft = testSecureItemDraft()
+        val result = RemoteUpdateSecureItemResult(
+            itemId = requireNotNull(draft.remoteItemId),
+            mutationId = draft.mutationId,
+            payloadVersion = draft.payloadVersion + 1,
+            itemRevision = 3,
+            changeSequence = 30,
+            updatedAt = now,
+        )
+
+        assertFalse(target.officializeUpdatedDraft(draft, result))
+        coVerify(exactly = 0) { secureItemRepository.officializeDraft(any(), any()) }
+        coVerify(exactly = 0) { secureItemDraftRepository.delete(any()) }
+    }
 }
