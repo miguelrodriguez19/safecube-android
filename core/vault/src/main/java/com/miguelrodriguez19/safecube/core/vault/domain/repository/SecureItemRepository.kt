@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.repository
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncDraft
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
@@ -12,41 +13,7 @@ interface SecureItemRepository {
 
     suspend fun getItem(logicalItemId: UUID): SecureItem?
 
-    suspend fun insert(item: SecureItem)
-
-    suspend fun update(item: SecureItem)
-
-    suspend fun softDelete(
-        logicalItemId: UUID,
-        deletedAt: Instant,
-    ): Boolean
-
-    suspend fun getPendingSyncItemsOrdered(): List<SecureItem>
-
     suspend fun findByRemoteItemId(remoteItemId: UUID): SecureItem?
-
-    suspend fun markPendingCreate(logicalItemId: UUID): Boolean
-
-    suspend fun markPendingUpdate(logicalItemId: UUID): Boolean
-
-    suspend fun markPendingDelete(
-        logicalItemId: UUID,
-        deletedAt: Instant,
-    ): Boolean
-
-    suspend fun markSynced(
-        logicalItemId: UUID,
-        remoteItemId: UUID?,
-        payloadVersion: Long,
-        updatedAt: Instant,
-        deletedAt: Instant?,
-        lastSyncedAt: Instant,
-    ): Boolean
-
-    suspend fun markConflict(
-        logicalItemId: UUID,
-        lastSyncError: String,
-    ): Boolean
 
     suspend fun applyRemoteUpsert(
         item: SecureItem,
@@ -56,13 +23,35 @@ interface SecureItemRepository {
     suspend fun applyRemoteDelete(
         remoteItemId: UUID,
         deletedAt: Instant,
+        itemRevision: Long,
+        changeSequence: Long,
         lastSyncedAt: Instant,
     ): Boolean
 
-    suspend fun getSyncCheckpoint(accountId: UUID): Instant?
+    suspend fun getSyncCheckpoint(accountId: UUID): Long?
 
     suspend fun updateSyncCheckpoint(
         accountId: UUID,
-        lastPulledAt: Instant,
+        lastAppliedChangeSequence: Long,
     )
+
+    suspend fun officializeDraft(
+        item: SecureItem,
+        lastSyncedAt: Instant,
+    ): Boolean
+
+    suspend fun replaceOfficialWithConflictedDraft(
+        item: SecureItem,
+        draft: SecureItemSyncDraft,
+        lastSyncedAt: Instant,
+    ): Boolean
+
+    suspend fun applyRemotePage(
+        accountId: UUID,
+        items: List<SecureItem>,
+        conflictedDrafts: List<SecureItemSyncDraft>,
+        draftsToDelete: Set<UUID>,
+        lastAppliedChangeSequence: Long,
+        lastSyncedAt: Instant,
+    ): Boolean
 }

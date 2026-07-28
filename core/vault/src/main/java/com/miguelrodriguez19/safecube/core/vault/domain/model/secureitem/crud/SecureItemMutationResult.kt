@@ -1,10 +1,10 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud
 
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import java.util.UUID
 
 sealed interface SecureItemMutationResult {
     data class Success(
-        val item: SecureItem,
+        val logicalItemId: UUID,
     ) : SecureItemMutationResult
 
     data class Error(

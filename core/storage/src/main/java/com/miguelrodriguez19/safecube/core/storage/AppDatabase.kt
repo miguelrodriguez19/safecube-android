@@ -10,7 +10,7 @@ import androidx.room.TypeConverters
         SecureItemDraftEntity::class,
         SecureItemSyncCheckpointEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 @TypeConverters(StorageTypeConverters::class)

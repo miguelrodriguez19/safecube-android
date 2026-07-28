@@ -33,6 +33,10 @@ data class SecureItemEntity(
     val payload: ByteArray,
     @ColumnInfo(name = "payload_version")
     val payloadVersion: Long,
+    @ColumnInfo(name = "item_revision")
+    val itemRevision: Long,
+    @ColumnInfo(name = "change_sequence")
+    val changeSequence: Long,
     @ColumnInfo(name = "created_at")
     val createdAt: Instant,
     @ColumnInfo(name = "updated_at")

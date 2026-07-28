@@ -1,12 +1,16 @@
 package com.miguelrodriguez19.safecube.core.storage.local
 
+import androidx.room.withTransaction
+import com.miguelrodriguez19.safecube.core.storage.AppDatabase
 import com.miguelrodriguez19.safecube.core.storage.SecureItemDao
+import com.miguelrodriguez19.safecube.core.storage.SecureItemDraftDao
 import com.miguelrodriguez19.safecube.core.storage.SecureItemEntity
 import com.miguelrodriguez19.safecube.core.storage.SecureItemSyncStateDb
 import com.miguelrodriguez19.safecube.core.storage.SecureItemSyncCheckpointDao
 import com.miguelrodriguez19.safecube.core.storage.SecureItemSyncCheckpointEntity
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
 import java.time.Instant
@@ -18,8 +22,11 @@ import kotlinx.coroutines.flow.map
 
 @Singleton
 class SecureItemLocalStorage @Inject constructor(
+    private val appDatabase: AppDatabase,
     private val secureItemDao: SecureItemDao,
+    private val secureItemDraftDao: SecureItemDraftDao,
     private val secureItemSyncCheckpointDao: SecureItemSyncCheckpointDao,
+    private val secureItemDraftEntityMapper: SecureItemDraftEntityMapper,
 ) : SecureItemRepository {
     override fun observeActiveItems(): Flow<List<SecureItem>> =
         secureItemDao.observeActiveItems().map { items ->
@@ -34,69 +41,8 @@ class SecureItemLocalStorage @Inject constructor(
     override suspend fun getItem(logicalItemId: UUID): SecureItem? =
         secureItemDao.getItem(logicalItemId)?.toDomain()
 
-    override suspend fun insert(item: SecureItem) {
-        secureItemDao.insert(item.toEntity())
-    }
-
-    override suspend fun update(item: SecureItem) {
-        secureItemDao.update(item.toEntity())
-    }
-
-    override suspend fun softDelete(
-        logicalItemId: UUID,
-        deletedAt: Instant
-    ): Boolean = secureItemDao.softDelete(
-        logicalItemId = logicalItemId,
-        deletedAt = deletedAt
-    ) > 0
-
-    override suspend fun getPendingSyncItemsOrdered(): List<SecureItem> =
-        secureItemDao.getPendingSyncItemsOrdered().map(SecureItemEntity::toDomain)
-
     override suspend fun findByRemoteItemId(remoteItemId: UUID): SecureItem? =
         secureItemDao.findByRemoteItemId(remoteItemId)?.toDomain()
-
-    override suspend fun markPendingCreate(logicalItemId: UUID): Boolean =
-        secureItemDao.markPendingCreate(
-            logicalItemId = logicalItemId
-        ) > 0
-
-    override suspend fun markPendingUpdate(logicalItemId: UUID): Boolean =
-        secureItemDao.markPendingUpdate(
-            logicalItemId = logicalItemId
-        ) > 0
-
-    override suspend fun markPendingDelete(
-        logicalItemId: UUID,
-        deletedAt: Instant,
-    ): Boolean = secureItemDao.markPendingDelete(
-        logicalItemId = logicalItemId,
-        deletedAt = deletedAt,
-    ) > 0
-
-    override suspend fun markSynced(
-        logicalItemId: UUID,
-        remoteItemId: UUID?,
-        payloadVersion: Long,
-        updatedAt: Instant,
-        deletedAt: Instant?,
-        lastSyncedAt: Instant,
-    ): Boolean = secureItemDao.markSynced(
-        logicalItemId = logicalItemId,
-        remoteItemId = remoteItemId,
-        payloadVersion = payloadVersion,
-        updatedAt = updatedAt,
-        deletedAt = deletedAt,
-        lastSyncedAt = lastSyncedAt
-    ) > 0
-
-    override suspend fun markConflict(
-        logicalItemId: UUID,
-        lastSyncError: String,
-    ): Boolean = secureItemDao.markConflict(
-        logicalItemId = logicalItemId,
-        lastSyncError = lastSyncError
-    ) > 0
 
     override suspend fun applyRemoteUpsert(
         item: SecureItem,
@@ -111,6 +57,8 @@ class SecureItemLocalStorage @Inject constructor(
             displayHint = item.displayHint,
             payload = item.payload,
             payloadVersion = item.payloadVersion,
+            itemRevision = item.itemRevision,
+            changeSequence = item.changeSequence,
             updatedAt = item.updatedAt,
             deletedAt = item.deletedAt,
             syncState = SecureItemSyncStateDb.SYNCED,
@@ -129,27 +77,86 @@ class SecureItemLocalStorage @Inject constructor(
     override suspend fun applyRemoteDelete(
         remoteItemId: UUID,
         deletedAt: Instant,
+        itemRevision: Long,
+        changeSequence: Long,
         lastSyncedAt: Instant,
     ): Boolean = secureItemDao.applyRemoteDelete(
         remoteItemId = remoteItemId,
         deletedAt = deletedAt,
+        itemRevision = itemRevision,
+        changeSequence = changeSequence,
         syncState = SecureItemSyncStateDb.SYNCED,
         lastSyncedAt = lastSyncedAt
     ) > 0
 
-    override suspend fun getSyncCheckpoint(accountId: UUID): Instant? =
-        secureItemSyncCheckpointDao.getLastPulledAt(accountId)
+    override suspend fun getSyncCheckpoint(accountId: UUID): Long? =
+        secureItemSyncCheckpointDao.getLastAppliedChangeSequence(accountId)
 
     override suspend fun updateSyncCheckpoint(
         accountId: UUID,
-        lastPulledAt: Instant,
+        lastAppliedChangeSequence: Long,
     ) {
         secureItemSyncCheckpointDao.upsert(
             SecureItemSyncCheckpointEntity(
                 accountId = accountId,
-                lastPulledAt = lastPulledAt,
+                lastAppliedChangeSequence = lastAppliedChangeSequence,
             ),
         )
+    }
+
+    override suspend fun officializeDraft(
+        item: SecureItem,
+        lastSyncedAt: Instant,
+    ): Boolean {
+        if (item.remoteItemId == null) return false
+        return runCatching {
+            appDatabase.withTransaction {
+                check(applyRemoteUpsert(item, lastSyncedAt))
+                check(secureItemDraftDao.delete(item.logicalItemId) > 0)
+                true
+            }
+        }.getOrDefault(false)
+    }
+
+    override suspend fun replaceOfficialWithConflictedDraft(
+        item: SecureItem,
+        draft: SecureItemSyncDraft,
+        lastSyncedAt: Instant,
+    ): Boolean {
+        if (item.remoteItemId == null) return false
+        return runCatching {
+            appDatabase.withTransaction {
+                check(applyRemoteUpsert(item, lastSyncedAt))
+                secureItemDraftDao.upsert(secureItemDraftEntityMapper.toEntity(draft))
+                true
+            }
+        }.getOrDefault(false)
+    }
+
+    override suspend fun applyRemotePage(
+        accountId: UUID,
+        items: List<SecureItem>,
+        conflictedDrafts: List<SecureItemSyncDraft>,
+        draftsToDelete: Set<UUID>,
+        lastAppliedChangeSequence: Long,
+        lastSyncedAt: Instant,
+    ): Boolean {
+        if (items.any { it.remoteItemId == null }) return false
+        return runCatching {
+            appDatabase.withTransaction {
+                items.forEach { item ->
+                    check(applyRemoteUpsert(item, lastSyncedAt))
+                }
+                conflictedDrafts.forEach { draft ->
+                    secureItemDraftDao.upsert(secureItemDraftEntityMapper.toEntity(draft))
+                }
+                draftsToDelete.forEach { logicalItemId ->
+                    secureItemDraftDao.delete(logicalItemId)
+                }
+                updateSyncCheckpoint(accountId, lastAppliedChangeSequence)
+                true
+            }
+        }.getOrDefault(false)
     }
 }
 
@@ -162,6 +169,8 @@ private fun SecureItemEntity.toDomain(): SecureItem = SecureItem(
     displayHint = displayHint,
     payload = payload,
     payloadVersion = payloadVersion,
+    itemRevision = itemRevision,
+    changeSequence = changeSequence,
     createdAt = createdAt,
     updatedAt = updatedAt,
     deletedAt = deletedAt,
@@ -178,6 +187,8 @@ private fun SecureItem.toEntity(): SecureItemEntity = SecureItemEntity(
     displayHint = displayHint,
     payload = payload,
     payloadVersion = payloadVersion,
+    itemRevision = itemRevision,
+    changeSequence = changeSequence,
     createdAt = createdAt,
     updatedAt = updatedAt,
     deletedAt = deletedAt,

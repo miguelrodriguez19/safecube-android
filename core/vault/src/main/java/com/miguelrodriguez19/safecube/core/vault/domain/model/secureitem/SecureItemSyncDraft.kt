@@ -13,25 +13,28 @@ data class SecureItemSyncDraft(
     val payloadVersion: Long,
     val createdAt: Instant,
     val updatedAt: Instant,
+    val mutationId: UUID = UUID.randomUUID(),
     val deletedAt: Instant? = null,
     val lastSyncedAt: Instant? = null,
-    val lastSyncError: String? = null,
     val draftType: SecureItemDraftType,
-    val basePayloadVersion: Long,
-    val baseUpdatedAt: Instant,
-    val lastPublishError: String? = null,
+    val draftSyncStatus: SecureItemDraftSyncStatus,
+    val baseItemRevision: Long? = null,
+    val lastSyncError: String? = null,
 ) {
     init {
         require(displayHint.isNotBlank()) { "displayHint must not be blank." }
         require(schemaVersion > 0) { "schemaVersion must be positive." }
         require(payload.isNotEmpty()) { "payload must not be empty." }
         require(payloadVersion > 0) { "payloadVersion must be positive." }
-        require(basePayloadVersion > 0) { "basePayloadVersion must be positive." }
+        require(baseItemRevision == null || baseItemRevision > 0) {
+            "baseItemRevision must be positive when present."
+        }
+        require(
+            (draftType == SecureItemDraftType.CREATE && baseItemRevision == null) ||
+                (draftType != SecureItemDraftType.CREATE && baseItemRevision != null),
+        ) { "Only CREATE drafts may omit baseItemRevision." }
         require(lastSyncError?.isNotBlank() != false) {
             "lastSyncError must not be blank when present."
-        }
-        require(lastPublishError?.isNotBlank() != false) {
-            "lastPublishError must not be blank when present."
         }
     }
 }

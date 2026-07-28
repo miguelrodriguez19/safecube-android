@@ -13,6 +13,8 @@ data class SecureItem(
     val payloadVersion: Long,
     val createdAt: Instant,
     val updatedAt: Instant,
+    val itemRevision: Long = 1,
+    val changeSequence: Long = 1,
     val deletedAt: Instant? = null,
     val syncState: SecureItemSyncState = SecureItemSyncState.SYNCED,
     val lastSyncedAt: Instant? = null,
@@ -23,6 +25,8 @@ data class SecureItem(
         require(schemaVersion > 0) { "schemaVersion must be positive." }
         require(payload.isNotEmpty()) { "payload must not be empty." }
         require(payloadVersion > 0) { "payloadVersion must be positive." }
+        require(itemRevision > 0) { "itemRevision must be positive." }
+        require(changeSequence > 0) { "changeSequence must be positive." }
         require(lastSyncError?.isNotBlank() != false) { "lastSyncError must not be blank when present." }
     }
 }

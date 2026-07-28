@@ -5,11 +5,13 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureI
 enum class SecureItemDraftTypeDb(
     val storageValue: String,
 ) {
+    CREATE("CREATE"),
     UPDATE("UPDATE"),
     DELETE("DELETE"),
     ;
 
     fun toDomain(): SecureItemDraftType = when (this) {
+        CREATE -> SecureItemDraftType.CREATE
         UPDATE -> SecureItemDraftType.UPDATE
         DELETE -> SecureItemDraftType.DELETE
     }
@@ -20,6 +22,7 @@ enum class SecureItemDraftTypeDb(
         }
 
         fun fromDomain(value: SecureItemDraftType): SecureItemDraftTypeDb = when (value) {
+            SecureItemDraftType.CREATE -> CREATE
             SecureItemDraftType.UPDATE -> UPDATE
             SecureItemDraftType.DELETE -> DELETE
         }

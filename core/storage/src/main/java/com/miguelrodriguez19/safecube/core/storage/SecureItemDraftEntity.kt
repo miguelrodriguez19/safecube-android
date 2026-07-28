@@ -32,6 +32,8 @@ data class SecureItemDraftEntity(
     val payload: ByteArray,
     @ColumnInfo(name = "payload_version")
     val payloadVersion: Long,
+    @ColumnInfo(name = "mutation_id")
+    val mutationId: UUID,
     @ColumnInfo(name = "created_at")
     val createdAt: Instant,
     @ColumnInfo(name = "updated_at")
@@ -40,14 +42,12 @@ data class SecureItemDraftEntity(
     val deletedAt: Instant? = null,
     @ColumnInfo(name = "last_synced_at")
     val lastSyncedAt: Instant? = null,
-    @ColumnInfo(name = "last_sync_error")
-    val lastSyncError: String? = null,
     @ColumnInfo(name = "draft_type")
     val draftType: SecureItemDraftTypeDb,
-    @ColumnInfo(name = "base_payload_version")
-    val basePayloadVersion: Long,
-    @ColumnInfo(name = "base_updated_at")
-    val baseUpdatedAt: Instant,
-    @ColumnInfo(name = "last_publish_error")
-    val lastPublishError: String? = null,
+    @ColumnInfo(name = "draft_sync_status")
+    val draftSyncStatus: SecureItemDraftSyncStatusDb,
+    @ColumnInfo(name = "base_item_revision")
+    val baseItemRevision: Long?,
+    @ColumnInfo(name = "last_sync_error")
+    val lastSyncError: String? = null,
 )

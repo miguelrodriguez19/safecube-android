@@ -44,8 +44,33 @@ interface SecureItemDraftDao {
     )
     suspend fun findByRemoteItemId(remoteItemId: UUID): SecureItemDraftEntity?
 
+    @Query(
+        """
+        SELECT * FROM secure_items_draft
+        WHERE draft_sync_status = :draftSyncStatus
+        ORDER BY updated_at ASC
+        """,
+    )
+    suspend fun getDraftsBySyncStatus(
+        draftSyncStatus: SecureItemDraftSyncStatusDb,
+    ): List<SecureItemDraftEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(draft: SecureItemDraftEntity)
+
+    @Query(
+        """
+        UPDATE secure_items_draft
+        SET draft_sync_status = :draftSyncStatus,
+            last_sync_error = :lastSyncError
+        WHERE logical_item_id = :logicalItemId
+        """,
+    )
+    suspend fun updateStatus(
+        logicalItemId: UUID,
+        draftSyncStatus: SecureItemDraftSyncStatusDb,
+        lastSyncError: String?,
+    ): Int
 
     @Query(
         """

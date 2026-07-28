@@ -1,7 +1,6 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem
 
-enum class SecureItemDraftType {
-    CREATE,
-    UPDATE,
-    DELETE,
+enum class SecureItemDraftSyncStatus {
+    READY_TO_SYNC,
+    CONFLICT,
 }

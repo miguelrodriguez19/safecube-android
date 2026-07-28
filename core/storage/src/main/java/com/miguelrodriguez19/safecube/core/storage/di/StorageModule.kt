@@ -32,6 +32,7 @@ object StorageModule {
         StorageMigrations.MIGRATION_3_4,
         StorageMigrations.MIGRATION_4_5,
         StorageMigrations.MIGRATION_5_6,
+        StorageMigrations.MIGRATION_6_7,
     ).build()
 
     @Provides

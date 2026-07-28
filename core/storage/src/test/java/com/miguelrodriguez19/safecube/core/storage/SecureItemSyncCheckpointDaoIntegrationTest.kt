@@ -2,7 +2,6 @@ package com.miguelrodriguez19.safecube.core.storage
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -12,7 +11,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.time.temporal.ChronoUnit
 
 @RunWith(RobolectricTestRunner::class)
 class SecureItemSyncCheckpointDaoIntegrationTest {
@@ -36,10 +34,10 @@ class SecureItemSyncCheckpointDaoIntegrationTest {
     }
 
     @Test
-    fun `getLastPulledAt when checkpoint is missing then returns null`() = runBlocking {
+    fun `get cursor when checkpoint is missing then returns null`() = runBlocking {
         val accountId = UUID.randomUUID()
 
-        val result = target.getLastPulledAt(accountId)
+        val result = target.getLastAppliedChangeSequence(accountId)
 
         assertNull(result)
     }
@@ -47,24 +45,24 @@ class SecureItemSyncCheckpointDaoIntegrationTest {
     @Test
     fun `upsert when called then stores and replaces checkpoint`() = runBlocking {
         val accountId = UUID.randomUUID()
-        val firstPulledAt = Instant.now().truncatedTo(ChronoUnit.MILLIS)
-        val secondPulledAt = firstPulledAt.plus(1, ChronoUnit.HOURS)
+        val firstSequence = 17L
+        val secondSequence = 23L
         target.upsert(
             SecureItemSyncCheckpointEntity(
                 accountId = accountId,
-                lastPulledAt = firstPulledAt,
+                lastAppliedChangeSequence = firstSequence,
             ),
         )
 
         target.upsert(
             SecureItemSyncCheckpointEntity(
                 accountId = accountId,
-                lastPulledAt = secondPulledAt,
+                lastAppliedChangeSequence = secondSequence,
             ),
         )
 
-        val result = target.getLastPulledAt(accountId)
+        val result = target.getLastAppliedChangeSequence(accountId)
 
-        assertEquals(secondPulledAt, result)
+        assertEquals(secondSequence, result)
     }
 }

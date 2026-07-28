@@ -5,9 +5,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 object StorageMigrations {
     private const val NANOS_PER_MILLI = 1_000_000L
-    private const val SECURE_ITEM_SYNC_STATE_CHECK =
-        "'SYNCED','PENDING_CREATE','PENDING_UPDATE','PENDING_DELETE','CONFLICT'"
-    private const val SECURE_ITEM_DRAFT_TYPE_CHECK = "'UPDATE','DELETE'"
+    private const val SECURE_ITEM_SYNC_STATE_CHECK = "'SYNCED'"
+    private const val SECURE_ITEM_DRAFT_TYPE_CHECK = "'CREATE','UPDATE','DELETE'"
+    private const val SECURE_ITEM_DRAFT_SYNC_STATUS_CHECK = "'READY_TO_SYNC','CONFLICT'"
     /**
      * v1 shipped only a placeholder secure_items table with an auto-generated numeric id and no
      * user data contract. v2 introduces the first real offline schema, so the table is recreated
@@ -181,9 +181,9 @@ object StorageMigrations {
                     `last_synced_at` INTEGER,
                     `last_sync_error` TEXT,
                     `draft_type` TEXT NOT NULL CHECK(`draft_type` IN ($SECURE_ITEM_DRAFT_TYPE_CHECK)),
+                    `draft_sync_status` TEXT NOT NULL DEFAULT 'READY_TO_SYNC' CHECK(`draft_sync_status` IN ($SECURE_ITEM_DRAFT_SYNC_STATUS_CHECK)),
                     `base_payload_version` INTEGER NOT NULL,
                     `base_updated_at` INTEGER NOT NULL,
-                    `last_publish_error` TEXT,
                     PRIMARY KEY(`logical_item_id`)
                 )
                 """.trimIndent(),
@@ -244,6 +244,100 @@ object StorageMigrations {
                         ELSE `last_synced_at` * $NANOS_PER_MILLI
                     END,
                     `base_updated_at` = `base_updated_at` * $NANOS_PER_MILLI
+                """.trimIndent(),
+            )
+        }
+    }
+
+    /**
+     * v7 establishes the unreleased sync-v2 schema. There is intentionally no data migration:
+     * old rows have no authoritative item revision or change sequence that can be reconstructed.
+     */
+    val MIGRATION_6_7: Migration = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("DROP TABLE IF EXISTS `secure_items_draft`")
+            db.execSQL("DROP TABLE IF EXISTS `secure_items`")
+            db.execSQL("DROP TABLE IF EXISTS `secure_item_sync_checkpoints`")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `secure_items` (
+                    `logical_item_id` TEXT NOT NULL,
+                    `remote_item_id` TEXT,
+                    `item_type` TEXT NOT NULL,
+                    `schema_version` INTEGER NOT NULL,
+                    `display_hint` TEXT NOT NULL,
+                    `payload` BLOB NOT NULL,
+                    `payload_version` INTEGER NOT NULL,
+                    `item_revision` INTEGER NOT NULL,
+                    `change_sequence` INTEGER NOT NULL,
+                    `created_at` INTEGER NOT NULL,
+                    `updated_at` INTEGER NOT NULL,
+                    `deleted_at` INTEGER,
+                    `sync_state` TEXT NOT NULL DEFAULT 'SYNCED' CHECK(`sync_state` IN ($SECURE_ITEM_SYNC_STATE_CHECK)),
+                    `last_synced_at` INTEGER,
+                    `last_sync_error` TEXT,
+                    PRIMARY KEY(`logical_item_id`)
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_remote_item_id` ON `secure_items` (`remote_item_id`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_deleted_at` ON `secure_items` (`deleted_at`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_updated_at` ON `secure_items` (`updated_at`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_item_type` ON `secure_items` (`item_type`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_sync_state` ON `secure_items` (`sync_state`)",
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `secure_items_draft` (
+                    `logical_item_id` TEXT NOT NULL,
+                    `remote_item_id` TEXT,
+                    `item_type` TEXT NOT NULL,
+                    `schema_version` INTEGER NOT NULL,
+                    `display_hint` TEXT NOT NULL,
+                    `payload` BLOB NOT NULL,
+                    `payload_version` INTEGER NOT NULL,
+                    `mutation_id` TEXT NOT NULL,
+                    `created_at` INTEGER NOT NULL,
+                    `updated_at` INTEGER NOT NULL,
+                    `deleted_at` INTEGER,
+                    `last_synced_at` INTEGER,
+                    `draft_type` TEXT NOT NULL CHECK(`draft_type` IN ($SECURE_ITEM_DRAFT_TYPE_CHECK)),
+                    `draft_sync_status` TEXT NOT NULL DEFAULT 'READY_TO_SYNC' CHECK(`draft_sync_status` IN ($SECURE_ITEM_DRAFT_SYNC_STATUS_CHECK)),
+                    `base_item_revision` INTEGER,
+                    `last_sync_error` TEXT,
+                    PRIMARY KEY(`logical_item_id`)
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_draft_remote_item_id` ON `secure_items_draft` (`remote_item_id`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_draft_deleted_at` ON `secure_items_draft` (`deleted_at`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_draft_updated_at` ON `secure_items_draft` (`updated_at`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_secure_items_draft_draft_type` ON `secure_items_draft` (`draft_type`)",
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `secure_item_sync_checkpoints` (
+                    `account_id` TEXT NOT NULL,
+                    `last_applied_change_sequence` INTEGER NOT NULL,
+                    PRIMARY KEY(`account_id`)
+                )
                 """.trimIndent(),
             )
         }

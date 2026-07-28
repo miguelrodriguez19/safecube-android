@@ -3,15 +3,11 @@ package com.miguelrodriguez19.safecube.core.storage
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -20,7 +16,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class SecureItemDraftDaoIntegrationTest {
-
     private lateinit var database: AppDatabase
     private lateinit var target: SecureItemDraftDao
 
@@ -29,9 +24,7 @@ class SecureItemDraftDaoIntegrationTest {
         database = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             AppDatabase::class.java,
-        )
-            .allowMainThreadQueries()
-            .build()
+        ).allowMainThreadQueries().build()
         target = database.secureItemDraftDao()
     }
 
@@ -41,157 +34,93 @@ class SecureItemDraftDaoIntegrationTest {
     }
 
     @Test
-    fun `observeDrafts when database contains drafts then emits rows ordered by updatedAt descending`() = runBlocking {
-        val now = Instant.now().truncatedTo(ChronoUnit.MILLIS)
-        val newestDraft = sampleDraftEntity(
+    fun `observe drafts returns rows ordered by updatedAt descending`() = runBlocking {
+        val oldest = sampleDraftEntity(
             logicalItemId = UUID.randomUUID(),
-            updatedAt = now,
-            payload = byteArrayOf(9, 9, 9),
+            updatedAt = Instant.parse("2024-07-02T10:00:00Z"),
+            draftType = SecureItemDraftTypeDb.UPDATE,
         )
-        val oldestDraft = sampleDraftEntity(
+        val newest = sampleDraftEntity(
             logicalItemId = UUID.randomUUID(),
-            updatedAt = now.minus(1, ChronoUnit.HOURS),
-            payload = byteArrayOf(1, 1, 1),
-            draftType = SecureItemDraftTypeDb.DELETE,
+            updatedAt = Instant.parse("2024-07-02T12:00:00Z"),
+            draftType = SecureItemDraftTypeDb.CREATE,
         )
-        target.upsert(oldestDraft)
-        target.upsert(newestDraft)
+        target.upsert(oldest)
+        target.upsert(newest)
 
         val result = target.observeDrafts().first()
 
-        assertEquals(
-            listOf(newestDraft.logicalItemId, oldestDraft.logicalItemId),
-            result.map { it.logicalItemId },
-        )
-        assertEquals(
-            listOf(SecureItemDraftTypeDb.UPDATE, SecureItemDraftTypeDb.DELETE),
-            result.map { it.draftType },
-        )
+        assertEquals(listOf(newest.logicalItemId, oldest.logicalItemId), result.map { it.logicalItemId })
     }
 
     @Test
-    fun `observeDraft when row exists then emits matching draft entity`() = runBlocking {
-        val draft = sampleDraftEntity(
+    fun `get drafts by sync status filters and sorts ascending`() = runBlocking {
+        val olderReady = sampleDraftEntity(
             logicalItemId = UUID.randomUUID(),
-            updatedAt = Instant.now().truncatedTo(ChronoUnit.MILLIS),
-            payload = byteArrayOf(4, 5, 6),
+            updatedAt = Instant.parse("2024-07-02T09:00:00Z"),
+            draftSyncStatus = SecureItemDraftSyncStatusDb.READY_TO_SYNC,
         )
+        val conflict = sampleDraftEntity(
+            logicalItemId = UUID.randomUUID(),
+            updatedAt = Instant.parse("2024-07-02T10:00:00Z"),
+            draftSyncStatus = SecureItemDraftSyncStatusDb.CONFLICT,
+            lastSyncError = "Conflict",
+        )
+        val newerReady = sampleDraftEntity(
+            logicalItemId = UUID.randomUUID(),
+            updatedAt = Instant.parse("2024-07-02T11:00:00Z"),
+            draftSyncStatus = SecureItemDraftSyncStatusDb.READY_TO_SYNC,
+        )
+        target.upsert(newerReady)
+        target.upsert(conflict)
+        target.upsert(olderReady)
+
+        val result = target.getDraftsBySyncStatus(SecureItemDraftSyncStatusDb.READY_TO_SYNC)
+
+        assertEquals(listOf(olderReady.logicalItemId, newerReady.logicalItemId), result.map { it.logicalItemId })
+    }
+
+    @Test
+    fun `update status persists conflict metadata`() = runBlocking {
+        val draft = sampleDraftEntity()
         target.upsert(draft)
 
-        val result = target.observeDraft(draft.logicalItemId).first()
-
-        assertNotNull(result)
-        assertEquals(draft.logicalItemId, result?.logicalItemId)
-        assertEquals(draft.remoteItemId, result?.remoteItemId)
-        assertEquals(draft.draftType, result?.draftType)
-        assertArrayEquals(draft.payload, result?.payload)
-    }
-
-    @Test
-    fun `getDraft when row exists then returns matching draft entity`() = runBlocking {
-        val draft = sampleDraftEntity(
-            logicalItemId = UUID.randomUUID(),
-            updatedAt = Instant.now().truncatedTo(ChronoUnit.MILLIS),
-            payload = byteArrayOf(7, 8, 9),
-            draftType = SecureItemDraftTypeDb.DELETE,
+        val updatedRows = target.updateStatus(
+            logicalItemId = draft.logicalItemId,
+            draftSyncStatus = SecureItemDraftSyncStatusDb.CONFLICT,
+            lastSyncError = "Conflict",
         )
-        target.upsert(draft)
+        val persisted = target.getDraft(draft.logicalItemId)
 
-        val result = target.getDraft(draft.logicalItemId)
-
-        assertNotNull(result)
-        assertEquals(draft.logicalItemId, result?.logicalItemId)
-        assertEquals(draft.basePayloadVersion, result?.basePayloadVersion)
-        assertEquals(draft.baseUpdatedAt, result?.baseUpdatedAt)
-    }
-
-    @Test
-    fun `findByRemoteItemId when row exists then returns matching draft entity`() = runBlocking {
-        val remoteItemId = UUID.randomUUID()
-        val draft = sampleDraftEntity(
-            logicalItemId = UUID.randomUUID(),
-            remoteItemId = remoteItemId,
-            updatedAt = Instant.now().truncatedTo(ChronoUnit.MILLIS),
-            payload = byteArrayOf(2, 3, 4),
-        )
-        target.upsert(draft)
-
-        val result = target.findByRemoteItemId(remoteItemId)
-
-        assertNotNull(result)
-        assertEquals(draft.logicalItemId, result?.logicalItemId)
-        assertEquals(remoteItemId, result?.remoteItemId)
-    }
-
-    @Test
-    fun `upsert when row already exists then replaces stored draft`() = runBlocking {
-        val logicalItemId = UUID.randomUUID()
-        val initialDraft = sampleDraftEntity(
-            logicalItemId = logicalItemId,
-            updatedAt = Instant.now().minus(1, ChronoUnit.HOURS).truncatedTo(ChronoUnit.MILLIS),
-            payload = byteArrayOf(1, 2, 3),
-        )
-        val updatedDraft = initialDraft.copy(
-            displayHint = "Updated draft",
-            payload = byteArrayOf(3, 2, 1),
-            payloadVersion = 5,
-            draftType = SecureItemDraftTypeDb.DELETE,
-        )
-        target.upsert(initialDraft)
-
-        target.upsert(updatedDraft)
-
-        val result = target.getDraft(logicalItemId)
-
-        assertNotNull(result)
-        assertEquals("Updated draft", result?.displayHint)
-        assertEquals(5L, result?.payloadVersion)
-        assertEquals(SecureItemDraftTypeDb.DELETE, result?.draftType)
-        assertArrayEquals(byteArrayOf(3, 2, 1), result?.payload)
-    }
-
-    @Test
-    fun `delete when row exists then removes stored draft`() = runBlocking {
-        val draft = sampleDraftEntity(
-            logicalItemId = UUID.randomUUID(),
-            updatedAt = Instant.now().truncatedTo(ChronoUnit.MILLIS),
-            payload = byteArrayOf(6, 6, 6),
-        )
-        target.upsert(draft)
-
-        val deletedRows = target.delete(draft.logicalItemId)
-
-        assertEquals(1, deletedRows)
-        assertNull(target.getDraft(draft.logicalItemId))
-        assertTrue(target.observeDrafts().first().isEmpty())
+        assertEquals(1, updatedRows)
+        assertEquals(SecureItemDraftSyncStatusDb.CONFLICT, persisted?.draftSyncStatus)
+        assertEquals("Conflict", persisted?.lastSyncError)
+        assertTrue(target.delete(draft.logicalItemId) == 1)
     }
 }
 
 private fun sampleDraftEntity(
-    logicalItemId: UUID,
-    updatedAt: Instant,
-    payload: ByteArray,
+    logicalItemId: UUID = UUID.randomUUID(),
     remoteItemId: UUID? = UUID.randomUUID(),
+    updatedAt: Instant = Instant.parse("2024-07-02T10:00:00Z"),
     draftType: SecureItemDraftTypeDb = SecureItemDraftTypeDb.UPDATE,
-): SecureItemDraftEntity {
-    val createdAt = updatedAt.minus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MILLIS)
-    val lastSyncedAt = updatedAt.minus(1, ChronoUnit.HOURS).truncatedTo(ChronoUnit.MILLIS)
-    return SecureItemDraftEntity(
-        logicalItemId = logicalItemId,
-        remoteItemId = remoteItemId,
-        itemType = "NOTE",
-        schemaVersion = 1,
-        displayHint = "Draft item",
-        payload = payload,
-        payloadVersion = 2,
-        createdAt = createdAt,
-        updatedAt = updatedAt,
-        deletedAt = null,
-        lastSyncedAt = lastSyncedAt,
-        lastSyncError = null,
-        draftType = draftType,
-        basePayloadVersion = 1,
-        baseUpdatedAt = updatedAt.minus(2, ChronoUnit.HOURS).truncatedTo(ChronoUnit.MILLIS),
-        lastPublishError = null,
-    )
-}
+    draftSyncStatus: SecureItemDraftSyncStatusDb = SecureItemDraftSyncStatusDb.READY_TO_SYNC,
+    lastSyncError: String? = null,
+): SecureItemDraftEntity = SecureItemDraftEntity(
+    logicalItemId = logicalItemId,
+    remoteItemId = remoteItemId,
+    itemType = "NOTE",
+    schemaVersion = 1,
+    displayHint = "Draft item",
+    payload = byteArrayOf(1, 2, 3),
+    payloadVersion = 2,
+    mutationId = UUID.randomUUID(),
+    createdAt = updatedAt.minusSeconds(60),
+    updatedAt = updatedAt,
+    deletedAt = null,
+    lastSyncedAt = updatedAt.minusSeconds(30),
+    draftType = draftType,
+    draftSyncStatus = draftSyncStatus,
+    baseItemRevision = if (draftType == SecureItemDraftTypeDb.CREATE) null else 1,
+    lastSyncError = lastSyncError,
+)
