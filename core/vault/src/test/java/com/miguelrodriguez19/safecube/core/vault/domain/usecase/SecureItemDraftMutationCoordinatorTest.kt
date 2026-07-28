@@ -1,14 +1,17 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
+import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentDecodeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemDraftRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoError
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemEncryptionResult
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.CurrentInstantProvider
@@ -162,4 +165,248 @@ class SecureItemDraftMutationCoordinatorTest {
         assertEquals(SecureItemMutationResult.Success(createDraft.logicalItemId), result)
         coVerify(exactly = 0) { secureItemRepository.getItem(any()) }
     }
+
+    @Test
+    fun `create and update reject mutations while vault is locked`() = runBlocking {
+        vaultSessionManager.setState(VaultState.Locked)
+
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.VaultLocked),
+            target.create("Note", NoteSecureItemContent("Body")),
+        )
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.VaultLocked),
+            target.update(
+                UUID.randomUUID(),
+                "Note",
+                SecureItemType.NOTE,
+                NoteSecureItemContent("Body"),
+            ),
+        )
+        coVerify(exactly = 0) { secureItemDraftRepository.upsert(any()) }
+    }
+
+    @Test
+    fun `create validates display hint before allocating identity`() = runBlocking {
+        assertEquals(
+            SecureItemMutationResult.Error(
+                SecureItemCrudError.ValidationError("displayHint must not be blank."),
+            ),
+            target.create("   ", NoteSecureItemContent("Body")),
+        )
+        coVerify(exactly = 0) { secureItemDraftRepository.upsert(any()) }
+    }
+
+    @Test
+    fun `create maps every encryption error`() = runBlocking {
+        val errors = listOf(
+            SecureItemCryptoError.VaultLocked to SecureItemCrudError.VaultLocked,
+            SecureItemCryptoError.AccountIdUnavailable to SecureItemCrudError.VaultLocked,
+            SecureItemCryptoError.MalformedPayload to encryptionValidationError(),
+            SecureItemCryptoError.CryptographicFailure to encryptionValidationError(),
+            SecureItemCryptoError.ContentDecodingFailed(
+                SecureItemContentDecodeError.InvalidPayload("invalid"),
+            ) to encryptionValidationError(),
+        )
+        every { secureItemIdGenerator.generate() } returns UUID.randomUUID()
+
+        errors.forEach { (cryptoError, expected) ->
+            every {
+                secureItemCryptoService.encrypt(any(), 1, any())
+            } returns SecureItemEncryptionResult.Error(cryptoError)
+
+            assertEquals(
+                SecureItemMutationResult.Error(expected),
+                target.create("Valid", NoteSecureItemContent("Body")),
+            )
+        }
+    }
+
+    @Test
+    fun `update validates item existence type tombstone and display hint`() = runBlocking {
+        val missingId = UUID.randomUUID()
+        coEvery { secureItemDraftRepository.getDraft(missingId) } returns null
+        coEvery { secureItemRepository.getItem(missingId) } returns null
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound),
+            target.update(missingId, "Note", SecureItemType.NOTE, NoteSecureItemContent("Body")),
+        )
+
+        val password = testSecureItem(itemType = SecureItemType.PASSWORD)
+        coEvery { secureItemDraftRepository.getDraft(password.logicalItemId) } returns null
+        coEvery { secureItemRepository.getItem(password.logicalItemId) } returns password
+        assertEquals(
+            SecureItemMutationResult.Error(
+                SecureItemCrudError.ValidationError("Secure item type mismatch."),
+            ),
+            target.update(
+                password.logicalItemId,
+                "Password",
+                SecureItemType.NOTE,
+                NoteSecureItemContent("Body"),
+            ),
+        )
+
+        val deleted = testSecureItem(deletedAt = now)
+        coEvery { secureItemDraftRepository.getDraft(deleted.logicalItemId) } returns null
+        coEvery { secureItemRepository.getItem(deleted.logicalItemId) } returns deleted
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound),
+            target.update(
+                deleted.logicalItemId,
+                "Deleted",
+                SecureItemType.NOTE,
+                NoteSecureItemContent("Body"),
+            ),
+        )
+
+        val official = testSecureItem()
+        coEvery { secureItemDraftRepository.getDraft(official.logicalItemId) } returns null
+        coEvery { secureItemRepository.getItem(official.logicalItemId) } returns official
+        assertEquals(
+            SecureItemMutationResult.Error(
+                SecureItemCrudError.ValidationError("displayHint must not be blank."),
+            ),
+            target.update(
+                official.logicalItemId,
+                "\t",
+                SecureItemType.NOTE,
+                NoteSecureItemContent("Body"),
+            ),
+        )
+    }
+
+    @Test
+    fun `updating create and delete drafts preserves the correct lifecycle`() = runBlocking {
+        val create = testSecureItemDraft(
+            remoteItemId = null,
+            payloadVersion = 2,
+            draftType = SecureItemDraftType.CREATE,
+        )
+        val createSlot = slot<SecureItemSyncDraft>()
+        coEvery { secureItemDraftRepository.getDraft(create.logicalItemId) } returns create
+        coEvery { secureItemRepository.getItem(create.logicalItemId) } returns null
+        every { secureItemMutationIdGenerator.generate() } returns UUID.randomUUID()
+        every {
+            secureItemCryptoService.encrypt(create.logicalItemId, 3, any())
+        } returns SecureItemEncryptionResult.Success(testEncryptedPayload())
+        coJustRun { secureItemDraftRepository.upsert(capture(createSlot)) }
+
+        assertEquals(
+            SecureItemMutationResult.Success(create.logicalItemId),
+            target.update(
+                create.logicalItemId,
+                " Local create ",
+                SecureItemType.NOTE,
+                NoteSecureItemContent("Edited"),
+            ),
+        )
+        assertEquals(SecureItemDraftType.CREATE, createSlot.captured.draftType)
+        assertNull(createSlot.captured.baseItemRevision)
+        assertEquals("Local create", createSlot.captured.displayHint)
+
+        val official = testSecureItem(payloadVersion = 4, itemRevision = 8)
+        val delete = testSecureItemDraft(
+            logicalItemId = official.logicalItemId,
+            remoteItemId = official.remoteItemId,
+            payloadVersion = 4,
+            draftType = SecureItemDraftType.DELETE,
+            deletedAt = now,
+            baseItemRevision = 8,
+        )
+        val updateSlot = slot<SecureItemSyncDraft>()
+        coEvery { secureItemDraftRepository.getDraft(official.logicalItemId) } returns delete
+        coEvery { secureItemRepository.getItem(official.logicalItemId) } returns official
+        every {
+            secureItemCryptoService.encrypt(official.logicalItemId, 5, any())
+        } returns SecureItemEncryptionResult.Success(testEncryptedPayload())
+        coJustRun { secureItemDraftRepository.upsert(capture(updateSlot)) }
+
+        assertEquals(
+            SecureItemMutationResult.Success(official.logicalItemId),
+            target.update(
+                official.logicalItemId,
+                "Restore",
+                SecureItemType.NOTE,
+                NoteSecureItemContent("Restored"),
+            ),
+        )
+        assertEquals(SecureItemDraftType.UPDATE, updateSlot.captured.draftType)
+        assertEquals(SecureItemDraftSyncStatus.READY_TO_SYNC, updateSlot.captured.draftSyncStatus)
+    }
+
+    @Test
+    fun `update uses local only official as create and maps encryption failure`() = runBlocking {
+        val localOnly = testSecureItem(
+            remoteItemId = null,
+            payloadVersion = 1,
+            itemRevision = 1,
+        )
+        coEvery { secureItemDraftRepository.getDraft(localOnly.logicalItemId) } returns null
+        coEvery { secureItemRepository.getItem(localOnly.logicalItemId) } returns localOnly
+        every {
+            secureItemCryptoService.encrypt(localOnly.logicalItemId, 2, any())
+        } returns SecureItemEncryptionResult.Error(SecureItemCryptoError.CryptographicFailure)
+
+        assertEquals(
+            SecureItemMutationResult.Error(encryptionValidationError()),
+            target.update(
+                localOnly.logicalItemId,
+                "Local",
+                SecureItemType.NOTE,
+                NoteSecureItemContent("Body"),
+            ),
+        )
+    }
+
+    @Test
+    fun `soft delete reports missing states and creates delete draft for official`() = runBlocking {
+        val failedCreate = testSecureItemDraft(
+            remoteItemId = null,
+            draftType = SecureItemDraftType.CREATE,
+        )
+        coEvery { secureItemDraftRepository.getDraft(failedCreate.logicalItemId) } returns failedCreate
+        coEvery { secureItemDraftRepository.delete(failedCreate.logicalItemId) } returns false
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound),
+            target.softDelete(failedCreate.logicalItemId),
+        )
+
+        val missingId = UUID.randomUUID()
+        coEvery { secureItemDraftRepository.getDraft(missingId) } returns null
+        coEvery { secureItemRepository.getItem(missingId) } returns null
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound),
+            target.softDelete(missingId),
+        )
+
+        val deleted = testSecureItem(deletedAt = now)
+        coEvery { secureItemDraftRepository.getDraft(deleted.logicalItemId) } returns null
+        coEvery { secureItemRepository.getItem(deleted.logicalItemId) } returns deleted
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound),
+            target.softDelete(deleted.logicalItemId),
+        )
+
+        val official = testSecureItem(itemRevision = 12, payloadVersion = 7)
+        val slot = slot<SecureItemSyncDraft>()
+        val mutationId = UUID.randomUUID()
+        coEvery { secureItemDraftRepository.getDraft(official.logicalItemId) } returns null
+        coEvery { secureItemRepository.getItem(official.logicalItemId) } returns official
+        every { secureItemMutationIdGenerator.generate() } returns mutationId
+        coJustRun { secureItemDraftRepository.upsert(capture(slot)) }
+
+        assertEquals(
+            SecureItemMutationResult.Success(official.logicalItemId),
+            target.softDelete(official.logicalItemId),
+        )
+        assertEquals(SecureItemDraftType.DELETE, slot.captured.draftType)
+        assertEquals(12L, slot.captured.baseItemRevision)
+        assertEquals(7L, slot.captured.payloadVersion)
+        assertEquals(mutationId, slot.captured.mutationId)
+        assertEquals(now, slot.captured.deletedAt)
+    }
+
+    private fun encryptionValidationError() =
+        SecureItemCrudError.ValidationError("Unable to encrypt secure item.")
 }

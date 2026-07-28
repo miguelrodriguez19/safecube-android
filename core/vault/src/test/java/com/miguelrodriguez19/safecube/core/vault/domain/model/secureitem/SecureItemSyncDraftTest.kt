@@ -23,4 +23,53 @@ class SecureItemSyncDraftTest {
             testSecureItemDraft(lastSyncError = " ")
         }
     }
+
+    @Test
+    fun `constructor rejects malformed encrypted draft metadata`() {
+        listOf<() -> Unit>(
+            { testSecureItemDraft(displayHint = " ") },
+            { testSecureItemDraft().copy(schemaVersion = 0) },
+            { testSecureItemDraft(payload = byteArrayOf()) },
+            { testSecureItemDraft(payloadVersion = 0) },
+            { testSecureItemDraft(baseItemRevision = 0) },
+            {
+                testSecureItemDraft(
+                    draftType = SecureItemDraftType.CREATE,
+                    baseItemRevision = 1,
+                )
+            },
+            {
+                testSecureItemDraft(
+                    draftType = SecureItemDraftType.UPDATE,
+                    baseItemRevision = null,
+                )
+            },
+            {
+                testSecureItemDraft(
+                    draftType = SecureItemDraftType.DELETE,
+                    baseItemRevision = null,
+                )
+            },
+        ).forEach { construction ->
+            assertThrows(IllegalArgumentException::class.java) { construction() }
+        }
+    }
+
+    @Test
+    fun `constructor accepts create without base and mutations with positive base`() {
+        testSecureItemDraft(
+            draftType = SecureItemDraftType.CREATE,
+            remoteItemId = null,
+            baseItemRevision = null,
+        )
+        testSecureItemDraft(
+            draftType = SecureItemDraftType.UPDATE,
+            baseItemRevision = 1,
+        )
+        testSecureItemDraft(
+            draftType = SecureItemDraftType.DELETE,
+            deletedAt = java.time.Instant.parse("2024-01-02T00:00:00Z"),
+            baseItemRevision = 1,
+        )
+    }
 }

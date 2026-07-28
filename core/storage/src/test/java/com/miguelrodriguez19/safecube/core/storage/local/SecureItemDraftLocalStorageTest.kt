@@ -5,14 +5,18 @@ import com.miguelrodriguez19.safecube.core.storage.SecureItemDraftDao
 import com.miguelrodriguez19.safecube.core.storage.SecureItemDraftSyncStatusDb
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
 import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import java.time.Instant
+import java.util.UUID
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -64,13 +68,67 @@ class SecureItemDraftLocalStorageTest {
             secureItemDraftDao.updateStatus(logicalItemId, SecureItemDraftSyncStatusDb.CONFLICT, "Conflict")
         }
     }
+
+    @Test
+    fun `single draft reads map present entities and preserve absence`() = runBlocking {
+        val logicalId = UUID.randomUUID()
+        val remoteId = UUID.randomUUID()
+        val entity = localSampleDraftEntity(logicalItemId = logicalId, remoteItemId = remoteId)
+        val draft = localSampleDomainDraft(logicalItemId = logicalId, remoteItemId = remoteId)
+        every { secureItemDraftEntityMapper.toDomain(entity) } returns draft
+
+        every { secureItemDraftDao.observeDraft(logicalId) } returns flowOf(null)
+        assertNull(target.observeDraft(logicalId).first())
+        every { secureItemDraftDao.observeDraft(logicalId) } returns flowOf(entity)
+        assertEquals(draft, target.observeDraft(logicalId).first())
+
+        coEvery { secureItemDraftDao.getDraft(logicalId) } returns null
+        assertNull(target.getDraft(logicalId))
+        coEvery { secureItemDraftDao.getDraft(logicalId) } returns entity
+        assertEquals(draft, target.getDraft(logicalId))
+
+        coEvery { secureItemDraftDao.findByRemoteItemId(remoteId) } returns null
+        assertNull(target.findByRemoteItemId(remoteId))
+        coEvery { secureItemDraftDao.findByRemoteItemId(remoteId) } returns entity
+        assertEquals(draft, target.findByRemoteItemId(remoteId))
+    }
+
+    @Test
+    fun `upsert status and delete delegate mapped values and row counts`() = runBlocking {
+        val draft = localSampleDomainDraft()
+        val entity = localSampleDraftEntity(logicalItemId = draft.logicalItemId)
+        every { secureItemDraftEntityMapper.toEntity(draft) } returns entity
+        coJustRun { secureItemDraftDao.upsert(entity) }
+        target.upsert(draft)
+
+        coEvery {
+            secureItemDraftDao.updateStatus(
+                draft.logicalItemId,
+                SecureItemDraftSyncStatusDb.CONFLICT,
+                null,
+            )
+        } returns 0
+        assertFalse(
+            target.updateStatus(
+                draft.logicalItemId,
+                SecureItemDraftSyncStatus.CONFLICT,
+                null,
+            ),
+        )
+
+        coEvery { secureItemDraftDao.delete(draft.logicalItemId) } returnsMany listOf(0, 1)
+        assertFalse(target.delete(draft.logicalItemId))
+        assertTrue(target.delete(draft.logicalItemId))
+    }
 }
 
 private fun localSampleDraftEntity(
+    logicalItemId: UUID = UUID.randomUUID(),
+    remoteItemId: UUID? = UUID.randomUUID(),
     draftSyncStatus: SecureItemDraftSyncStatusDb = SecureItemDraftSyncStatusDb.READY_TO_SYNC,
 ) = com.miguelrodriguez19.safecube.core.storage.SecureItemDraftEntity(
-    logicalItemId = java.util.UUID.randomUUID(),
-    remoteItemId = java.util.UUID.randomUUID(),
+    logicalItemId = logicalItemId,
+    remoteItemId = remoteItemId,
     itemType = com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType.NOTE.wireName,
     schemaVersion = 1,
     displayHint = "Draft item",
@@ -88,10 +146,12 @@ private fun localSampleDraftEntity(
 )
 
 private fun localSampleDomainDraft(
+    logicalItemId: UUID = UUID.randomUUID(),
+    remoteItemId: UUID? = UUID.randomUUID(),
     draftSyncStatus: SecureItemDraftSyncStatus = SecureItemDraftSyncStatus.READY_TO_SYNC,
 ) = com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncDraft(
-    logicalItemId = java.util.UUID.randomUUID(),
-    remoteItemId = java.util.UUID.randomUUID(),
+    logicalItemId = logicalItemId,
+    remoteItemId = remoteItemId,
     itemType = com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType.NOTE,
     schemaVersion = 1,
     displayHint = "Draft item",
