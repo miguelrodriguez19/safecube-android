@@ -155,11 +155,11 @@ Construir la infraestructura transversal antes de continuar con cambios funciona
 * Tags `vX.Y.Z` y prereleases `vX.Y.Z-rc.N`
 * GitHub Release con APK firmado, checksum y release notes
 * Gestión segura de dependencias y secretos
+* SBOM y attestations del artefacto publicado
 
 Nice-to-have:
 
 * `CHANGELOG.md` generado automáticamente a partir de una convención de commits
-* SBOM y attestations del artefacto publicado
 
 Resultado:
 
