@@ -79,4 +79,7 @@ interface SecureItemDraftDao {
         """,
     )
     suspend fun delete(logicalItemId: UUID): Int
+
+    @Query("DELETE FROM secure_items_draft")
+    suspend fun deleteAll()
 }

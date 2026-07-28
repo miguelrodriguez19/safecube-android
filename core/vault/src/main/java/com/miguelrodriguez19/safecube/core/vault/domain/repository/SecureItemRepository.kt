@@ -54,4 +54,6 @@ interface SecureItemRepository {
         lastAppliedChangeSequence: Long,
         lastSyncedAt: Instant,
     ): Boolean
+
+    suspend fun clearAllLocalData()
 }

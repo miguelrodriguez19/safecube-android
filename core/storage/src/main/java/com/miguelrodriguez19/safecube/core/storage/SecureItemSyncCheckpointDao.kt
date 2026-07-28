@@ -20,4 +20,7 @@ interface SecureItemSyncCheckpointDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(checkpoint: SecureItemSyncCheckpointEntity)
+
+    @Query("DELETE FROM secure_item_sync_checkpoints")
+    suspend fun deleteAll()
 }

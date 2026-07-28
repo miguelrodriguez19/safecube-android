@@ -158,6 +158,14 @@ class SecureItemLocalStorage @Inject constructor(
             }
         }.getOrDefault(false)
     }
+
+    override suspend fun clearAllLocalData() {
+        appDatabase.withTransaction {
+            secureItemDao.deleteAll()
+            secureItemDraftDao.deleteAll()
+            secureItemSyncCheckpointDao.deleteAll()
+        }
+    }
 }
 
 private fun SecureItemEntity.toDomain(): SecureItem = SecureItem(

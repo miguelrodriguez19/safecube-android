@@ -74,4 +74,7 @@ interface SecureItemDao {
         syncState: SecureItemSyncStateDb,
         lastSyncedAt: Instant,
     ): Int
+
+    @Query("DELETE FROM secure_items")
+    suspend fun deleteAll()
 }

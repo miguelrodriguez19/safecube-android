@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.core.storage.local
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.miguelrodriguez19.safecube.core.storage.AppDatabase
+import com.miguelrodriguez19.safecube.core.storage.SecureItemSyncCheckpointEntity
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
@@ -65,6 +66,58 @@ class SecureItemOfficializationIntegrationTest {
         assertNull(database.secureItemDao().getItem(draft.logicalItemId))
     }
 
+    @Test
+    fun `clear all local data removes officials drafts and checkpoints atomically`() = runBlocking {
+        val draft = seedLocalVault()
+
+        target.clearAllLocalData()
+        target.clearAllLocalData()
+
+        assertNull(database.secureItemDao().getItem(draft.logicalItemId))
+        assertNull(database.secureItemDraftDao().getDraft(draft.logicalItemId))
+        assertNull(
+            database.secureItemSyncCheckpointDao()
+                .getLastAppliedChangeSequence(CHECKPOINT_ACCOUNT_ID),
+        )
+    }
+
+    @Test
+    fun `clear all local data rolls back every table when one delete fails`() = runBlocking {
+        val draft = seedLocalVault()
+        database.openHelper.writableDatabase.execSQL(
+            """
+            CREATE TRIGGER fail_checkpoint_delete
+            BEFORE DELETE ON secure_item_sync_checkpoints
+            BEGIN
+                SELECT RAISE(ABORT, 'forced checkpoint delete failure');
+            END
+            """.trimIndent(),
+        )
+
+        val result = runCatching { target.clearAllLocalData() }
+
+        assertTrue(result.isFailure)
+        assertNotNull(database.secureItemDao().getItem(draft.logicalItemId))
+        assertNotNull(database.secureItemDraftDao().getDraft(draft.logicalItemId))
+        assertNotNull(
+            database.secureItemSyncCheckpointDao()
+                .getLastAppliedChangeSequence(CHECKPOINT_ACCOUNT_ID),
+        )
+    }
+
+    private suspend fun seedLocalVault(): SecureItemSyncDraft {
+        val draft = draft()
+        assertTrue(target.applyRemoteUpsert(official(draft), draft.updatedAt))
+        database.secureItemDraftDao().upsert(mapper.toEntity(draft))
+        database.secureItemSyncCheckpointDao().upsert(
+            SecureItemSyncCheckpointEntity(
+                accountId = CHECKPOINT_ACCOUNT_ID,
+                lastAppliedChangeSequence = 9,
+            ),
+        )
+        return draft
+    }
+
     private fun draft(): SecureItemSyncDraft {
         val createdAt = Instant.parse("2026-01-01T10:00:00Z")
         return SecureItemSyncDraft(
@@ -97,4 +150,9 @@ class SecureItemOfficializationIntegrationTest {
         createdAt = draft.createdAt,
         updatedAt = draft.updatedAt,
     )
+
+    private companion object {
+        val CHECKPOINT_ACCOUNT_ID: UUID =
+            UUID.fromString("c9525655-4d94-4b87-b39f-47a337f8e50b")
+    }
 }
