@@ -319,9 +319,17 @@ Este contrato debe respetar siempre:
 `crypto-v1` gobierna la primitive AEAD y el manejo de llaves; este documento gobierna el protocolo
 de `SecureItem`.
 
-## 12. Fuera de alcance
+## 12. Relación con la sincronización
 
-- sync real
-- resolucion de conflictos multi-device
-- `itemType` mas alla de `PASSWORD` y `NOTE`
-- detalles de UI
+Este documento define únicamente el envelope y el contenido cifrado de `SecureItem`. La
+sincronización no debe inferir revisiones del payload ni modificar su semántica criptográfica.
+
+La política vigente de sync y conflictos está definida en
+[Vault Sync Versioning v2](./vault-sync-versioning-v2.md), que separa:
+
+- `payloadVersion` como generación criptográfica del cliente.
+- `itemRevision` como revisión CAS del backend.
+- `changeSequence` como cursor de cambios por cuenta.
+
+El alcance específico de este contrato sigue limitado a `PASSWORD` y `NOTE`; no define UI,
+resolución semántica de secretos ni sincronización de otros dominios.

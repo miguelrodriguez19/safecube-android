@@ -1,7 +1,7 @@
 # OpenAPI Vault Items Contract Integration Strategy
 
 - Status: Accepted
-- Date: 2026-04-17
+- Date: 2026-07-28
 - Scope: `core:network`, `core:vault`
 
 ## Context
