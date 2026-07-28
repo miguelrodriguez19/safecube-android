@@ -1,8 +1,11 @@
 # Vault Sync Conflict Draft Resolution
 
-- Status: Accepted
+- Status: Superseded
 - Date: 2026-05-05
 - Scope: `core:vault`, `core:storage`, `feature:vault`, backend `/vault/items`
+
+> Superseded by [Vault Sync Versioning v2](../vault-sync-versioning-v2.md). This document remains as
+> historical context for the introduction of local conflict drafts.
 
 ## Context
 

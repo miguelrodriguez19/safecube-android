@@ -50,7 +50,24 @@ Phase 5 guardrail:
 This decision applies to the current `/vault/items` endpoints defined in OpenAPI:
 
 - `GET /vault/items`
+- `GET /vault/items/changes`
 - `GET /vault/items/{itemId}`
 - `POST /vault/items`
 - `PUT /vault/items/{itemId}`
 - `DELETE /vault/items/{itemId}`
+
+## Contract Refresh
+
+The checked-in snapshot is refreshed manually from a running backend:
+
+```bash
+curl -fsS \
+  http://localhost:8080/safecube/v3/api-docs \
+  -o ../safecube-android/core/network/openapi/OpenAPI.json
+```
+
+`VaultSyncOpenApiContractTest` validates the versioned snapshot. Gradle does not download OpenAPI
+during a normal build.
+
+The current synchronization semantics are defined by
+[Vault Sync Versioning v2](./vault-sync-versioning-v2.md).

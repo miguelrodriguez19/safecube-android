@@ -1,7 +1,10 @@
 # Vault Sync v1 (Client Strategy)
 
-Estado: `canonical`  
+Estado: `historical`
 Version: `v1`
+
+> Superseded by [Vault Sync Versioning v2](../vault-sync-versioning-v2.md). This document records the
+> previous timestamp-based protocol and is not the current implementation contract.
 
 ## 1. Objetivo
 
@@ -19,9 +22,9 @@ Este documento fija:
 
 Este documento complementa:
 
-- [secure-item-payload-v1.md](./secure-item-payload-v1.md)
-- [crypto-v1.md](./crypto-v1.md)
-- [storage_decision.md](./storage_decision.md)
+- [secure-item-payload-v1.md](../secure-item-payload-v1.md)
+- [crypto-v1.md](../crypto-v1.md)
+- [storage_decision.md](../storage_decision.md)
 
 ## 2. Contrato observable actual
 

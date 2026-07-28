@@ -230,7 +230,7 @@ Si existe un item local en:
 
 el pull no debe sobreescribirlo silenciosamente.
 
-Reglas tras el [ADR de drafts](../architecture/vault-sync-conflict-draft-resolution.md):
+Reglas tras el [ADR historico de drafts](../architecture/historical/vault-sync-conflict-draft-resolution.md):
 
 - remoto activo + `PENDING_UPDATE` local -> crear draft `UPDATE` y aplicar remoto como oficial
 - remoto activo + `PENDING_DELETE` local -> crear draft `DELETE` y aplicar remoto como oficial
@@ -318,7 +318,7 @@ Antes de tocar storage y red hay que cerrar la estrategia exacta de:
 Crear un documento nuevo, por ejemplo:
 
 ```text
-docs/architecture/vault-sync-v1.md
+docs/architecture/historical/vault-sync-v1.md
 ```
 
 Definir explícitamente:
@@ -333,7 +333,8 @@ Definir explícitamente:
 - relación entre `logicalItemId` y `remoteItemId`
 - qué significa `syncState`
 - qué datos son source of truth local vs remoto
-- relación entre `vault-sync-v1.md` y `vault-sync-conflict-draft-resolution.md`
+- relación entre `historical/vault-sync-v1.md` y
+  `historical/vault-sync-conflict-draft-resolution.md`
 
 ### Out of Scope (if applies)
 
@@ -961,7 +962,8 @@ cambios no aceptados por backend sin mezclar version oficial y propuesta local.
 
 ## Context, Functional Description & Goal
 
-Tras el ADR [vault-sync-conflict-draft-resolution.md](../architecture/vault-sync-conflict-draft-resolution.md),
+Tras el ADR historico
+[vault-sync-conflict-draft-resolution.md](../architecture/historical/vault-sync-conflict-draft-resolution.md),
 `secure_items` debe representar la version oficial conocida del backend. Los cambios locales que no
 han sido aceptados por backend deben vivir en una tabla espejo, por ejemplo:
 
@@ -1279,9 +1281,10 @@ Preferencias:
 
 ### API Contract and Expected Behavior (if applies)
 
-Basado en el OpenAPI actual de `vault/items` y en la estrategia documentada en `vault-sync-v1.md`.
+Basado en el OpenAPI de ese momento y en la estrategia historica documentada en
+`architecture/historical/vault-sync-v1.md`.
 Debe incluir tambien la politica de drafts documentada en
-`docs/architecture/vault-sync-conflict-draft-resolution.md`.
+`docs/architecture/historical/vault-sync-conflict-draft-resolution.md`.
 
 ### Acceptance Criteria (ACs)
 
