@@ -8,6 +8,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.Ob
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemDraftDetail
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemDraftRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoError
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemDecryptionResult
@@ -21,24 +22,34 @@ import kotlinx.coroutines.flow.combine
 @Singleton
 class ObserveSecureItemDraftDetailUseCase @Inject constructor(
     private val secureItemDraftRepository: SecureItemDraftRepository,
+    private val secureItemRepository: SecureItemRepository,
     private val secureItemCryptoService: SecureItemCryptoService,
     private val vaultSessionManager: VaultSessionManager,
 ) {
     operator fun invoke(logicalItemId: UUID): Flow<ObserveSecureItemDraftDetailResult> = combine(
         vaultSessionManager.vaultState,
         secureItemDraftRepository.observeDraft(logicalItemId),
-    ) { vaultState, draft ->
+        secureItemRepository.observeItem(logicalItemId),
+    ) { vaultState, draft, official ->
         when {
             draft == null -> ObserveSecureItemDraftDetailResult.NotFound
             vaultState != VaultState.Unlocked -> ObserveSecureItemDraftDetailResult.Error(
                 SecureItemCrudError.VaultLocked
             )
 
-            else -> decryptDraft(draft)
+            else -> decryptDraft(
+                draft = draft,
+                requiresSaveAsNew = draft.draftType ==
+                    com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType.UPDATE &&
+                    official?.deletedAt != null,
+            )
         }
     }
 
-    private fun decryptDraft(draft: SecureItemSyncDraft): ObserveSecureItemDraftDetailResult {
+    private fun decryptDraft(
+        draft: SecureItemSyncDraft,
+        requiresSaveAsNew: Boolean,
+    ): ObserveSecureItemDraftDetailResult {
         return when (val decryptionResult = secureItemCryptoService.decrypt(draft.toSecureItem())) {
             is SecureItemDecryptionResult.Success -> {
                 ObserveSecureItemDraftDetailResult.Success(
@@ -46,12 +57,14 @@ class ObserveSecureItemDraftDetailUseCase @Inject constructor(
                         logicalItemId = draft.logicalItemId,
                         remoteItemId = draft.remoteItemId,
                         draftType = draft.draftType,
+                        draftSyncStatus = draft.draftSyncStatus,
                         itemType = draft.itemType,
                         displayHint = draft.displayHint,
                         payloadVersion = draft.payloadVersion,
                         updatedAt = draft.updatedAt,
-                        lastPublishError = draft.lastPublishError,
+                        lastSyncError = draft.lastSyncError,
                         content = decryptionResult.content,
+                        requiresSaveAsNew = requiresSaveAsNew,
                     ),
                 )
             }

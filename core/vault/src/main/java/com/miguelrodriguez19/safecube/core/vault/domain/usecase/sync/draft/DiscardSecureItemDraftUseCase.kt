@@ -10,7 +10,7 @@ import javax.inject.Singleton
 @Singleton
 class DiscardSecureItemDraftUseCase @Inject constructor(
     private val secureItemDraftRepository: SecureItemDraftRepository,
-    private val secureItemDraftPolicyCoordinator: SecureItemDraftPolicyCoordinator,
+    private val secureItemDraftSyncCoordinator: SecureItemDraftSyncCoordinator,
 ) {
     suspend operator fun invoke(logicalItemId: UUID): DiscardSecureItemDraftResult {
         val draft = secureItemDraftRepository.getDraft(logicalItemId)
@@ -18,7 +18,7 @@ class DiscardSecureItemDraftUseCase @Inject constructor(
                 DiscardSecureItemDraftError.DraftNotFound(logicalItemId),
             )
 
-        return if (secureItemDraftPolicyCoordinator.discardDraft(draft.logicalItemId)) {
+        return if (secureItemDraftSyncCoordinator.discardDraft(draft.logicalItemId)) {
             DiscardSecureItemDraftResult.Success(logicalItemId)
         } else {
             DiscardSecureItemDraftResult.Error(

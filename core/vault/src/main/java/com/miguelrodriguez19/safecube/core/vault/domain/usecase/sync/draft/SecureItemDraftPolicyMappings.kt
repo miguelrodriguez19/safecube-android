@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
@@ -8,6 +9,9 @@ import java.time.Instant
 
 internal fun SecureItem.toSyncDraft(
     draftType: SecureItemDraftType,
+    draftSyncStatus: SecureItemDraftSyncStatus,
+    lastSyncError: String?,
+    baseItemRevision: Long? = itemRevision,
 ): SecureItemSyncDraft = SecureItemSyncDraft(
     logicalItemId = logicalItemId,
     remoteItemId = remoteItemId,
@@ -20,16 +24,19 @@ internal fun SecureItem.toSyncDraft(
     updatedAt = updatedAt,
     deletedAt = deletedAt,
     lastSyncedAt = lastSyncedAt,
-    lastSyncError = lastSyncError,
     draftType = draftType,
-    basePayloadVersion = payloadVersion,
-    baseUpdatedAt = updatedAt,
-    lastPublishError = null,
+    draftSyncStatus = draftSyncStatus,
+    baseItemRevision = baseItemRevision,
+    lastSyncError = lastSyncError,
 )
 
-internal fun SecureItemSyncDraft.toPublishedOfficialItem(
+internal fun SecureItemSyncDraft.toOfficialItem(
+    remoteItemId: java.util.UUID?,
     payloadVersion: Long,
+    itemRevision: Long,
+    changeSequence: Long,
     updatedAt: Instant,
+    deletedAt: Instant?,
 ): SecureItem = SecureItem(
     logicalItemId = logicalItemId,
     remoteItemId = remoteItemId,
@@ -38,9 +45,11 @@ internal fun SecureItemSyncDraft.toPublishedOfficialItem(
     displayHint = displayHint,
     payload = payload,
     payloadVersion = payloadVersion,
+    itemRevision = itemRevision,
+    changeSequence = changeSequence,
     createdAt = createdAt,
     updatedAt = updatedAt,
-    deletedAt = null,
+    deletedAt = deletedAt,
     syncState = SecureItemSyncState.SYNCED,
     lastSyncedAt = updatedAt,
     lastSyncError = null,

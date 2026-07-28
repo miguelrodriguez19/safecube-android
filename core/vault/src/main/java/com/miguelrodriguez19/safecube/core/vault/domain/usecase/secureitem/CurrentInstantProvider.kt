@@ -4,11 +4,11 @@ import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
-internal interface CurrentInstantProvider {
+interface CurrentInstantProvider {
     fun now(): Instant
 }
 
 @Singleton
-internal class SystemCurrentInstantProvider @Inject constructor() : CurrentInstantProvider {
+class SystemCurrentInstantProvider @Inject constructor() : CurrentInstantProvider {
     override fun now(): Instant = Instant.now()
 }

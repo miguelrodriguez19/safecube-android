@@ -4,11 +4,11 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
-interface SecureItemIdGenerator {
+interface SecureItemMutationIdGenerator {
     fun generate(): UUID
 }
 
 @Singleton
-class RandomSecureItemIdGenerator @Inject constructor() : SecureItemIdGenerator {
+class RandomSecureItemMutationIdGenerator @Inject constructor() : SecureItemMutationIdGenerator {
     override fun generate(): UUID = UUID.randomUUID()
 }

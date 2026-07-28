@@ -21,7 +21,9 @@ import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCrypto
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemPayloadIdentityReader
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.CurrentInstantProvider
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.RandomSecureItemIdGenerator
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.RandomSecureItemMutationIdGenerator
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SecureItemIdGenerator
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SecureItemMutationIdGenerator
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SystemCurrentInstantProvider
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlockUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlocker
@@ -95,6 +97,12 @@ abstract class VaultModule {
     internal abstract fun bindSecureItemIdGenerator(
         randomSecureItemIdGenerator: RandomSecureItemIdGenerator,
     ): SecureItemIdGenerator
+
+    @Binds
+    @Singleton
+    internal abstract fun bindSecureItemMutationIdGenerator(
+        randomSecureItemMutationIdGenerator: RandomSecureItemMutationIdGenerator,
+    ): SecureItemMutationIdGenerator
 
     companion object {
         private const val PREFERENCES_NAME = "vault_key_material_encrypted_preferences"

@@ -7,8 +7,8 @@ import javax.inject.Singleton
 
 @Singleton
 class SoftDeleteSecureItemUseCase @Inject internal constructor(
-    private val secureItemMutationCoordinator: SecureItemMutationCoordinator,
+    private val secureItemDraftMutationCoordinator: SecureItemDraftMutationCoordinator,
 ) {
     suspend operator fun invoke(logicalItemId: UUID): SecureItemMutationResult =
-        secureItemMutationCoordinator.softDelete(logicalItemId)
+        secureItemDraftMutationCoordinator.softDelete(logicalItemId)
 }

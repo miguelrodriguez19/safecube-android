@@ -1,16 +1,18 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem
 
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.SecureItemContent
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemDraftRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoError
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
-import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemDecryptionResult
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemEncryptionResult
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import java.util.UUID
@@ -18,11 +20,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-internal class SecureItemMutationCoordinator @Inject constructor(
+internal class SecureItemDraftMutationCoordinator @Inject constructor(
     private val secureItemRepository: SecureItemRepository,
+    private val secureItemDraftRepository: SecureItemDraftRepository,
     private val secureItemCryptoService: SecureItemCryptoService,
     private val vaultSessionManager: VaultSessionManager,
     private val secureItemIdGenerator: SecureItemIdGenerator,
+    private val secureItemMutationIdGenerator: SecureItemMutationIdGenerator,
     private val currentInstantProvider: CurrentInstantProvider,
 ) {
     suspend fun create(
@@ -48,7 +52,7 @@ internal class SecureItemMutationCoordinator @Inject constructor(
             )
         ) {
             is SecureItemEncryptionResult.Success -> {
-                val item = SecureItem(
+                val draft = SecureItemSyncDraft(
                     logicalItemId = logicalItemId,
                     itemType = encryptionResult.payload.itemType,
                     schemaVersion = encryptionResult.payload.schemaVersion,
@@ -57,10 +61,13 @@ internal class SecureItemMutationCoordinator @Inject constructor(
                     payloadVersion = INITIAL_PAYLOAD_VERSION,
                     createdAt = createdAt,
                     updatedAt = createdAt,
-                    syncState = SecureItemSyncState.PENDING_CREATE,
+                    mutationId = secureItemMutationIdGenerator.generate(),
+                    draftType = SecureItemDraftType.CREATE,
+                    draftSyncStatus = SecureItemDraftSyncStatus.READY_TO_SYNC,
+                    baseItemRevision = null,
                 )
-                secureItemRepository.insert(item)
-                SecureItemMutationResult.Success(item)
+                secureItemDraftRepository.upsert(draft)
+                SecureItemMutationResult.Success(logicalItemId)
             }
 
             is SecureItemEncryptionResult.Error -> {
@@ -79,15 +86,17 @@ internal class SecureItemMutationCoordinator @Inject constructor(
             return SecureItemMutationResult.Error(SecureItemCrudError.VaultLocked)
         }
 
-        val existingItem = secureItemRepository.getItem(logicalItemId)
+        val existingDraft = secureItemDraftRepository.getDraft(logicalItemId)
+        val officialItem = secureItemRepository.getItem(logicalItemId)
+        val currentItemType = existingDraft?.itemType ?: officialItem?.itemType
             ?: return SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound)
-        if (existingItem.deletedAt != null) {
-            return SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound)
-        }
-        if (existingItem.itemType != expectedItemType) {
+        if (currentItemType != expectedItemType) {
             return SecureItemMutationResult.Error(
                 SecureItemCrudError.ValidationError("Secure item type mismatch."),
             )
+        }
+        if (officialItem?.deletedAt != null) {
+            return SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound)
         }
 
         val normalizedDisplayHint = normalizeDisplayHint(displayHint)
@@ -95,31 +104,59 @@ internal class SecureItemMutationCoordinator @Inject constructor(
                 SecureItemCrudError.ValidationError("displayHint must not be blank."),
             )
 
-        when (val decryptionResult = secureItemCryptoService.decrypt(existingItem)) {
-            is SecureItemDecryptionResult.Success -> decryptionResult.content
-            is SecureItemDecryptionResult.Error -> {
-                return SecureItemMutationResult.Error(mapDecryptionError(decryptionResult.reason))
-            }
-        }
-
         val updatedAt = currentInstantProvider.now()
-        val updatedItem = when (
+        val draftType = when {
+            existingDraft?.draftType == SecureItemDraftType.CREATE -> SecureItemDraftType.CREATE
+            officialItem?.remoteItemId == null -> SecureItemDraftType.CREATE
+            else -> SecureItemDraftType.UPDATE
+        }
+        val payloadVersion = maxOf(
+            officialItem?.payloadVersion ?: 0,
+            existingDraft?.payloadVersion ?: 0,
+        ) + 1
+        val keepsConflict = existingDraft?.draftSyncStatus == SecureItemDraftSyncStatus.CONFLICT
+        val baseItemRevision = if (draftType == SecureItemDraftType.CREATE) {
+            null
+        } else if (keepsConflict) {
+            existingDraft.baseItemRevision
+        } else {
+            officialItem?.itemRevision ?: existingDraft?.baseItemRevision
+        }
+        val createdAt = officialItem?.createdAt ?: existingDraft?.createdAt ?: updatedAt
+
+        val updatedDraft = when (
             val encryptionResult = secureItemCryptoService.encrypt(
                 logicalItemId = logicalItemId,
-                payloadVersion = existingItem.payloadVersion + 1,
+                payloadVersion = payloadVersion,
                 content = content,
             )
         ) {
             is SecureItemEncryptionResult.Success -> {
-                existingItem.copy(
+                SecureItemSyncDraft(
+                    logicalItemId = logicalItemId,
+                    remoteItemId = officialItem?.remoteItemId ?: existingDraft?.remoteItemId,
                     itemType = encryptionResult.payload.itemType,
                     schemaVersion = encryptionResult.payload.schemaVersion,
                     displayHint = normalizedDisplayHint,
                     payload = encryptionResult.payload.payload,
-                    payloadVersion = existingItem.payloadVersion + 1,
+                    payloadVersion = payloadVersion,
+                    createdAt = createdAt,
                     updatedAt = updatedAt,
-                    syncState = existingItem.pendingSyncStateForMutation(),
-                    lastSyncError = null,
+                    mutationId = secureItemMutationIdGenerator.generate(),
+                    deletedAt = null,
+                    lastSyncedAt = officialItem?.lastSyncedAt ?: existingDraft?.lastSyncedAt,
+                    draftType = if (existingDraft?.draftType == SecureItemDraftType.DELETE) {
+                        SecureItemDraftType.UPDATE
+                    } else {
+                        draftType
+                    },
+                    draftSyncStatus = if (keepsConflict) {
+                        SecureItemDraftSyncStatus.CONFLICT
+                    } else {
+                        SecureItemDraftSyncStatus.READY_TO_SYNC
+                    },
+                    baseItemRevision = baseItemRevision,
+                    lastSyncError = existingDraft?.lastSyncError.takeIf { keepsConflict },
                 )
             }
 
@@ -128,34 +165,48 @@ internal class SecureItemMutationCoordinator @Inject constructor(
             }
         }
 
-        secureItemRepository.update(updatedItem)
-        return SecureItemMutationResult.Success(updatedItem)
+        secureItemDraftRepository.upsert(updatedDraft)
+        return SecureItemMutationResult.Success(logicalItemId)
     }
 
     suspend fun softDelete(logicalItemId: UUID): SecureItemMutationResult {
-        val existingItem = secureItemRepository.getItem(logicalItemId)
+        val existingDraft = secureItemDraftRepository.getDraft(logicalItemId)
+        if (existingDraft?.draftType == SecureItemDraftType.CREATE) {
+            val deleted = secureItemDraftRepository.delete(logicalItemId)
+            return if (deleted) {
+                SecureItemMutationResult.Success(logicalItemId)
+            } else {
+                SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound)
+            }
+        }
+
+        val officialItem = secureItemRepository.getItem(logicalItemId)
             ?: return SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound)
-        if (existingItem.deletedAt != null) {
+        if (officialItem.deletedAt != null) {
             return SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound)
         }
 
         val deletedAt = currentInstantProvider.now()
-        val softDeleted = secureItemRepository.softDelete(
-            logicalItemId = logicalItemId,
+        val deleteDraft = SecureItemSyncDraft(
+            logicalItemId = officialItem.logicalItemId,
+            remoteItemId = officialItem.remoteItemId,
+            itemType = officialItem.itemType,
+            schemaVersion = officialItem.schemaVersion,
+            displayHint = officialItem.displayHint,
+            payload = officialItem.payload,
+            payloadVersion = officialItem.payloadVersion,
+            createdAt = officialItem.createdAt,
+            updatedAt = deletedAt,
+            mutationId = secureItemMutationIdGenerator.generate(),
             deletedAt = deletedAt,
+            lastSyncedAt = officialItem.lastSyncedAt,
+            draftType = SecureItemDraftType.DELETE,
+            draftSyncStatus = SecureItemDraftSyncStatus.READY_TO_SYNC,
+            baseItemRevision = officialItem.itemRevision,
+            lastSyncError = null,
         )
-        if (!softDeleted) {
-            return SecureItemMutationResult.Error(SecureItemCrudError.ItemNotFound)
-        }
-
-        return SecureItemMutationResult.Success(
-            existingItem.copy(
-                updatedAt = deletedAt,
-                deletedAt = deletedAt,
-                syncState = SecureItemSyncState.PENDING_DELETE,
-                lastSyncError = null,
-            ),
-        )
+        secureItemDraftRepository.upsert(deleteDraft)
+        return SecureItemMutationResult.Success(logicalItemId)
     }
 
     private fun normalizeDisplayHint(displayHint: String): String? = displayHint.trim().takeIf(String::isNotEmpty)
@@ -171,25 +222,7 @@ internal class SecureItemMutationCoordinator @Inject constructor(
         -> SecureItemCrudError.ValidationError("Unable to encrypt secure item.")
     }
 
-    private fun mapDecryptionError(error: SecureItemCryptoError): SecureItemCrudError = when (error) {
-        SecureItemCryptoError.VaultLocked,
-        SecureItemCryptoError.AccountIdUnavailable,
-        -> SecureItemCrudError.VaultLocked
-
-        SecureItemCryptoError.MalformedPayload,
-        SecureItemCryptoError.CryptographicFailure,
-        is SecureItemCryptoError.ContentDecodingFailed,
-        -> SecureItemCrudError.CorruptedPayload
-    }
-
     private companion object {
         private const val INITIAL_PAYLOAD_VERSION: Long = 1
     }
 }
-
-private fun SecureItem.pendingSyncStateForMutation(): SecureItemSyncState =
-    if (remoteItemId == null) {
-        SecureItemSyncState.PENDING_CREATE
-    } else {
-        SecureItemSyncState.PENDING_UPDATE
-    }

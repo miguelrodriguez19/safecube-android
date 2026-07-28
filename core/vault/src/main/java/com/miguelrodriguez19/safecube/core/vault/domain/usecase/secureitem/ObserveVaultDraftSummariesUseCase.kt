@@ -16,8 +16,12 @@ class ObserveVaultDraftSummariesUseCase @Inject constructor(
             drafts.map { draft ->
                 VaultItemDraftSummary(
                     logicalItemId = draft.logicalItemId,
+                    itemType = draft.itemType,
+                    displayHint = draft.displayHint,
+                    updatedAt = draft.updatedAt,
                     draftType = draft.draftType,
-                    lastPublishError = draft.lastPublishError,
+                    draftSyncStatus = draft.draftSyncStatus,
+                    lastSyncError = draft.lastSyncError,
                 )
             }
         }
