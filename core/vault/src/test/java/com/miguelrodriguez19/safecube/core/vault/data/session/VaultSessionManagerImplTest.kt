@@ -204,16 +204,6 @@ class VaultSessionManagerImplTest {
     }
 
     @Test
-    fun `onLogout_whenCalled_thenClearsKekAndStateIsLocked`() {
-        target = createTarget()
-
-        target.onLogout()
-
-        assertEquals(VaultState.Locked, target.vaultState.value)
-        verify(exactly = 1) { vaultInMemoryKekStore.clear() }
-    }
-
-    @Test
     fun `isUnlocked_whenStateIsUnlocked_thenReturnsTrue`() {
         val passphrase = Random.nextLong().toString()
         every { vaultUnlocker.unlockWithPassphrase(passphrase) } returns VaultUnlockResult.Unlocked(

@@ -129,8 +129,4 @@ class FakeVaultSessionManager(
     override fun lock() {
         mutableVaultState.value = VaultState.Locked
     }
-
-    override fun onLogout() {
-        mutableVaultState.value = VaultState.NotInitialized
-    }
 }

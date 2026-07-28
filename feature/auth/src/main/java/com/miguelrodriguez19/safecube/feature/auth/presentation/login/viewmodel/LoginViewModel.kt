@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
-import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
+import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionLifecycle
+import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionResult
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.feature.auth.presentation.mapper.AuthUiErrorMapper
 import com.miguelrodriguez19.safecube.feature.auth.presentation.mapper.AuthUiErrorMapper.EMAIL
@@ -26,7 +27,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val sessionManager: SessionManager,
+    private val accountSessionLifecycle: AccountSessionLifecycle,
 ) : ViewModel() {
 
     private val mutableUiState = MutableStateFlow(LoginUiState())
@@ -95,11 +96,23 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = authRepository.login(sanitizedEmail, password)) {
                 is AuthResult.Success -> {
-                    sessionManager.onLoginSuccess(result.data)
-                    mutableUiState.update { state ->
-                        state.copy(isLoading = false)
+                    when (accountSessionLifecycle.activateFreshSession(result.data)) {
+                        AccountSessionResult.Success -> {
+                            mutableUiState.update { state ->
+                                state.copy(isLoading = false)
+                            }
+                            mutableEvents.emit(LoginUiEvent.LoginSucceeded)
+                        }
+
+                        is AccountSessionResult.LocalVaultCleanupFailed -> {
+                            mutableUiState.update { state ->
+                                state.copy(
+                                    isLoading = false,
+                                    errorMessageRes = UiR.string.generic_error,
+                                )
+                            }
+                        }
                     }
-                    mutableEvents.emit(LoginUiEvent.LoginSucceeded)
                 }
 
                 is AuthResult.Error -> {

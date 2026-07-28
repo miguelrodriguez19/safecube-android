@@ -4,7 +4,7 @@ import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
-import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
+import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionLifecycle
 import com.miguelrodriguez19.safecube.core.network.domain.port.TokenRefreshHandler
 import javax.inject.Inject
 import javax.inject.Provider
@@ -14,7 +14,7 @@ import javax.inject.Singleton
 class AuthTokenRefreshHandler @Inject constructor(
     private val authRepositoryProvider: Provider<AuthRepository>,
     private val tokenStorage: TokenStorage,
-    private val sessionManager: SessionManager,
+    private val accountSessionLifecycle: AccountSessionLifecycle,
 ) : TokenRefreshHandler {
 
     override suspend fun refreshAccessToken(
@@ -30,19 +30,19 @@ class AuthTokenRefreshHandler @Inject constructor(
         val refreshToken = tokenStorage.getRefreshToken()
             ?.takeIf { it.isNotBlank() }
             ?: run {
-                sessionManager.forceLogout()
+                accountSessionLifecycle.terminateSession()
                 return null
             }
 
         return when (val refreshResult = authRepositoryProvider.get().refresh(refreshToken)) {
             is AuthResult.Success -> {
-                sessionManager.onLoginSuccess(refreshResult.data)
+                accountSessionLifecycle.refreshSession(refreshResult.data)
                 refreshResult.data.accessToken
             }
 
             is AuthResult.Error -> {
                 if (refreshResult.error.shouldForceLogout()) {
-                    sessionManager.forceLogout()
+                    accountSessionLifecycle.terminateSession()
                 }
                 null
             }

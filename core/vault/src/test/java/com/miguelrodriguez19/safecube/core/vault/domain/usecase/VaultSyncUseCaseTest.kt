@@ -38,7 +38,6 @@ class VaultSyncUseCaseTest {
         override fun unlockWithPassphrase(passphrase: String): VaultUnlockError? = error("Not required in test")
         override fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockError? = error("Not required in test")
         override fun lock() = error("Not required in test")
-        override fun onLogout() = error("Not required in test")
     }
 
     private val pushLocalVaultChangesUseCase = mockk<PushLocalVaultChangesUseCase>()

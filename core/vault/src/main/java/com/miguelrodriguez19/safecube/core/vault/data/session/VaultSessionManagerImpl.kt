@@ -82,10 +82,6 @@ internal class VaultSessionManagerImpl @Inject constructor(
         state.value = VaultState.Locked
     }
 
-    override fun onLogout() {
-        lock()
-    }
-
     private fun handleUnlockResult(result: VaultUnlockResult): VaultUnlockError? = when (result) {
         is VaultUnlockResult.Unlocked -> {
             replaceInMemoryKek(result.keyring.kek)

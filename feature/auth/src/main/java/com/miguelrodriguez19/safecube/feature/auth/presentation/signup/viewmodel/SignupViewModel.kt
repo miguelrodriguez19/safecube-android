@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
-import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
+import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionLifecycle
+import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionResult
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.feature.auth.presentation.mapper.AuthUiErrorMapper
 import com.miguelrodriguez19.safecube.feature.auth.presentation.signup.action.SignupUiAction
@@ -24,7 +25,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class SignupViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val sessionManager: SessionManager,
+    private val accountSessionLifecycle: AccountSessionLifecycle,
 ) : ViewModel() {
 
     private val mutableUiState = MutableStateFlow(SignupUiState())
@@ -140,9 +141,21 @@ class SignupViewModel @Inject constructor(
     ) {
         when (val loginResult = authRepository.login(email, password)) {
             is AuthResult.Success -> {
-                sessionManager.onLoginSuccess(loginResult.data)
-                mutableUiState.update { state -> state.copy(isLoading = false) }
-                mutableEvents.emit(SignupUiEvent.SignupSucceeded)
+                when (accountSessionLifecycle.activateFreshSession(loginResult.data)) {
+                    AccountSessionResult.Success -> {
+                        mutableUiState.update { state -> state.copy(isLoading = false) }
+                        mutableEvents.emit(SignupUiEvent.SignupSucceeded)
+                    }
+
+                    is AccountSessionResult.LocalVaultCleanupFailed -> {
+                        mutableUiState.update { state ->
+                            state.copy(
+                                isLoading = false,
+                                errorMessageRes = UiR.string.generic_error,
+                            )
+                        }
+                    }
+                }
             }
 
             is AuthResult.Error -> {

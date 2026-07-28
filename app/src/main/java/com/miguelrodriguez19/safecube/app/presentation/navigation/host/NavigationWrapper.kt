@@ -66,9 +66,11 @@ fun NavigationWrapper() {
 
     val onLogout: () -> Unit = {
         coroutineScope.launch {
-            dependencies.authRepository.logout()
-            dependencies.vaultSessionManager.onLogout()
-            dependencies.sessionManager.forceLogout()
+            try {
+                dependencies.authRepository.logout()
+            } finally {
+                dependencies.accountSessionLifecycle.terminateSession()
+            }
         }
     }
 

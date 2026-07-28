@@ -16,6 +16,4 @@ interface VaultSessionManager {
     fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockError?
 
     fun lock()
-
-    fun onLogout()
 }

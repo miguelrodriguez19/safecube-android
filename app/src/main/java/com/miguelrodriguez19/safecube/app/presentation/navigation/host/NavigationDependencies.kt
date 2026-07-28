@@ -5,14 +5,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.miguelrodriguez19.safecube.app.presentation.navigation.gate.NavigationGatesEntryPoint
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
+import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionLifecycle
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
-import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import dagger.hilt.android.EntryPointAccessors
 
 internal data class NavigationDependencies(
     val authRepository: AuthRepository,
     val sessionManager: SessionManager,
-    val vaultSessionManager: VaultSessionManager,
+    val accountSessionLifecycle: AccountSessionLifecycle,
 )
 
 @Composable
@@ -29,7 +29,7 @@ internal fun rememberNavigationDependencies(): NavigationDependencies {
         NavigationDependencies(
             authRepository = entryPoint.authRepository(),
             sessionManager = entryPoint.sessionManager(),
-            vaultSessionManager = entryPoint.vaultSessionManager(),
+            accountSessionLifecycle = entryPoint.accountSessionLifecycle(),
         )
     }
 }

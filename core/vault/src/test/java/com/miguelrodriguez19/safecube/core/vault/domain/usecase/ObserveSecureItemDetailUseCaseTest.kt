@@ -39,7 +39,6 @@ class ObserveSecureItemDetailUseCaseTest {
         override fun unlockWithPassphrase(passphrase: String) = error("Not required in test")
         override fun unlockWithRecoveryKey(recoveryKey: ByteArray) = error("Not required in test")
         override fun lock() = error("Not required in test")
-        override fun onLogout() = error("Not required in test")
     }
 
     private val target = ObserveSecureItemDetailUseCase(
