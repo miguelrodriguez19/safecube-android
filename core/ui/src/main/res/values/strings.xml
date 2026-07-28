@@ -3,6 +3,10 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
     <string name="generic_error">Something went wrong</string>
+    <string name="cancel">Cancel</string>
+    <string name="logout_with_drafts_title">Discard local changes?</string>
+    <string name="logout_with_drafts_message">Logging out will permanently delete drafts that have not been published.</string>
+    <string name="logout_discard_drafts">Discard and log out</string>
     <string name="loading">Loading...</string>
     <string name="email_label">Email</string>
     <string name="password_label">Password</string>

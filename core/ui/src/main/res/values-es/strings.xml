@@ -3,6 +3,10 @@
     <string name="action_cancel">Cancelar</string>
     <string name="action_delete">Eliminar</string>
     <string name="generic_error">Algo salio mal</string>
+    <string name="cancel">Cancelar</string>
+    <string name="logout_with_drafts_title">Descartar cambios locales?</string>
+    <string name="logout_with_drafts_message">Al cerrar sesion se eliminaran permanentemente los borradores que no se hayan publicado.</string>
+    <string name="logout_discard_drafts">Descartar y cerrar sesion</string>
     <string name="loading">Cargando...</string>
     <string name="confirm_password_label">Confirmar contrasena</string>
     <string name="email_is_required">El correo es obligatorio</string>
