@@ -9,9 +9,10 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.Se
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemDraftDetail
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureNoteDraft
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.DiscardSecureItemDraftResult
-import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.PublishSecureItemDraftResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.PrepareSecureItemDraftForSyncResult
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDetailUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDraftDetailUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SoftDeleteSecureItemUseCase
@@ -19,7 +20,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.UpdateSecureNoteUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.DiscardSecureItemDraftUseCase
-import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.PublishSecureItemDraftUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.PrepareSecureItemDraftForSyncUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.action.NoteEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.event.NoteEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.state.NoteEditorUiState
@@ -45,7 +46,7 @@ class NoteEditorViewModel @Inject constructor(
     private val createSecureNoteUseCase: CreateSecureNoteUseCase,
     private val updateSecureNoteUseCase: UpdateSecureNoteUseCase,
     private val softDeleteSecureItemUseCase: SoftDeleteSecureItemUseCase,
-    private val publishSecureItemDraftUseCase: PublishSecureItemDraftUseCase,
+    private val prepareSecureItemDraftForSyncUseCase: PrepareSecureItemDraftForSyncUseCase,
     private val discardSecureItemDraftUseCase: DiscardSecureItemDraftUseCase,
     observeVaultSyncingUseCase: ObserveVaultSyncingUseCase,
 ) : ViewModel() {
@@ -58,7 +59,6 @@ class NoteEditorViewModel @Inject constructor(
     private var observeDraftJob: Job? = null
     private var latestOfficialDetail: SecureItemDetail? = null
     private var latestDraftDetail: SecureItemDraftDetail? = null
-    private var awaitingPublishedDraftRefresh = false
 
     init {
         viewModelScope.launch {
@@ -128,7 +128,6 @@ class NoteEditorViewModel @Inject constructor(
     }
 
     private fun showOfficialDetail(detail: SecureItemDetail) {
-        awaitingPublishedDraftRefresh = false
         val content = detail.content as? NoteSecureItemContent
         if (content == null) {
             showError(SecureItemCrudError.ItemNotFound)
@@ -149,8 +148,9 @@ class NoteEditorViewModel @Inject constructor(
             state.copy(
                 hasDraft = true,
                 draftType = result.detail.draftType,
-                lastPublishError = result.detail.lastPublishError,
-                lastDraftError = null,
+                draftSyncStatus = result.detail.draftSyncStatus,
+                lastDraftError = result.detail.lastSyncError,
+                requiresSaveAsNew = result.detail.requiresSaveAsNew,
             )
         }
         renderObservedState(officialContent = null)
@@ -162,8 +162,9 @@ class NoteEditorViewModel @Inject constructor(
             state.copy(
                 hasDraft = false,
                 draftType = null,
-                lastPublishError = null,
+                draftSyncStatus = null,
                 lastDraftError = null,
+                requiresSaveAsNew = false,
             )
         }
         renderObservedState(officialContent = null)
@@ -175,37 +176,42 @@ class NoteEditorViewModel @Inject constructor(
             state.copy(
                 hasDraft = false,
                 draftType = null,
-                lastPublishError = null,
+                draftSyncStatus = null,
                 lastDraftError = error.asUiMessage(),
+                requiresSaveAsNew = false,
             )
         }
         renderObservedState(officialContent = null)
     }
 
     private fun renderObservedState(officialContent: NoteSecureItemContent?) {
-        val detail = latestOfficialDetail ?: return
-        val resolvedOfficialContent = officialContent ?: (detail.content as? NoteSecureItemContent) ?: return
+        val detail = latestOfficialDetail
+        val resolvedOfficialContent = officialContent ?: (detail?.content as? NoteSecureItemContent)
         val draftDetail = latestDraftDetail
         val draftContent = draftDetail?.content as? NoteSecureItemContent
+        val logicalItemId = draftDetail?.logicalItemId ?: detail?.logicalItemId ?: return
 
         mutableUiState.update { state ->
-            val preserveDraft = state.hasUnsavedLocalChanges && state.logicalItemId == detail.logicalItemId
+            val preserveDraft = state.hasUnsavedLocalChanges && state.logicalItemId == logicalItemId
             val displayHint = if (draftDetail != null) {
                 if (preserveDraft) state.displayHint else draftDetail.displayHint
             } else {
-                state.displayHint.takeIf { preserveDraft } ?: detail.displayHint
+                state.displayHint.takeIf { preserveDraft } ?: detail?.displayHint.orEmpty()
             }
             val body = when {
                 preserveDraft -> state.body
                 draftContent != null -> draftContent.body
-                else -> resolvedOfficialContent.body
+                else -> resolvedOfficialContent?.body.orEmpty()
             }
             state.copy(
-                logicalItemId = detail.logicalItemId,
+                logicalItemId = logicalItemId,
                 displayHint = displayHint,
                 body = body,
-                itemSyncState = detail.syncState,
-                itemSyncError = detail.lastSyncError,
+                hasDraft = draftDetail != null,
+                draftType = draftDetail?.draftType,
+                draftSyncStatus = draftDetail?.draftSyncStatus,
+                lastDraftError = draftDetail?.lastSyncError ?: state.lastDraftError,
+                requiresSaveAsNew = draftDetail?.requiresSaveAsNew == true,
                 isLoading = false,
                 isSaving = false,
                 isDraftActionInProgress = false,
@@ -228,7 +234,7 @@ class NoteEditorViewModel @Inject constructor(
     private fun publishDraft() {
         val state = mutableUiState.value
         val logicalItemId = state.logicalItemId ?: return
-        if (!state.hasDraft || state.isLoading || state.isSaving || state.isDraftActionInProgress) return
+        if (!state.hasConflict || state.isLoading || state.isSaving || state.isDraftActionInProgress) return
 
         mutableUiState.update { current ->
             current.copy(
@@ -239,18 +245,16 @@ class NoteEditorViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            when (val result = publishSecureItemDraftUseCase(logicalItemId)) {
-                is PublishSecureItemDraftResult.Success -> {
-                    awaitingPublishedDraftRefresh = true
-                    mutableUiState.update { current ->
-                        current.copy(
-                            isDraftActionInProgress = false,
-                            lastDraftError = null,
-                        )
-                    }
+            when (val result = prepareSecureItemDraftForSyncUseCase(logicalItemId)) {
+                is PrepareSecureItemDraftForSyncResult.Success -> {
+                    stopObservingItem()
+                    mutableUiState.value = NoteEditorUiState(
+                        isSyncing = mutableUiState.value.isSyncing,
+                    )
+                    mutableEvents.emit(NoteEditorUiEvent.NavigateBack)
                 }
 
-                is PublishSecureItemDraftResult.Error -> {
+                is PrepareSecureItemDraftForSyncResult.Error -> {
                     mutableUiState.update { current ->
                         current.copy(
                             isDraftActionInProgress = false,
@@ -278,11 +282,19 @@ class NoteEditorViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = discardSecureItemDraftUseCase(logicalItemId)) {
                 is DiscardSecureItemDraftResult.Success -> {
-                    mutableUiState.update { current ->
-                        current.copy(
-                            isDraftActionInProgress = false,
-                            lastDraftError = null,
+                    if (latestOfficialDetail == null || latestDraftDetail?.draftType == com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType.CREATE) {
+                        stopObservingItem()
+                        mutableUiState.value = NoteEditorUiState(
+                            isSyncing = mutableUiState.value.isSyncing,
                         )
+                        mutableEvents.emit(NoteEditorUiEvent.NavigateBack)
+                    } else {
+                        mutableUiState.update { current ->
+                            current.copy(
+                                isDraftActionInProgress = false,
+                                lastDraftError = null,
+                            )
+                        }
                     }
                 }
 
@@ -357,18 +369,23 @@ class NoteEditorViewModel @Inject constructor(
     }
 
     private fun showError(error: SecureItemCrudError) {
-        val message = if (error == SecureItemCrudError.ItemNotFound && awaitingPublishedDraftRefresh) {
-            awaitingPublishedDraftRefresh = false
-            "Item was deleted on backend. Automatic restore is not available."
-        } else {
-            error.asUiMessage()
+        if (error == SecureItemCrudError.ItemNotFound && latestDraftDetail != null) {
+            mutableUiState.update { state ->
+                state.copy(
+                    isLoading = false,
+                    isSaving = false,
+                    isDraftActionInProgress = false,
+                    errorMessage = null,
+                )
+            }
+            return
         }
         mutableUiState.update { state ->
             state.copy(
                 isLoading = false,
                 isSaving = false,
                 isDraftActionInProgress = false,
-                errorMessage = message,
+                errorMessage = error.asUiMessage(),
             )
         }
     }

@@ -62,19 +62,22 @@ private fun PasswordEditorContent(
         isLoading = uiState.isLoading,
         isSaving = uiState.isSaving,
         isSyncing = uiState.isSyncing,
-        syncStatusLabel = if (uiState.isSyncing) {
-            stringResource(UiR.string.sync_status_syncing)
-        } else {
-            uiState.itemSyncState?.asUiLabel()
-        },
-        lastSyncMessage = uiState.lastPublishError?.let { publishError ->
-            stringResource(UiR.string.draft_last_publish_error_with_reason, publishError)
-        },
-        lastSyncErrorMessage = uiState.lastDraftError ?: uiState.itemSyncError,
+        syncStatusLabel = if (uiState.isSyncing) stringResource(UiR.string.sync_status_syncing) else null,
+        lastSyncMessage = null,
+        lastSyncErrorMessage = uiState.lastDraftError,
         draftBannerMessage = uiState.draftType?.asBannerLabel(),
         showDraftActions = uiState.hasDraft,
-        onPublishDraft = { onAction(PasswordEditorUiAction.PublishDraftClicked) },
-        onDiscardDraft = { onAction(PasswordEditorUiAction.DiscardDraftClicked) },
+        publishDraftAsNew = uiState.requiresSaveAsNew,
+        onPublishDraft = if (uiState.hasConflict) {
+            { onAction(PasswordEditorUiAction.PublishDraftClicked) }
+        } else {
+            null
+        },
+        onDiscardDraft = if (uiState.hasDraft) {
+            { onAction(PasswordEditorUiAction.DiscardDraftClicked) }
+        } else {
+            null
+        },
         isDraftActionInProgress = uiState.isDraftActionInProgress,
         errorMessage = uiState.errorMessage,
         onBack = onBack,
@@ -136,6 +139,7 @@ private fun PasswordEditorContent(
 
 @Composable
 private fun SecureItemDraftType.asBannerLabel(): String = when (this) {
+    SecureItemDraftType.CREATE -> stringResource(UiR.string.draft_banner_create)
     SecureItemDraftType.UPDATE -> stringResource(UiR.string.draft_banner_update)
     SecureItemDraftType.DELETE -> stringResource(UiR.string.draft_banner_delete)
 }

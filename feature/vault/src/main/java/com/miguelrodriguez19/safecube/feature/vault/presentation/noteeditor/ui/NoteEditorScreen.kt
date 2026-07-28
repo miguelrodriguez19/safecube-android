@@ -60,19 +60,22 @@ private fun NoteEditorContent(
         isLoading = uiState.isLoading,
         isSaving = uiState.isSaving,
         isSyncing = uiState.isSyncing,
-        syncStatusLabel = if (uiState.isSyncing) {
-            stringResource(UiR.string.sync_status_syncing)
-        } else {
-            uiState.itemSyncState?.asUiLabel()
-        },
-        lastSyncMessage = uiState.lastPublishError?.let { publishError ->
-            stringResource(UiR.string.draft_last_publish_error_with_reason, publishError)
-        },
-        lastSyncErrorMessage = uiState.lastDraftError ?: uiState.itemSyncError,
+        syncStatusLabel = if (uiState.isSyncing) stringResource(UiR.string.sync_status_syncing) else null,
+        lastSyncMessage = null,
+        lastSyncErrorMessage = uiState.lastDraftError,
         draftBannerMessage = uiState.draftType?.asBannerLabel(),
         showDraftActions = uiState.hasDraft,
-        onPublishDraft = { onAction(NoteEditorUiAction.PublishDraftClicked) },
-        onDiscardDraft = { onAction(NoteEditorUiAction.DiscardDraftClicked) },
+        publishDraftAsNew = uiState.requiresSaveAsNew,
+        onPublishDraft = if (uiState.hasConflict) {
+            { onAction(NoteEditorUiAction.PublishDraftClicked) }
+        } else {
+            null
+        },
+        onDiscardDraft = if (uiState.hasDraft) {
+            { onAction(NoteEditorUiAction.DiscardDraftClicked) }
+        } else {
+            null
+        },
         isDraftActionInProgress = uiState.isDraftActionInProgress,
         errorMessage = uiState.errorMessage,
         onBack = onBack,
@@ -107,6 +110,7 @@ private fun NoteEditorContent(
 
 @Composable
 private fun SecureItemDraftType.asBannerLabel(): String = when (this) {
+    SecureItemDraftType.CREATE -> stringResource(UiR.string.draft_banner_create)
     SecureItemDraftType.UPDATE -> stringResource(UiR.string.draft_banner_update)
     SecureItemDraftType.DELETE -> stringResource(UiR.string.draft_banner_delete)
 }

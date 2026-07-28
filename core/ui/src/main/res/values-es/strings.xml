@@ -29,11 +29,14 @@
     <string name="sync_error_push_failed">No se pudieron subir los cambios locales</string>
     <string name="sync_error_pull_failed">No se pudieron refrescar los cambios remotos</string>
     <string name="draft_badge_label">Borrador</string>
+    <string name="draft_type_create">Borrador de creacion</string>
     <string name="draft_type_update">Borrador de actualizacion</string>
     <string name="draft_type_delete">Borrador de borrado</string>
+    <string name="draft_banner_create">Este item solo existe como borrador local hasta que termine la siguiente sincronizacion.</string>
     <string name="draft_banner_update">Estas editando un borrador local. Los cambios aun no son oficiales.</string>
     <string name="draft_banner_delete">Este item tiene un borrador local de borrado. Publica para borrar en backend o descarta para mantener la version oficial.</string>
     <string name="draft_action_publish">Publicar borrador</string>
+    <string name="draft_action_save_as_new">Guardar como nuevo</string>
     <string name="draft_action_discard">Descartar borrador</string>
-    <string name="draft_last_publish_error_with_reason">Ultimo error al publicar borrador: %1$s</string>
+    <string name="draft_last_sync_error_with_reason">Ultimo error de sincronizacion del borrador: %1$s</string>
 </resources>

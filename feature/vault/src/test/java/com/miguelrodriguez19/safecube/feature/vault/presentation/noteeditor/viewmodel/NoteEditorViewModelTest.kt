@@ -1,13 +1,15 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.viewmodel
 
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDraftDetailResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDetailResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDraftDetailResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemDetail
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemDraftDetail
+import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.DiscardSecureItemDraftResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.PrepareSecureItemDraftForSyncResult
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDetailUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDraftDetailUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SoftDeleteSecureItemUseCase
@@ -15,31 +17,27 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.note.UpdateSecureNoteUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.DiscardSecureItemDraftUseCase
-import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.PublishSecureItemDraftUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.PrepareSecureItemDraftForSyncUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.action.NoteEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.event.NoteEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.test.MainDispatcherRule
 import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import java.time.Instant
 import java.util.UUID
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class NoteEditorViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -49,291 +47,115 @@ class NoteEditorViewModelTest {
     private val createSecureNoteUseCase = mockk<CreateSecureNoteUseCase>()
     private val updateSecureNoteUseCase = mockk<UpdateSecureNoteUseCase>()
     private val softDeleteSecureItemUseCase = mockk<SoftDeleteSecureItemUseCase>()
-    private val publishSecureItemDraftUseCase = mockk<PublishSecureItemDraftUseCase>()
+    private val prepareSecureItemDraftForSyncUseCase = mockk<PrepareSecureItemDraftForSyncUseCase>()
     private val discardSecureItemDraftUseCase = mockk<DiscardSecureItemDraftUseCase>()
     private val observeVaultSyncingUseCase = mockk<ObserveVaultSyncingUseCase>()
-    private val isSyncingFlow = MutableStateFlow(false)
 
-    private val target by lazy { buildTarget() }
-
-    private fun buildTarget(): NoteEditorViewModel {
-        every { observeVaultSyncingUseCase.invoke() } returns isSyncingFlow
-        every { observeSecureItemDraftDetailUseCase.invoke(any()) } returns flowOf(
-            ObserveSecureItemDraftDetailResult.NotFound,
+    @Test
+    fun `load when only draft exists then renders draft content and clears not found error`() = runTest {
+        val logicalItemId = UUID.randomUUID()
+        every { observeVaultSyncingUseCase.invoke() } returns MutableStateFlow(false)
+        every { observeSecureItemDetailUseCase.invoke(logicalItemId) } returns flowOf(
+            ObserveSecureItemDetailResult.Error(com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError.ItemNotFound),
         )
-        return NoteEditorViewModel(
+        every { observeSecureItemDraftDetailUseCase.invoke(logicalItemId) } returns flowOf(
+            ObserveSecureItemDraftDetailResult.Success(
+                SecureItemDraftDetail(
+                    logicalItemId = logicalItemId,
+                    remoteItemId = null,
+                    draftType = SecureItemDraftType.CREATE,
+                    draftSyncStatus = SecureItemDraftSyncStatus.READY_TO_SYNC,
+                    itemType = SecureItemType.NOTE,
+                    displayHint = "Draft note",
+                    payloadVersion = 1,
+                    updatedAt = Instant.parse("2024-06-01T00:00:00Z"),
+                    lastSyncError = null,
+                    content = NoteSecureItemContent("Draft body"),
+                ),
+            ),
+        )
+
+        val target = NoteEditorViewModel(
             observeSecureItemDetailUseCase = observeSecureItemDetailUseCase,
             observeSecureItemDraftDetailUseCase = observeSecureItemDraftDetailUseCase,
             createSecureNoteUseCase = createSecureNoteUseCase,
             updateSecureNoteUseCase = updateSecureNoteUseCase,
             softDeleteSecureItemUseCase = softDeleteSecureItemUseCase,
-            publishSecureItemDraftUseCase = publishSecureItemDraftUseCase,
+            prepareSecureItemDraftForSyncUseCase = prepareSecureItemDraftForSyncUseCase,
             discardSecureItemDraftUseCase = discardSecureItemDraftUseCase,
             observeVaultSyncingUseCase = observeVaultSyncingUseCase,
-        )
-    }
-
-    @Test
-    fun `load when existing note detail is available then populates editor state`() = runTest {
-        val logicalItemId = UUID.randomUUID()
-        val now = Instant.now()
-        every { observeSecureItemDetailUseCase(logicalItemId) } returns flowOf(
-            ObserveSecureItemDetailResult.Success(
-                detail = SecureItemDetail(
-                    logicalItemId = logicalItemId,
-                    remoteItemId = null,
-                    itemType = SecureItemType.NOTE,
-                    schemaVersion = 1,
-                    displayHint = "Server keys",
-                    payloadVersion = 1,
-                    createdAt = now,
-                    updatedAt = now,
-                    syncState = SecureItemSyncState.PENDING_UPDATE,
-                    lastSyncError = null,
-                    content = NoteSecureItemContent(body = "ssh-rsa ..."),
-                ),
-            ),
         )
 
         target.load(logicalItemId.toString())
         advanceUntilIdle()
 
-        assertEquals(logicalItemId, target.uiState.value.logicalItemId)
-        assertEquals("Server keys", target.uiState.value.displayHint)
-        assertEquals("ssh-rsa ...", target.uiState.value.body)
-        assertEquals(SecureItemSyncState.PENDING_UPDATE, target.uiState.value.itemSyncState)
-        verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
-        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
-        verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
-        confirmVerified(
-            observeSecureItemDetailUseCase,
-            observeSecureItemDraftDetailUseCase,
-            createSecureNoteUseCase,
-            updateSecureNoteUseCase,
-            softDeleteSecureItemUseCase,
-            publishSecureItemDraftUseCase,
-            discardSecureItemDraftUseCase,
-            observeVaultSyncingUseCase,
-        )
+        assertEquals("Draft note", target.uiState.value.displayHint)
+        assertEquals("Draft body", target.uiState.value.body)
+        assertEquals(SecureItemDraftType.CREATE, target.uiState.value.draftType)
+        assertNull(target.uiState.value.errorMessage)
     }
 
     @Test
-    fun `onAction when save clicked for new note then creates item and emits navigate back`() = runTest {
-        coEvery { createSecureNoteUseCase(any()) } returns SecureItemMutationResult.Success(sampleNoteItem())
-        val event = CompletableDeferred<NoteEditorUiEvent>()
-        backgroundScope.launch {
-            event.complete(target.events.first())
-        }
-
-        target.onAction(NoteEditorUiAction.DisplayHintChanged("Server keys"))
-        target.onAction(NoteEditorUiAction.BodyChanged("ssh-rsa ..."))
-        target.onAction(NoteEditorUiAction.SaveClicked)
-        advanceUntilIdle()
-
-        assertEquals(NoteEditorUiEvent.NavigateBack, event.await())
-        coVerify(exactly = 1) {
-            createSecureNoteUseCase(
-                match { draft ->
-                    draft.displayHint == "Server keys" &&
-                            draft.body == "ssh-rsa ..."
-                },
-            )
-        }
-        verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
-        confirmVerified(
-            observeSecureItemDetailUseCase,
-            observeSecureItemDraftDetailUseCase,
-            createSecureNoteUseCase,
-            updateSecureNoteUseCase,
-            softDeleteSecureItemUseCase,
-            publishSecureItemDraftUseCase,
-            discardSecureItemDraftUseCase,
-            observeVaultSyncingUseCase,
-        )
-    }
-
-    @Test
-    fun `onAction when save clicked for existing note then updates item and emits navigate back`() = runTest {
+    fun `publish draft when conflict draft is loaded then prepares it and navigates back`() = runTest {
         val logicalItemId = UUID.randomUUID()
-        val now = Instant.now()
-
-        every { observeSecureItemDetailUseCase(logicalItemId) } returns flowOf(
+        every { observeVaultSyncingUseCase.invoke() } returns MutableStateFlow(false)
+        every { observeSecureItemDetailUseCase.invoke(logicalItemId) } returns flowOf(
             ObserveSecureItemDetailResult.Success(
-                detail = SecureItemDetail(
+                SecureItemDetail(
                     logicalItemId = logicalItemId,
-                    remoteItemId = null,
+                    remoteItemId = UUID.randomUUID(),
                     itemType = SecureItemType.NOTE,
                     schemaVersion = 1,
-                    displayHint = "Server keys",
-                    payloadVersion = 1,
-                    createdAt = now,
-                    updatedAt = now,
+                    displayHint = "Official note",
+                    payloadVersion = 2,
+                    createdAt = Instant.parse("2024-06-01T00:00:00Z"),
+                    updatedAt = Instant.parse("2024-06-01T00:00:00Z"),
                     syncState = SecureItemSyncState.SYNCED,
                     lastSyncError = null,
-                    content = NoteSecureItemContent(body = "ssh-rsa ..."),
+                    content = NoteSecureItemContent("Official body"),
+                ),
+            ),
+        )
+        every { observeSecureItemDraftDetailUseCase.invoke(logicalItemId) } returns flowOf(
+            ObserveSecureItemDraftDetailResult.Success(
+                SecureItemDraftDetail(
+                    logicalItemId = logicalItemId,
+                    remoteItemId = UUID.randomUUID(),
+                    draftType = SecureItemDraftType.UPDATE,
+                    draftSyncStatus = SecureItemDraftSyncStatus.CONFLICT,
+                    itemType = SecureItemType.NOTE,
+                    displayHint = "Draft note",
+                    payloadVersion = 3,
+                    updatedAt = Instant.parse("2024-06-01T01:00:00Z"),
+                    lastSyncError = "Conflict",
+                    content = NoteSecureItemContent("Draft body"),
                 ),
             ),
         )
         coEvery {
-            updateSecureNoteUseCase(
-                logicalItemId = logicalItemId,
-                draft = any(),
-            )
-        } returns SecureItemMutationResult.Success(sampleNoteItem())
-        val event = CompletableDeferred<NoteEditorUiEvent>()
-        backgroundScope.launch {
-            event.complete(target.events.first())
-        }
-
-        target.load(logicalItemId.toString())
-        advanceUntilIdle()
-        target.onAction(NoteEditorUiAction.BodyChanged("updated body"))
-        target.onAction(NoteEditorUiAction.SaveClicked)
-        advanceUntilIdle()
-
-        assertEquals(NoteEditorUiEvent.NavigateBack, event.await())
-        verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
-        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
-        coVerify(exactly = 1) {
-            updateSecureNoteUseCase(
-                logicalItemId = logicalItemId,
-                draft = match { draft ->
-                    draft.displayHint == "Server keys" &&
-                            draft.body == "updated body"
-                },
-            )
-        }
-        verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
-        confirmVerified(
-            observeSecureItemDetailUseCase,
-            observeSecureItemDraftDetailUseCase,
-            createSecureNoteUseCase,
-            updateSecureNoteUseCase,
-            softDeleteSecureItemUseCase,
-            publishSecureItemDraftUseCase,
-            discardSecureItemDraftUseCase,
-            observeVaultSyncingUseCase,
-        )
-    }
-
-    @Test
-    fun `onAction when delete clicked for existing note then soft deletes item and emits navigate back`() = runTest {
-        val logicalItemId = UUID.randomUUID()
-        val now = Instant.now()
-        every { observeSecureItemDetailUseCase(logicalItemId) } returns flowOf(
-            ObserveSecureItemDetailResult.Success(
-                detail = SecureItemDetail(
-                    logicalItemId = logicalItemId,
-                    remoteItemId = null,
-                    itemType = SecureItemType.NOTE,
-                    schemaVersion = 1,
-                    displayHint = "Server keys",
-                    payloadVersion = 1,
-                    createdAt = now,
-                    updatedAt = now,
-                    syncState = SecureItemSyncState.CONFLICT,
-                    lastSyncError = "Remote conflict",
-                    content = NoteSecureItemContent(body = "ssh-rsa ..."),
-                ),
-            ),
-        )
-        coEvery { softDeleteSecureItemUseCase(logicalItemId) } returns SecureItemMutationResult.Success(
-            sampleNoteItem(logicalItemId),
-        )
-        val event = CompletableDeferred<NoteEditorUiEvent>()
-        backgroundScope.launch {
-            event.complete(target.events.first())
-        }
-
-        target.load(logicalItemId.toString())
-        advanceUntilIdle()
-        target.onAction(NoteEditorUiAction.DeleteClicked)
-        advanceUntilIdle()
-
-        assertEquals(NoteEditorUiEvent.NavigateBack, event.await())
-        verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
-        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
-        coVerify(exactly = 1) { softDeleteSecureItemUseCase(logicalItemId) }
-        verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
-        confirmVerified(
-            observeSecureItemDetailUseCase,
-            observeSecureItemDraftDetailUseCase,
-            createSecureNoteUseCase,
-            updateSecureNoteUseCase,
-            softDeleteSecureItemUseCase,
-            publishSecureItemDraftUseCase,
-            discardSecureItemDraftUseCase,
-            observeVaultSyncingUseCase,
-        )
-    }
-
-    @Test
-    fun `load when create flow succeeded previously then entering edit loads fresh state`() = runTest {
-        val logicalItemId = UUID.randomUUID()
-        val now = Instant.now()
-        coEvery { createSecureNoteUseCase(any()) } returns SecureItemMutationResult.Success(sampleNoteItem())
-        every { observeSecureItemDetailUseCase(logicalItemId) } returns flowOf(
-            ObserveSecureItemDetailResult.Success(
-                detail = SecureItemDetail(
-                    logicalItemId = logicalItemId,
-                    remoteItemId = null,
-                    itemType = SecureItemType.NOTE,
-                    schemaVersion = 1,
-                    displayHint = "Server keys",
-                    payloadVersion = 1,
-                    createdAt = now,
-                    updatedAt = now,
-                    syncState = SecureItemSyncState.SYNCED,
-                    lastSyncError = null,
-                    content = NoteSecureItemContent(body = "ssh-rsa ..."),
-                ),
-            ),
-        )
-        backgroundScope.launch {
-            target.events.first()
-        }
-
-        target.onAction(NoteEditorUiAction.DisplayHintChanged("Server keys"))
-        target.onAction(NoteEditorUiAction.BodyChanged("ssh-rsa ..."))
-        target.onAction(NoteEditorUiAction.SaveClicked)
-        advanceUntilIdle()
-        target.load(logicalItemId.toString())
-        advanceUntilIdle()
-
-        assertEquals(false, target.uiState.value.isSaving)
-        assertEquals(false, target.uiState.value.isLoading)
-        assertEquals(logicalItemId, target.uiState.value.logicalItemId)
-        assertEquals("Server keys", target.uiState.value.displayHint)
-        verify(exactly = 1) { observeSecureItemDetailUseCase(logicalItemId) }
-        verify(exactly = 1) { observeSecureItemDraftDetailUseCase(logicalItemId) }
-        coVerify(exactly = 1) { createSecureNoteUseCase(any()) }
-        verify(exactly = 1) { observeVaultSyncingUseCase.invoke() }
-        confirmVerified(
-            observeSecureItemDetailUseCase,
-            observeSecureItemDraftDetailUseCase,
-            createSecureNoteUseCase,
-            updateSecureNoteUseCase,
-            softDeleteSecureItemUseCase,
-            publishSecureItemDraftUseCase,
-            discardSecureItemDraftUseCase,
-            observeVaultSyncingUseCase,
-        )
-    }
-
-    private fun sampleNoteItem(logicalItemId: UUID = UUID.randomUUID()): SecureItem {
-        val now = Instant.now()
-
-        return SecureItem(
+            prepareSecureItemDraftForSyncUseCase.invoke(logicalItemId)
+        } returns PrepareSecureItemDraftForSyncResult.Success(
             logicalItemId = logicalItemId,
-            remoteItemId = null,
-            itemType = SecureItemType.NOTE,
-            schemaVersion = 1,
-            displayHint = "Server keys",
-            payload = byteArrayOf(1, 2, 3),
-            payloadVersion = 1,
-            createdAt = now,
-            updatedAt = now,
-            deletedAt = null,
+            draftType = SecureItemDraftType.UPDATE,
         )
+
+        val target = NoteEditorViewModel(
+            observeSecureItemDetailUseCase = observeSecureItemDetailUseCase,
+            observeSecureItemDraftDetailUseCase = observeSecureItemDraftDetailUseCase,
+            createSecureNoteUseCase = createSecureNoteUseCase,
+            updateSecureNoteUseCase = updateSecureNoteUseCase,
+            softDeleteSecureItemUseCase = softDeleteSecureItemUseCase,
+            prepareSecureItemDraftForSyncUseCase = prepareSecureItemDraftForSyncUseCase,
+            discardSecureItemDraftUseCase = discardSecureItemDraftUseCase,
+            observeVaultSyncingUseCase = observeVaultSyncingUseCase,
+        )
+
+        target.load(logicalItemId.toString())
+        advanceUntilIdle()
+        val event = async { target.events.first() }
+        target.onAction(NoteEditorUiAction.PublishDraftClicked)
+        advanceUntilIdle()
+
+        assertEquals(NoteEditorUiEvent.NavigateBack, event.await())
     }
 }

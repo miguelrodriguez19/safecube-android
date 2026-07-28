@@ -276,31 +276,24 @@ private fun VaultItemCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                item.lastPublishError?.let { lastPublishError ->
+                item.lastDraftError?.let { lastDraftError ->
                     Text(
                         text = stringResource(
-                            UiR.string.draft_last_publish_error_with_reason,
-                            lastPublishError,
+                            UiR.string.draft_last_sync_error_with_reason,
+                            lastDraftError,
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
             }
-            if (item.isConflict) {
+            if (item.isDraftConflict) {
                 Text(
                     text = stringResource(UiR.string.sync_status_conflict),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
-                item.lastSyncError?.let { conflictReason ->
-                    Text(
-                        text = conflictReason,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            } else if (item.isPendingSync) {
+            } else if (item.isDraftPendingSync) {
                 Text(
                     text = stringResource(UiR.string.sync_status_pending),
                     style = MaterialTheme.typography.bodySmall,
@@ -358,6 +351,7 @@ private fun SecureItemType.asLabel(): String = when (this) {
 
 @Composable
 private fun SecureItemDraftType.asLabel(): String = when (this) {
+    SecureItemDraftType.CREATE -> stringResource(UiR.string.draft_type_create)
     SecureItemDraftType.UPDATE -> stringResource(UiR.string.draft_type_update)
     SecureItemDraftType.DELETE -> stringResource(UiR.string.draft_type_delete)
 }

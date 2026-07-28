@@ -1,6 +1,6 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.home.state
 
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncError
@@ -21,15 +21,14 @@ data class VaultItemSummaryUiModel(
     val displayHint: String,
     val itemType: SecureItemType,
     val updatedAt: Instant,
-    val syncState: SecureItemSyncState,
-    val lastSyncError: String?,
     val hasDraft: Boolean,
     val draftType: SecureItemDraftType?,
-    val lastPublishError: String?,
+    val draftSyncStatus: SecureItemDraftSyncStatus?,
+    val lastDraftError: String?,
 ) {
-    val isPendingSync: Boolean
-        get() = syncState.isPendingPushState()
+    val isDraftPendingSync: Boolean
+        get() = draftSyncStatus == SecureItemDraftSyncStatus.READY_TO_SYNC
 
-    val isConflict: Boolean
-        get() = syncState == SecureItemSyncState.CONFLICT
+    val isDraftConflict: Boolean
+        get() = draftSyncStatus == SecureItemDraftSyncStatus.CONFLICT
 }

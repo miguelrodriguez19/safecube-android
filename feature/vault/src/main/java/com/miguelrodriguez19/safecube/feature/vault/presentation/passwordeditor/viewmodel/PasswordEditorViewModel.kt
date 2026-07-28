@@ -10,9 +10,10 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.Se
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecurePasswordDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecurePasswordWebsiteDraft
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.DiscardSecureItemDraftResult
-import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.PublishSecureItemDraftResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.PrepareSecureItemDraftForSyncResult
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDetailUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDraftDetailUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.SoftDeleteSecureItemUseCase
@@ -20,7 +21,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.passw
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.password.UpdateSecurePasswordUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.DiscardSecureItemDraftUseCase
-import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.PublishSecureItemDraftUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.PrepareSecureItemDraftForSyncUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.action.PasswordEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.event.PasswordEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.state.PasswordEditorUiState
@@ -46,7 +47,7 @@ class PasswordEditorViewModel @Inject constructor(
     private val createSecurePasswordUseCase: CreateSecurePasswordUseCase,
     private val updateSecurePasswordUseCase: UpdateSecurePasswordUseCase,
     private val softDeleteSecureItemUseCase: SoftDeleteSecureItemUseCase,
-    private val publishSecureItemDraftUseCase: PublishSecureItemDraftUseCase,
+    private val prepareSecureItemDraftForSyncUseCase: PrepareSecureItemDraftForSyncUseCase,
     private val discardSecureItemDraftUseCase: DiscardSecureItemDraftUseCase,
     observeVaultSyncingUseCase: ObserveVaultSyncingUseCase,
 ) : ViewModel() {
@@ -151,8 +152,9 @@ class PasswordEditorViewModel @Inject constructor(
             state.copy(
                 hasDraft = true,
                 draftType = result.detail.draftType,
-                lastPublishError = result.detail.lastPublishError,
-                lastDraftError = null,
+                draftSyncStatus = result.detail.draftSyncStatus,
+                lastDraftError = result.detail.lastSyncError,
+                requiresSaveAsNew = result.detail.requiresSaveAsNew,
             )
         }
         renderObservedState(officialContent = null)
@@ -164,8 +166,9 @@ class PasswordEditorViewModel @Inject constructor(
             state.copy(
                 hasDraft = false,
                 draftType = null,
-                lastPublishError = null,
+                draftSyncStatus = null,
                 lastDraftError = null,
+                requiresSaveAsNew = false,
             )
         }
         renderObservedState(officialContent = null)
@@ -177,54 +180,59 @@ class PasswordEditorViewModel @Inject constructor(
             state.copy(
                 hasDraft = false,
                 draftType = null,
-                lastPublishError = null,
+                draftSyncStatus = null,
                 lastDraftError = error.asUiMessage(),
+                requiresSaveAsNew = false,
             )
         }
         renderObservedState(officialContent = null)
     }
 
     private fun renderObservedState(officialContent: PasswordSecureItemContent?) {
-        val detail = latestOfficialDetail ?: return
-        val resolvedOfficialContent = officialContent ?: (detail.content as? PasswordSecureItemContent) ?: return
+        val detail = latestOfficialDetail
+        val resolvedOfficialContent = officialContent ?: (detail?.content as? PasswordSecureItemContent)
         val draftDetail = latestDraftDetail
         val draftContent = draftDetail?.content as? PasswordSecureItemContent
+        val logicalItemId = draftDetail?.logicalItemId ?: detail?.logicalItemId ?: return
 
         mutableUiState.update { state ->
-            val preserveDraft = state.hasUnsavedLocalChanges && state.logicalItemId == detail.logicalItemId
+            val preserveDraft = state.hasUnsavedLocalChanges && state.logicalItemId == logicalItemId
             val username = when {
                 preserveDraft -> state.username
                 draftContent != null -> draftContent.username ?: draftContent.email.orEmpty()
-                else -> resolvedOfficialContent.username ?: resolvedOfficialContent.email.orEmpty()
+                else -> resolvedOfficialContent?.username ?: resolvedOfficialContent?.email.orEmpty()
             }
             val password = when {
                 preserveDraft -> state.password
                 draftContent != null -> draftContent.password
-                else -> resolvedOfficialContent.password
+                else -> resolvedOfficialContent?.password.orEmpty()
             }
             val websiteUrl = when {
                 preserveDraft -> state.websiteUrl
                 draftContent != null -> draftContent.website?.url.orEmpty()
-                else -> resolvedOfficialContent.website?.url.orEmpty()
+                else -> resolvedOfficialContent?.website?.url.orEmpty()
             }
             val notes = when {
                 preserveDraft -> state.notes
                 draftContent != null -> draftContent.notes.orEmpty()
-                else -> resolvedOfficialContent.notes.orEmpty()
+                else -> resolvedOfficialContent?.notes.orEmpty()
             }
             state.copy(
-                logicalItemId = detail.logicalItemId,
+                logicalItemId = logicalItemId,
                 displayHint = when {
                     preserveDraft -> state.displayHint
                     draftDetail != null -> draftDetail.displayHint
-                    else -> detail.displayHint
+                    else -> detail?.displayHint.orEmpty()
                 },
                 username = username,
                 password = password,
                 websiteUrl = websiteUrl,
                 notes = notes,
-                itemSyncState = detail.syncState,
-                itemSyncError = detail.lastSyncError,
+                hasDraft = draftDetail != null,
+                draftType = draftDetail?.draftType,
+                draftSyncStatus = draftDetail?.draftSyncStatus,
+                lastDraftError = draftDetail?.lastSyncError ?: state.lastDraftError,
+                requiresSaveAsNew = draftDetail?.requiresSaveAsNew == true,
                 isLoading = false,
                 isSaving = false,
                 isDraftActionInProgress = false,
@@ -247,7 +255,7 @@ class PasswordEditorViewModel @Inject constructor(
     private fun publishDraft() {
         val state = mutableUiState.value
         val logicalItemId = state.logicalItemId ?: return
-        if (!state.hasDraft || state.isLoading || state.isSaving || state.isDraftActionInProgress) return
+        if (!state.hasConflict || state.isLoading || state.isSaving || state.isDraftActionInProgress) return
 
         mutableUiState.update { current ->
             current.copy(
@@ -258,17 +266,16 @@ class PasswordEditorViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            when (val result = publishSecureItemDraftUseCase(logicalItemId)) {
-                is PublishSecureItemDraftResult.Success -> {
-                    mutableUiState.update { current ->
-                        current.copy(
-                            isDraftActionInProgress = false,
-                            lastDraftError = null,
-                        )
-                    }
+            when (val result = prepareSecureItemDraftForSyncUseCase(logicalItemId)) {
+                is PrepareSecureItemDraftForSyncResult.Success -> {
+                    stopObservingItem()
+                    mutableUiState.value = PasswordEditorUiState(
+                        isSyncing = mutableUiState.value.isSyncing,
+                    )
+                    mutableEvents.emit(PasswordEditorUiEvent.NavigateBack)
                 }
 
-                is PublishSecureItemDraftResult.Error -> {
+                is PrepareSecureItemDraftForSyncResult.Error -> {
                     mutableUiState.update { current ->
                         current.copy(
                             isDraftActionInProgress = false,
@@ -296,11 +303,19 @@ class PasswordEditorViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = discardSecureItemDraftUseCase(logicalItemId)) {
                 is DiscardSecureItemDraftResult.Success -> {
-                    mutableUiState.update { current ->
-                        current.copy(
-                            isDraftActionInProgress = false,
-                            lastDraftError = null,
+                    if (latestOfficialDetail == null || latestDraftDetail?.draftType == com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType.CREATE) {
+                        stopObservingItem()
+                        mutableUiState.value = PasswordEditorUiState(
+                            isSyncing = mutableUiState.value.isSyncing,
                         )
+                        mutableEvents.emit(PasswordEditorUiEvent.NavigateBack)
+                    } else {
+                        mutableUiState.update { current ->
+                            current.copy(
+                                isDraftActionInProgress = false,
+                                lastDraftError = null,
+                            )
+                        }
                     }
                 }
 
@@ -381,6 +396,17 @@ class PasswordEditorViewModel @Inject constructor(
     }
 
     private fun showError(error: SecureItemCrudError) {
+        if (error == SecureItemCrudError.ItemNotFound && latestDraftDetail != null) {
+            mutableUiState.update { state ->
+                state.copy(
+                    isLoading = false,
+                    isSaving = false,
+                    isDraftActionInProgress = false,
+                    errorMessage = null,
+                )
+            }
+            return
+        }
         mutableUiState.update { state ->
             state.copy(
                 isLoading = false,

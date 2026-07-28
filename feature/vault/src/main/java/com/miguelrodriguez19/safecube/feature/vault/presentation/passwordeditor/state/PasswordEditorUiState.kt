@@ -1,6 +1,6 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.state
 
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftSyncStatus
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import java.util.UUID
 
@@ -16,11 +16,10 @@ data class PasswordEditorUiState(
     val isSyncing: Boolean = false,
     val hasDraft: Boolean = false,
     val draftType: SecureItemDraftType? = null,
-    val lastPublishError: String? = null,
+    val draftSyncStatus: SecureItemDraftSyncStatus? = null,
     val lastDraftError: String? = null,
+    val requiresSaveAsNew: Boolean = false,
     val isDraftActionInProgress: Boolean = false,
-    val itemSyncState: SecureItemSyncState? = null,
-    val itemSyncError: String? = null,
     val hasUnsavedLocalChanges: Boolean = false,
     val errorMessage: String? = null,
 ) {
@@ -28,17 +27,8 @@ data class PasswordEditorUiState(
         get() = logicalItemId != null
 
     val hasPendingSync: Boolean
-        get() = when (itemSyncState) {
-            SecureItemSyncState.PENDING_CREATE,
-            SecureItemSyncState.PENDING_UPDATE,
-            SecureItemSyncState.PENDING_DELETE,
-            -> true
-            SecureItemSyncState.SYNCED,
-            SecureItemSyncState.CONFLICT,
-            null,
-            -> false
-        }
+        get() = draftSyncStatus == SecureItemDraftSyncStatus.READY_TO_SYNC
 
     val hasConflict: Boolean
-        get() = itemSyncState == SecureItemSyncState.CONFLICT
+        get() = draftSyncStatus == SecureItemDraftSyncStatus.CONFLICT
 }

@@ -39,6 +39,7 @@ internal fun SecureItemEditorScaffold(
     lastSyncErrorMessage: String?,
     draftBannerMessage: String?,
     showDraftActions: Boolean,
+    publishDraftAsNew: Boolean,
     onPublishDraft: (() -> Unit)?,
     onDiscardDraft: (() -> Unit)?,
     isDraftActionInProgress: Boolean,
@@ -130,25 +131,35 @@ internal fun SecureItemEditorScaffold(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    OutlinedButton(
-                        onClick = { onDiscardDraft?.invoke() },
-                        enabled = !isLoading && !isSaving && !isDraftActionInProgress,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(UiR.string.draft_action_discard))
+                    if (onDiscardDraft != null) {
+                        OutlinedButton(
+                            onClick = onDiscardDraft,
+                            enabled = !isLoading && !isSaving && !isDraftActionInProgress,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(UiR.string.draft_action_discard))
+                        }
                     }
-                    Button(
-                        onClick = { onPublishDraft?.invoke() },
-                        enabled = !isLoading && !isSaving && !isDraftActionInProgress,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(
-                            if (isDraftActionInProgress) {
-                                stringResource(UiR.string.sync_status_syncing)
-                            } else {
-                                stringResource(UiR.string.draft_action_publish)
-                            },
-                        )
+                    if (onPublishDraft != null) {
+                        Button(
+                            onClick = onPublishDraft,
+                            enabled = !isLoading && !isSaving && !isDraftActionInProgress,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(
+                                if (isDraftActionInProgress) {
+                                    stringResource(UiR.string.sync_status_syncing)
+                                } else {
+                                    stringResource(
+                                        if (publishDraftAsNew) {
+                                            UiR.string.draft_action_save_as_new
+                                        } else {
+                                            UiR.string.draft_action_publish
+                                        },
+                                    )
+                                },
+                            )
+                        }
                     }
                 }
             }
@@ -173,7 +184,7 @@ internal fun SecureItemEditorScaffold(
             if (isEditMode && onDelete != null) {
                 OutlinedButton(
                     onClick = onDelete,
-                    enabled = !isLoading && !isSaving,
+                    enabled = !isLoading && !isSaving && !isDraftActionInProgress,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("Delete")
@@ -182,7 +193,7 @@ internal fun SecureItemEditorScaffold(
 
             Button(
                 onClick = onSave,
-                enabled = !isLoading && !isSaving,
+                enabled = !isLoading && !isSaving && !isDraftActionInProgress,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(if (isSaving) "Saving..." else "Save")

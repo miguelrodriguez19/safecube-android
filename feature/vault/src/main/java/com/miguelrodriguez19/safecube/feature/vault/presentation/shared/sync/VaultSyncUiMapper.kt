@@ -10,12 +10,6 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResu
 @Composable
 internal fun SecureItemSyncState.asUiLabel(): String = when (this) {
     SecureItemSyncState.SYNCED -> stringResource(UiR.string.sync_status_synced)
-    SecureItemSyncState.PENDING_CREATE,
-    SecureItemSyncState.PENDING_UPDATE,
-    SecureItemSyncState.PENDING_DELETE,
-    -> stringResource(UiR.string.sync_status_pending)
-
-    SecureItemSyncState.CONFLICT -> stringResource(UiR.string.sync_status_conflict)
 }
 
 @Composable

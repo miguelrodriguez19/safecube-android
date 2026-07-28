@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.feature.vault.presentation.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.VaultItemDraftSummary
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.VaultItemSummary
@@ -96,20 +97,35 @@ class VaultHomeViewModel @Inject constructor(
         draftSummaries: List<VaultItemDraftSummary>,
     ): List<VaultItemSummaryUiModel> {
         val draftByLogicalItemId = draftSummaries.associateBy(VaultItemDraftSummary::logicalItemId)
-        return summaries.map { summary ->
+        val officialItems = summaries.map { summary ->
             val draft = draftByLogicalItemId[summary.logicalItemId]
             VaultItemSummaryUiModel(
                 logicalItemId = summary.logicalItemId,
-                displayHint = summary.displayHint,
-                itemType = summary.itemType,
-                updatedAt = summary.updatedAt,
-                syncState = summary.syncState,
-                lastSyncError = summary.lastSyncError,
+                displayHint = draft?.displayHint ?: summary.displayHint,
+                itemType = draft?.itemType ?: summary.itemType,
+                updatedAt = draft?.updatedAt ?: summary.updatedAt,
                 hasDraft = draft != null,
                 draftType = draft?.draftType,
-                lastPublishError = draft?.lastPublishError,
+                draftSyncStatus = draft?.draftSyncStatus,
+                lastDraftError = draft?.lastSyncError,
             )
         }
+        val createDrafts = draftSummaries
+            .filter { it.draftType == SecureItemDraftType.CREATE }
+            .filterNot { draft -> summaries.any { summary -> summary.logicalItemId == draft.logicalItemId } }
+            .map { draft ->
+                VaultItemSummaryUiModel(
+                    logicalItemId = draft.logicalItemId,
+                    displayHint = draft.displayHint,
+                    itemType = draft.itemType,
+                    updatedAt = draft.updatedAt,
+                    hasDraft = true,
+                    draftType = draft.draftType,
+                    draftSyncStatus = draft.draftSyncStatus,
+                    lastDraftError = draft.lastSyncError,
+                )
+            }
+        return (officialItems + createDrafts).sortedByDescending(VaultItemSummaryUiModel::updatedAt)
     }
 
     fun syncNow() {
