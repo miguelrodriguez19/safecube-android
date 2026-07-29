@@ -1,5 +1,9 @@
 # Testing setup
 
+| Spec ID | Status | Owner | Last reviewed | Supersedes | Related ADRs |
+| --- | --- | --- | --- | --- | --- |
+| `SPEC-TESTING` | `APPROVED` | `quality` | `2026-07-29` | `N/A` | `N/A` |
+
 ## Unit tests (JVM)
 
 Run all unit tests:

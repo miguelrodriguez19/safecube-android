@@ -1,5 +1,9 @@
 # Vault Sync Versioning v2
 
+| Spec ID              | Status     | Owner   | Last reviewed | Supersedes           | Related ADRs |
+|----------------------|------------|---------|---------------|----------------------|--------------|
+| `SPEC-VAULT-SYNC-V2` | `APPROVED` | `vault` | `2026-07-29`  | `SPEC-VAULT-SYNC-V1` | `N/A`        |
+
 - Status: Accepted
 - Date: 2026-07-28
 - Scope: Android, backend, PostgreSQL, and OpenAPI
@@ -19,11 +23,11 @@ requests could observe different revisions or skip changes that shared a timesta
 
 The protocol separates three independent values:
 
-| Field | Authority | Purpose |
-|---|---|---|
-| `payloadVersion` | Client | Identifies the encrypted payload generation used in AAD. |
-| `itemRevision` | Server | Per-item compare-and-set concurrency control. |
-| `changeSequence` | Server | Per-account pull cursor ordered by transaction commit. |
+| Field            | Authority | Purpose                                                  |
+|------------------|-----------|----------------------------------------------------------|
+| `payloadVersion` | Client    | Identifies the encrypted payload generation used in AAD. |
+| `itemRevision`   | Server    | Per-item compare-and-set concurrency control.            |
+| `changeSequence` | Server    | Per-account pull cursor ordered by transaction commit.   |
 
 Mandatory invariants:
 
@@ -66,12 +70,12 @@ Mutation responses expose `ETag` and return `mutationId`, `payloadVersion`, `ite
 
 Protocol errors:
 
-| Status | Meaning |
-|---|---|
-| `400` | Invalid request or missing `Idempotency-Key`. |
-| `409` | The idempotency key was reused with different request content. |
-| `412` | `If-Match` references a stale revision. |
-| `428` | A required `If-Match` header is missing. |
+| Status | Meaning                                                        |
+|--------|----------------------------------------------------------------|
+| `400`  | Invalid request or missing `Idempotency-Key`.                  |
+| `409`  | The idempotency key was reused with different request content. |
+| `412`  | `If-Match` references a stale revision.                        |
+| `428`  | A required `If-Match` header is missing.                       |
 
 `GET /vault/items/changes?after=<changeSequence>&limit=<n>` returns ordered complete snapshots and
 tombstones with `nextCursor` and `hasMore`. Sync does not use `updatedAfter` and does not perform a
@@ -95,7 +99,8 @@ Conflict rules:
 - Update versus update: store the remote as official and retain the local update as `CONFLICT`.
 - Publish local update: decrypt, encrypt a new payload generation, rebase on the current
   `itemRevision`, and create a new `mutationId`.
-- Delete versus remote update: retain the delete draft as `CONFLICT`; publishing rebases and retries.
+- Delete versus remote update: retain the delete draft as `CONFLICT`; publishing rebases and
+  retries.
 - Update versus remote delete: never resurrect the same remote item. "Save as new" creates a new
   logical item and a CREATE draft with `payloadVersion = 1`.
 - Delete against an already deleted remote item: resolve as semantic success.

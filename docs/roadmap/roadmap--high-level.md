@@ -12,6 +12,9 @@ Objetivo realista:
 El desarrollo funcional inicial se completa en las fases 0-5. La salida a `v1.0.0` se organiza
 como un programa de release independiente en las fases 6-10.
 
+La ejecución de todas las fases sigue el [sistema Spec-Driven Development](../sdd/README.md): las
+specs y ADRs versionados en Git son normativos, mientras que Trello solo gestiona el seguimiento.
+
 ---
 
 ### 🟢 FASE 0 — Bootstrap (COMPLETADA)

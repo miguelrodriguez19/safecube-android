@@ -1,5 +1,9 @@
 # Crypto v1 (Client Contract)
 
+| Spec ID          | Status     | Owner    | Last reviewed | Supersedes | Related ADRs |
+|------------------|------------|----------|---------------|------------|--------------|
+| `SPEC-CRYPTO-V1` | `APPROVED` | `crypto` | `2026-07-29`  | `N/A`      | `N/A`        |
+
 Estado: `canonical`  
 Versión: `v1`
 

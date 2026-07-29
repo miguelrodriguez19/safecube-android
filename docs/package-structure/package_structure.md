@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 29-07-2026 03:03:10
+Updated: 30-07-2026 01:33:08
 
 ```
 safecube-android/
@@ -528,6 +528,9 @@ safecube-android/
 │       └── build.gradle.kts
 ├── docs/
 │   ├── architecture/
+│   │   ├── adr/
+│   │   │   ├── ADR-TEMPLATE.md
+│   │   │   └── README.md
 │   │   ├── historical/
 │   │   │   ├── vault-sync-conflict-draft-resolution.md
 │   │   │   └── vault-sync-v1.md
@@ -540,6 +543,8 @@ safecube-android/
 │   │   └── vault-sync-versioning-v2.md
 │   ├── package-structure/
 │   │   └── package_structure.md
+│   ├── release/
+│   │   └── release-policy.md
 │   ├── roadmap/
 │   │   ├── historical/
 │   │   │   └── roadmap--fase-5-v1.md
@@ -550,6 +555,17 @@ safecube-android/
 │   │   ├── roadmap--fase-5.md
 │   │   ├── roadmap--fase-6.md
 │   │   └── roadmap--high-level.md
+│   ├── sdd/
+│   │   ├── agent-report-template.md
+│   │   ├── agent-workflow.md
+│   │   ├── definition-of-ready-done.md
+│   │   ├── README.md
+│   │   ├── spec-registry.md
+│   │   ├── spec-template.md
+│   │   ├── task-template.md
+│   │   └── traceability-matrix.md
+│   ├── specs/product/
+│   │   └── v1-product-brief.md
 │   ├── testing/
 │   │   ├── testing.md
 │   │   └── TESTING_STANDARD.md
@@ -705,6 +721,7 @@ safecube-android/
 │   │   └── FolderTreeToFile.java
 │   └── run-folder-tree.sh
 ├── .gitignore
+├── AGENTS.md
 ├── build.gradle.kts
 ├── gradlew
 ├── gradlew.bat

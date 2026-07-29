@@ -1,5 +1,9 @@
 # Core Network Testing Standard
 
+| Spec ID                 | Status     | Owner     | Last reviewed | Supersedes | Related ADRs |
+|-------------------------|------------|-----------|---------------|------------|--------------|
+| `SPEC-TESTING-STANDARD` | `APPROVED` | `quality` | `2026-07-29`  | `N/A`      | `N/A`        |
+
 ## Scope
 
 This standard applies to all unit tests.
@@ -32,11 +36,11 @@ Follow Arrange / Act / Assert in this order:
 
 - The test subject variable must be called `target`
 - Define just one time the collaborators. As fields.
-- Data must not be fixed. E.g.: 
-  - Avoid the use of `UUID.fromString(...)`, use instead
-    `UUID.randomUUID()`
-  - Avoid the use of `Instant.parse(...)`, use instead
-    `Instant.now()`, play adding or subtracting days or other chrono units.
+- Data must not be fixed. E.g.:
+    - Avoid the use of `UUID.fromString(...)`, use instead
+      `UUID.randomUUID()`
+    - Avoid the use of `Instant.parse(...)`, use instead
+      `Instant.now()`, play adding or subtracting days or other chrono units.
 
 ## Unit Tests Rules
 

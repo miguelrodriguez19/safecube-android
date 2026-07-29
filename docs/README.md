@@ -46,6 +46,23 @@ Historical sync proposals are kept under
 [`architecture/historical`](./architecture/historical) and
 [`roadmap/historical`](./roadmap/historical).
 
+## Spec-Driven Development
+
+SafeCube uses versioned specifications and ADRs as the normative source for agent-driven work.
+
+- [SDD manual](./sdd/README.md): authority hierarchy, lifecycle and repository conventions.
+- [Spec registry](./sdd/spec-registry.md): canonical and historical documents.
+- [Traceability matrix](./sdd/traceability-matrix.md): requirements to tasks, code, tests and
+  evidence.
+- [Spec template](./sdd/spec-template.md): product and contract requirements.
+- [ADR template](./architecture/adr/ADR-TEMPLATE.md): durable technical decisions.
+- [Agent workflow](./sdd/agent-workflow.md): execution and handoff protocol.
+- [Definition of Ready/Done](./sdd/definition-of-ready-done.md): task quality bar.
+- [v1 product brief](./specs/product/v1-product-brief.md): approved product baseline.
+
+The roadmap defines order. GitHub/Trello tracks execution. A new phase must create or update an
+approved spec before implementation cards are created.
+
 ---
 
 The checked-in OpenAPI snapshot is validated locally; builds do not download it from the network.

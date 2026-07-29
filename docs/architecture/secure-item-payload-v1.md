@@ -1,5 +1,9 @@
 # SecureItem Payload v1 (Client Contract)
 
+| Spec ID                       | Status     | Owner   | Last reviewed | Supersedes | Related ADRs |
+|-------------------------------|------------|---------|---------------|------------|--------------|
+| `SPEC-SECURE-ITEM-PAYLOAD-V1` | `APPROVED` | `vault` | `2026-07-29`  | `N/A`      | `N/A`        |
+
 Estado: `canonical`  
 Version: `v1`
 

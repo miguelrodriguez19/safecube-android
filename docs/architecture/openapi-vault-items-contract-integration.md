@@ -1,5 +1,9 @@
 # OpenAPI Vault Items Contract Integration Strategy
 
+| Spec ID                    | Status     | Owner           | Last reviewed | Supersedes | Related ADRs |
+|----------------------------|------------|-----------------|---------------|------------|--------------|
+| `SPEC-OPENAPI-VAULT-ITEMS` | `APPROVED` | `network/vault` | `2026-07-29`  | `N/A`      | `N/A`        |
+
 - Status: Accepted
 - Date: 2026-07-28
 - Scope: `core:network`, `core:vault`
