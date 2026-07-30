@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -317,12 +318,30 @@ private fun VaultSyncFeedback(
     val syncResult = uiState.lastSyncResult
     val message = when {
         uiState.isSyncing -> stringResource(UiR.string.sync_status_syncing)
-        syncResult is VaultSyncResult.Success -> stringResource(
-            UiR.string.sync_last_result_success,
-            syncResult.uploadedCount,
-            syncResult.downloadedCount,
-            syncResult.conflictCount,
-        )
+        syncResult is VaultSyncResult.Success -> {
+            val uploadedLabel = pluralStringResource(
+                UiR.plurals.sync_uploaded_count,
+                syncResult.uploadedCount,
+                syncResult.uploadedCount,
+            )
+            val downloadedLabel = pluralStringResource(
+                UiR.plurals.sync_downloaded_count,
+                syncResult.downloadedCount,
+                syncResult.downloadedCount,
+            )
+            val conflictLabel = pluralStringResource(
+                UiR.plurals.sync_conflict_count,
+                syncResult.conflictCount,
+                syncResult.conflictCount,
+            )
+
+            stringResource(
+                UiR.string.sync_last_result_success,
+                uploadedLabel,
+                downloadedLabel,
+                conflictLabel,
+            )
+        }
 
         syncResult is VaultSyncResult.Error -> stringResource(
             UiR.string.sync_last_result_error_with_reason,

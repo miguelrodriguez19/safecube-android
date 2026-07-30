@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncState
@@ -21,12 +22,30 @@ internal fun VaultSyncError.asUiLabel(): String = when (this) {
 
 @Composable
 internal fun VaultSyncResult.asUiLabel(): String = when (this) {
-    is VaultSyncResult.Success -> stringResource(
-        UiR.string.sync_last_result_success,
-        uploadedCount,
-        downloadedCount,
-        conflictCount,
-    )
+    is VaultSyncResult.Success -> {
+        val uploadedLabel = pluralStringResource(
+            UiR.plurals.sync_uploaded_count,
+            uploadedCount,
+            uploadedCount,
+        )
+        val downloadedLabel = pluralStringResource(
+            UiR.plurals.sync_downloaded_count,
+            downloadedCount,
+            downloadedCount,
+        )
+        val conflictLabel = pluralStringResource(
+            UiR.plurals.sync_conflict_count,
+            conflictCount,
+            conflictCount,
+        )
+
+        stringResource(
+            UiR.string.sync_last_result_success,
+            uploadedLabel,
+            downloadedLabel,
+            conflictLabel,
+        )
+    }
 
     is VaultSyncResult.Error -> stringResource(
         UiR.string.sync_last_result_error_with_reason,

@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
@@ -7,7 +7,7 @@
     <string name="logout_with_drafts_title">Discard local changes?</string>
     <string name="logout_with_drafts_message">Logging out will permanently delete drafts that have not been published.</string>
     <string name="logout_discard_drafts">Discard and log out</string>
-    <string name="loading">Loading...</string>
+    <string name="loading">Loading…</string>
     <string name="email_label">Email</string>
     <string name="password_label">Password</string>
     <string name="confirm_password_label">Confirm password</string>
@@ -29,19 +29,19 @@
     <string name="auth_error_password_invalid">Invalid password format</string>
     <string name="auth_error_confirm_password_invalid">Invalid confirm password value</string>
     <string name="already_registered">Already registered? Login</string>
-    <string name="creating_account">Creating account...</string>
+    <string name="creating_account">Creating account…</string>
     <string name="created_account">Create account</string>
     <string name="start_your_journey">Start your secure vault journey</string>
     <string name="access_your_vault">Access your vault</string>
-    <string name="logging_in">Logging in...</string>
+    <string name="logging_in">Logging in…</string>
     <string name="login">Login</string>
     <string name="go_to_signup">Go to Signup</string>
     <string name="sync_now_action">Sync now</string>
-    <string name="sync_status_syncing">Syncing...</string>
+    <string name="sync_status_syncing">Syncing…</string>
     <string name="sync_status_pending">Pending sync</string>
     <string name="sync_status_conflict">Conflict</string>
     <string name="sync_status_synced">Synced</string>
-    <string name="sync_last_result_success">Synced: %1$d uploaded, %2$d downloaded, %3$d conflicts</string>
+    <string name="sync_last_result_success">Synced: %1$s, %2$s, %3$s</string>
     <string name="sync_last_result_error_with_reason">Sync failed: %1$s</string>
     <string name="sync_error_invalid_vault_state">Vault is locked or unavailable</string>
     <string name="sync_error_push_failed">Could not upload local changes</string>
@@ -57,5 +57,18 @@
     <string name="draft_action_save_as_new">Save as new</string>
     <string name="draft_action_discard">Discard draft</string>
     <string name="draft_last_sync_error_with_reason">Last draft sync error: %1$s</string>
+
+    <plurals name="sync_uploaded_count">
+        <item quantity="one">%1$d item uploaded</item>
+        <item quantity="other">%1$d items uploaded</item>
+    </plurals>
+    <plurals name="sync_downloaded_count">
+        <item quantity="one">%1$d item downloaded</item>
+        <item quantity="other">%1$d items downloaded</item>
+    </plurals>
+    <plurals name="sync_conflict_count">
+        <item quantity="one">%1$d conflict</item>
+        <item quantity="other">%1$d conflicts</item>
+    </plurals>
 
 </resources>
