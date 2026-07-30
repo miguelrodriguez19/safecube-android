@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 30-07-2026 03:15:46
+Updated: 30-07-2026 07:06:09
 
 ```
 safecube-android/
@@ -775,7 +775,8 @@ safecube-android/
 │   │   ├── agent-reports/
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
-│   │   │   └── SCDK-M94.md
+│   │   │   ├── SCDK-M94.md
+│   │   │   └── SCDK-M95.md
 │   │   ├── agent-report-template.md
 │   │   ├── agent-workflow.md
 │   │   ├── definition-of-ready-done.md

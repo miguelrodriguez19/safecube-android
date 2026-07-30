@@ -38,6 +38,40 @@ Run full verification flow (equivalent to `mvn clean verify`):
 
 This runs tests, lint, generates Kover HTML/XML reports, and enforces Kover thresholds.
 
+## Canonical CI and release gates
+
+The root Gradle tasks below are the canonical commands for local validation and GitHub Actions.
+Their dependency graph lives in `build.gradle.kts`; workflows and documentation must invoke these
+tasks instead of maintaining a second list of checks.
+
+Run the CI gate locally or in a pull request:
+
+```bash
+./gradlew ciVerify
+```
+
+`ciVerify` validates the version, runs the unit-test and Kover coverage gate, runs debug lint,
+executes `VaultSyncOpenApiContractTest`, and assembles `:app:assembleRelease` without requiring
+release-signing secrets. It does not publish an artifact and it does not verify the production
+keystore.
+
+Run the release-code gate before publishing:
+
+```bash
+./gradlew releaseVerify
+```
+
+`releaseVerify` runs `ciVerify` and release lint. It still only validates code and does not publish
+or sign an APK. The protected publication workflow must verify the production signing configuration
+separately, before invoking this gate:
+
+```bash
+./gradlew verifyReleaseSigningConfiguration releaseVerify
+```
+
+`verifyReleaseSigningConfiguration` is intentionally outside `ciVerify`, so pull requests can run
+the CI gate without access to the release keystore or its credentials.
+
 If you want a Maven-like verify flow focused on unit tests + coverage only:
 
 ```bash

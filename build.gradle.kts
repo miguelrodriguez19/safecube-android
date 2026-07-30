@@ -15,6 +15,18 @@ plugins {
 }
 
 val appVersion = AppVersionParser.fromFile(rootProject.file("version.properties"))
+val androidModules = listOf(
+    ":app",
+    ":core:auth",
+    ":core:crypto",
+    ":core:network",
+    ":core:storage",
+    ":core:ui",
+    ":core:vault",
+    ":feature:auth",
+    ":feature:profile",
+    ":feature:vault",
+)
 
 dependencies {
     kover(project(":core:auth"))
@@ -101,4 +113,33 @@ tasks.register("verifyReleaseSigningConfiguration") {
             File(keystorePath).isFile
         }
     }
+}
+
+tasks.register("lintDebug") {
+    group = "verification"
+    description = "Runs debug lint for every Android module."
+    dependsOn(androidModules.map { "$it:lintDebug" })
+}
+
+tasks.register("lintRelease") {
+    group = "verification"
+    description = "Runs release lint for every Android module."
+    dependsOn(androidModules.map { "$it:lintRelease" })
+}
+
+tasks.register("ciVerify") {
+    group = "verification"
+    description = "Runs the canonical CI quality gates without release secrets."
+    dependsOn(
+        "validateVersion",
+        "verifyCoverage",
+        "lintDebug",
+        ":app:assembleRelease",
+    )
+}
+
+tasks.register("releaseVerify") {
+    group = "verification"
+    description = "Runs CI gates and release lint without publishing or signing."
+    dependsOn("ciVerify", "lintRelease")
 }
