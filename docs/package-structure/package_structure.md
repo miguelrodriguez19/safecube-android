@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 30-07-2026 02:15:10
+Updated: 30-07-2026 11:58:37
 
 ```
 safecube-android/
@@ -82,7 +82,9 @@ safecube-android/
 │   │   │   ├── main/
 │   │   │   │   ├── com/miguelrodriguez19/safecube/buildlogic/
 │   │   │   │   │   ├── AppVersion.class
-│   │   │   │   │   └── AppVersionParser.class
+│   │   │   │   │   ├── AppVersionParser.class
+│   │   │   │   │   ├── ReleaseSigningConfig.class
+│   │   │   │   │   └── ReleaseSigningCredentials.class
 │   │   │   │   └── META-INF/
 │   │   │   │       └── buildSrc.kotlin_module
 │   │   │   └── test/
@@ -91,7 +93,11 @@ safecube-android/
 │   │   │       │   ├── AppVersionTest$rejects an empty property$exception$1.class
 │   │   │       │   ├── AppVersionTest$rejects an invalid semver$exception$1.class
 │   │   │       │   ├── AppVersionTest$rejects an invalid version code$exception$1.class
-│   │   │       │   └── AppVersionTest.class
+│   │   │       │   ├── AppVersionTest.class
+│   │   │       │   ├── ReleaseSigningConfigTest$rejects blank values as missing configuration$exception$1.class
+│   │   │       │   ├── ReleaseSigningConfigTest$rejects partial release signing configuration$exception$1.class
+│   │   │       │   ├── ReleaseSigningConfigTest$requires an existing keystore for verification$exception$1.class
+│   │   │       │   └── ReleaseSigningConfigTest.class
 │   │   │       └── META-INF/
 │   │   │           └── buildSrc_test.kotlin_module
 │   │   ├── kotlin/
@@ -163,6 +169,7 @@ safecube-android/
 │   │   │   │   │   │       ├── id-to-file.tab.keystream.len
 │   │   │   │   │   │       ├── id-to-file.tab.len
 │   │   │   │   │   │       ├── id-to-file.tab.values.at
+│   │   │   │   │   │       ├── id-to-file.tab_i
 │   │   │   │   │   │       ├── id-to-file.tab_i.len
 │   │   │   │   │   │       ├── lookups.tab
 │   │   │   │   │   │       ├── lookups.tab.keystream
@@ -255,7 +262,8 @@ safecube-android/
 │   │   ├── pluginUnderTestMetadata/
 │   │   ├── reports/tests/test/
 │   │   │   ├── classes/
-│   │   │   │   └── com.miguelrodriguez19.safecube.buildlogic.AppVersionTest.html
+│   │   │   │   ├── com.miguelrodriguez19.safecube.buildlogic.AppVersionTest.html
+│   │   │   │   └── com.miguelrodriguez19.safecube.buildlogic.ReleaseSigningConfigTest.html
 │   │   │   ├── css/
 │   │   │   │   ├── base-style.css
 │   │   │   │   └── style.css
@@ -269,16 +277,19 @@ safecube-android/
 │   │   │   │   ├── output.bin
 │   │   │   │   ├── output.bin.idx
 │   │   │   │   └── results.bin
-│   │   │   └── TEST-com.miguelrodriguez19.safecube.buildlogic.AppVersionTest.xml
+│   │   │   ├── TEST-com.miguelrodriguez19.safecube.buildlogic.AppVersionTest.xml
+│   │   │   └── TEST-com.miguelrodriguez19.safecube.buildlogic.ReleaseSigningConfigTest.xml
 │   │   └── tmp/
 │   │       ├── jar/
 │   │       │   └── MANIFEST.MF
 │   │       └── test/
 │   ├── src/
 │   │   ├── main/kotlin/com/miguelrodriguez19/safecube/buildlogic/
-│   │   │   └── AppVersion.kt
+│   │   │   ├── AppVersion.kt
+│   │   │   └── ReleaseSigningConfig.kt
 │   │   └── test/kotlin/com/miguelrodriguez19/safecube/buildlogic/
-│   │       └── AppVersionTest.kt
+│   │       ├── AppVersionTest.kt
+│   │       └── ReleaseSigningConfigTest.kt
 │   ├── build.gradle.kts
 │   └── settings.gradle.kts
 ├── core/
@@ -762,7 +773,8 @@ safecube-android/
 │   │   └── roadmap--high-level.md
 │   ├── sdd/
 │   │   ├── agent-reports/
-│   │   │   └── SCDK-M92.md
+│   │   │   ├── SCDK-M92.md
+│   │   │   └── SCDK-M93.md
 │   │   ├── agent-report-template.md
 │   │   ├── agent-workflow.md
 │   │   ├── definition-of-ready-done.md

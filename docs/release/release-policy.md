@@ -2,7 +2,7 @@
 
 | Spec ID               | Status     | Owner     | Last reviewed | Supersedes | Related ADRs |
 |-----------------------|------------|-----------|---------------|------------|--------------|
-| `SPEC-RELEASE-POLICY` | `APPROVED` | `release` | `2026-07-29`  | `N/A`      | `N/A`        |
+| `SPEC-RELEASE-POLICY` | `APPROVED` | `release` | `2026-07-30`  | `N/A`      | `N/A`        |
 
 ## Propósito y estado
 
@@ -38,6 +38,74 @@ Para actualizar la versión:
 
 No se debe actualizar la versión directamente en `app/build.gradle.kts`, ni inferirla desde ramas,
 commits, Git o variables de entorno.
+
+## Firma de releases
+
+Los APK públicos deben utilizar un keystore de release privado y estable. El keystore y sus
+credenciales nunca se versionan ni se incluyen en el repositorio. La configuración de Gradle usa
+exclusivamente estas variables de entorno:
+
+```text
+SAFECUBE_RELEASE_KEYSTORE_PATH
+SAFECUBE_RELEASE_STORE_PASSWORD
+SAFECUBE_RELEASE_KEY_ALIAS
+SAFECUBE_RELEASE_KEY_PASSWORD
+```
+
+Comportamiento obligatorio:
+
+- Sin ninguna variable, `assembleRelease` puede producir un APK release sin firma para CI, pero no
+  es un artefacto publicable.
+- Con una configuración parcial, Gradle falla durante la configuración e indica los nombres de las
+  variables ausentes, sin mostrar valores.
+- Con las cuatro variables y un archivo de keystore existente,
+  `./gradlew verifyReleaseSigningConfiguration` pasa y la variante release utiliza ese keystore.
+- `verifyReleaseSigningConfiguration` falla si falta cualquier variable o si el archivo indicado no
+  existe.
+- La firma debug solo se utiliza para la variante debug; nunca es un fallback de release.
+
+En local, las variables pueden exportarse solo durante la sesión de trabajo:
+
+```bash
+export SAFECUBE_RELEASE_KEYSTORE_PATH="/ruta/privada/safecube-release.jks"
+export SAFECUBE_RELEASE_STORE_PASSWORD="<valor-no-versionado>"
+export SAFECUBE_RELEASE_KEY_ALIAS="<alias-no-versionado>"
+export SAFECUBE_RELEASE_KEY_PASSWORD="<valor-no-versionado>"
+./gradlew verifyReleaseSigningConfiguration
+./gradlew :app:assembleRelease
+```
+
+En GitHub, el workflow protegido de release debe proporcionar esos cuatro nombres como secrets del
+Environment de release. Los pull requests y los workflows de CI no reciben esos secrets.
+
+### Generación, backup y rotación
+
+El keystore se genera fuera del repositorio, en una máquina controlada por el maintainer. El
+comando debe ejecutarse de forma interactiva para no dejar credenciales en el historial del shell:
+
+```bash
+keytool -genkeypair -v \
+  -keystore safecube-release.jks \
+  -alias <alias-de-release> \
+  -keyalg RSA \
+  -keysize 4096 \
+  -validity <dias-de-validez>
+```
+
+Después de generarlo:
+
+1. Verificar la identidad y el fingerprint del certificado con `keytool -list -v`.
+2. Guardar el keystore en al menos dos backups cifrados e independientes.
+3. Custodiar las credenciales fuera de Git y cargarlas únicamente como secrets protegidos del
+   Environment de release.
+4. Probar la restauración de un backup sin publicar ningún APK.
+
+La rotación debe planificarse antes de que expire el certificado o si existe sospecha de exposición.
+La nueva clave se genera y respalda con el mismo procedimiento, se actualizan los cuatro secrets y
+se valida con `verifyReleaseSigningConfiguration`. Si la identidad de firma cambia, los APK
+existentes pueden no aceptar una actualización directa; la release nueva debe documentar la
+acción requerida para el usuario. Nunca se sustituye un APK publicado ni se versiona la clave
+anterior.
 
 ## Canal y audiencia de distribución
 
@@ -264,6 +332,7 @@ Una retirada no autoriza a reutilizar la versión afectada ni a disminuir el `ve
 | Canal v1        | GitHub Releases, beta abierta                         |
 | Google Play     | Fuera de alcance inicial                              |
 | APIs soportadas | Android API 30-36                                     |
+| Firma pública   | Keystore privado mediante secrets de release          |
 
 ## Fuera de alcance de esta política
 

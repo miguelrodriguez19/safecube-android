@@ -1,5 +1,7 @@
 import com.miguelrodriguez19.safecube.buildlogic.AppVersionParser
+import com.miguelrodriguez19.safecube.buildlogic.ReleaseSigningConfig
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
+import java.io.File
 
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -88,5 +90,15 @@ tasks.register("validateVersion") {
     doLast {
         println("versionName=${appVersion.versionName}")
         println("versionCode=${appVersion.versionCode}")
+    }
+}
+
+tasks.register("verifyReleaseSigningConfiguration") {
+    group = "verification"
+    description = "Verifies the release signing environment and keystore file."
+    doLast {
+        ReleaseSigningConfig.requireValid(System.getenv()) { keystorePath ->
+            File(keystorePath).isFile
+        }
     }
 }

@@ -1,4 +1,5 @@
 import com.miguelrodriguez19.safecube.buildlogic.AppVersionParser
+import com.miguelrodriguez19.safecube.buildlogic.ReleaseSigningConfig
 
 plugins {
     alias(libs.plugins.android.application)
@@ -9,6 +10,7 @@ plugins {
 }
 
 val appVersion = AppVersionParser.fromFile(rootProject.file("version.properties"))
+val releaseSigningCredentials = ReleaseSigningConfig.resolve(System.getenv())
 
 android {
     namespace = "com.miguelrodriguez19.safecube"
@@ -29,18 +31,21 @@ android {
     signingConfigs {
         getByName("debug")
 
-        // TODO("When we go into production, we will have to create a keystore. Instead of using the debug one.")
-        create("release") {
-            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+        releaseSigningCredentials?.let { credentials ->
+            create("release") {
+                storeFile = file(credentials.keystorePath)
+                storePassword = credentials.storePassword
+                keyAlias = credentials.keyAlias
+                keyPassword = credentials.keyPassword
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (releaseSigningCredentials != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
 
             isMinifyEnabled = true
             isShrinkResources = true
