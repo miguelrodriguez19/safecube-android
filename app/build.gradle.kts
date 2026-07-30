@@ -1,3 +1,5 @@
+import com.miguelrodriguez19.safecube.buildlogic.AppVersionParser
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.serialization)
@@ -5,6 +7,8 @@ plugins {
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.hilt.android)
 }
+
+val appVersion = AppVersionParser.fromFile(rootProject.file("version.properties"))
 
 android {
     namespace = "com.miguelrodriguez19.safecube"
@@ -16,8 +20,8 @@ android {
         applicationId = "com.miguelrodriguez19.safecube"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersion.versionCode
+        versionName = appVersion.versionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

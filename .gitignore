@@ -5,6 +5,7 @@ build/
 # Local configuration file (sdk path, etc)
 local.properties
 *.properties
+!version.properties
 
 # Log/OS Files
 *.log
@@ -41,3 +42,6 @@ google-services.json
 # Tooling build
 /.build/com/safecube/tooling/
 /scripts/.build/com/safecube/tooling/
+
+# SDD
+docs/sdd/agent-reports/

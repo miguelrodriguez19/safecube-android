@@ -57,6 +57,7 @@ docs/
     task-template.md
     agent-workflow.md
     agent-report-template.md
+    agent-reports/
     definition-of-ready-done.md
     traceability-matrix.md
   specs/

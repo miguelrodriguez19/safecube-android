@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 30-07-2026 01:33:08
+Updated: 30-07-2026 02:15:10
 
 ```
 safecube-android/
@@ -76,6 +76,211 @@ safecube-android/
 │   ├── .gitignore
 │   ├── build.gradle.kts
 │   └── proguard-rules.pro
+├── buildSrc/
+│   ├── build/
+│   │   ├── classes/kotlin/
+│   │   │   ├── main/
+│   │   │   │   ├── com/miguelrodriguez19/safecube/buildlogic/
+│   │   │   │   │   ├── AppVersion.class
+│   │   │   │   │   └── AppVersionParser.class
+│   │   │   │   └── META-INF/
+│   │   │   │       └── buildSrc.kotlin_module
+│   │   │   └── test/
+│   │   │       ├── com/miguelrodriguez19/safecube/buildlogic/
+│   │   │       │   ├── AppVersionTest$rejects a missing property$exception$1.class
+│   │   │       │   ├── AppVersionTest$rejects an empty property$exception$1.class
+│   │   │       │   ├── AppVersionTest$rejects an invalid semver$exception$1.class
+│   │   │       │   ├── AppVersionTest$rejects an invalid version code$exception$1.class
+│   │   │       │   └── AppVersionTest.class
+│   │   │       └── META-INF/
+│   │   │           └── buildSrc_test.kotlin_module
+│   │   ├── kotlin/
+│   │   │   ├── compileKotlin/
+│   │   │   │   ├── cacheable/
+│   │   │   │   │   ├── caches-jvm/
+│   │   │   │   │   │   ├── inputs/
+│   │   │   │   │   │   │   ├── source-to-output.tab
+│   │   │   │   │   │   │   ├── source-to-output.tab.keystream
+│   │   │   │   │   │   │   ├── source-to-output.tab.keystream.len
+│   │   │   │   │   │   │   ├── source-to-output.tab.len
+│   │   │   │   │   │   │   ├── source-to-output.tab.values.at
+│   │   │   │   │   │   │   ├── source-to-output.tab_i
+│   │   │   │   │   │   │   └── source-to-output.tab_i.len
+│   │   │   │   │   │   ├── jvm/kotlin/
+│   │   │   │   │   │   │   ├── class-attributes.tab
+│   │   │   │   │   │   │   ├── class-attributes.tab.keystream
+│   │   │   │   │   │   │   ├── class-attributes.tab.keystream.len
+│   │   │   │   │   │   │   ├── class-attributes.tab.len
+│   │   │   │   │   │   │   ├── class-attributes.tab.values.at
+│   │   │   │   │   │   │   ├── class-attributes.tab_i
+│   │   │   │   │   │   │   ├── class-attributes.tab_i.len
+│   │   │   │   │   │   │   ├── class-fq-name-to-source.tab
+│   │   │   │   │   │   │   ├── class-fq-name-to-source.tab.keystream
+│   │   │   │   │   │   │   ├── class-fq-name-to-source.tab.keystream.len
+│   │   │   │   │   │   │   ├── class-fq-name-to-source.tab.len
+│   │   │   │   │   │   │   ├── class-fq-name-to-source.tab.values.at
+│   │   │   │   │   │   │   ├── class-fq-name-to-source.tab_i
+│   │   │   │   │   │   │   ├── class-fq-name-to-source.tab_i.len
+│   │   │   │   │   │   │   ├── constants.tab
+│   │   │   │   │   │   │   ├── constants.tab.keystream
+│   │   │   │   │   │   │   ├── constants.tab.keystream.len
+│   │   │   │   │   │   │   ├── constants.tab.len
+│   │   │   │   │   │   │   ├── constants.tab.values.at
+│   │   │   │   │   │   │   ├── constants.tab_i
+│   │   │   │   │   │   │   ├── constants.tab_i.len
+│   │   │   │   │   │   │   ├── internal-name-to-source.tab
+│   │   │   │   │   │   │   ├── internal-name-to-source.tab.keystream
+│   │   │   │   │   │   │   ├── internal-name-to-source.tab.keystream.len
+│   │   │   │   │   │   │   ├── internal-name-to-source.tab.len
+│   │   │   │   │   │   │   ├── internal-name-to-source.tab.values.at
+│   │   │   │   │   │   │   ├── internal-name-to-source.tab_i
+│   │   │   │   │   │   │   ├── internal-name-to-source.tab_i.len
+│   │   │   │   │   │   │   ├── proto.tab
+│   │   │   │   │   │   │   ├── proto.tab.keystream
+│   │   │   │   │   │   │   ├── proto.tab.keystream.len
+│   │   │   │   │   │   │   ├── proto.tab.len
+│   │   │   │   │   │   │   ├── proto.tab.values.at
+│   │   │   │   │   │   │   ├── proto.tab_i
+│   │   │   │   │   │   │   ├── proto.tab_i.len
+│   │   │   │   │   │   │   ├── source-to-classes.tab
+│   │   │   │   │   │   │   ├── source-to-classes.tab.keystream
+│   │   │   │   │   │   │   ├── source-to-classes.tab.keystream.len
+│   │   │   │   │   │   │   ├── source-to-classes.tab.len
+│   │   │   │   │   │   │   ├── source-to-classes.tab.values.at
+│   │   │   │   │   │   │   ├── source-to-classes.tab_i
+│   │   │   │   │   │   │   └── source-to-classes.tab_i.len
+│   │   │   │   │   │   └── lookups/
+│   │   │   │   │   │       ├── counters.tab
+│   │   │   │   │   │       ├── file-to-id.tab
+│   │   │   │   │   │       ├── file-to-id.tab.keystream
+│   │   │   │   │   │       ├── file-to-id.tab.keystream.len
+│   │   │   │   │   │       ├── file-to-id.tab.len
+│   │   │   │   │   │       ├── file-to-id.tab.values.at
+│   │   │   │   │   │       ├── file-to-id.tab_i
+│   │   │   │   │   │       ├── file-to-id.tab_i.len
+│   │   │   │   │   │       ├── id-to-file.tab
+│   │   │   │   │   │       ├── id-to-file.tab.keystream
+│   │   │   │   │   │       ├── id-to-file.tab.keystream.len
+│   │   │   │   │   │       ├── id-to-file.tab.len
+│   │   │   │   │   │       ├── id-to-file.tab.values.at
+│   │   │   │   │   │       ├── id-to-file.tab_i.len
+│   │   │   │   │   │       ├── lookups.tab
+│   │   │   │   │   │       ├── lookups.tab.keystream
+│   │   │   │   │   │       ├── lookups.tab.keystream.len
+│   │   │   │   │   │       ├── lookups.tab.len
+│   │   │   │   │   │       ├── lookups.tab.values.at
+│   │   │   │   │   │       ├── lookups.tab_i
+│   │   │   │   │   │       └── lookups.tab_i.len
+│   │   │   │   │   └── last-build.bin
+│   │   │   │   ├── classpath-snapshot/
+│   │   │   │   │   └── shrunk-classpath-snapshot.bin
+│   │   │   │   └── local-state/
+│   │   │   └── compileTestKotlin/
+│   │   │       ├── cacheable/
+│   │   │       │   ├── caches-jvm/
+│   │   │       │   │   ├── inputs/
+│   │   │       │   │   │   ├── source-to-output.tab
+│   │   │       │   │   │   ├── source-to-output.tab.keystream
+│   │   │       │   │   │   ├── source-to-output.tab.keystream.len
+│   │   │       │   │   │   ├── source-to-output.tab.len
+│   │   │       │   │   │   ├── source-to-output.tab.values.at
+│   │   │       │   │   │   ├── source-to-output.tab_i
+│   │   │       │   │   │   └── source-to-output.tab_i.len
+│   │   │       │   │   ├── jvm/kotlin/
+│   │   │       │   │   │   ├── class-attributes.tab
+│   │   │       │   │   │   ├── class-attributes.tab.keystream
+│   │   │       │   │   │   ├── class-attributes.tab.keystream.len
+│   │   │       │   │   │   ├── class-attributes.tab.len
+│   │   │       │   │   │   ├── class-attributes.tab.values.at
+│   │   │       │   │   │   ├── class-attributes.tab_i
+│   │   │       │   │   │   ├── class-attributes.tab_i.len
+│   │   │       │   │   │   ├── class-fq-name-to-source.tab
+│   │   │       │   │   │   ├── class-fq-name-to-source.tab.keystream
+│   │   │       │   │   │   ├── class-fq-name-to-source.tab.keystream.len
+│   │   │       │   │   │   ├── class-fq-name-to-source.tab.len
+│   │   │       │   │   │   ├── class-fq-name-to-source.tab.values.at
+│   │   │       │   │   │   ├── class-fq-name-to-source.tab_i
+│   │   │       │   │   │   ├── class-fq-name-to-source.tab_i.len
+│   │   │       │   │   │   ├── internal-name-to-source.tab
+│   │   │       │   │   │   ├── internal-name-to-source.tab.keystream
+│   │   │       │   │   │   ├── internal-name-to-source.tab.keystream.len
+│   │   │       │   │   │   ├── internal-name-to-source.tab.len
+│   │   │       │   │   │   ├── internal-name-to-source.tab.values.at
+│   │   │       │   │   │   ├── internal-name-to-source.tab_i
+│   │   │       │   │   │   ├── internal-name-to-source.tab_i.len
+│   │   │       │   │   │   ├── proto.tab
+│   │   │       │   │   │   ├── proto.tab.keystream
+│   │   │       │   │   │   ├── proto.tab.keystream.len
+│   │   │       │   │   │   ├── proto.tab.len
+│   │   │       │   │   │   ├── proto.tab.values.at
+│   │   │       │   │   │   ├── proto.tab_i
+│   │   │       │   │   │   ├── proto.tab_i.len
+│   │   │       │   │   │   ├── source-to-classes.tab
+│   │   │       │   │   │   ├── source-to-classes.tab.keystream
+│   │   │       │   │   │   ├── source-to-classes.tab.keystream.len
+│   │   │       │   │   │   ├── source-to-classes.tab.len
+│   │   │       │   │   │   ├── source-to-classes.tab.values.at
+│   │   │       │   │   │   ├── source-to-classes.tab_i
+│   │   │       │   │   │   └── source-to-classes.tab_i.len
+│   │   │       │   │   └── lookups/
+│   │   │       │   │       ├── counters.tab
+│   │   │       │   │       ├── file-to-id.tab
+│   │   │       │   │       ├── file-to-id.tab.keystream
+│   │   │       │   │       ├── file-to-id.tab.keystream.len
+│   │   │       │   │       ├── file-to-id.tab.len
+│   │   │       │   │       ├── file-to-id.tab.values.at
+│   │   │       │   │       ├── file-to-id.tab_i
+│   │   │       │   │       ├── file-to-id.tab_i.len
+│   │   │       │   │       ├── id-to-file.tab
+│   │   │       │   │       ├── id-to-file.tab.keystream
+│   │   │       │   │       ├── id-to-file.tab.keystream.len
+│   │   │       │   │       ├── id-to-file.tab.len
+│   │   │       │   │       ├── id-to-file.tab.values.at
+│   │   │       │   │       ├── id-to-file.tab_i
+│   │   │       │   │       ├── id-to-file.tab_i.len
+│   │   │       │   │       ├── lookups.tab
+│   │   │       │   │       ├── lookups.tab.keystream
+│   │   │       │   │       ├── lookups.tab.keystream.len
+│   │   │       │   │       ├── lookups.tab.len
+│   │   │       │   │       ├── lookups.tab.values.at
+│   │   │       │   │       ├── lookups.tab_i
+│   │   │       │   │       └── lookups.tab_i.len
+│   │   │       │   └── last-build.bin
+│   │   │       ├── classpath-snapshot/
+│   │   │       │   └── shrunk-classpath-snapshot.bin
+│   │   │       └── local-state/
+│   │   ├── libs/
+│   │   │   └── buildSrc.jar
+│   │   ├── pluginDescriptors/
+│   │   ├── pluginUnderTestMetadata/
+│   │   ├── reports/tests/test/
+│   │   │   ├── classes/
+│   │   │   │   └── com.miguelrodriguez19.safecube.buildlogic.AppVersionTest.html
+│   │   │   ├── css/
+│   │   │   │   ├── base-style.css
+│   │   │   │   └── style.css
+│   │   │   ├── js/
+│   │   │   │   └── report.js
+│   │   │   ├── packages/
+│   │   │   │   └── com.miguelrodriguez19.safecube.buildlogic.html
+│   │   │   └── index.html
+│   │   ├── test-results/test/
+│   │   │   ├── binary/
+│   │   │   │   ├── output.bin
+│   │   │   │   ├── output.bin.idx
+│   │   │   │   └── results.bin
+│   │   │   └── TEST-com.miguelrodriguez19.safecube.buildlogic.AppVersionTest.xml
+│   │   └── tmp/
+│   │       ├── jar/
+│   │       │   └── MANIFEST.MF
+│   │       └── test/
+│   ├── src/
+│   │   ├── main/kotlin/com/miguelrodriguez19/safecube/buildlogic/
+│   │   │   └── AppVersion.kt
+│   │   └── test/kotlin/com/miguelrodriguez19/safecube/buildlogic/
+│   │       └── AppVersionTest.kt
+│   ├── build.gradle.kts
+│   └── settings.gradle.kts
 ├── core/
 │   ├── auth/
 │   │   ├── src/
@@ -556,6 +761,8 @@ safecube-android/
 │   │   ├── roadmap--fase-6.md
 │   │   └── roadmap--high-level.md
 │   ├── sdd/
+│   │   ├── agent-reports/
+│   │   │   └── SCDK-M92.md
 │   │   ├── agent-report-template.md
 │   │   ├── agent-workflow.md
 │   │   ├── definition-of-ready-done.md
@@ -726,5 +933,5 @@ safecube-android/
 ├── gradlew
 ├── gradlew.bat
 ├── LICENSE
-└── settings.gradle.kts
+├── settings.gradle.kts
 ```

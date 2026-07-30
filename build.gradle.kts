@@ -1,3 +1,4 @@
+import com.miguelrodriguez19.safecube.buildlogic.AppVersionParser
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 
 plugins {
@@ -10,6 +11,8 @@ plugins {
     alias(libs.plugins.openapi.generator) apply false
     alias(libs.plugins.kotlinx.kover)
 }
+
+val appVersion = AppVersionParser.fromFile(rootProject.file("version.properties"))
 
 dependencies {
     kover(project(":core:auth"))
@@ -77,4 +80,13 @@ tasks.register("verifyCoverage") {
         "koverXmlReport",
         "koverVerify"
     )
+}
+
+tasks.register("validateVersion") {
+    group = "verification"
+    description = "Validates and prints the Android application version."
+    doLast {
+        println("versionName=${appVersion.versionName}")
+        println("versionCode=${appVersion.versionCode}")
+    }
 }

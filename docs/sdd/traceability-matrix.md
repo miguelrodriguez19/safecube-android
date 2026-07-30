@@ -17,7 +17,7 @@ notas. Un gap no se oculta: se registra y genera una tarea posterior.
 | `SPEC-AUTH-CONTRACT`          | `FR-AUTH-001`     | `PENDING`   | `core/auth`, `core/network`  | Auth integration tests | `GAP`         | Crear task con ID real de Trello              |
 | `SPEC-STORAGE`                | `NFR-STORAGE-001` | `PENDING`   | `core/storage`               | Room/migration tests   | `GAP`         | Crear task con ID real de Trello              |
 | `SPEC-TESTING`                | `NFR-QUALITY-001` | `PENDING`   | Gradle/Kover/tests           | `verifyCoverage`       | `GAP`         | Lint/instrumented gates pendientes            |
-| `SPEC-RELEASE-POLICY`         | `NFR-RELEASE-001` | `SCDK-M91`  | `docs/release`               | Document review        | `VERIFIED`    | Tarea documental                              |
+| `SPEC-RELEASE-POLICY`         | `NFR-RELEASE-001` | `SCDK-M91`, `SCDK-M92` | `version.properties`, `buildSrc/src/main/kotlin/com/miguelrodriguez19/safecube/buildlogic/AppVersion.kt`, `app/build.gradle.kts`, `docs/release` | `AppVersionTest`, `validateVersion`, `:app:assembleDebug` | `VERIFIED` | Fuente única y validación verificadas |
 | `SPEC-PRODUCT-V1`             | `OBJ-V1-001`      | `SCDK-M91`  | `docs/specs/product`         | Product brief review   | `VERIFIED`    | Baseline documental; feature specs pendientes |
 
 ## Reglas de mantenimiento
