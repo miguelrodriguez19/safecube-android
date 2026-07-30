@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 30-07-2026 07:06:09
+Updated: 30-07-2026 07:33:33
 
 ```
 safecube-android/
@@ -12,8 +12,7 @@ safecube-android/
 ├── app/
 │   ├── src/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
-│   │   │   ├── ExampleInstrumentedTest.kt
-│   │   │   └── MainActivityComposeTest.kt
+│   │   │   └── MainActivitySmokeTest.kt
 │   │   ├── main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/
 │   │   │   │   ├── entrypoint/
@@ -776,7 +775,8 @@ safecube-android/
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
-│   │   │   └── SCDK-M95.md
+│   │   │   ├── SCDK-M95.md
+│   │   │   └── SCDK-M96.md
 │   │   ├── agent-report-template.md
 │   │   ├── agent-workflow.md
 │   │   ├── definition-of-ready-done.md
@@ -824,8 +824,9 @@ safecube-android/
 │   │   │   │   │   │   │   └── SignupScreen.kt
 │   │   │   │   │   │   └── viewmodel/
 │   │   │   │   │   │       └── SignupViewModel.kt
-│   │   │   │   │   └── welcome/ui/
-│   │   │   │   │       └── WelcomeScreen.kt
+│   │   │   │   │   ├── welcome/ui/
+│   │   │   │   │   │   └── WelcomeScreen.kt
+│   │   │   │   │   └── AuthTestTags.kt
 │   │   │   │   └── screens/
 │   │   │   ├── res/values/
 │   │   │   └── AndroidManifest.xml

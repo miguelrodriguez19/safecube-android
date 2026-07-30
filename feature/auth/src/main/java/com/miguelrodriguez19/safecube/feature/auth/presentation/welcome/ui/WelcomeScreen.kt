@@ -12,7 +12,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.miguelrodriguez19.safecube.feature.auth.presentation.AuthTestTags
 
 @Composable
 fun WelcomeScreen(
@@ -20,6 +22,7 @@ fun WelcomeScreen(
     onSignup: () -> Unit,
 ) {
     Scaffold(
+        modifier = Modifier.testTag(AuthTestTags.WELCOME_SCREEN),
         topBar = {
             Surface(shadowElevation = 2.dp) {
                 Text(
@@ -45,7 +48,12 @@ fun WelcomeScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
             )
-            Button(onClick = onLogin, modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = onLogin,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(AuthTestTags.WELCOME_LOGIN_ACTION),
+            ) {
                 Text("Login")
             }
             OutlinedButton(

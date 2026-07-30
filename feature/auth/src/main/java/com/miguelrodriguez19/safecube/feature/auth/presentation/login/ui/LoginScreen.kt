@@ -16,10 +16,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R
+import com.miguelrodriguez19.safecube.feature.auth.presentation.AuthTestTags
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.action.LoginUiAction
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.event.LoginUiEvent
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.state.LoginUiState
@@ -54,7 +56,7 @@ private fun LoginContent(
     onAction: (LoginUiAction) -> Unit,
     onSignup: () -> Unit,
 ) {
-    Scaffold { paddingValues ->
+    Scaffold(modifier = Modifier.testTag(AuthTestTags.LOGIN_SCREEN)) { paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)

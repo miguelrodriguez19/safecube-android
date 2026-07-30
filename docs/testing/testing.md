@@ -119,19 +119,21 @@ Coverage baseline snapshot (March 7, 2026):
 
 ## Instrumented tests (device/emulator)
 
-Run all connected Android tests:
+Run the SafeCube smoke suite on a connected API 30 emulator:
 
 ```bash
-./gradlew connectedAndroidTest
+./gradlew :app:connectedDebugAndroidTest
 ```
 
 Requirements:
-- Android emulator running or physical device connected.
-- USB debugging enabled for physical devices.
+
+- An API 30 emulator must be running and visible through `adb devices`.
+- The suite uses Android Test Orchestrator and clears application data between tests.
+- The smoke tests start `MainActivity`, assert Welcome, and navigate to Login without submitting
+  credentials or contacting the backend.
 
 ## Current baseline
 
 - `app/src/test/.../ExampleUnitTest.kt` provides a JVM smoke test.
-- `app/src/androidTest/.../ExampleInstrumentedTest.kt` validates app context.
-- `app/src/androidTest/.../MainActivityComposeTest.kt` validates Compose UI rendering.
+- `app/src/androidTest/.../MainActivitySmokeTest.kt` validates real startup and Welcome → Login navigation on API 30.
 - `core/network/src/test/.../NetworkClientFactoryTest.kt` validates HTTP layer with `MockWebServer`.
