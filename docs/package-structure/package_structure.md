@@ -1,11 +1,13 @@
 # Package Structure
-Updated: 30-07-2026 07:33:33
+Updated: 31-07-2026 12:53:12
 
 ```
 safecube-android/
 ├── .build/com/safecube/tooling/
 │   ├── FolderTreeToFile.class
 │   └── Logger.class
+├── .github/workflows/
+│   └── ci.yml
 ├── .run/
 │   ├── run-folder-tree.run.xml
 │   └── verifyCoverage.run.xml
@@ -507,18 +509,20 @@ safecube-android/
 │   │   │   │   │   ├── StorageMigrations.kt
 │   │   │   │   │   └── StorageTypeConverters.kt
 │   │   │   │   └── AndroidManifest.xml
-│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/storage/
-│   │   │       ├── local/
-│   │   │       │   ├── SecureItemDraftEntityMapperTest.kt
-│   │   │       │   ├── SecureItemDraftLocalStorageTest.kt
-│   │   │       │   ├── SecureItemLocalStorageTest.kt
-│   │   │       │   └── SecureItemOfficializationIntegrationTest.kt
-│   │   │       ├── SecureItemDaoIntegrationTest.kt
-│   │   │       ├── SecureItemDraftDaoIntegrationTest.kt
-│   │   │       ├── SecureItemDraftTypeDbTest.kt
-│   │   │       ├── SecureItemSyncCheckpointDaoIntegrationTest.kt
-│   │   │       ├── StorageMigrationsIntegrationTest.kt
-│   │   │       └── StorageTypeConvertersTest.kt
+│   │   │   └── test/
+│   │   │       ├── java/com/miguelrodriguez19/safecube/core/storage/
+│   │   │       │   ├── local/
+│   │   │       │   │   ├── SecureItemDraftEntityMapperTest.kt
+│   │   │       │   │   ├── SecureItemDraftLocalStorageTest.kt
+│   │   │       │   │   ├── SecureItemLocalStorageTest.kt
+│   │   │       │   │   └── SecureItemOfficializationIntegrationTest.kt
+│   │   │       │   ├── SecureItemDaoIntegrationTest.kt
+│   │   │       │   ├── SecureItemDraftDaoIntegrationTest.kt
+│   │   │       │   ├── SecureItemDraftTypeDbTest.kt
+│   │   │       │   ├── SecureItemSyncCheckpointDaoIntegrationTest.kt
+│   │   │       │   ├── StorageMigrationsIntegrationTest.kt
+│   │   │       │   └── StorageTypeConvertersTest.kt
+│   │   │       └── resources/
 │   │   └── build.gradle.kts
 │   ├── ui/
 │   │   ├── src/main/
@@ -776,7 +780,8 @@ safecube-android/
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
 │   │   │   ├── SCDK-M95.md
-│   │   │   └── SCDK-M96.md
+│   │   │   ├── SCDK-M96.md
+│   │   │   └── SCDK-M97.md
 │   │   ├── agent-report-template.md
 │   │   ├── agent-workflow.md
 │   │   ├── definition-of-ready-done.md

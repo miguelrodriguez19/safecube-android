@@ -19,7 +19,7 @@ Esta fase no publica todavía `v1.0.0`. Deja preparado y validado el mecanismo q
 - Los pull requests nunca reciben secretos de firma y validan una release sin firmar.
 - Solo el workflow protegido de release puede construir el APK firmado.
 - La publicación nunca reutiliza ni sobrescribe una versión existente.
-- JDK 17 es el runtime de CI para Gradle y Android Gradle Plugin.
+- JDK 21 es el runtime de CI para Gradle y Android Gradle Plugin.
 - Los actions de terceros se fijan por SHA completo y Dependabot mantiene esas referencias.
 - El camino crítico termina en la tarea 14.
 - Las tareas 15 y 16 son mejoras opcionales y no bloquean la fase.
@@ -422,7 +422,7 @@ ser seguro para pull requests externos propios de una beta abierta.
   - `pull_request`;
   - push a `main`;
   - `workflow_dispatch`.
-- Usar Ubuntu y JDK 17 Temurin.
+- Usar Ubuntu y JDK 21 Temurin.
 - Configurar Gradle mediante `gradle/actions/setup-gradle`.
 - Ejecutar `./gradlew --no-daemon ciVerify`.
 - Conceder únicamente `contents: read`.
