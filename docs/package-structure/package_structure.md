@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 31-07-2026 12:07:54
+Updated: 31-07-2026 12:53:12
 
 ```
 safecube-android/
@@ -509,18 +509,20 @@ safecube-android/
 │   │   │   │   │   ├── StorageMigrations.kt
 │   │   │   │   │   └── StorageTypeConverters.kt
 │   │   │   │   └── AndroidManifest.xml
-│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/storage/
-│   │   │       ├── local/
-│   │   │       │   ├── SecureItemDraftEntityMapperTest.kt
-│   │   │       │   ├── SecureItemDraftLocalStorageTest.kt
-│   │   │       │   ├── SecureItemLocalStorageTest.kt
-│   │   │       │   └── SecureItemOfficializationIntegrationTest.kt
-│   │   │       ├── SecureItemDaoIntegrationTest.kt
-│   │   │       ├── SecureItemDraftDaoIntegrationTest.kt
-│   │   │       ├── SecureItemDraftTypeDbTest.kt
-│   │   │       ├── SecureItemSyncCheckpointDaoIntegrationTest.kt
-│   │   │       ├── StorageMigrationsIntegrationTest.kt
-│   │   │       └── StorageTypeConvertersTest.kt
+│   │   │   └── test/
+│   │   │       ├── java/com/miguelrodriguez19/safecube/core/storage/
+│   │   │       │   ├── local/
+│   │   │       │   │   ├── SecureItemDraftEntityMapperTest.kt
+│   │   │       │   │   ├── SecureItemDraftLocalStorageTest.kt
+│   │   │       │   │   ├── SecureItemLocalStorageTest.kt
+│   │   │       │   │   └── SecureItemOfficializationIntegrationTest.kt
+│   │   │       │   ├── SecureItemDaoIntegrationTest.kt
+│   │   │       │   ├── SecureItemDraftDaoIntegrationTest.kt
+│   │   │       │   ├── SecureItemDraftTypeDbTest.kt
+│   │   │       │   ├── SecureItemSyncCheckpointDaoIntegrationTest.kt
+│   │   │       │   ├── StorageMigrationsIntegrationTest.kt
+│   │   │       │   └── StorageTypeConvertersTest.kt
+│   │   │       └── resources/
 │   │   └── build.gradle.kts
 │   ├── ui/
 │   │   ├── src/main/

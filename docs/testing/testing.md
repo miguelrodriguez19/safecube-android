@@ -82,7 +82,7 @@ status check exposed by GitHub is:
 CI / verify
 ```
 
-The job runs `./gradlew --no-daemon ciVerify` on Ubuntu with Temurin JDK 17. It declares only
+The job runs `./gradlew --no-daemon ciVerify` on Ubuntu with Temurin JDK 21. It declares only
 `contents: read`, does not consume repository secrets, and is safe for pull requests from forks.
 Newer executions cancel obsolete runs for the same pull request or Git ref.
 
