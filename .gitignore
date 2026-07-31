@@ -6,6 +6,7 @@ build/
 local.properties
 *.properties
 !version.properties
+!gradle/wrapper/gradle-wrapper.properties
 
 # Log/OS Files
 *.log
