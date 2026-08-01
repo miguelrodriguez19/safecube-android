@@ -9,6 +9,75 @@ data class AppVersion(
     val versionCode: Int,
 )
 
+object AppVersionComparator {
+    fun requireIncrease(previous: AppVersion, current: AppVersion) {
+        require(compareVersionNames(current.versionName, previous.versionName) > 0) {
+            "VERSION_NAME must be greater than the base version: '${previous.versionName}' -> '${current.versionName}'"
+        }
+        require(current.versionCode > previous.versionCode) {
+            "VERSION_CODE must be greater than the base version: ${previous.versionCode} -> ${current.versionCode}"
+        }
+    }
+
+    private fun compareVersionNames(current: String, previous: String): Int {
+        val currentVersion = ParsedSemVer.from(current)
+        val previousVersion = ParsedSemVer.from(previous)
+
+        return compareValuesBy(
+            currentVersion,
+            previousVersion,
+            ParsedSemVer::major,
+            ParsedSemVer::minor,
+            ParsedSemVer::patch,
+        ).takeIf { it != 0 }
+            ?: comparePrerelease(currentVersion.prerelease, previousVersion.prerelease)
+    }
+
+    private fun comparePrerelease(current: List<String>?, previous: List<String>?): Int = when {
+        current == null && previous == null -> 0
+        current == null -> 1
+        previous == null -> -1
+        else -> current.zip(previous)
+            .asSequence()
+            .map { (currentIdentifier, previousIdentifier) ->
+                comparePrereleaseIdentifier(currentIdentifier, previousIdentifier)
+            }
+            .firstOrNull { it != 0 }
+            ?: current.size.compareTo(previous.size)
+    }
+
+    private fun comparePrereleaseIdentifier(current: String, previous: String): Int {
+        val currentNumber = current.toIntOrNull()
+        val previousNumber = previous.toIntOrNull()
+
+        return when {
+            currentNumber != null && previousNumber != null -> currentNumber.compareTo(previousNumber)
+            currentNumber != null -> -1
+            previousNumber != null -> 1
+            else -> current.compareTo(previous)
+        }
+    }
+
+    private data class ParsedSemVer(
+        val major: Int,
+        val minor: Int,
+        val patch: Int,
+        val prerelease: List<String>?,
+    ) {
+        companion object {
+            fun from(value: String): ParsedSemVer {
+                val withoutBuildMetadata = value.substringBefore('+')
+                val (core, prerelease) = withoutBuildMetadata.split('-', limit = 2).let { parts ->
+                    parts.first() to parts.getOrNull(1)?.split('.')
+                }
+                val (major, minor, patch) = core.split('.').map(String::toInt)
+
+                return ParsedSemVer(major, minor, patch, prerelease)
+            }
+        }
+    }
+}
+
 object AppVersionParser {
     const val VERSION_NAME_KEY = "VERSION_NAME"
     const val VERSION_CODE_KEY = "VERSION_CODE"

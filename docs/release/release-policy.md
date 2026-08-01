@@ -2,15 +2,16 @@
 
 | Spec ID               | Status     | Owner     | Last reviewed | Supersedes | Related ADRs |
 |-----------------------|------------|-----------|---------------|------------|--------------|
-| `SPEC-RELEASE-POLICY` | `APPROVED` | `release` | `2026-07-30`  | `N/A`      | `N/A`        |
+| `SPEC-RELEASE-POLICY` | `APPROVED` | `release` | `2026-08-01`  | `N/A`      | `N/A`        |
 
 ## Propósito y estado
 
 Este documento define el contrato público que deben seguir maintainer, CI/CD y agentes de IA al
 versionar y publicar SafeCube.
 
-La política se aplica a partir de su adopción en el repositorio. La versión inicial de desarrollo
-es `0.1.0` con `versionCode = 1`; no implica publicar esa versión.
+La política se aplica a partir de su adopción en el repositorio. Cada cambio que se fusiona en
+`main` debe ser un candidato de release: ya tiene una versión única, supera los quality gates y no
+requiere editar el contenido antes de iniciar la publicación.
 
 ## Fuente única de versión
 
@@ -18,8 +19,8 @@ Los valores de versión se declaran exclusivamente en el archivo raíz
 [`version.properties`](../../version.properties):
 
 ```properties
-VERSION_NAME=0.1.0
-VERSION_CODE=1
+VERSION_NAME=0.1.1
+VERSION_CODE=2
 ```
 
 `app/build.gradle.kts` lee ambos valores desde ese archivo y no contiene una versión funcional
@@ -27,17 +28,32 @@ alternativa. La configuración de Gradle falla si el archivo falta, si falta una
 propiedad está vacía, si `VERSION_NAME` no es SemVer 2.0.0 válido o si `VERSION_CODE` no es un
 entero positivo. La configuración no depende de Git ni de variables de entorno.
 
-Para actualizar la versión:
+Para actualizar la versión en cualquier pull request que vaya a fusionarse en `main`:
 
 1. Editar `VERSION_NAME` y `VERSION_CODE` en `version.properties` en el mismo cambio.
 2. Elegir un `VERSION_NAME` SemVer válido según las reglas de esta política.
-3. Incrementar `VERSION_CODE` por encima del último APK público cuando corresponda; también debe
-   aumentar al cambiar únicamente el identificador prerelease.
+3. Incrementar ambos valores frente a la versión de la base de la pull request. `VERSION_NAME` debe
+   tener precedencia SemVer estrictamente mayor; el build metadata por sí solo no constituye un
+   incremento. `VERSION_CODE` debe ser estrictamente mayor, también si solo cambia el prerelease.
 4. Ejecutar `./gradlew validateVersion` y confirmar que muestra únicamente ambos valores.
 5. Ejecutar los quality gates y continuar con el flujo de publicación documentado aquí.
 
 No se debe actualizar la versión directamente en `app/build.gradle.kts`, ni inferirla desde ramas,
 commits, Git o variables de entorno.
+
+### Guard de entrega continua
+
+El workflow `CI` ejecuta `CI / version-guard` antes de los gates JVM e instrumentados. El guard
+extrae `version.properties` de la base de la pull request, del commit anterior en un push a `main`
+o del padre del commit en una ejecución manual, y ejecuta:
+
+```bash
+./gradlew validateVersionBump -PbaseVersionFile=<archivo-base>
+```
+
+La tarea valida ambas versiones con el mismo parser de la fuente única y falla si `VERSION_NAME` o
+`VERSION_CODE` no aumentan. El check debe ser obligatorio en la protección de `main`. Así se
+impide fusionar contenido que no pueda pasar directamente a la etapa de release.
 
 ## Firma de releases
 
@@ -168,7 +184,8 @@ Es independiente de SemVer y no se calcula a partir de `MAJOR`, `MINOR` o `PATCH
 
 Reglas obligatorias:
 
-- Cada APK público debe usar un `versionCode` mayor que el último APK público.
+- Cada candidato de release debe usar un `versionCode` mayor que el de su base; por tanto, cada APK
+  público también es mayor que el último APK público.
 - El valor no se reutiliza nunca, aunque se retire una release.
 - Un cambio de prerelease exige aumentar `versionCode`:
 
@@ -271,11 +288,10 @@ El APK público debe ser:
 
 ## Flujo de publicación
 
-1. Actualizar `VERSION_NAME` y `VERSION_CODE` en `version.properties`.
-2. Ejecutar `./gradlew validateVersion` y confirmar que `versionName` es SemVer válido y que
-   `versionCode` es mayor que el último valor
-   público.
-3. Pasar los quality gates de CI en el pull request.
+1. Actualizar `VERSION_NAME` y `VERSION_CODE` en `version.properties` en la pull request.
+2. Ejecutar `./gradlew validateVersion` y `validateVersionBump` contra la versión base, y confirmar
+   que ambos valores aumentan.
+3. Pasar `CI / version-guard` y los demás quality gates de CI en el pull request.
 4. Fusionar el cambio en `main`.
 5. Crear el tag exacto `v<versionName>` sobre el commit fusionado.
 6. Dejar que el workflow de release valide tag, versión, firma, build y checksum.
@@ -336,7 +352,6 @@ Una retirada no autoriza a reutilizar la versión afectada ni a disminuir el `ve
 
 ## Fuera de alcance de esta política
 
-- Crear workflows de GitHub Actions.
 - Incrementar versiones automáticamente.
 - Generar tags o releases reales.
 - Automatizar el changelog.
