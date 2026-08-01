@@ -75,20 +75,27 @@ the CI gate without access to the release keystore or its credentials.
 ## GitHub Actions CI
 
 The [`CI` workflow](../../.github/workflows/ci.yml) runs for every pull request, every push to
-`main`, and manual `workflow_dispatch` executions. Its only job is named `verify`, so the exact
-status check exposed by GitHub is:
+`main`, and manual `workflow_dispatch` executions. It exposes two independent status checks:
 
 ```text
 CI / verify
+CI / instrumented-smoke
 ```
 
-The job runs `./gradlew --no-daemon ciVerify` on Ubuntu with Temurin JDK 21. It declares only
-`contents: read`, does not consume repository secrets, and is safe for pull requests from forks.
-Newer executions cancel obsolete runs for the same pull request or Git ref.
+The `verify` job runs `./gradlew --no-daemon ciVerify` on Ubuntu with Temurin JDK 21. It declares
+only `contents: read`, does not consume repository secrets, and is safe for pull requests from
+forks. Newer executions cancel obsolete runs for the same pull request or Git ref.
 
 Test XML/HTML, Android Lint and Kover coverage reports are uploaded with `if: always()`, including
 when a gate fails. The unsigned release APK built by `ciVerify` is deliberately excluded from CI
 artifacts because it is not publicable.
+
+The separate `instrumented-smoke` job has a 30-minute timeout and runs only
+`MainActivitySmokeTest` on a clean Gradle Managed Device named `pixel2Api30` (Pixel 2, API 30,
+`aosp-atd`, x86_64). It explicitly enables KVM and uses SwiftShader because GitHub Actions runners
+do not offer hardware rendering. `testOptions.animationsDisabled` keeps animations disabled. On
+failure, CI retains managed-device test results, the available logcat output and a screenshot when
+the failed device remains available to `adb`.
 
 ### Required protection for `main`
 
@@ -97,8 +104,8 @@ Configure a branch ruleset or branch protection rule targeting `main`, and make 
 1. Require a pull request before merging; direct pushes to `main` must not be allowed.
 2. Require at least one approval, dismiss stale approvals after new commits, and require review
    from Code Owners when a `CODEOWNERS` file is introduced.
-3. Require status checks before merging, add the exact check `CI / verify`, and require the branch
-   to be up to date before merging.
+3. Require status checks before merging, add the exact checks `CI / verify` and
+   `CI / instrumented-smoke`, and require the branch to be up to date before merging.
 4. Require all review conversations to be resolved.
 5. Block force pushes and branch deletion.
 6. Apply the rule to administrators and do not grant routine bypass access. Keep emergency bypass
