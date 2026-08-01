@@ -75,16 +75,20 @@ the CI gate without access to the release keystore or its credentials.
 ## GitHub Actions CI
 
 The [`CI` workflow](../../.github/workflows/ci.yml) runs for every pull request, every push to
-`main`, and manual `workflow_dispatch` executions. It exposes two independent status checks:
+`main`, and manual `workflow_dispatch` executions. It exposes three independent status checks:
 
 ```text
+CI / version-guard
 CI / verify
 CI / instrumented-smoke
 ```
 
-The `verify` job runs `./gradlew --no-daemon ciVerify` on Ubuntu with Temurin JDK 21. It declares
-only `contents: read`, does not consume repository secrets, and is safe for pull requests from
-forks. Newer executions cancel obsolete runs for the same pull request or Git ref.
+`version-guard` compares the current `version.properties` with the base version and requires a
+strictly greater SemVer `VERSION_NAME` and `VERSION_CODE`. `verify` and `instrumented-smoke` start
+only after that guard passes. The `verify` job runs `./gradlew --no-daemon ciVerify` on Ubuntu with
+Temurin JDK 21. The workflow declares only `contents: read`, does not consume repository secrets,
+and is safe for pull requests from forks. Newer executions cancel obsolete runs for the same pull
+request or Git ref.
 
 Test XML/HTML, Android Lint and Kover coverage reports are uploaded with `if: always()`, including
 when a gate fails. The unsigned release APK built by `ciVerify` is deliberately excluded from CI
@@ -104,8 +108,8 @@ Configure a branch ruleset or branch protection rule targeting `main`, and make 
 1. Require a pull request before merging; direct pushes to `main` must not be allowed.
 2. Require at least one approval, dismiss stale approvals after new commits, and require review
    from Code Owners when a `CODEOWNERS` file is introduced.
-3. Require status checks before merging, add the exact checks `CI / verify` and
-   `CI / instrumented-smoke`, and require the branch to be up to date before merging.
+3. Require status checks before merging, add the exact checks `CI / version-guard`, `CI / verify`
+   and `CI / instrumented-smoke`, and require the branch to be up to date before merging.
 4. Require all review conversations to be resolved.
 5. Block force pushes and branch deletion.
 6. Apply the rule to administrators and do not grant routine bypass access. Keep emergency bypass

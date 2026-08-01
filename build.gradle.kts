@@ -1,4 +1,5 @@
 import com.miguelrodriguez19.safecube.buildlogic.AppVersionParser
+import com.miguelrodriguez19.safecube.buildlogic.AppVersionComparator
 import com.miguelrodriguez19.safecube.buildlogic.ReleaseSigningConfig
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 import java.io.File
@@ -100,6 +101,22 @@ tasks.register("validateVersion") {
     group = "verification"
     description = "Validates and prints the Android application version."
     doLast {
+        println("versionName=${appVersion.versionName}")
+        println("versionCode=${appVersion.versionCode}")
+    }
+}
+
+tasks.register("validateVersionBump") {
+    group = "verification"
+    description = "Validates that the app version is greater than a base version file."
+    doLast {
+        val baseVersionFilePath = providers.gradleProperty("baseVersionFile").orNull
+            ?: error("baseVersionFile Gradle property is required")
+        val baseVersion = AppVersionParser.fromFile(file(baseVersionFilePath))
+
+        AppVersionComparator.requireIncrease(previous = baseVersion, current = appVersion)
+        println("baseVersionName=${baseVersion.versionName}")
+        println("baseVersionCode=${baseVersion.versionCode}")
         println("versionName=${appVersion.versionName}")
         println("versionCode=${appVersion.versionCode}")
     }

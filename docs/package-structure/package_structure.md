@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 01-08-2026 01:11:12
+Updated: 01-08-2026 04:51:42
 
 ```
 safecube-android/
@@ -83,6 +83,12 @@ safecube-android/
 │   │   │   ├── main/
 │   │   │   │   ├── com/miguelrodriguez19/safecube/buildlogic/
 │   │   │   │   │   ├── AppVersion.class
+│   │   │   │   │   ├── AppVersionComparator$compareVersionNames$1.class
+│   │   │   │   │   ├── AppVersionComparator$compareVersionNames$2.class
+│   │   │   │   │   ├── AppVersionComparator$compareVersionNames$3.class
+│   │   │   │   │   ├── AppVersionComparator$ParsedSemVer$Companion.class
+│   │   │   │   │   ├── AppVersionComparator$ParsedSemVer.class
+│   │   │   │   │   ├── AppVersionComparator.class
 │   │   │   │   │   ├── AppVersionParser.class
 │   │   │   │   │   ├── ReleaseSigningConfig.class
 │   │   │   │   │   └── ReleaseSigningCredentials.class
@@ -91,6 +97,9 @@ safecube-android/
 │   │   │   └── test/
 │   │   │       ├── com/miguelrodriguez19/safecube/buildlogic/
 │   │   │       │   ├── AppVersionTest$rejects a missing property$exception$1.class
+│   │   │       │   ├── AppVersionTest$rejects a version code that does not increase$exception$1.class
+│   │   │       │   ├── AppVersionTest$rejects a version name that changes only build metadata$exception$1.class
+│   │   │       │   ├── AppVersionTest$rejects a version name that does not increase$exception$1.class
 │   │   │       │   ├── AppVersionTest$rejects an empty property$exception$1.class
 │   │   │       │   ├── AppVersionTest$rejects an invalid semver$exception$1.class
 │   │   │       │   ├── AppVersionTest$rejects an invalid version code$exception$1.class
