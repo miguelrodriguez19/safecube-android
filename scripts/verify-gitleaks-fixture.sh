@@ -60,12 +60,12 @@ if [[ "${SCAN_EXIT}" -ne 1 ]]; then
   exit 1
 fi
 
-if ! rg -q 'safecube-synthetic-secret' "${CONTROL_REPORT}"; then
+if ! grep -F -q -- 'safecube-synthetic-secret' "${CONTROL_REPORT}"; then
   echo "The control fixture was not reported by the SafeCube synthetic rule." >&2
   exit 1
 fi
 
-if rg -F -q -- "${CONTROL_VALUE}" \
+if grep -F -q -- "${CONTROL_VALUE}" \
   "${TEMP_DIR}/control.stdout" \
   "${TEMP_DIR}/control.stderr" \
   "${CONTROL_REPORT}"; then
