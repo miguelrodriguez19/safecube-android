@@ -1,13 +1,16 @@
 # Package Structure
-Updated: 01-08-2026 04:55:16
+Updated: 02-08-2026 09:41:23
 
 ```
 safecube-android/
 ├── .build/com/safecube/tooling/
 │   ├── FolderTreeToFile.class
 │   └── Logger.class
-├── .github/workflows/
-│   └── ci.yml
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml
+│   │   └── dependency-review.yml
+│   └── dependabot.yml
 ├── .run/
 │   ├── run-folder-tree.run.xml
 │   └── verifyCoverage.run.xml
@@ -791,7 +794,8 @@ safecube-android/
 │   │   │   ├── SCDK-M95.md
 │   │   │   ├── SCDK-M96.md
 │   │   │   ├── SCDK-M97.md
-│   │   │   └── SCDK-M98.md
+│   │   │   ├── SCDK-M98.md
+│   │   │   └── SCDK-M99.md
 │   │   ├── agent-report-template.md
 │   │   ├── agent-workflow.md
 │   │   ├── definition-of-ready-done.md
