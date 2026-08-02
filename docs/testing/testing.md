@@ -109,7 +109,8 @@ Configure a branch ruleset or branch protection rule targeting `main`, and make 
 2. Require at least one approval, dismiss stale approvals after new commits, and require review
    from Code Owners when a `CODEOWNERS` file is introduced.
 3. Require status checks before merging, add the exact checks `CI / version-guard`, `CI / verify`,
-   `CI / instrumented-smoke` and `Dependency Review / dependency-review`, and require the branch
+   `CI / instrumented-smoke`, `Dependency Review / dependency-review` and
+   `CodeQL / Analyze (java-kotlin)`, and require the branch
    to be up to date before merging.
 4. Require all review conversations to be resolved.
 5. Block force pushes and branch deletion.
@@ -137,6 +138,21 @@ Dependency Review / dependency-review
 
 It declares only `contents: read` and fails when a dependency change introduces a vulnerability
 with `high` or `critical` severity. License policy and automatic merging remain out of scope.
+
+## CodeQL static security analysis
+
+The [`CodeQL` workflow](../../.github/workflows/codeql.yml) runs for pull requests to `main`,
+pushes to `main`, every Monday at 03:23 UTC, and manual dispatches. Its required check is:
+
+```text
+CodeQL / Analyze (java-kotlin)
+```
+
+It initializes `java-kotlin` in manual build mode and runs `:app:assembleDebug`, so CodeQL
+observes the Kotlin sources compiled through the Android Gradle build. The workflow grants only
+`contents: read` and `security-events: write`, and cancels obsolete analyses for the same pull
+request or Git ref. Results are published in **Security → Code scanning alerts**; a configuration
+or build failure fails the check instead of publishing an incomplete analysis.
 
 If you want a Maven-like verify flow focused on unit tests + coverage only:
 

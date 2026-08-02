@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 02-08-2026 09:41:23
+Updated: 02-08-2026 11:27:35
 
 ```
 safecube-android/
@@ -9,6 +9,7 @@ safecube-android/
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml
+│   │   ├── codeql.yml
 │   │   └── dependency-review.yml
 │   └── dependabot.yml
 ├── .run/
@@ -788,6 +789,7 @@ safecube-android/
 │   │   └── roadmap--high-level.md
 │   ├── sdd/
 │   │   ├── agent-reports/
+│   │   │   ├── SCDK-M100.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
