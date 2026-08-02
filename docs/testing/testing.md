@@ -109,8 +109,8 @@ Configure a branch ruleset or branch protection rule targeting `main`, and make 
 2. Require at least one approval, dismiss stale approvals after new commits, and require review
    from Code Owners when a `CODEOWNERS` file is introduced.
 3. Require status checks before merging, add the exact checks `CI / version-guard`, `CI / verify`,
-   `CI / instrumented-smoke`, `Dependency Review / dependency-review` and
-   `CodeQL / Analyze (java-kotlin)`, and require the branch
+   `CI / instrumented-smoke`, `Dependency Review / dependency-review`,
+   `CodeQL / Analyze (java-kotlin)` and `Secret scan / gitleaks`, and require the branch
    to be up to date before merging.
 4. Require all review conversations to be resolved.
 5. Block force pushes and branch deletion.
@@ -153,6 +153,21 @@ observes the Kotlin sources compiled through the Android Gradle build. The workf
 `contents: read` and `security-events: write`, and cancels obsolete analyses for the same pull
 request or Git ref. Results are published in **Security → Code scanning alerts**; a configuration
 or build failure fails the check instead of publishing an incomplete analysis.
+
+## Secret scanning
+
+The [`Secret scan` workflow](../../.github/workflows/secret-scan.yml) runs Gitleaks for pull
+requests to `main`, pushes to `main` and manual dispatches. It exposes this required check:
+
+```text
+Secret scan / gitleaks
+```
+
+The checkout has full history, and Gitleaks scans the relevant commit range with redaction. The
+controlled synthetic-fixture test demonstrates that an unallowlisted pattern fails while its value
+does not appear in its captured output. See the [secret-scanning runbook](../security/secret-scanning.md)
+for the exact allowlist, GitHub Secret Scanning and Push Protection activation, and incident
+response.
 
 If you want a Maven-like verify flow focused on unit tests + coverage only:
 
