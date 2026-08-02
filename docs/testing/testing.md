@@ -108,8 +108,9 @@ Configure a branch ruleset or branch protection rule targeting `main`, and make 
 1. Require a pull request before merging; direct pushes to `main` must not be allowed.
 2. Require at least one approval, dismiss stale approvals after new commits, and require review
    from Code Owners when a `CODEOWNERS` file is introduced.
-3. Require status checks before merging, add the exact checks `CI / version-guard`, `CI / verify`
-   and `CI / instrumented-smoke`, and require the branch to be up to date before merging.
+3. Require status checks before merging, add the exact checks `CI / version-guard`, `CI / verify`,
+   `CI / instrumented-smoke` and `Dependency Review / dependency-review`, and require the branch
+   to be up to date before merging.
 4. Require all review conversations to be resolved.
 5. Block force pushes and branch deletion.
 6. Apply the rule to administrators and do not grant routine bypass access. Keep emergency bypass
@@ -118,6 +119,24 @@ Configure a branch ruleset or branch protection rule targeting `main`, and make 
 The `push` execution on `main` validates the resulting merge commit but does not replace the
 required pull-request check. Release and publication workflows may run after merge, but they must
 remain separate from this unprivileged CI workflow.
+
+## Dependency updates and review
+
+[Dependabot](../../.github/dependabot.yml) checks Gradle and GitHub Actions dependencies weekly.
+Each ecosystem is limited to five open version-update pull requests. Compatible minor and patch
+updates are grouped; major updates are always opened separately for explicit review. Dependabot
+does not auto-merge any pull request: every update must satisfy the same CI checks and normal
+branch-protection reviews without repository secrets.
+
+The [`Dependency Review` workflow](../../.github/workflows/dependency-review.yml) runs on pull
+requests to `main` and exposes this required check:
+
+```text
+Dependency Review / dependency-review
+```
+
+It declares only `contents: read` and fails when a dependency change introduces a vulnerability
+with `high` or `critical` severity. License policy and automatic merging remain out of scope.
 
 If you want a Maven-like verify flow focused on unit tests + coverage only:
 
