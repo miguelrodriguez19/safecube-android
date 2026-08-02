@@ -1,0 +1,18 @@
+title = "SafeCube secret scanning configuration"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "safecube-synthetic-secret"
+description = "SafeCube synthetic secret used only to verify the scanner"
+regex = '''(SAFE_CUBE_TEST_SECRET_[A-Z0-9]{32})'''
+secretGroup = 1
+keywords = ["safe_cube_test_secret_"]
+
+  [[rules.allowlists]]
+  description = "Allow only the documented synthetic fixture"
+  condition = "AND"
+  paths = ['''(^|.*/)tests/fixtures/gitleaks/allowed-synthetic-secret\.txt$''']
+  regexTarget = "secret"
+  regexes = ['''^SAFE_CUBE_TEST_SECRET_0123456789ABCDEF0123456789ABCDEF$''']

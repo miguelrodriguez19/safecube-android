@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 02-08-2026 11:27:35
+Updated: 03-08-2026 12:52:31
 
 ```
 safecube-android/
@@ -10,7 +10,8 @@ safecube-android/
 │   ├── workflows/
 │   │   ├── ci.yml
 │   │   ├── codeql.yml
-│   │   └── dependency-review.yml
+│   │   ├── dependency-review.yml
+│   │   └── secret-scan.yml
 │   └── dependabot.yml
 ├── .run/
 │   ├── run-folder-tree.run.xml
@@ -790,6 +791,7 @@ safecube-android/
 │   ├── sdd/
 │   │   ├── agent-reports/
 │   │   │   ├── SCDK-M100.md
+│   │   │   ├── SCDK-M101.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
@@ -806,6 +808,8 @@ safecube-android/
 │   │   ├── spec-template.md
 │   │   ├── task-template.md
 │   │   └── traceability-matrix.md
+│   ├── security/
+│   │   └── secret-scanning.md
 │   ├── specs/product/
 │   │   └── v1-product-brief.md
 │   ├── testing/
@@ -962,8 +966,13 @@ safecube-android/
 ├── scripts/
 │   ├── resources/com/safecube/tooling/
 │   │   └── FolderTreeToFile.java
-│   └── run-folder-tree.sh
+│   ├── run-folder-tree.sh
+│   └── verify-gitleaks-fixture.sh
+├── tests/fixtures/gitleaks/
+│   └── allowed-synthetic-secret.txt
 ├── .gitignore
+├── .gitleaks.toml
+├── .gitleaksignore
 ├── AGENTS.md
 ├── build.gradle.kts
 ├── gradlew
