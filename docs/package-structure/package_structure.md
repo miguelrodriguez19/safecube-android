@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 03-08-2026 12:15:17
+Updated: 03-08-2026 12:39:30
 
 ```
 safecube-android/
@@ -972,6 +972,7 @@ safecube-android/
 │   └── allowed-synthetic-secret.txt
 ├── .gitignore
 ├── .gitleaks.toml
+├── .gitleaksignore
 ├── AGENTS.md
 ├── build.gradle.kts
 ├── gradlew

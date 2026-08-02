@@ -157,7 +157,9 @@ or build failure fails the check instead of publishing an incomplete analysis.
 ## Secret scanning
 
 The [`Secret scan` workflow](../../.github/workflows/secret-scan.yml) runs Gitleaks for pull
-requests to `main`, pushes to `main` and manual dispatches. It exposes this required check:
+requests to `main` and manual dispatches. Pushes to `main` are intentionally excluded; branch
+protection must prevent direct pushes and require this pull-request check. It exposes this required
+check:
 
 ```text
 Secret scan / gitleaks

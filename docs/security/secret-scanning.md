@@ -3,9 +3,8 @@
 ## Propósito
 
 El workflow [`Secret scan`](../../.github/workflows/secret-scan.yml) ejecuta Gitleaks antes de
-cualquier workflow de publicación. Analiza el rango de commits relevante en pull requests y pushes a
-`main`; las ejecuciones manuales analizan el historial disponible. El check exigible en la protección
-de rama es:
+cualquier workflow de publicación. Analiza el rango de commits relevante en pull requests; las
+ejecuciones manuales analizan el historial disponible. El check exigible en la protección de rama es:
 
 ```text
 Secret scan / gitleaks
@@ -21,6 +20,11 @@ Gitleaks pueda mostrar redactadas en el log.
 contiene el único patrón ficticio versionado para comprobar el scanner. La allowlist de
 [`.gitleaks.toml`](../../.gitleaks.toml) exige a la vez esa ruta concreta y ese valor sintético;
 no se permite ninguna ruta, regla o valor global.
+
+[`.gitleaksignore`](../../.gitleaksignore) contiene un único fingerprint histórico, limitado al
+falso positivo que introdujo inicialmente este fixture de control. El fingerprint incluye commit,
+ruta, regla y línea, por lo que no silencia versiones posteriores ni otros valores. No se añaden
+patrones, rutas o reglas genéricas a ese fichero.
 
 El workflow ejecuta `scripts/verify-gitleaks-fixture.sh` tras el escaneo normal. El script crea un
 segundo patrón sintético temporal fuera del repositorio, verifica que Gitleaks falla y comprueba
@@ -38,6 +42,9 @@ estén disponibles para el plan y visibilidad del repositorio, activar:
 Estas protecciones de GitHub complementan el workflow; no sustituyen el check obligatorio de la
 pull request. Si la opción no está disponible, registrar la limitación en la configuración de
 seguridad del repositorio y conservar Gitleaks como gate de merge.
+
+El maintainer ha excluido deliberadamente los pushes a `main` de este workflow. La protección de
+rama debe impedir pushes directos y exigir el check de pull request antes de merge.
 
 ## Respuesta ante un finding real
 
