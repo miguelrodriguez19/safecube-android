@@ -72,6 +72,21 @@ separately, before invoking this gate:
 `verifyReleaseSigningConfiguration` is intentionally outside `ciVerify`, so pull requests can run
 the CI gate without access to the release keystore or its credentials.
 
+## GitHub Actions release build
+
+[`Release APK`](../../.github/workflows/release.yml) is a protected workflow separate from CI. Its
+only job, `Release APK / build-signed-apk`, runs for `v*.*.*` tags and for manual dry-runs against
+the branch selected in GitHub Actions with an explicitly supplied intended tag. A dry-run validates
+the tag but does not create it. It uses the GitHub Environment `release`; it therefore never runs
+for pull requests and has only `contents: read` permission.
+
+The job checks that the selected tag is exactly `v<versionName>` before it decodes the temporary
+keystore. It then runs `releaseVerify`, `verifyReleaseSigningConfiguration` and
+`:app:assembleRelease`, verifies the unique APK with `apksigner`, and uploads
+`safecube-<versionName>.apk` plus `safecube-<versionName>.apk.sha256` as a workflow artifact. The
+manual execution is deliberately a dry-run: it has no publication job and does not create a GitHub
+Release.
+
 ## GitHub Actions CI
 
 The [`CI` workflow](../../.github/workflows/ci.yml) runs for every pull request, every push to

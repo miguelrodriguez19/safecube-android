@@ -91,8 +91,44 @@ export SAFECUBE_RELEASE_KEY_PASSWORD="<valor-no-versionado>"
 ./gradlew :app:assembleRelease
 ```
 
-En GitHub, el workflow protegido de release debe proporcionar esos cuatro nombres como secrets del
-Environment de release. Los pull requests y los workflows de CI no reciben esos secrets.
+En GitHub, el workflow protegido `Release APK / build-signed-apk` usa el Environment `release`. Ese
+Environment debe tener exactamente estos cuatro secrets:
+
+```text
+SAFECUBE_RELEASE_KEYSTORE_BASE64
+SAFECUBE_RELEASE_STORE_PASSWORD
+SAFECUBE_RELEASE_KEY_ALIAS
+SAFECUBE_RELEASE_KEY_PASSWORD
+```
+
+El workflow descodifica el primero únicamente en `$RUNNER_TEMP`, exporta su ruta como
+`SAFECUBE_RELEASE_KEYSTORE_PATH` y pasa a Gradle los otros tres valores con los nombres de entorno
+del contrato anterior. Nunca persiste el keystore fuera del runner ni imprime secretos. Los pull
+requests y los workflows de CI no reciben esos secrets.
+
+### Build protegido de APK
+
+El workflow versionado [`Release APK`](../../.github/workflows/release.yml) se ejecuta al crear un
+tag que cumpla `v*.*.*`. Antes de descodificar el keystore exige que el tag sea exactamente
+`v<versionName>` y ejecuta `validateVersion`; un tag incoherente no llega a utilizar la identidad
+de firma.
+
+También puede iniciarse manualmente con `workflow_dispatch`, seleccionando la rama que se quiere
+probar e indicando el tag que tendría la release. Esa ruta no crea el tag: valida que el valor
+indicado sea exactamente `v<versionName>`. Es un **dry-run**: solicita igualmente la aprobación
+del Environment `release`, construye, firma y verifica el APK, y conserva el APK y su checksum
+como workflow artifact, pero no crea una GitHub Release ni publica nada. El check aparece como:
+
+```text
+Release APK / build-signed-apk
+```
+
+El job tiene solo `contents: read`, ejecuta `releaseVerify`,
+`verifyReleaseSigningConfiguration` y `:app:assembleRelease`, y comprueba la firma con
+`apksigner verify --verbose --print-certs`. Solo acepta un APK release, que se entrega con los
+nombres deterministas `safecube-<versionName>.apk` y
+`safecube-<versionName>.apk.sha256`. La publicación de una GitHub Release pertenece a una tarea
+posterior y requerirá un job independiente con permisos explícitos de escritura.
 
 ### Generación, backup y rotación
 
