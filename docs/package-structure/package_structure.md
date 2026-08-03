@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 03-08-2026 12:52:31
+Updated: 03-08-2026 10:41:00
 
 ```
 safecube-android/
@@ -11,6 +11,7 @@ safecube-android/
 │   │   ├── ci.yml
 │   │   ├── codeql.yml
 │   │   ├── dependency-review.yml
+│   │   ├── release.yml
 │   │   └── secret-scan.yml
 │   └── dependabot.yml
 ├── .run/
@@ -792,6 +793,7 @@ safecube-android/
 │   │   ├── agent-reports/
 │   │   │   ├── SCDK-M100.md
 │   │   │   ├── SCDK-M101.md
+│   │   │   ├── SCDK-M102--Build-and-verify-signed-APK-in-release-workflow.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
