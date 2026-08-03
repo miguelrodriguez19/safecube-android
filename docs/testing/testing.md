@@ -75,17 +75,23 @@ the CI gate without access to the release keystore or its credentials.
 ## GitHub Actions release build
 
 [`Release APK`](../../.github/workflows/release.yml) is a protected workflow separate from CI. Its
-only job, `Release APK / build-signed-apk`, runs for `v*.*.*` tags and for manual dry-runs against
-the branch selected in GitHub Actions with an explicitly supplied intended tag. A dry-run validates
-the tag but does not create it. It uses the GitHub Environment `release`; it therefore never runs
-for pull requests and has only `contents: read` permission.
+`Release APK / build-signed-apk` job runs for `v*.*.*` tags and for manual dry-runs against the
+branch selected in GitHub Actions with an explicitly supplied intended tag. A dry-run validates the
+tag but does not create it. It uses the GitHub Environment `release`; it therefore never runs for
+pull requests and has only `contents: read` permission.
 
 The job checks that the selected tag is exactly `v<versionName>` before it decodes the temporary
 keystore. It then runs `releaseVerify`, `verifyReleaseSigningConfiguration` and
 `:app:assembleRelease`, verifies the unique APK with `apksigner`, and uploads
 `safecube-<versionName>.apk` plus `safecube-<versionName>.apk.sha256` as a workflow artifact. The
-manual execution is deliberately a dry-run: it has no publication job and does not create a GitHub
-Release.
+manual execution is deliberately a dry-run: it skips the publication job and does not create a
+GitHub Release.
+
+For a tag-triggered run only, `Release APK / publish` downloads the exact artifact produced by the
+build job, requires exactly its APK and SHA-256 file, and validates that checksum again. This is the
+only job with `contents: write`. It fails instead of changing an existing release or asset, uses
+GitHub-generated release notes with a `sha256sum -c` verification command, and passes
+`--prerelease` to GitHub CLI when `versionName` has a SemVer prerelease suffix.
 
 ## GitHub Actions CI
 
