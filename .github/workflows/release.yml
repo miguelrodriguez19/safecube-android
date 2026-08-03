@@ -20,6 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: release
+    outputs:
+      artifact_name: ${{ steps.release-version.outputs.artifact_name }}
+      release_tag: ${{ steps.release-version.outputs.release_tag }}
+      version_name: ${{ steps.release-version.outputs.version_name }}
     permissions:
       contents: read
 
@@ -62,6 +66,8 @@ jobs:
           fi
 
           ./gradlew --no-daemon validateVersion
+          printf 'artifact_name=safecube-%s\n' "$version_name" >> "$GITHUB_OUTPUT"
+          printf 'release_tag=%s\n' "$RELEASE_TAG" >> "$GITHUB_OUTPUT"
           printf 'version_name=%s\n' "$version_name" >> "$GITHUB_OUTPUT"
 
       - name: Decode release keystore into runner temporary storage
@@ -147,3 +153,69 @@ jobs:
       - name: Remove temporary keystore
         if: always()
         run: rm -f "$RUNNER_TEMP/safecube-release.jks"
+
+  publish:
+    name: publish
+    needs: build-signed-apk
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ARTIFACT_NAME: ${{ needs.build-signed-apk.outputs.artifact_name }}
+      RELEASE_TAG: ${{ needs.build-signed-apk.outputs.release_tag }}
+      VERSION_NAME: ${{ needs.build-signed-apk.outputs.version_name }}
+
+    steps:
+      - name: Download signed release artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ${{ needs.build-signed-apk.outputs.artifact_name }}
+          path: ${{ runner.temp }}/release-artifact
+
+      - name: Verify downloaded artifact checksum
+        run: |
+          artifact_directory="$RUNNER_TEMP/release-artifact"
+          apk_name="safecube-${VERSION_NAME}.apk"
+          checksum_name="${apk_name}.sha256"
+
+          mapfile -t artifact_files < <(find "$artifact_directory" -maxdepth 1 -type f -print | sort)
+          if [ "${#artifact_files[@]}" -ne 2 ] || \
+            [ ! -f "$artifact_directory/$apk_name" ] || \
+            [ ! -f "$artifact_directory/$checksum_name" ]; then
+            echo "The downloaded artifact must contain exactly the expected APK and checksum." >&2
+            exit 1
+          fi
+
+          (
+            cd "$artifact_directory"
+            sha256sum --check "$checksum_name"
+          )
+
+      - name: Reject an existing release
+        run: |
+          if gh release view "$RELEASE_TAG" --json tagName >/dev/null 2>&1; then
+            echo "A release already exists for this tag; assets are never overwritten." >&2
+            exit 1
+          fi
+
+      - name: Publish GitHub Release
+        run: |
+          artifact_directory="$RUNNER_TEMP/release-artifact"
+          apk_name="safecube-${VERSION_NAME}.apk"
+          checksum_name="${apk_name}.sha256"
+          release_notes="$(printf 'Verify the downloaded APK with:\n\n```sh\nsha256sum -c %s\n```' "$checksum_name")"
+          prerelease_flag=()
+          if [[ "$VERSION_NAME" == *-* ]]; then
+            prerelease_flag=(--prerelease)
+          fi
+
+          gh release create "$RELEASE_TAG" \
+            "$artifact_directory/$apk_name" \
+            "$artifact_directory/$checksum_name" \
+            --verify-tag \
+            --generate-notes \
+            --notes "$release_notes" \
+            "${prerelease_flag[@]}"

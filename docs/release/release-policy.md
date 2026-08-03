@@ -127,8 +127,14 @@ El job tiene solo `contents: read`, ejecuta `releaseVerify`,
 `verifyReleaseSigningConfiguration` y `:app:assembleRelease`, y comprueba la firma con
 `apksigner verify --verbose --print-certs`. Solo acepta un APK release, que se entrega con los
 nombres deterministas `safecube-<versionName>.apk` y
-`safecube-<versionName>.apk.sha256`. La publicación de una GitHub Release pertenece a una tarea
-posterior y requerirá un job independiente con permisos explícitos de escritura.
+`safecube-<versionName>.apk.sha256`.
+
+Al activarse desde un tag, el job independiente `Release APK / publish` descarga exclusivamente
+ese workflow artifact y vuelve a verificar su checksum antes de crear la GitHub Release. Es el
+único job con `contents: write`; usa `gh release create --verify-tag`, notas generadas por GitHub y
+una instrucción `sha256sum -c` para el usuario. Si la versión contiene un sufijo prerelease, marca
+la release como prerelease. Si ya existe una release para el tag, falla sin modificar assets ni
+metadata. El dry-run manual omite este job por completo.
 
 ### Generación, backup y rotación
 
@@ -331,7 +337,8 @@ El APK público debe ser:
 4. Fusionar el cambio en `main`.
 5. Crear el tag exacto `v<versionName>` sobre el commit fusionado.
 6. Dejar que el workflow de release valide tag, versión, firma, build y checksum.
-7. Crear la GitHub Release como prerelease o estable según el sufijo SemVer.
+7. Dejar que el job `publish` cree la GitHub Release como prerelease o estable según el sufijo
+   SemVer. No reintentar ni sobrescribir una release existente.
 8. Descargar el APK publicado y verificar su checksum y firma como comprobación posterior.
 
 La publicación no debe depender de cambios manuales en el APK después del workflow. Si cualquier
