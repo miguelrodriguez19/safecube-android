@@ -88,7 +88,13 @@ the CI gate without access to the release keystore or its credentials.
 [`Release Train`](../../.github/workflows/release.yml) is a protected workflow separate from pull
 request CI. Every push to `main` runs `Release Train / create-candidate-tag`, which revalidates the
 version bump and uses its scoped `contents: write` permission to create `v<versionName>` on the
-exact merge SHA. It has no signing secrets and never moves an existing tag.
+exact merge SHA. It has no signing secrets and never moves an existing tag. Release Train runs are
+serialized, and tag creation distinguishes an absent reference from an API failure before handling
+a concurrent creation idempotently. Its local regression scenarios run with:
+
+```bash
+scripts/verify-create-immutable-release-tag.sh
+```
 
 `Release Train / publish` is always present after the tag job and references the GitHub Environment
 `release`. It remains pending until a required reviewer approves it; only then can it access the

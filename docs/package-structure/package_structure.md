@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 04-08-2026 02:34:16
+Updated: 04-08-2026 01:39:03
 
 ```
 safecube-android/
@@ -10,7 +10,6 @@ safecube-android/
 │   ├── actions/
 │   ├── scripts/
 │   ├── workflows/
-│   │   ├── workflow-call/
 │   │   ├── codeql.yml
 │   │   ├── dependency-review.yml
 │   │   ├── kotlin-ci-reusable.yml
@@ -974,7 +973,9 @@ safecube-android/
 ├── scripts/
 │   ├── resources/com/safecube/tooling/
 │   │   └── FolderTreeToFile.java
+│   ├── create-immutable-release-tag.sh
 │   ├── run-folder-tree.sh
+│   ├── verify-create-immutable-release-tag.sh
 │   └── verify-gitleaks-fixture.sh
 ├── tests/fixtures/gitleaks/
 │   └── allowed-synthetic-secret.txt

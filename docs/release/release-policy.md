@@ -118,7 +118,11 @@ gates de la pull request. El workflow no repite ese assessment completo, pero vu
 `Release Train / create-candidate-tag` es un job sin secrets de firma. Recibe `contents: write`
 únicamente para crear el tag ligero e inmutable `v<versionName>` sobre el SHA exacto de `main`. Si
 el tag ya apunta a ese SHA, una reejecución puede continuar; si apunta a otro objeto o commit,
-falla y nunca lo mueve.
+falla y nunca lo mueve. Las ejecuciones del Release Train se serializan para que dos commits de
+`main` no compitan por el estado de publicación. La consulta de una referencia distingue un `404`
+—tag todavía ausente— de cualquier otro error de GitHub; solo el primer caso permite crearla. Si
+otra ejecución crea el tag entre consulta y escritura, el job vuelve a comprobar su tipo y SHA
+antes de aceptar la operación como idempotente.
 
 `Release Train / publish` depende del tag y siempre forma parte de la ejecución. Usa el Environment
 `release`, por lo que queda pendiente hasta que un reviewer autoriza el deployment. Es el único job
