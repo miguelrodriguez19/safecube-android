@@ -34,6 +34,9 @@ jobs:
       - name: Set up Android Gradle build
         uses: ./.github/actions/setup-android-gradle
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@41ad77ca97e46ee2e825d5e6b9a95d8169fcc44c
+
       - name: Resolve base version
         id: base-version
         env:
