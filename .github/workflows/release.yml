@@ -1,34 +1,32 @@
-name: Release APK
+name: Release Train
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      tag:
-        description: Release tag to validate (must be v<versionName>; dry-run does not create it)
-        required: true
-        type: string
 
 permissions:
   contents: read
 
+concurrency:
+  group: release-train-${{ github.sha }}
+  cancel-in-progress: false
+
 jobs:
-  build-signed-apk:
-    name: build-signed-apk
+  create-candidate-tag:
+    name: create-candidate-tag
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    environment: release
+    timeout-minutes: 15
+    permissions:
+      contents: write
     outputs:
       artifact_name: ${{ steps.release-version.outputs.artifact_name }}
       release_tag: ${{ steps.release-version.outputs.release_tag }}
       version_name: ${{ steps.release-version.outputs.version_name }}
-    permissions:
-      contents: read
 
     steps:
-      - name: Check out tagged source
+      - name: Check out merged source and history
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
@@ -40,16 +38,13 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@41ad77ca97e46ee2e825d5e6b9a95d8169fcc44c # v4.4.4
-
-      - name: Validate release tag and version
+      - name: Validate main release-candidate version
         id: release-version
         env:
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          PUSH_BASE_COMMIT: ${{ github.event.before }}
         run: |
-          if [ "${{ github.event_name }}" = "push" ] && ! git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
-            echo "Release workflow must run from the pushed Git tag." >&2
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Release candidates can only be created from main." >&2
             exit 1
           fi
 
@@ -59,16 +54,98 @@ jobs:
             exit 1
           fi
 
+          base_commit="$PUSH_BASE_COMMIT"
+          if [ "${GITHUB_EVENT_NAME}" != "push" ] || [ -z "$base_commit" ] || \
+            [ "$base_commit" = "0000000000000000000000000000000000000000" ]; then
+            base_commit="HEAD^"
+          fi
+
+          git show "$base_commit:version.properties" > "$RUNNER_TEMP/base-version.properties"
+          ./gradlew --no-daemon validateVersion
+          ./gradlew --no-daemon validateVersionBump \
+            -PbaseVersionFile="$RUNNER_TEMP/base-version.properties"
+
           version_name="${version_names[0]}"
-          if [ "$RELEASE_TAG" != "v${version_name}" ]; then
-            echo "Release tag must exactly match v<versionName>." >&2
+          printf 'artifact_name=safecube-%s\n' "$version_name" >> "$GITHUB_OUTPUT"
+          printf 'release_tag=v%s\n' "$version_name" >> "$GITHUB_OUTPUT"
+          printf 'version_name=%s\n' "$version_name" >> "$GITHUB_OUTPUT"
+
+      - name: Create immutable candidate tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release-version.outputs.release_tag }}
+        run: |
+          existing_ref="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" 2>/dev/null || true)"
+          if [ -n "$existing_ref" ]; then
+            existing_type="$(jq -r '.object.type' <<< "$existing_ref")"
+            existing_sha="$(jq -r '.object.sha' <<< "$existing_ref")"
+            if [ "$existing_type" != "commit" ] || [ "$existing_sha" != "$GITHUB_SHA" ]; then
+              echo "Release tag already exists and does not point directly to this commit." >&2
+              exit 1
+            fi
+
+            echo "Release tag already points to this commit; continuing the same candidate."
+            exit 0
+          fi
+
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f ref="refs/tags/$RELEASE_TAG" \
+            -f sha="$GITHUB_SHA" >/dev/null
+
+  publish:
+    name: publish
+    needs: create-candidate-tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: release
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ARTIFACT_NAME: ${{ needs.create-candidate-tag.outputs.artifact_name }}
+      RELEASE_TAG: ${{ needs.create-candidate-tag.outputs.release_tag }}
+      VERSION_NAME: ${{ needs.create-candidate-tag.outputs.version_name }}
+
+    steps:
+      - name: Check out exact candidate tag
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify candidate identity and reject an existing release
+        run: |
+          if [ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]; then
+            echo "Candidate tag does not point to the workflow commit." >&2
+            exit 1
+          fi
+
+          if gh release view "$RELEASE_TAG" --json tagName >/dev/null 2>&1; then
+            echo "A release already exists for this tag; assets are never overwritten." >&2
+            exit 1
+          fi
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@41ad77ca97e46ee2e825d5e6b9a95d8169fcc44c # v4.4.4
+
+      - name: Validate tagged version
+        run: |
+          mapfile -t version_names < <(awk -F= '$1 == "VERSION_NAME" { print substr($0, index($0, "=") + 1) }' version.properties)
+          if [ "${#version_names[@]}" -ne 1 ] || \
+            [ "${version_names[0]}" != "$VERSION_NAME" ] || \
+            [ "$RELEASE_TAG" != "v$VERSION_NAME" ]; then
+            echo "Tag, workflow output and VERSION_NAME must match exactly." >&2
             exit 1
           fi
 
           ./gradlew --no-daemon validateVersion
-          printf 'artifact_name=safecube-%s\n' "$version_name" >> "$GITHUB_OUTPUT"
-          printf 'release_tag=%s\n' "$RELEASE_TAG" >> "$GITHUB_OUTPUT"
-          printf 'version_name=%s\n' "$version_name" >> "$GITHUB_OUTPUT"
 
       - name: Decode release keystore into runner temporary storage
         env:
@@ -121,7 +198,6 @@ jobs:
       - name: Verify APK signature and create release artifacts
         env:
           RELEASE_APK: ${{ steps.release-apk.outputs.path }}
-          VERSION_NAME: ${{ steps.release-version.outputs.version_name }}
         run: |
           apksigner_path="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner -print | sort -V | tail -n 1)"
           if [ -z "$apksigner_path" ]; then
@@ -132,83 +208,34 @@ jobs:
           "$apksigner_path" verify --verbose --print-certs "$RELEASE_APK"
 
           artifact_directory="$RUNNER_TEMP/safecube-release-artifacts"
-          artifact_name="safecube-${VERSION_NAME}.apk"
+          apk_name="safecube-${VERSION_NAME}.apk"
           mkdir -p "$artifact_directory"
-          cp "$RELEASE_APK" "$artifact_directory/$artifact_name"
+          cp "$RELEASE_APK" "$artifact_directory/$apk_name"
           (
             cd "$artifact_directory"
-            sha256sum "$artifact_name" > "$artifact_name.sha256"
+            sha256sum "$apk_name" > "$apk_name.sha256"
+            sha256sum --check "$apk_name.sha256"
           )
 
-      - name: Upload signed APK and checksum
+      - name: Upload signed APK and checksum as workflow artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: safecube-${{ steps.release-version.outputs.version_name }}
+          name: ${{ env.ARTIFACT_NAME }}
           if-no-files-found: error
           retention-days: 14
           path: |
-            ${{ runner.temp }}/safecube-release-artifacts/safecube-${{ steps.release-version.outputs.version_name }}.apk
-            ${{ runner.temp }}/safecube-release-artifacts/safecube-${{ steps.release-version.outputs.version_name }}.apk.sha256
-
-      - name: Remove temporary keystore
-        if: always()
-        run: rm -f "$RUNNER_TEMP/safecube-release.jks"
-
-  publish:
-    name: publish
-    needs: build-signed-apk
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: write
-    env:
-      GH_TOKEN: ${{ github.token }}
-      ARTIFACT_NAME: ${{ needs.build-signed-apk.outputs.artifact_name }}
-      RELEASE_TAG: ${{ needs.build-signed-apk.outputs.release_tag }}
-      VERSION_NAME: ${{ needs.build-signed-apk.outputs.version_name }}
-
-    steps:
-      - name: Download signed release artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: ${{ needs.build-signed-apk.outputs.artifact_name }}
-          path: ${{ runner.temp }}/release-artifact
-
-      - name: Verify downloaded artifact checksum
-        run: |
-          artifact_directory="$RUNNER_TEMP/release-artifact"
-          apk_name="safecube-${VERSION_NAME}.apk"
-          checksum_name="${apk_name}.sha256"
-
-          mapfile -t artifact_files < <(find "$artifact_directory" -maxdepth 1 -type f -print | sort)
-          if [ "${#artifact_files[@]}" -ne 2 ] || \
-            [ ! -f "$artifact_directory/$apk_name" ] || \
-            [ ! -f "$artifact_directory/$checksum_name" ]; then
-            echo "The downloaded artifact must contain exactly the expected APK and checksum." >&2
-            exit 1
-          fi
-
-          (
-            cd "$artifact_directory"
-            sha256sum --check "$checksum_name"
-          )
-
-      - name: Reject an existing release
-        run: |
-          if gh release view "$RELEASE_TAG" --json tagName >/dev/null 2>&1; then
-            echo "A release already exists for this tag; assets are never overwritten." >&2
-            exit 1
-          fi
+            ${{ runner.temp }}/safecube-release-artifacts/safecube-${{ env.VERSION_NAME }}.apk
+            ${{ runner.temp }}/safecube-release-artifacts/safecube-${{ env.VERSION_NAME }}.apk.sha256
 
       - name: Publish GitHub Release
         run: |
-          artifact_directory="$RUNNER_TEMP/release-artifact"
+          artifact_directory="$RUNNER_TEMP/safecube-release-artifacts"
           apk_name="safecube-${VERSION_NAME}.apk"
           checksum_name="${apk_name}.sha256"
-          release_notes="$(printf 'Verify the downloaded APK with:\n\n```sh\nsha256sum -c %s\n```' "$checksum_name")"
+          release_notes="$(printf 'Verify the downloaded APK with:\n\n~~~sh\nsha256sum -c %s\n~~~' "$checksum_name")"
           prerelease_flag=()
-          if [[ "$VERSION_NAME" == *-* ]]; then
+          semver_without_build_metadata="${VERSION_NAME%%+*}"
+          if [[ "$semver_without_build_metadata" == *-* ]]; then
             prerelease_flag=(--prerelease)
           fi
 
@@ -219,3 +246,7 @@ jobs:
             --generate-notes \
             --notes "$release_notes" \
             "${prerelease_flag[@]}"
+
+      - name: Remove temporary keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/safecube-release.jks"

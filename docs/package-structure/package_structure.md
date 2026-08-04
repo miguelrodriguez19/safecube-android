@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 03-08-2026 07:31:42
+Updated: 04-08-2026 02:19:36
 
 ```
 safecube-android/
@@ -7,10 +7,13 @@ safecube-android/
 │   ├── FolderTreeToFile.class
 │   └── Logger.class
 ├── .github/
+│   ├── scripts/
 │   ├── workflows/
-│   │   ├── ci.yml
+│   │   ├── workflow-call/
 │   │   ├── codeql.yml
 │   │   ├── dependency-review.yml
+│   │   ├── kotlin-ci-reusable.yml
+│   │   ├── pull-request-quality.yml
 │   │   ├── release.yml
 │   │   └── secret-scan.yml
 │   └── dependabot.yml
@@ -791,6 +794,7 @@ safecube-android/
 │   │   └── roadmap--high-level.md
 │   ├── sdd/
 │   │   ├── agent-reports/
+│   │   │   ├── EXTRA-CD-PIPELINE.md
 │   │   │   ├── SCDK-M100.md
 │   │   │   ├── SCDK-M101.md
 │   │   │   ├── SCDK-M102--Build-and-verify-signed-APK-in-release-workflow.md
