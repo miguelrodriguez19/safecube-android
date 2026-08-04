@@ -1,0 +1,23 @@
+name: Pull Request Quality
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pull-request-quality-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: quality
+    permissions:
+      contents: read
+    uses: ./.github/workflows/kotlin-ci-reusable.yml
+    with:
+      run-instrumented-tests: true
+      run-version-check: true
