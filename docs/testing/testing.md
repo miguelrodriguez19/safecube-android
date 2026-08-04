@@ -163,11 +163,18 @@ must not routinely bypass the branch rule.
 
 ## Dependency updates and review
 
-[Dependabot](../../.github/dependabot.yml) checks Gradle and GitHub Actions dependencies weekly.
-Each ecosystem is limited to five open version-update pull requests. Compatible minor and patch
-updates are grouped; major updates are always opened separately for explicit review. Dependabot
-does not auto-merge any pull request: every update must satisfy the same CI checks and normal
-branch-protection reviews without repository secrets.
+[Dependabot](../../.github/dependabot.yml) checks Gradle and GitHub Actions dependencies on days 1
+and 16 of every month at 06:00 in the `Europe/Madrid` timezone. This predictable twice-monthly
+schedule approximates a 15-day cadence despite variable month lengths. Each ecosystem is limited to
+two open version-update pull requests. Compatible minor and patch updates are grouped; major
+updates are always opened separately for explicit review.
+
+Automatic rebasing is disabled. A push to `main` therefore does not synchronize open Dependabot
+branches and retrigger the pull-request workflows merely because their target changed. Dependabot
+still scans the current `main` on each scheduled run and opens grouped pull requests for newly
+available versions. Pull requests created before this policy change may retain the previous rebase
+behavior temporarily. Dependabot does not auto-merge any pull request: every update must satisfy
+the same CI checks and normal branch-protection reviews without repository secrets.
 
 The [`Dependency Review` workflow](../../.github/workflows/dependency-review.yml) runs on pull
 requests to `main` and exposes this required check:
