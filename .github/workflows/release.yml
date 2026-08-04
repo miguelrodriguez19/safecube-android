@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-train-${{ github.sha }}
+  group: release-train-main
   cancel-in-progress: false
 
 jobs:
@@ -70,23 +70,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.release-version.outputs.release_tag }}
-        run: |
-          existing_ref="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" 2>/dev/null || true)"
-          if [ -n "$existing_ref" ]; then
-            existing_type="$(jq -r '.object.type' <<< "$existing_ref")"
-            existing_sha="$(jq -r '.object.sha' <<< "$existing_ref")"
-            if [ "$existing_type" != "commit" ] || [ "$existing_sha" != "$GITHUB_SHA" ]; then
-              echo "Release tag already exists and does not point directly to this commit." >&2
-              exit 1
-            fi
-
-            echo "Release tag already points to this commit; continuing the same candidate."
-            exit 0
-          fi
-
-          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
-            -f ref="refs/tags/$RELEASE_TAG" \
-            -f sha="$GITHUB_SHA" >/dev/null
+        run: scripts/create-immutable-release-tag.sh
 
   publish:
     name: publish
