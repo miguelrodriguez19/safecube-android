@@ -2,7 +2,7 @@
 
 | Spec ID               | Status     | Owner     | Last reviewed | Supersedes | Related ADRs |
 |-----------------------|------------|-----------|---------------|------------|--------------|
-| `SPEC-RELEASE-POLICY` | `APPROVED` | `release` | `2026-08-01`  | `N/A`      | `N/A`        |
+| `SPEC-RELEASE-POLICY` | `APPROVED` | `release` | `2026-08-04`  | `N/A`      | `N/A`        |
 
 ## Propósito y estado
 
@@ -43,17 +43,19 @@ commits, Git o variables de entorno.
 
 ### Guard de entrega continua
 
-El workflow `CI` ejecuta `CI / version-guard` antes de los gates JVM e instrumentados. El guard
-extrae `version.properties` de la base de la pull request, del commit anterior en un push a `main`
-o del padre del commit en una ejecución manual, y ejecuta:
+El workflow [`Pull Request Quality`](../../.github/workflows/pull-request-quality.yml) llama al
+workflow reutilizable [`Kotlin CI`](../../.github/workflows/kotlin-ci-reusable.yml) y ejecuta
+`version-guard` antes de los gates JVM e instrumentados. El guard extrae
+`version.properties` de la base de la pull request y ejecuta:
 
 ```bash
 ./gradlew validateVersionBump -PbaseVersionFile=<archivo-base>
 ```
 
 La tarea valida ambas versiones con el mismo parser de la fuente única y falla si `VERSION_NAME` o
-`VERSION_CODE` no aumentan. El check debe ser obligatorio en la protección de `main`. Así se
-impide fusionar contenido que no pueda pasar directamente a la etapa de release.
+`VERSION_CODE` no aumentan. El check `Pull Request Quality / quality / version-guard` debe ser
+obligatorio en la protección de `main`. Así se impide fusionar contenido que no pueda pasar
+directamente a la etapa de release.
 
 ## Firma de releases
 
@@ -91,8 +93,8 @@ export SAFECUBE_RELEASE_KEY_PASSWORD="<valor-no-versionado>"
 ./gradlew :app:assembleRelease
 ```
 
-En GitHub, el workflow protegido `Release APK / build-signed-apk` usa el Environment `release`. Ese
-Environment debe tener exactamente estos cuatro secrets:
+En GitHub, el job protegido `Release Train / publish` usa el Environment `release`. Ese Environment
+debe tener exactamente estos cuatro secrets:
 
 ```text
 SAFECUBE_RELEASE_KEYSTORE_BASE64
@@ -106,35 +108,38 @@ El workflow descodifica el primero únicamente en `$RUNNER_TEMP`, exporta su rut
 del contrato anterior. Nunca persiste el keystore fuera del runner ni imprime secretos. Los pull
 requests y los workflows de CI no reciben esos secrets.
 
-### Build protegido de APK
+### Creación y publicación protegida del candidato
 
-El workflow versionado [`Release APK`](../../.github/workflows/release.yml) se ejecuta al crear un
-tag que cumpla `v*.*.*`. Antes de descodificar el keystore exige que el tag sea exactamente
-`v<versionName>` y ejecuta `validateVersion`; un tag incoherente no llega a utilizar la identidad
-de firma.
+El workflow versionado [`Release Train`](../../.github/workflows/release.yml) se ejecuta tras cada
+push a `main`. La protección de la rama debe impedir pushes directos y exigir todos los quality
+gates de la pull request. El workflow no repite ese assessment completo, pero vuelve a validar que
+`VERSION_NAME` y `VERSION_CODE` aumentaron antes de crear una identidad pública.
 
-También puede iniciarse manualmente con `workflow_dispatch`, seleccionando la rama que se quiere
-probar e indicando el tag que tendría la release. Esa ruta no crea el tag: valida que el valor
-indicado sea exactamente `v<versionName>`. Es un **dry-run**: solicita igualmente la aprobación
-del Environment `release`, construye, firma y verifica el APK, y conserva el APK y su checksum
-como workflow artifact, pero no crea una GitHub Release ni publica nada. El check aparece como:
+`Release Train / create-candidate-tag` es un job sin secrets de firma. Recibe `contents: write`
+únicamente para crear el tag ligero e inmutable `v<versionName>` sobre el SHA exacto de `main`. Si
+el tag ya apunta a ese SHA, una reejecución puede continuar; si apunta a otro objeto o commit,
+falla y nunca lo mueve.
 
-```text
-Release APK / build-signed-apk
-```
+`Release Train / publish` depende del tag y siempre forma parte de la ejecución. Usa el Environment
+`release`, por lo que queda pendiente hasta que un reviewer autoriza el deployment. Es el único job
+que accede a la identidad de firma. Tras la aprobación:
 
-El job tiene solo `contents: read`, ejecuta `releaseVerify`,
-`verifyReleaseSigningConfiguration` y `:app:assembleRelease`, y comprueba la firma con
-`apksigner verify --verbose --print-certs`. Solo acepta un APK release, que se entrega con los
-nombres deterministas `safecube-<versionName>.apk` y
-`safecube-<versionName>.apk.sha256`.
+1. hace checkout del tag exacto y comprueba que apunta al SHA del workflow;
+2. rechaza una GitHub Release ya existente;
+3. descodifica el keystore solo dentro de `$RUNNER_TEMP`;
+4. ejecuta `releaseVerify`, `verifyReleaseSigningConfiguration` y `:app:assembleRelease`;
+5. valida el APK con `apksigner verify --verbose --print-certs`;
+6. genera y comprueba `safecube-<versionName>.apk.sha256`;
+7. conserva ambos archivos como workflow artifact y los adjunta a una GitHub Release inmutable.
 
-Al activarse desde un tag, el job independiente `Release APK / publish` descarga exclusivamente
-ese workflow artifact y vuelve a verificar su checksum antes de crear la GitHub Release. Es el
-único job con `contents: write`; usa `gh release create --verify-tag`, notas generadas por GitHub y
-una instrucción `sha256sum -c` para el usuario. Si la versión contiene un sufijo prerelease, marca
-la release como prerelease. Si ya existe una release para el tag, falla sin modificar assets ni
-metadata. El dry-run manual omite este job por completo.
+El job usa `gh release create --verify-tag`, notas generadas por GitHub y una instrucción
+`sha256sum -c` para el usuario. Una versión con sufijo SemVer se publica como prerelease y una
+versión sin sufijo como estable. Si ya existe la release, falla sin modificar assets ni metadata.
+El keystore temporal se elimina con `if: always()`.
+
+`workflow_dispatch` permite recuperar manualmente una publicación fallida del commit actual de
+`main`. No es un dry-run: también pasa por `publish`, exige aprobación y falla si la release ya
+existe. Seleccionar otra rama o un tag en la ejecución manual es inválido.
 
 ### Generación, backup y rotación
 
@@ -258,6 +263,7 @@ versionName = 1.0.0         -> tag v1.0.0
 Reglas:
 
 - El tag debe apuntar al commit que contiene la versión que se va a construir.
+- El workflow de `main` crea el tag automáticamente después de validar el incremento de versión.
 - El workflow de release debe rechazar un tag que no coincida exactamente con `versionName`.
 - Un tag utilizado para una release pública no se mueve, borra ni reutiliza.
 - Corregir un commit después de crear el tag requiere crear otra versión; no se fuerza el tag
@@ -330,15 +336,17 @@ El APK público debe ser:
 
 ## Flujo de publicación
 
-1. Actualizar `VERSION_NAME` y `VERSION_CODE` en `version.properties` en la pull request.
+1. Elegir la versión objetivo del release train y actualizar `VERSION_NAME` y `VERSION_CODE` en
+   `version.properties` en la pull request. Cada integración usa el siguiente sufijo `-rc.N`;
+   la promoción estable elimina el sufijo y vuelve a aumentar `VERSION_CODE`.
 2. Ejecutar `./gradlew validateVersion` y `validateVersionBump` contra la versión base, y confirmar
    que ambos valores aumentan.
-3. Pasar `CI / version-guard` y los demás quality gates de CI en el pull request.
+3. Pasar `Pull Request Quality / quality / version-guard` y los demás checks requeridos.
 4. Fusionar el cambio en `main`.
-5. Crear el tag exacto `v<versionName>` sobre el commit fusionado.
-6. Dejar que el workflow de release valide tag, versión, firma, build y checksum.
-7. Dejar que el job `publish` cree la GitHub Release como prerelease o estable según el sufijo
-   SemVer. No reintentar ni sobrescribir una release existente.
+5. Dejar que `create-candidate-tag` cree el tag exacto `v<versionName>` sobre el commit fusionado.
+6. Revisar el deployment pendiente y aprobar `publish` cuando se autorice distribuir el candidato.
+7. Dejar que `publish` valide tag, versión, firma, build y checksum, y cree la GitHub Release como
+   prerelease o estable según el sufijo SemVer.
 8. Descargar el APK publicado y verificar su checksum y firma como comprobación posterior.
 
 La publicación no debe depender de cambios manuales en el APK después del workflow. Si cualquier

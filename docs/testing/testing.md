@@ -72,44 +72,44 @@ separately, before invoking this gate:
 `verifyReleaseSigningConfiguration` is intentionally outside `ciVerify`, so pull requests can run
 the CI gate without access to the release keystore or its credentials.
 
-## GitHub Actions release build
+## GitHub Actions release train
 
-[`Release APK`](../../.github/workflows/release.yml) is a protected workflow separate from CI. Its
-`Release APK / build-signed-apk` job runs for `v*.*.*` tags and for manual dry-runs against the
-branch selected in GitHub Actions with an explicitly supplied intended tag. A dry-run validates the
-tag but does not create it. It uses the GitHub Environment `release`; it therefore never runs for
-pull requests and has only `contents: read` permission.
+[`Release Train`](../../.github/workflows/release.yml) is a protected workflow separate from pull
+request CI. Every push to `main` runs `Release Train / create-candidate-tag`, which revalidates the
+version bump and uses its scoped `contents: write` permission to create `v<versionName>` on the
+exact merge SHA. It has no signing secrets and never moves an existing tag.
 
-The job checks that the selected tag is exactly `v<versionName>` before it decodes the temporary
-keystore. It then runs `releaseVerify`, `verifyReleaseSigningConfiguration` and
-`:app:assembleRelease`, verifies the unique APK with `apksigner`, and uploads
-`safecube-<versionName>.apk` plus `safecube-<versionName>.apk.sha256` as a workflow artifact. The
-manual execution is deliberately a dry-run: it skips the publication job and does not create a
-GitHub Release.
+`Release Train / publish` is always present after the tag job and references the GitHub Environment
+`release`. It remains pending until a required reviewer approves it; only then can it access the
+four signing secrets. The job checks out the exact tag, rejects an existing release, runs
+`releaseVerify`, `verifyReleaseSigningConfiguration` and `:app:assembleRelease`, verifies the
+unique APK with `apksigner`, and checks the generated SHA-256.
 
-For a tag-triggered run only, `Release APK / publish` downloads the exact artifact produced by the
-build job, requires exactly its APK and SHA-256 file, and validates that checksum again. This is the
-only job with `contents: write`. It fails instead of changing an existing release or asset, uses
-GitHub-generated release notes with a `sha256sum -c` verification command, and passes
-`--prerelease` to GitHub CLI when `versionName` has a SemVer prerelease suffix.
+The signed APK and checksum are retained as a workflow artifact and attached to a GitHub Release.
+`publish` receives `contents: write` for that publication, uses generated release notes with a
+`sha256sum -c` command, and passes `--prerelease` when the SemVer core contains a prerelease suffix.
+A manual `workflow_dispatch` is a recovery execution for the current `main` commit, not a dry-run:
+it follows the same Environment approval and immutable-publication rules.
 
-## GitHub Actions CI
+## GitHub Actions pull request quality
 
-The [`CI` workflow](../../.github/workflows/ci.yml) runs for every pull request, every push to
-`main`, and manual `workflow_dispatch` executions. It exposes three independent status checks:
+The [`Pull Request Quality` workflow](../../.github/workflows/pull-request-quality.yml) runs for
+every pull request targeting `main` and calls the root-level
+[`Kotlin CI reusable workflow`](../../.github/workflows/kotlin-ci-reusable.yml). It exposes three
+independent status checks:
 
 ```text
-CI / version-guard
-CI / verify
-CI / instrumented-smoke
+Pull Request Quality / quality / version-guard
+Pull Request Quality / quality / verify
+Pull Request Quality / quality / instrumented-smoke
 ```
 
 `version-guard` compares the current `version.properties` with the base version and requires a
 strictly greater SemVer `VERSION_NAME` and `VERSION_CODE`. `verify` and `instrumented-smoke` start
 only after that guard passes. The `verify` job runs `./gradlew --no-daemon ciVerify` on Ubuntu with
-Temurin JDK 21. The workflow declares only `contents: read`, does not consume repository secrets,
-and is safe for pull requests from forks. Newer executions cancel obsolete runs for the same pull
-request or Git ref.
+Temurin JDK 21. The caller and reusable workflow declare only `contents: read`, do not consume
+repository secrets, and are safe for pull requests from forks. Newer executions cancel obsolete
+runs for the same pull request.
 
 Test XML/HTML, Android Lint and Kover coverage reports are uploaded with `if: always()`, including
 when a gate fails. The unsigned release APK built by `ciVerify` is deliberately excluded from CI
@@ -129,18 +129,20 @@ Configure a branch ruleset or branch protection rule targeting `main`, and make 
 1. Require a pull request before merging; direct pushes to `main` must not be allowed.
 2. Require at least one approval, dismiss stale approvals after new commits, and require review
    from Code Owners when a `CODEOWNERS` file is introduced.
-3. Require status checks before merging, add the exact checks `CI / version-guard`, `CI / verify`,
-   `CI / instrumented-smoke`, `Dependency Review / dependency-review`,
-   `CodeQL / Analyze (java-kotlin)` and `Secret scan / gitleaks`, and require the branch
-   to be up to date before merging.
+3. Require status checks before merging, add the exact checks
+   `Pull Request Quality / quality / version-guard`,
+   `Pull Request Quality / quality / verify`,
+   `Pull Request Quality / quality / instrumented-smoke`,
+   `Dependency Review / dependency-review`, `CodeQL / Analyze (java-kotlin)` and
+   `Secret scan / gitleaks`, and require the branch to be up to date before merging.
 4. Require all review conversations to be resolved.
 5. Block force pushes and branch deletion.
 6. Apply the rule to administrators and do not grant routine bypass access. Keep emergency bypass
    limited to a named owner and audit every use.
 
-The `push` execution on `main` validates the resulting merge commit but does not replace the
-required pull-request check. Release and publication workflows may run after merge, but they must
-remain separate from this unprivileged CI workflow.
+After merge, `Release Train` trusts that protected `main` received the pull-request assessment and
+only repeats the critical version-bump validation before creating the candidate tag. Administrators
+must not routinely bypass the branch rule.
 
 ## Dependency updates and review
 
@@ -163,7 +165,7 @@ with `high` or `critical` severity. License policy and automatic merging remain 
 ## CodeQL static security analysis
 
 The [`CodeQL` workflow](../../.github/workflows/codeql.yml) runs for pull requests to `main`,
-pushes to `main`, every Monday at 03:23 UTC, and manual dispatches. Its required check is:
+every Monday at 03:23 UTC, and manual dispatches. Its required check is:
 
 ```text
 CodeQL / Analyze (java-kotlin)
