@@ -44,6 +44,17 @@ The root Gradle tasks below are the canonical commands for local validation and 
 Their dependency graph lives in `build.gradle.kts`; workflows and documentation must invoke these
 tasks instead of maintaining a second list of checks.
 
+Every GitHub Actions job that invokes Gradle checks out the repository and then uses the local
+[`setup-android-gradle`](../../.github/actions/setup-android-gradle/action.yml) composite action.
+That action pins the supported Temurin JDK and `gradle/actions/setup-gradle` versions in one place.
+The Gradle action restores its own Gradle User Home cache; workflows must not add a competing
+`actions/cache` entry for `~/.gradle` or enable the Gradle cache in `actions/setup-java`.
+
+Project-wide task output caching is enabled with `org.gradle.caching=true`. Cacheable Android,
+Kotlin, Java and test tasks may therefore reuse outputs restored by `setup-gradle`, but every gate
+must remain correct and pass from an empty cache. Android SDK and managed-device state are not
+cached by the repository; the instrumented smoke test must continue to start a clean device.
+
 Run the CI gate locally or in a pull request:
 
 ```bash
