@@ -820,11 +820,17 @@ para reducir el alcance del token que puede escribir en el repositorio.
 
 ---
 
-# 14. Crear el runbook de release y validar el pipeline en dry-run
+# 14. Crear el runbook de release y validar una RC real
+
+> **Revisión de alcance (2026-08-05):** el release train evolucionó después de redactar la card.
+> Cada merge a `main` crea automáticamente su tag, `publish` siempre forma parte de `Release Train`
+> y su `workflow_dispatch` es una recuperación publicable. Se descarta un workflow firmado de
+> dry-run porque duplicaría el camino real y podría divergir. La política y el runbook versionados
+> son la autoridad vigente.
 
 ## Main Story (How, I Want, To)
 
-Como maintainer, quiero un checklist reproducible y una prueba sin publicación para poder operar el
+Como maintainer, quiero un checklist reproducible y evidencia de una RC real para poder operar el
 pipeline sin depender de conocimiento implícito.
 
 ## Context, Functional Description & Goal
@@ -844,24 +850,25 @@ controladas.
   - reviewers del environment;
   - required checks de branch protection;
   - Secret Scanning/Push Protection.
-- Documentar el flujo normal:
+- Documentar el release train vigente:
   - actualizar `VERSION_NAME` y `VERSION_CODE`;
   - abrir y validar PR;
-  - crear tag firmado o protegido;
+  - observar la creación automática del tag protegido;
+  - revisar y aprobar el Environment;
   - observar build;
   - verificar APK, firma y SHA-256;
   - instalar el APK en un dispositivo limpio.
 - Documentar prerelease, release estable, hotfix y retirada.
 - Documentar backup y recuperación del keystore.
 - Documentar qué hacer ante fallo después de crear el tag, sin moverlo ni sobrescribir assets.
-- Ejecutar `workflow_dispatch` dry-run con los secrets reales.
-- Descargar el artefacto, validar checksum y firma e instalarlo manualmente.
-- Registrar el resultado del dry-run sin incluir secretos.
+- Registrar el resultado de una RC real sin incluir secretos.
+- Reutilizar evidencia de una RC existente si satisface todos los checks; no publicar una versión
+  únicamente para cerrar la card.
 
 ### Out of Scope (if applies)
 
-- Crear un tag/release público solo para probar.
 - Publicar `v1.0.0-rc.1`; pertenece a la fase 10.
+- Mantener un workflow paralelo de dry-run firmado.
 - Automatizar rollback.
 
 ## Additional Information and Configuration
@@ -872,15 +879,16 @@ controladas.
 
 ### API Contract and Expected Behavior (if applies)
 
-El dry-run ejecuta el mismo build y firma que una publicación, pero el job `publish` queda omitido.
+El runbook describe el release train real. Una RC aprobada ejecuta build, firma, checksum y
+publicación inmutable; la evidencia posterior confirma descarga e instalación.
 
 ### Acceptance Criteria (ACs)
 
 - El runbook permite operar una release desde una sesión nueva.
-- El dry-run termina correctamente con el environment protegido.
+- Una RC real termina correctamente con el Environment protegido.
 - El APK descargado pasa `apksigner` y checksum.
 - El APK se instala y arranca en un dispositivo API soportada.
-- No se crea tag ni GitHub Release durante el dry-run.
+- Tag, commit, versión, APK y checksum mantienen trazabilidad exacta.
 - Fase 6 puede declararse completada sin ejecutar tareas opcionales.
 
 ---

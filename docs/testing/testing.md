@@ -108,6 +108,11 @@ The signed APK and checksum are retained as a workflow artifact and attached to 
 A manual `workflow_dispatch` is a recovery execution for the current `main` commit, not a dry-run:
 it follows the same Environment approval and immutable-publication rules.
 
+There is deliberately no parallel signed dry-run workflow. Operational validation uses a real RC
+through the protected `Release Train`, so the path being exercised is the path that actually
+publishes. Post-publication checksum, certificate and clean-device installation are verified
+following the [release runbook](../release/release-runbook.md).
+
 ## GitHub Actions pull request quality
 
 The [`Pull Request Quality` workflow](../../.github/workflows/pull-request-quality.yml) runs for
