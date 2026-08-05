@@ -145,6 +145,11 @@ El keystore temporal se elimina con `if: always()`.
 `main`. No es un dry-run: también pasa por `publish`, exige aprobación y falla si la release ya
 existe. Seleccionar otra rama o un tag en la ejecución manual es inválido.
 
+SafeCube no mantiene un workflow firmado paralelo de dry-run. La validación operativa se realiza
+con una RC real mediante el mismo `Release Train` que publica, evitando que un camino duplicado
+diverja del proceso efectivo. El procedimiento y la evidencia requerida se describen en el
+[runbook de release](release-runbook.md).
+
 ### Generación, backup y rotación
 
 El keystore se genera fuera del repositorio, en una máquina controlada por el maintainer. El

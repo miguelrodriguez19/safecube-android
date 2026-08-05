@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 04-08-2026 03:37:09
+Updated: 05-08-2026 05:36:48
 
 ```
 safecube-android/
@@ -781,7 +781,8 @@ safecube-android/
 │   ├── package-structure/
 │   │   └── package_structure.md
 │   ├── release/
-│   │   └── release-policy.md
+│   │   ├── release-policy.md
+│   │   └── release-runbook.md
 │   ├── roadmap/
 │   │   ├── historical/
 │   │   │   └── roadmap--fase-5-v1.md
@@ -799,6 +800,7 @@ safecube-android/
 │   │   │   ├── SCDK-M101.md
 │   │   │   ├── SCDK-M102--Build-and-verify-signed-APK-in-release-workflow.md
 │   │   │   ├── SCDK-M103--Publish-APK-to-GitHub-Releases.md
+│   │   │   ├── SCDK-M104--Create-release-runbook.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
