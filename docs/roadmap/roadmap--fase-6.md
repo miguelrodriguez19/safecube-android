@@ -895,6 +895,10 @@ publicación inmutable; la evidencia posterior confirma descarga e instalación.
 
 # 15. OPCIONAL — Automatizar CHANGELOG mediante Conventional Commits
 
+> **Estado de implementación (2026-08-06):** implementada como complemento del release train de
+> SCDK-M104 y de los assets SBOM/provenance de SCDK-M106. `publish` solo lee tags y consume las
+> notas generadas; la creación de tags sigue aislada en `create-candidate-tag`.
+
 ## Main Story (How, I Want, To)
 
 Como maintainer, quiero generar un changelog consistente para reducir el trabajo manual al preparar
@@ -929,8 +933,8 @@ existente.
 
 ## Additional Information and Configuration
 
-- Esta card es opcional y depende de la decisión pendiente sobre changelog.
-- Dependencias: tareas 01, 02 y 13.
+- La decisión pendiente sobre changelog queda resuelta para el release train actual.
+- Dependencias: `SCDK-M91`, `SCDK-M92` y `SCDK-M103`; complementa `SCDK-M104` y `SCDK-M106`.
 
 ### API Contract and Expected Behavior (if applies)
 

@@ -310,7 +310,8 @@ experiencia honesta; `v1` no debe contener pantallas dummy.
 1. Confirmar el corte funcional recomendado o promover biometría, búsqueda o carpetas a `v1`.
 2. Elegir entre observabilidad alojada en la UE, autoalojada o solo preparar el contrato de
    telemetría.
-3. Decidir si el changelog automatizado es requisito de `v1.0.0` o una mejora posterior.
+3. El changelog automatizado queda adoptado como mejora opcional del release train; no controla
+   versiones, tags ni publicación.
 
 ---
 
