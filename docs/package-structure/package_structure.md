@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 06-08-2026 02:19:24
+Updated: 06-08-2026 03:58:03
 
 ```
 safecube-android/
@@ -198,9 +198,8 @@ safecube-android/
 │   │   │   │   │   │       ├── lookups.tab_i
 │   │   │   │   │   │       └── lookups.tab_i.len
 │   │   │   │   │   └── last-build.bin
-│   │   │   │   ├── classpath-snapshot/
-│   │   │   │   │   └── shrunk-classpath-snapshot.bin
-│   │   │   │   └── local-state/
+│   │   │   │   └── classpath-snapshot/
+│   │   │   │       └── shrunk-classpath-snapshot.bin
 │   │   │   └── compileTestKotlin/
 │   │   │       ├── cacheable/
 │   │   │       │   ├── caches-jvm/
@@ -783,6 +782,7 @@ safecube-android/
 │   ├── package-structure/
 │   │   └── package_structure.md
 │   ├── release/
+│   │   ├── conventional-commits.md
 │   │   ├── release-policy.md
 │   │   └── release-runbook.md
 │   ├── roadmap/
@@ -803,6 +803,7 @@ safecube-android/
 │   │   │   ├── SCDK-M102--Build-and-verify-signed-APK-in-release-workflow.md
 │   │   │   ├── SCDK-M103--Publish-APK-to-GitHub-Releases.md
 │   │   │   ├── SCDK-M104--Create-release-runbook.md
+│   │   │   ├── SCDK-M105--Automate-changelog.md
 │   │   │   ├── SCDK-M106--Add-SBOM-and-provenance-attestation.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
@@ -981,7 +982,9 @@ safecube-android/
 │   ├── resources/com/safecube/tooling/
 │   │   └── FolderTreeToFile.java
 │   ├── create-immutable-release-tag.sh
+│   ├── generate-changelog.sh
 │   ├── run-folder-tree.sh
+│   ├── verify-changelog-test.sh
 │   ├── verify-create-immutable-release-tag.sh
 │   ├── verify-gitleaks-fixture.sh
 │   └── verify-release-sbom.sh
@@ -992,6 +995,8 @@ safecube-android/
 ├── .gitleaksignore
 ├── AGENTS.md
 ├── build.gradle.kts
+├── CHANGELOG.md
+├── cliff.toml
 ├── gradlew
 ├── gradlew.bat
 ├── LICENSE
