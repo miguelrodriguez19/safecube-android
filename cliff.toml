@@ -52,6 +52,8 @@ commit_parsers = [
     { message = '^build\(deps[^)]*\)', skip = true },
     { message = '^chore\(release\)', skip = true },
     { message = '^chore\(dependabot[^)]*\)', skip = true },
+    { message = '^docs\(SCDK-M[0-9]+\): (add|refresh) generated changelog$', skip = true },
+    { message = '^chore\(SCDK-M[0-9]+\): configure generated changelog stability$', skip = true },
     { message = '^[a-z]+(\([^)]*\))?!:', group = '<!-- 0 -->Breaking changes' },
     { body = '(?i)BREAKING CHANGE', group = '<!-- 0 -->Breaking changes' },
     { message = '^security', group = '<!-- 3 -->Security' },
