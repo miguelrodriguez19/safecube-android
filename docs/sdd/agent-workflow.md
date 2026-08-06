@@ -28,7 +28,8 @@ respetar el scope de la task y señalar cualquier dependencia no satisfecha.
 ### 3. Implementación
 
 Aplicar el cambio mínimo que satisface la spec. No corregir problemas laterales en la misma task.
-Si aparece un cambio de contrato, detenerse y crear o solicitar un ADR.
+Si aparece un cambio de contrato, detenerse y crear o solicitar un ADR. Los cambios se harán desde
+una rama nueva (NO nuevo worktree). Las ramas deberán incluir el ID de la tarea. 
 
 ### 4. Verificación
 

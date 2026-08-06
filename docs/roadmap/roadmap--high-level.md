@@ -146,7 +146,7 @@ La publicación en Google Play queda fuera de este programa inicial.
 
 ---
 
-### 🟡 [FASE 6 — Release Engineering & Quality Gates](./roadmap--fase-6.md)
+### 🟢 [FASE 6 — Release Engineering & Quality Gates](./roadmap--fase-6.md)
 
 Construir la infraestructura transversal antes de continuar con cambios funcionales y visuales:
 
@@ -170,7 +170,7 @@ Resultado:
 
 ---
 
-### 🟡 FASE 7 — Hardening, Seguridad & Resiliencia
+### 🟡 [FASE 7 — Hardening, Seguridad & Resiliencia](./roadmap--fase-7.md)
 
 Endurecer los flujos existentes sin ampliar innecesariamente el producto:
 
