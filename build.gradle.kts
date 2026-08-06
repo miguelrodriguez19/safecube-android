@@ -1,8 +1,9 @@
-import com.miguelrodriguez19.safecube.buildlogic.AppVersionParser
 import com.miguelrodriguez19.safecube.buildlogic.AppVersionComparator
+import com.miguelrodriguez19.safecube.buildlogic.AppVersionParser
 import com.miguelrodriguez19.safecube.buildlogic.ReleaseSigningConfig
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
-import java.io.File
+import org.cyclonedx.model.Component
+import org.cyclonedx.model.ExternalReference
 
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -13,6 +14,7 @@ plugins {
     alias(libs.plugins.hilt.android) apply false
     alias(libs.plugins.openapi.generator) apply false
     alias(libs.plugins.kotlinx.kover)
+    alias(libs.plugins.cyclonedx.bom)
 }
 
 val appVersion = AppVersionParser.fromFile(rootProject.file("version.properties"))
@@ -35,6 +37,30 @@ dependencies {
     kover(project(":core:crypto"))
     kover(project(":core:storage"))
     kover(project(":core:vault"))
+}
+
+project(":app") {
+    tasks.cyclonedxDirectBom {
+        includeConfigs = listOf("releaseRuntimeClasspath")
+        skipConfigs = listOf("(?i).*test.*", "(?i).*debug.*", "(?i).*benchmark.*")
+        projectType = Component.Type.APPLICATION
+        includeBomSerialNumber = false
+        includeLicenseText = false
+        includeMetadataResolution = true
+        includeBuildEnvironment = false
+        includeBuildSystem = false
+        componentGroup = "com.miguelrodriguez19.safecube"
+        componentName = "safecube-android"
+        componentVersion = appVersion.versionName
+        externalReferences = listOf(
+            ExternalReference().apply {
+                type = ExternalReference.Type.VCS
+                url = "https://github.com/miguelrodriguez19/safecube-android"
+            }
+        )
+        jsonOutput.set(rootProject.layout.buildDirectory.file("reports/cyclonedx/safecube-release.cdx.json"))
+        xmlOutput.unsetConvention()
+    }
 }
 
 kover {

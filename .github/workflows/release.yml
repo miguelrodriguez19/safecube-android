@@ -157,6 +157,7 @@ jobs:
           releaseVerify
           verifyReleaseSigningConfiguration
           :app:assembleRelease
+          :app:cyclonedxDirectBom
 
       - name: Locate the single release APK
         id: release-apk
@@ -169,9 +170,10 @@ jobs:
 
           printf 'path=%s\n' "${release_apks[0]}" >> "$GITHUB_OUTPUT"
 
-      - name: Verify APK signature and create release artifacts
+      - name: Verify APK signature, SBOM and release artifacts
         env:
           RELEASE_APK: ${{ steps.release-apk.outputs.path }}
+          RELEASE_SBOM: build/reports/cyclonedx/safecube-release.cdx.json
         run: |
           apksigner_path="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner -print | sort -V | tail -n 1)"
           if [ -z "$apksigner_path" ]; then
@@ -180,18 +182,21 @@ jobs:
           fi
 
           "$apksigner_path" verify --verbose --print-certs "$RELEASE_APK"
+          scripts/verify-release-sbom.sh "$RELEASE_SBOM" "$VERSION_NAME"
 
           artifact_directory="$RUNNER_TEMP/safecube-release-artifacts"
           apk_name="safecube-${VERSION_NAME}.apk"
+          sbom_name="safecube-${VERSION_NAME}.cdx.json"
           mkdir -p "$artifact_directory"
           cp "$RELEASE_APK" "$artifact_directory/$apk_name"
+          cp "$RELEASE_SBOM" "$artifact_directory/$sbom_name"
           (
             cd "$artifact_directory"
             sha256sum "$apk_name" > "$apk_name.sha256"
             sha256sum --check "$apk_name.sha256"
           )
 
-      - name: Upload signed APK and checksum as workflow artifact
+      - name: Upload signed APK, checksum and SBOM as workflow artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ${{ env.ARTIFACT_NAME }}
@@ -200,13 +205,15 @@ jobs:
           path: |
             ${{ runner.temp }}/safecube-release-artifacts/safecube-${{ env.VERSION_NAME }}.apk
             ${{ runner.temp }}/safecube-release-artifacts/safecube-${{ env.VERSION_NAME }}.apk.sha256
+            ${{ runner.temp }}/safecube-release-artifacts/safecube-${{ env.VERSION_NAME }}.cdx.json
 
       - name: Publish GitHub Release
         run: |
           artifact_directory="$RUNNER_TEMP/safecube-release-artifacts"
           apk_name="safecube-${VERSION_NAME}.apk"
           checksum_name="${apk_name}.sha256"
-          release_notes="$(printf 'Verify the downloaded APK with:\n\n~~~sh\nsha256sum -c %s\n~~~' "$checksum_name")"
+          sbom_name="safecube-${VERSION_NAME}.cdx.json"
+          release_notes="$(printf 'Verify the downloaded APK with:\n\n~~~sh\nsha256sum -c %s\n~~~\n\nWhen provenance is available, verify it with:\n\n~~~sh\ngh attestation verify %s -R %s\n~~~' "$checksum_name" "$apk_name" "$GITHUB_REPOSITORY")"
           prerelease_flag=()
           semver_without_build_metadata="${VERSION_NAME%%+*}"
           if [[ "$semver_without_build_metadata" == *-* ]]; then
@@ -216,6 +223,7 @@ jobs:
           gh release create "$RELEASE_TAG" \
             "$artifact_directory/$apk_name" \
             "$artifact_directory/$checksum_name" \
+            "$artifact_directory/$sbom_name" \
             --verify-tag \
             --generate-notes \
             --notes "$release_notes" \
@@ -224,3 +232,57 @@ jobs:
       - name: Remove temporary keystore
         if: always()
         run: rm -f "$RUNNER_TEMP/safecube-release.jks"
+
+  attest:
+    name: attest-provenance
+    needs:
+      - create-candidate-tag
+      - publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    env:
+      ARTIFACT_NAME: ${{ needs.create-candidate-tag.outputs.artifact_name }}
+      VERSION_NAME: ${{ needs.create-candidate-tag.outputs.version_name }}
+
+    steps:
+      - name: Download exact published workflow artifact
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ runner.temp }}/safecube-attestation-subject
+
+      - name: Verify downloaded release artifact
+        run: |
+          artifact_directory="$RUNNER_TEMP/safecube-attestation-subject"
+          apk_name="safecube-${VERSION_NAME}.apk"
+          checksum_name="${apk_name}.sha256"
+          sbom_name="safecube-${VERSION_NAME}.cdx.json"
+
+          mapfile -t artifact_files < <(find "$artifact_directory" -maxdepth 1 -type f -print | sort)
+          if [ "${#artifact_files[@]}" -ne 3 ]; then
+            echo "Expected exactly the APK, checksum and CycloneDX SBOM." >&2
+            exit 1
+          fi
+
+          for expected_file in "$apk_name" "$checksum_name" "$sbom_name"; do
+            if [ ! -s "$artifact_directory/$expected_file" ]; then
+              echo "Expected release artifact is missing: $expected_file." >&2
+              exit 1
+            fi
+          done
+
+          (
+            cd "$artifact_directory"
+            sha256sum --check "$checksum_name"
+          )
+
+      - name: Attest exact published APK provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ runner.temp }}/safecube-attestation-subject/safecube-${{ env.VERSION_NAME }}.apk
+          create-storage-record: false

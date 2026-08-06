@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 05-08-2026 05:36:48
+Updated: 06-08-2026 12:38:23
 
 ```
 safecube-android/
@@ -363,6 +363,8 @@ safecube-android/
 │   │   │       └── domain/session/
 │   │   │           └── SessionManagerImplTest.kt
 │   │   └── build.gradle.kts
+│   ├── build/reports/cyclonedx-direct/
+│   │   └── bom.json
 │   ├── crypto/
 │   │   ├── src/
 │   │   │   ├── main/
@@ -801,6 +803,7 @@ safecube-android/
 │   │   │   ├── SCDK-M102--Build-and-verify-signed-APK-in-release-workflow.md
 │   │   │   ├── SCDK-M103--Publish-APK-to-GitHub-Releases.md
 │   │   │   ├── SCDK-M104--Create-release-runbook.md
+│   │   │   ├── SCDK-M106--Add-SBOM-and-provenance-attestation.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
@@ -865,6 +868,8 @@ safecube-android/
 │   │   │   ├── res/values/
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
+│   ├── build/reports/cyclonedx-direct/
+│   │   └── bom.json
 │   ├── profile/
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/feature/profile/
@@ -978,7 +983,9 @@ safecube-android/
 │   ├── create-immutable-release-tag.sh
 │   ├── run-folder-tree.sh
 │   ├── verify-create-immutable-release-tag.sh
-│   └── verify-gitleaks-fixture.sh
+│   ├── verify-gitleaks-fixture.sh
+│   ├── verify-release-sbom-test.sh
+│   └── verify-release-sbom.sh
 ├── tests/fixtures/gitleaks/
 │   └── allowed-synthetic-secret.txt
 ├── .gitignore
