@@ -111,6 +111,11 @@ and attached to a GitHub Release.
 A manual `workflow_dispatch` is a recovery execution for the current `main` commit, not a dry-run:
 it follows the same Environment approval and immutable-publication rules.
 
+Release notes are generated in `publish` from the previous reachable release tag to the candidate
+tag with the versioned [`cliff.toml`](../../cliff.toml). The job passes those notes to GitHub with
+`--notes-file`; it does not ask GitHub to synthesize release notes. `git-cliff` is downloaded at a
+fixed version and verified by SHA-256 before use.
+
 After publication, `Release Train / attest-provenance` downloads that exact artifact, verifies the
 APK checksum again and creates provenance with SHA-pinned `actions/attest`. Only this job receives
 `id-token: write` and `attestations: write`; it otherwise has `contents: read` and no release
