@@ -100,13 +100,23 @@ scripts/verify-create-immutable-release-tag.sh
 `release`. It remains pending until a required reviewer approves it; only then can it access the
 four signing secrets. The job checks out the exact tag, rejects an existing release, runs
 `releaseVerify`, `verifyReleaseSigningConfiguration` and `:app:assembleRelease`, verifies the
-unique APK with `apksigner`, and checks the generated SHA-256.
+unique APK with `apksigner`, checks the generated SHA-256, and generates a CycloneDX 1.6 SBOM from
+the release runtime dependency configurations. The SBOM verifier rejects invalid structure,
+runner-local paths, credential-bearing URLs and sensitive fields without printing rejected values.
 
-The signed APK and checksum are retained as a workflow artifact and attached to a GitHub Release.
+The signed APK, checksum and `safecube-<version>.cdx.json` SBOM are retained as a workflow artifact
+and attached to a GitHub Release.
 `publish` receives `contents: write` for that publication, uses generated release notes with a
 `sha256sum -c` command, and passes `--prerelease` when the SemVer core contains a prerelease suffix.
 A manual `workflow_dispatch` is a recovery execution for the current `main` commit, not a dry-run:
 it follows the same Environment approval and immutable-publication rules.
+
+After publication, `Release Train / attest-provenance` downloads that exact artifact, verifies the
+APK checksum again and creates provenance with SHA-pinned `actions/attest`. Only this job receives
+`id-token: write` and `attestations: write`; it otherwise has `contents: read` and no release
+secrets. The job is best-effort (`continue-on-error: true`) because attestation availability
+depends on GitHub plan/hosting and must not block the already-created release. The Android
+signature and checksum remain mandatory independent gates.
 
 There is deliberately no parallel signed dry-run workflow. Operational validation uses a real RC
 through the protected `Release Train`, so the path being exercised is the path that actually

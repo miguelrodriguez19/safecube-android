@@ -949,6 +949,11 @@ alcanzables entre tags.
 
 # 16. OPCIONAL — Añadir SBOM y provenance attestation al APK
 
+> **Decisión de implementación (2026-08-05):** el SBOM forma parte del job publicable y es un gate
+> porque debe acompañar a cada release sin datos sensibles. La provenance se genera después de
+> publicar en un job aislado y `continue-on-error`, de modo que una limitación del plan o del
+> servicio de attestations no bloquea ni altera los artefactos base.
+
 ## Main Story (How, I Want, To)
 
 Como consumidor de una beta pública, quiero verificar el origen y las dependencias del APK para

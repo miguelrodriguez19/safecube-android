@@ -2,7 +2,7 @@
 
 | Spec ID               | Status     | Owner     | Last reviewed | Supersedes | Related ADRs |
 |-----------------------|------------|-----------|---------------|------------|--------------|
-| `SPEC-RELEASE-POLICY` | `APPROVED` | `release` | `2026-08-04`  | `N/A`      | `N/A`        |
+| `SPEC-RELEASE-POLICY` | `APPROVED` | `release` | `2026-08-05`  | `N/A`      | `N/A`        |
 
 ## Propósito y estado
 
@@ -149,6 +149,30 @@ SafeCube no mantiene un workflow firmado paralelo de dry-run. La validación ope
 con una RC real mediante el mismo `Release Train` que publica, evitando que un camino duplicado
 diverja del proceso efectivo. El procedimiento y la evidencia requerida se describen en el
 [runbook de release](release-runbook.md).
+
+### SBOM y provenance opcional
+
+`publish` genera además un SBOM CycloneDX 1.6 JSON agregado exclusivamente desde las
+configuraciones `releaseRuntimeClasspath`. El documento identifica `safecube-android` con el mismo
+`VERSION_NAME`, excluye dependencias de test/debug, entorno de build, rutas del runner y campos o
+URLs con credenciales. `scripts/verify-release-sbom.sh` detiene la publicación si el JSON no cumple
+el contrato o contiene datos prohibidos. La GitHub Release y el workflow artifact incluyen:
+
+```text
+safecube-<versionName>.apk
+safecube-<versionName>.apk.sha256
+safecube-<versionName>.cdx.json
+```
+
+El job posterior `Release Train / attest-provenance` descarga exactamente ese workflow artifact,
+comprueba de nuevo el checksum y usa `actions/attest` fijado por SHA para generar provenance sobre
+el APK. Solo ese job recibe `id-token: write` y `attestations: write`; mantiene `contents: read`, no
+usa secrets del Environment ni sustituye `apksigner` o la firma Android.
+
+La attestation es una mejora best-effort posterior a la publicación. El job tiene
+`continue-on-error: true`: un plan sin soporte o una indisponibilidad de GitHub Attestations queda
+visible en sus logs, pero no impide ni modifica la release ya creada. No se reclama ningún nivel
+SLSA. La verificación de consumidor se documenta en el [runbook](release-runbook.md).
 
 ### Generación, backup y rotación
 

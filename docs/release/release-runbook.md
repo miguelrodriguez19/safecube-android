@@ -24,7 +24,8 @@ autorizada para revisar el deployment cuando el equipo lo permita. Para las comp
 - JDK 21 y Android SDK;
 - `apksigner` de Android Build Tools;
 - `adb` y un dispositivo limpio con Android API 30-36;
-- `sha256sum` en Linux o `shasum` en macOS.
+- `sha256sum` en Linux o `shasum` en macOS;
+- `jq` y una versión reciente de GitHub CLI con `gh attestation`.
 
 ## Configuración inicial manual en GitHub
 
@@ -156,10 +157,12 @@ segundo workflow que podría divergir del proceso realmente publicable.
 3. Confirmar que `v<VERSION_NAME>` apunta exactamente al SHA fusionado.
 4. Revisar la ejecución y aprobar `Release Train / publish` en el Environment `release` solo cuando
    se quiera distribuir esa RC.
-5. Confirmar que pasan el build firmado, `apksigner`, SHA-256, subida del workflow artifact y
-   creación de la GitHub prerelease.
+5. Confirmar que pasan el build firmado, `apksigner`, SHA-256, generación/verificación CycloneDX,
+   subida del workflow artifact y creación de la GitHub prerelease.
 6. Descargar los assets públicos `safecube-<VERSION_NAME>.apk` y
-   `safecube-<VERSION_NAME>.apk.sha256` desde la release.
+   `safecube-<VERSION_NAME>.apk.sha256` y `safecube-<VERSION_NAME>.cdx.json` desde la release.
+7. Revisar el job posterior `attest-provenance`. Un fallo queda visible pero no invalida la release
+   base porque la attestation es best-effort.
 
 El artifact de la ejecución puede descargarse adicionalmente con GitHub CLI:
 
@@ -193,6 +196,47 @@ el registro de custodia. El certificado es información pública; el keystore y 
 son. La referencia del comando y sus verificaciones está en
 [`apksigner`](https://developer.android.com/tools/apksigner).
 
+### Verificar SBOM y provenance
+
+Comprobar primero que el SBOM publicado corresponde a la versión y tiene estructura CycloneDX:
+
+```bash
+jq -e --arg version "<VERSION_NAME>" '
+  .bomFormat == "CycloneDX" and
+  .specVersion == "1.6" and
+  .metadata.component.name == "safecube-android" and
+  .metadata.component.version == $version and
+  (.components | type == "array") and
+  (.dependencies | type == "array")
+' "safecube-<VERSION_NAME>.cdx.json"
+```
+
+La comprobación completa que utiliza el workflow puede repetirse desde un checkout del tag:
+
+```bash
+scripts/verify-release-sbom.sh \
+  "safecube-<VERSION_NAME>.cdx.json" \
+  "<VERSION_NAME>"
+```
+
+Si `attest-provenance` terminó correctamente, verificar el APK descargado contra este repositorio:
+
+```bash
+gh attestation verify \
+  "safecube-<VERSION_NAME>.apk" \
+  -R miguelrodriguez19/safecube-android
+```
+
+El digest mostrado debe coincidir con el APK validado por el archivo `.sha256`. La provenance
+complementa la firma Android: no sustituye `apksigner`, no firma el APK para Android y no demuestra
+por sí sola un nivel SLSA.
+
+Si GitHub indica que attestations no están soportadas por el plan, visibilidad o hosting, registrar
+el resultado del job y continuar usando APK, firma Android, checksum y SBOM. No reejecutar ni
+reemplazar una release solo para obtener la attestation. En repositorios públicos GitHub.com la
+funcionalidad está disponible normalmente; repositorios privados/internos pueden requerir
+Enterprise Cloud y GitHub Enterprise Server no la soporta.
+
 ### Instalar y arrancar en un dispositivo limpio
 
 Usar un emulador recién creado o un dispositivo de pruebas sin datos que conservar, dentro de API
@@ -223,6 +267,8 @@ Añadir al informe de SCDK-M104 o al registro operativo equivalente:
 | Artifact | `safecube-<versión>` |
 | Checksum | `PASS` |
 | Firma/fingerprint esperado | `PASS` sin passwords ni keystore |
+| CycloneDX SBOM | `PASS`, versión y estructura correctas |
+| Provenance | `PASS` o `UNAVAILABLE` con motivo no sensible |
 | Dispositivo/API | `<modelo>` / `<API>` |
 | Arranque Welcome → Login | `PASS` |
 | Tag apunta al SHA fusionado | `PASS` |
@@ -246,8 +292,9 @@ Nunca copiar valores de secrets, Base64, passwords, rutas privadas ni el keystor
    `v<VERSION_NAME>` sobre el SHA fusionado.
 6. Revisar el candidato y aprobar `Release Train / publish` en el Environment `release` cuando se
    quiera distribuir esa RC.
-7. Confirmar build, firma, checksum y creación de la GitHub prerelease.
-8. Descargar los dos assets públicos y repetir checksum, firma e instalación limpia.
+7. Confirmar build, firma, checksum, SBOM y creación de la GitHub prerelease; revisar por separado
+   el resultado best-effort de provenance.
+8. Descargar los tres assets públicos y repetir checksum, firma, SBOM e instalación limpia.
 
 Se pueden acumular candidatos pendientes de aprobación. Cada uno conserva su tag y su ejecución;
 no se mueve un tag para incluir cambios posteriores.
@@ -279,8 +326,9 @@ Un hotfix no autoriza bypass de checks, reutilización de versión ni sustituci�
 | Antes del merge | Corregir la misma PR; todavía no existe identidad pública. |
 | Tag creado, `publish` pendiente | Inspeccionar el SHA. Aprobar solo si es el candidato correcto; si no, preparar una versión nueva sin mover ni borrar el tag. |
 | Error de secrets, runner o red antes de crear la release | Corregir la configuración y reejecutar el mismo run solo si el tag sigue apuntando al mismo SHA y no existe release. |
-| Error reproducible de build, firma o app después del tag | Corregir mediante otra PR con `VERSION_NAME` y `VERSION_CODE` nuevos. |
+| Error reproducible de build, firma, SBOM o app después del tag | Corregir mediante otra PR con `VERSION_NAME` y `VERSION_CODE` nuevos. |
 | GitHub Release creada total o parcialmente | No reemplazar assets ni reusar el tag. Tratarlo como incidente, marcar la metadata como retirada y publicar una versión nueva. |
+| Fallo de `attest-provenance` después de publicar | Conservar la release; registrar si fue plan, servicio o configuración y corregir en una card posterior. No sobrescribir assets. |
 | Ejecución automática perdida para el `main` actual | Usar `workflow_dispatch` de **Release Train** sabiendo que sí crea/verifica el tag y sí publica tras aprobación. |
 
 Nunca forzar, mover ni borrar el tag para “arreglar” una ejecución. Nunca sobrescribir APK o
