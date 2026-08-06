@@ -2,7 +2,7 @@
 
 | Spec ID               | Status     | Owner     | Last reviewed | Supersedes | Related ADRs |
 |-----------------------|------------|-----------|---------------|------------|--------------|
-| `SPEC-RELEASE-POLICY` | `APPROVED` | `release` | `2026-08-05`  | `N/A`      | `N/A`        |
+| `SPEC-RELEASE-POLICY` | `APPROVED` | `release` | `2026-08-06`  | `N/A`      | `N/A`        |
 
 ## Propósito y estado
 
@@ -12,6 +12,25 @@ versionar y publicar SafeCube.
 La política se aplica a partir de su adopción en el repositorio. Cada cambio que se fusiona en
 `main` debe ser un candidato de release: ya tiene una versión única, supera los quality gates y no
 requiere editar el contenido antes de iniciar la publicación.
+
+## Historial y changelog
+
+SafeCube usa [Conventional Commits](conventional-commits.md) como formato documentado para el
+historial. La configuración versionada [`cliff.toml`](../../cliff.toml) agrupa breaking changes,
+features, fixes y security, conserva los commits no convencionales en `Other` y excluye únicamente
+trabajo mecánico identificado de forma explícita. El historial anterior no se reescribe ni se
+convierte automáticamente.
+
+El comando local reproducible es:
+
+```bash
+./scripts/generate-changelog.sh
+```
+
+Para una release, el workflow genera notas solo desde el tag anterior alcanzable hasta el tag
+actual. La generación usa `git-cliff` v2.13.0 con el binario Linux x86_64 verificado por SHA-256 en
+`.github/workflows/release.yml`. El archivo se entrega a GitHub mediante `--notes-file`; no se usan
+las notas automáticas de GitHub como fuente de contenido.
 
 ## Fuente única de versión
 
@@ -130,15 +149,18 @@ que accede a la identidad de firma. Tras la aprobación:
 
 1. hace checkout del tag exacto y comprueba que apunta al SHA del workflow;
 2. rechaza una GitHub Release ya existente;
-3. descodifica el keystore solo dentro de `$RUNNER_TEMP`;
-4. ejecuta `releaseVerify`, `verifyReleaseSigningConfiguration` y `:app:assembleRelease`;
-5. valida el APK con `apksigner verify --verbose --print-certs`;
-6. genera y comprueba `safecube-<versionName>.apk.sha256`;
-7. conserva ambos archivos como workflow artifact y los adjunta a una GitHub Release inmutable.
+3. resuelve el tag anterior, valida el rango y genera las notas de `tagAnterior..tagActual`;
+4. descodifica el keystore solo dentro de `$RUNNER_TEMP`;
+5. ejecuta `releaseVerify`, `verifyReleaseSigningConfiguration` y `:app:assembleRelease`;
+6. valida el APK con `apksigner verify --verbose --print-certs`;
+7. genera y comprueba `safecube-<versionName>.apk.sha256`;
+8. conserva APK, checksum y SBOM como workflow artifact y los adjunta a una GitHub Release
+   inmutable.
 
-El job usa `gh release create --verify-tag`, notas generadas por GitHub y una instrucción
-`sha256sum -c` para el usuario. Una versión con sufijo SemVer se publica como prerelease y una
-versión sin sufijo como estable. Si ya existe la release, falla sin modificar assets ni metadata.
+El job usa `gh release create --verify-tag --notes-file` con el contenido generado y una
+instrucción `sha256sum -c` para el usuario. Una versión con sufijo SemVer se publica como prerelease
+y una versión sin sufijo como estable. Si ya existe la release, falla sin modificar assets ni
+metadata.
 El keystore temporal se elimina con `if: always()`.
 
 `workflow_dispatch` permite recuperar manualmente una publicación fallida del commit actual de
@@ -438,6 +460,5 @@ Una retirada no autoriza a reutilizar la versión afectada ni a disminuir el `ve
 
 - Incrementar versiones automáticamente.
 - Generar tags o releases reales.
-- Automatizar el changelog.
 - Publicar en Google Play.
 - Definir telemetría u observabilidad.

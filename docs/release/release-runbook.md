@@ -25,6 +25,7 @@ autorizada para revisar el deployment cuando el equipo lo permita. Para las comp
 - `apksigner` de Android Build Tools;
 - `adb` y un dispositivo limpio con Android API 30-36;
 - `sha256sum` en Linux o `shasum` en macOS;
+- `git-cliff` v2.13.0 para regenerar notas localmente;
 - `jq` y una versión reciente de GitHub CLI con `gh attestation`.
 
 ## Configuración inicial manual en GitHub
@@ -149,6 +150,28 @@ SafeCube no mantiene un camino de build firmado que termine antes de publicar. L
 operativa se realiza sobre una RC real del release train: el merge crea el tag y la aprobación del
 Environment autoriza el build, las verificaciones y la GitHub prerelease. Esto evita duplicar un
 segundo workflow que podría divergir del proceso realmente publicable.
+
+### Revisar las notas antes de aprobar `publish`
+
+El workflow instala `git-cliff` v2.13.0 desde el release oficial y verifica el SHA-256 del tarball
+antes de usarlo. `publish` resuelve el tag anterior alcanzable, genera únicamente el rango
+`tagAnterior..tagActual` y detiene el job si el rango no es válido o el binario no coincide. No crea,
+mueve ni borra tags.
+
+La misma revisión puede hacerse localmente antes de aprobar el deployment:
+
+```bash
+./scripts/generate-changelog.sh \
+  v0.1.7-rc.2 \
+  v0.1.7-rc.3 \
+  /tmp/safecube-release-notes.md
+less /tmp/safecube-release-notes.md
+```
+
+Confirmar que breaking changes, Features, Fixes y Security aparecen separadas y que cualquier
+commit no convencional queda bajo `Other`. Si las notas no son correctas, no aprobar `publish`:
+corregir la historia en una nueva pull request o abrir una tarea de mantenimiento. No editar la
+GitHub Release después de publicarla como forma de corregir el proceso.
 
 ### Ejecutar y observar
 
