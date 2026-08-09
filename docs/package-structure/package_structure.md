@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 07-08-2026 12:21:58
+Updated: 09-08-2026 08:59:49
 
 ```
 safecube-android/
@@ -806,6 +806,7 @@ safecube-android/
 │   │   │   ├── SCDK-M104--Create-release-runbook.md
 │   │   │   ├── SCDK-M105--Automate-changelog.md
 │   │   │   ├── SCDK-M106--Add-SBOM-and-provenance-attestation.md
+│   │   │   ├── SCDK-M109.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
@@ -824,8 +825,11 @@ safecube-android/
 │   │   └── traceability-matrix.md
 │   ├── security/
 │   │   └── secret-scanning.md
-│   ├── specs/product/
-│   │   └── v1-product-brief.md
+│   ├── specs/
+│   │   ├── features/
+│   │   │   └── hardening-resilience-v1.md
+│   │   └── product/
+│   │       └── v1-product-brief.md
 │   ├── testing/
 │   │   ├── testing.md
 │   │   └── TESTING_STANDARD.md
