@@ -8,10 +8,10 @@
 | Estado             | `APPROVED`                                                    |
 | Owner              | Product/Maintainer                                            |
 | Fecha              | `2026-07-29`                                                  |
-| Última revisión    | `2026-07-29`                                                  |
+| Última revisión    | `2026-08-10`                                                  |
 | Reemplaza          | `N/A`                                                         |
-| Dependencias       | `SPEC-CRYPTO-V1`, `SPEC-VAULT-SYNC-V2`, `SPEC-RELEASE-POLICY` |
-| Tasks relacionadas | `SCDK-M91`                                                    |
+| Dependencias       | `SPEC-CRYPTO-V1`, `SPEC-VAULT-SYNC-V2`, `SPEC-RELEASE-POLICY`, `SPEC-HARDENING-V1`, `ADR-0001` |
+| Tasks relacionadas | `SCDK-M91`, `SCDK-M109`, `SCDK-M110`, `SCDK-M131`            |
 
 ## Visión
 
@@ -37,6 +37,8 @@ La beta abierta debe cubrir:
 - registro y login;
 - refresh y logout seguros;
 - creación y desbloqueo del vault;
+- desbloqueo rápido local opcional mediante biometría fuerte o credencial segura del dispositivo,
+  protegido por Android Keystore y con passphrase como recuperación;
 - recovery key;
 - CRUD cifrado de passwords y notas;
 - persistencia local offline-first;
@@ -50,7 +52,7 @@ La beta abierta debe cubrir:
 - Publicación en Google Play.
 - Carpetas reales.
 - Búsqueda avanzada.
-- Desbloqueo biométrico.
+- PIN propio de SafeCube distinto de la credencial segura del dispositivo.
 - Background sync periódico con WorkManager.
 - Merge semántico de secretos.
 - Adjuntos o rich text.
@@ -62,6 +64,8 @@ La beta abierta debe cubrir:
 - Offline-first con `Room` como source of truth visible para UI.
 - No perder cambios locales ni ocultar conflictos.
 - Separar login de unlock del vault.
+- Tratar biometría y credencial segura del dispositivo como métodos locales alternativos de unlock,
+  nunca como sustitutos del login de cuenta ni de la passphrase de recuperación.
 - No exponer secretos en logs, telemetry, screenshots o errores.
 - Contratos versionados y decisiones técnicas registradas.
 - Cada release pública debe ser reproducible y trazable.
@@ -69,8 +73,10 @@ La beta abierta debe cubrir:
 ## Éxito de la beta
 
 La beta es usable cuando una persona puede instalar el APK, registrarse, crear y desbloquear un
-vault, crear una password y una nota, cerrar y volver a abrir la app, sincronizar desde otro
-dispositivo y recuperarse de errores de red sin perder datos.
+vault, crear una password y una nota, cerrar y volver a abrir la app, desbloquear de nuevo mediante
+el método local disponible, sincronizar desde otro dispositivo y recuperarse de errores de red sin
+perder datos. Un dispositivo sin biometría o bloqueo seguro debe conservar el unlock mediante
+passphrase sin degradar la confidencialidad del vault.
 
 Además:
 
@@ -84,3 +90,4 @@ Además:
 - Secure items: `SPEC-SECURE-ITEM-PAYLOAD-V1`.
 - Sync: `SPEC-VAULT-SYNC-V2`.
 - Release: `SPEC-RELEASE-POLICY`.
+- Hardening y quick unlock: `SPEC-HARDENING-V1`, `ADR-0001-VAULT-AUTO-LOCK`.
