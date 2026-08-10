@@ -32,12 +32,19 @@ sesión, lifecycle y superficies sensibles sobre los que trabajará la Fase 8.
 - La sesión autenticada y el estado unlocked del vault son estados independientes.
 - Los retries de mutaciones nunca crean una identidad, draft o generación criptográfica nueva.
 - Process death siempre descarta la KEK y obliga a desbloquear de nuevo.
+- El quick unlock local mediante biometría fuerte o credencial segura del dispositivo protegida por
+  Android Keystore forma parte del MVP; la passphrase sigue siendo fallback y recuperación.
+- SafeCube no añade un PIN propio: biometría y credencial del dispositivo son alternativas de una
+  única operación Unlock, no una tercera sesión ni autenticación backend.
 - La primera entrega pública no ofrece una opción de auto-lock `Never`.
 - El cambio de passphrase reenvuelve la KEK; no rota la KEK ni recifra items.
 - Payloads corruptos fallan en cerrado y no se eliminan automáticamente.
 - Room continúa siendo la source of truth local y no se introduce SQLCipher sin una decisión
   posterior.
-- El rediseño visual, biometría, búsqueda, carpetas y background sync siguen fuera de alcance.
+- El rediseño visual, búsqueda, carpetas y background sync siguen fuera de alcance.
+
+La implementación de quick unlock se ejecuta en la card atómica `SCDK-M131`; debe completarse antes
+de `SCDK-M130` y no se integra de forma oportunista en otra card.
 
 ## Orden de implementación
 
@@ -46,7 +53,8 @@ sesión, lifecycle y superficies sensibles sobre los que trabajará la Fase 8.
 3. Estados y recuperación de UI: `SCDK-M118`–`SCDK-M121`.
 4. Controles de seguridad de usuario: `SCDK-M122`–`SCDK-M125`.
 5. Hardening de plataforma y limpieza de alcance: `SCDK-M126`–`SCDK-M129`.
-6. Verificación transversal y cierre: `SCDK-M130`.
+6. Quick unlock con Android Keystore: `SCDK-M131`.
+7. Verificación transversal y cierre: `SCDK-M130`.
 
 ---
 
@@ -1341,6 +1349,75 @@ funcional. No expone rutas de features aplazadas.
 - [ ] Inglés y español conservan paridad.
 - [ ] Tests, lint y `ciVerify` pasan.
 - [ ] Trazabilidad y agent report están actualizados.
+
+---
+
+# SCDK-M131. Implementar quick unlock del vault con Android Keystore
+
+## Main Story (How, I Want, To)
+
+Como usuario, quiero desbloquear localmente mi vault con la seguridad del dispositivo para no
+introducir la passphrase en cada apertura sin mantener la KEK activa en memoria.
+
+## Context, Functional Description & Goal
+
+Auto-lock y process death dejan el vault Locked. El MVP necesita un único quick unlock que use
+biometría fuerte cuando esté disponible, permita la credencial segura del dispositivo cuando el
+sensor no exista o falle y conserve passphrase como fallback.
+
+## Steps/Scope
+
+### In Scope
+
+- Implementar el contrato `SEC-SESSION-002` y la sección de quick unlock de `ADR-0001`.
+- Crear una abstracción de quick unlock en `core:vault` y un adapter Android Keystore testeable.
+- Generar una clave no exportable por cuenta con autorización por uso mediante biometría fuerte o
+  credencial segura del dispositivo.
+- Persistir únicamente un envelope autenticado y versionado con la KEK envuelta, aislado por cuenta
+  y excluido de backup, device transfer y sync.
+- Enrolar solo tras unlock por passphrase y consentimiento explícito.
+- Integrar un único prompt del sistema en Unlock y ofrecer acción explícita para usar passphrase.
+- Mantener Locked ante cancelación, fallo, invalidación o corrupción, y permitir re-enrolar después
+  de passphrase.
+- Eliminar alias y envelope en logout, cambio o eliminación local de cuenta; conservarlos en
+  auto-lock, Lock now y process death.
+- Añadir Settings para activar/desactivar quick unlock y explicar el alcance de la credencial del
+  dispositivo.
+- Añadir tests JVM con adapter falso y tests instrumentados de prompt, lifecycle y cleanup.
+
+### Out of Scope (if applies)
+
+- PIN propio de SafeCube.
+- Login o refresh de cuenta mediante biometría.
+- Sincronizar el enrolamiento entre dispositivos.
+- Sustituir o recuperar la passphrase.
+- Modo biométrico estricto separado de la credencial segura del dispositivo.
+
+## Additional Information and Configuration
+
+- Spec: `SPEC-HARDENING-V1`, requisito `SEC-SESSION-002`.
+- ADR: `ADR-0001-VAULT-AUTO-LOCK` ACCEPTED.
+- Dependencias: `SCDK-M110`, `SCDK-M119`, `SCDK-M122`.
+- Módulos esperados: `app`, `core:vault`, `core:storage`, `feature:vault`.
+- Ejecutar tests JVM/instrumentados aplicables y `./gradlew ciVerify`.
+- Actualizar trazabilidad y crear `docs/sdd/agent-reports/SCDK-M131.md`.
+
+### API Contract and Expected Behavior (if applies)
+
+No cambia APIs remotas. Quick unlock solo autoriza un unwrap local; la account session debe seguir
+válida y cada process death comienza en Locked.
+
+### Acceptance Criteria (ACs)
+
+- [ ] La KEK y passphrase nunca se persisten en claro; el envelope está autenticado y excluido de
+  backup/transfer.
+- [ ] Biometría fuerte y credencial segura del dispositivo son alternativas de un único prompt.
+- [ ] Un dispositivo incompatible usa passphrase y no queda bloqueado fuera del vault.
+- [ ] Cancelación, invalidación y corrupción fallan en cerrado y permiten recuperación por
+  passphrase.
+- [ ] Logout y cambio de cuenta destruyen el enrolamiento; auto-lock y process death solo bloquean.
+- [ ] No existe PIN propio ni biometría usada como login backend.
+- [ ] Tests, `ciVerify`, trazabilidad y agent report pasan y están actualizados.
 
 ---
 

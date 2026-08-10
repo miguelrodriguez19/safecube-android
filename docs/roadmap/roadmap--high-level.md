@@ -179,6 +179,8 @@ Endurecer los flujos existentes sin ampliar innecesariamente el producto:
 * Manejo usable de red lenta, offline y respuestas perdidas
 * Expiración de sesión, refresh fallido y navegación segura a login
 * Auto-lock al pasar a background y política configurable de inactividad
+* Quick unlock local opcional mediante biometría fuerte o credencial segura del dispositivo,
+  protegido por Android Keystore y con passphrase como fallback
 * Cambio de passphrase mediante rewrap de la `KEK`
 * Edge cases de crypto, payload corrupto, proceso destruido y estado local inconsistente
 * Revisión de backup, screenshots, logs, portapapeles, almacenamiento y configuración R8
@@ -190,7 +192,7 @@ integridad criptográfica y el modelo draft-first de sync.
 Resultado:
 
 > Los fallos esperables se recuperan o se explican sin perder datos ni degradar el modelo de
-> seguridad.
+> seguridad, y el vault puede volver a desbloquearse con un único control local seguro.
 
 ---
 
@@ -289,11 +291,11 @@ La primera versión debe consolidar la propuesta central ya construida:
 * sync multi-device y resolución de conflictos
 * cambio de passphrase
 * auto-lock y controles esenciales de seguridad
+* quick unlock mediante biometría fuerte o credencial segura del dispositivo con Android Keystore
 * experiencia completa de estados, errores y recuperación
 
 Para evitar que `v1.0.0` se convierta en una fase indefinida, se recomienda mover a `v1.1+`:
 
-* desbloqueo biométrico
 * búsqueda
 * carpetas reales
 * perfil enriquecido
@@ -305,9 +307,9 @@ experiencia honesta; `v1` no debe contener pantallas dummy.
 
 ---
 
-## ❓ DECISIONES PENDIENTES ANTES DE DETALLAR LAS FASES
+## ❓ DECISIONES POST-PUESTAS
 
-1. Confirmar el corte funcional recomendado o promover biometría, búsqueda o carpetas a `v1`.
+1. Quick unlock queda promovido a `v1`; búsqueda y carpetas continúan aplazadas.
 2. Elegir entre observabilidad alojada en la UE, autoalojada o solo preparar el contrato de
    telemetría.
 3. El changelog automatizado queda adoptado como mejora opcional del release train; no controla

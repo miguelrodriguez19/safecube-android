@@ -8,13 +8,13 @@
 | Estado             | APPROVED                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Owner              | Maintainer / Security owner humano                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Fecha              | 2026-08-07                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Última revisión    | 2026-08-07                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Última revisión    | 2026-08-10                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Reemplaza          | N/A                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Dependencias       | [SPEC-PRODUCT-V1](../product/v1-product-brief.md), [SPEC-AUTH-CONTRACT](../../architecture/openapi-auth-contract-integration.md), [SPEC-OPENAPI-AUTH](../../architecture/openapi-auth-contract-integration.md), [SPEC-CRYPTO-V1](../../architecture/crypto-v1.md), [SPEC-SECURE-ITEM-PAYLOAD-V1](../../architecture/secure-item-payload-v1.md), [SPEC-VAULT-SYNC-V2](../../architecture/vault-sync-versioning-v2.md), [SPEC-OPENAPI-VAULT-KEY-MATERIAL](../../architecture/openapi-vault-key-material-contract-integration.md), [SPEC-OPENAPI-VAULT-ITEMS](../../architecture/openapi-vault-items-contract-integration.md), [SPEC-STORAGE](../../architecture/storage_decision.md) |
-| Tasks relacionadas | SCDK-M109; implementación planificada SCDK-M110–SCDK-M130                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Tasks relacionadas | SCDK-M109–SCDK-M131                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
-Esta spec se entrega inicialmente en REVIEW. Solo el owner humano puede promoverla a APPROVED.
-Mientras permanezca en REVIEW no es fuente autorizada para implementar runtime.
+La spec fue creada inicialmente en REVIEW y el owner humano la ha promovido a APPROVED. Es fuente
+normativa para las tareas posteriores; los ADRs relacionados siguen su propio ciclo de aprobación.
 
 ## Problema y contexto
 
@@ -27,7 +27,7 @@ plataforma.
 
 La spec no sustituye los contratos enlazados ni decide detalles técnicos que la Fase 7 ha reservado
 a los ADRs de SCDK-M110, SCDK-M111 y SCDK-M112. Esos ADRs deberán estar ACCEPTED antes de
-implementar sus decisiones concretas y antes de promover esta spec a APPROVED.
+implementar sus decisiones concretas.
 
 ## Objetivos
 
@@ -43,7 +43,9 @@ implementar sus decisiones concretas y antes de promover esta spec a APPROVED.
 - Cambiar APIs, esquemas de storage, primitives criptográficas o el protocolo de sync existentes.
 - Elegir detalles de implementación reservados a ADR-0001-VAULT-AUTO-LOCK,
   ADR-0002-PASSPHRASE-REWRAP y ADR-0003-SENSITIVE-DATA-SURFACES.
-- Rediseñar visualmente las pantallas o introducir biometría, búsqueda, carpetas o background sync.
+- Rediseñar visualmente las pantallas o introducir búsqueda, carpetas o background sync.
+- Añadir un PIN propio de SafeCube, sustituir la passphrase como credencial raíz o usar biometría
+  como autenticación de la cuenta backend.
 - Añadir soporte para cuentas locales simultáneas, adjuntos, rich text o merge semántico de
   secretos.
 
@@ -54,6 +56,7 @@ implementar sus decisiones concretas y antes de promover esta spec a APPROVED.
 | Usuario autenticado | Cargar o sincronizar datos                    | Ve un estado inequívoco; el contenido local disponible no desaparece por un fallo remoto reintentable.           |
 | Usuario             | Reintentar una operación                      | Repite una operación segura y acotada, conservando su identidad cuando sea una mutación.                         |
 | Usuario             | Desbloquear o crear el vault                  | El cliente distingue Create de Unlock y no toma una decisión destructiva durante una respuesta lenta o perdida.  |
+| Usuario enrolado    | Desbloquear localmente el vault               | Usa un único prompt del sistema con biometría fuerte o credencial segura del dispositivo; la passphrase queda como fallback y recuperación. |
 | Usuario             | Cambiar la passphrase                         | Se reenvuelve la misma KEK; no se recifran items ni se cambia su identidad criptográfica.                        |
 | Sistema de sesión   | Recibir expiración o fallo de refresh         | Mantiene la sesión ante fallos transitorios y termina de forma segura ante un refresh definitivamente rechazado. |
 | Sistema operativo   | Enviar la app a background o matar el proceso | La KEK se descarta al bloquear el vault o morir el proceso; el arranque exige desbloqueo de nuevo.               |
@@ -148,9 +151,9 @@ política vigente, ejecutar Lock now o detectar process death, el cliente debe:
 - conservar tokens, items cifrados, drafts y checkpoints conforme a sus contratos canónicos.
 
 La política no puede ofrecer un modo que mantenga el vault desbloqueado indefinidamente. El timeout
-por defecto, las opciones permitidas y la medición temporal son decisiones técnicas de
-ADR-0001-VAULT-AUTO-LOCK; ese ADR debe estar ACCEPTED antes de implementar o aprobar la política
-concreta.
+por defecto, las opciones permitidas y la medición temporal están cerrados en
+[ADR-0001-VAULT-AUTO-LOCK](../../architecture/adr/ADR-0001-VAULT-AUTO-LOCK.md), actualmente
+ACCEPTED.
 
 **Criterios observables:** Lock now, expiración de la política y process death dejan el vault
 bloqueado, eliminan la KEK y plaintext observable, y conservan los blobs cifrados; la sesión de
@@ -159,6 +162,49 @@ cuenta no se termina por un simple auto-lock.
 **Estrategia de test:** tests unitarios del gestor de sesión con reloj controlado, tests de
 lifecycle de proceso/Activity, tests instrumentados de background/foreground y verificación de que
 la navegación no llega a contenido sin unlock.
+
+### SEC-SESSION-002 — Desbloqueo rápido local protegido por Android Keystore
+
+SafeCube debe ofrecer en el MVP un desbloqueo rápido local opcional sin convertir la sesión de
+cuenta en una clave del vault ni persistir la passphrase. El enrolamiento solo puede realizarse con
+una account session válida y el vault ya desbloqueado mediante passphrase.
+
+1. La aplicación genera una clave de wrapping no exportable en Android Keystore y exige
+   autenticación por uso mediante biometría fuerte o credencial segura del dispositivo. El sistema
+   operativo, no SafeCube, valida esa credencial.
+2. Solo se persiste un artefacto versionado que contenga la KEK envuelta mediante cifrado
+   autenticado y los metadatos no secretos imprescindibles. La KEK activa en claro continúa siendo
+   exclusivamente material de memoria y se zeroiza al bloquear o morir el proceso.
+3. Biometría y credencial segura del dispositivo son métodos alternativos de una única operación
+   Unlock; no son controles consecutivos, no autentican contra el backend y no sustituyen la
+   passphrase como credencial raíz y mecanismo de recuperación.
+4. SafeCube v1 no define ni almacena un PIN propio. Si el dispositivo no soporta los
+   authenticators admitidos, no tiene bloqueo seguro o Android Keystore no puede satisfacer la
+   política, el desbloqueo rápido no se ofrece y Unlock usa passphrase.
+5. Process death siempre restaura Vault session como Locked. Con una account session válida, el
+   usuario puede completar un nuevo unlock mediante el prompt del sistema o elegir explícitamente
+   la passphrase; nunca se restaura Unlocked ni se expone contenido antes de autenticar.
+6. Cancelar o fallar el prompt mantiene Locked. Una clave Keystore invalidada, un artefacto ausente,
+   corrupto o no soportado falla en cerrado, elimina únicamente el enrolamiento local inutilizable
+   y exige passphrase para volver a enrolar; no elimina items cifrados ni termina la cuenta.
+7. Logout, cambio de cuenta o eliminación local de la cuenta destruyen la clave y el artefacto de
+   quick unlock asociados. Auto-lock y Lock now conservan el enrolamiento para permitir el siguiente
+   unlock local.
+8. La clave y el artefacto son exclusivos del dispositivo y la cuenta, quedan excluidos de backup,
+   device transfer, sync, logs y estado de navegación, y nunca se envían al backend.
+
+La semántica completa de enrolamiento, fallback, invalidación y lifecycle está cerrada en
+[ADR-0001-VAULT-AUTO-LOCK](../../architecture/adr/ADR-0001-VAULT-AUTO-LOCK.md).
+
+**Criterios observables:** después de auto-lock o process death el primer estado siempre es Locked;
+un prompt válido permite unlock sin passphrase; cancelar o invalidar el prompt no muestra plaintext;
+un dispositivo sin authenticators compatibles usa passphrase; logout elimina el quick unlock; no
+existe PIN propio de SafeCube.
+
+**Estrategia de test:** tests unitarios del coordinador y del envelope local, tests de integración
+con un adapter de Keystore falso para éxito, cancelación, invalidación y corrupción, y tests
+instrumentados con biometría/credencial del dispositivo, process death, logout y fallback a
+passphrase.
 
 ### SEC-CRYPTO-002 — Cambio de passphrase mediante rewrap
 
@@ -314,9 +360,10 @@ filtren cuerpos HTTP, excepciones ni secretos a UI.
 
 ### NFR-LIFECYCLE-001 — Process death, cold start y restauración de navegación
 
-1. Process death siempre descarta la KEK, aunque los tokens o el estado de cuenta puedan seguir
-   disponibles. Un cold start nunca navega directamente a contenido desbloqueado sin una nueva
-   operación de unlock.
+1. Process death siempre descarta la KEK activa en claro, aunque los tokens, el estado de cuenta o
+   un artefacto local de quick unlock puedan seguir disponibles. Un cold start nunca navega
+   directamente a contenido desbloqueado sin una nueva operación de unlock autorizada mediante
+   prompt del sistema o passphrase.
 2. Con una sesión válida y vault bloqueado, la raíz es Unlock. Sin sesión válida, la raíz es Login.
    La navegación restaurada solo puede incluir estado no sensible y no puede reconstruir plaintext,
    passphrases, recovery keys o una operación mutante como si hubiera terminado.
@@ -339,10 +386,11 @@ Toda ruta, pantalla, opción o acción alcanzable en la release v1 debe tener co
 por SPEC-PRODUCT-V1 o no estar expuesta. No se muestran textos, controles ni rutas dummy,
 placeholder, coming soon o equivalentes para capacidades fuera del alcance.
 
-Quedan fuera de la superficie pública de v1, entre otros, carpetas reales, búsqueda avanzada,
-desbloqueo biométrico, background sync periódico, merge semántico, adjuntos/rich text y soporte
-local simultáneo para varias cuentas. La navegación no debe anunciar una capacidad que no pueda
-completarse con un contrato aprobado.
+Quedan fuera de la superficie pública de v1, entre otros, carpetas reales, búsqueda avanzada, un
+PIN propio de SafeCube, background sync periódico, merge semántico, adjuntos/rich text y soporte
+local simultáneo para varias cuentas. El quick unlock mediante biometría fuerte o credencial segura
+del dispositivo sí pertenece al MVP y debe cumplir SEC-SESSION-002. La navegación no debe anunciar
+una capacidad que no pueda completarse con un contrato aprobado.
 
 **Criterios observables:** el inventario de rutas de release no contiene placeholders ni acciones
 muertas; las capacidades fuera de v1 no son alcanzables; la auditoría de textos no encuentra
@@ -377,13 +425,16 @@ fallos y no duplica los esquemas de esos contratos.
 - Room continúa siendo la source of truth local para items, drafts y checkpoints; no se cambia su
   schema ni se introduce SQLCipher en esta tarea.
 - Los payloads, material de claves y registros sensibles permanecen cifrados según los contratos
-  canónicos. La KEK activa es material de memoria y process death la descarta siempre.
+  canónicos. La KEK activa en claro es material de memoria y process death la descarta siempre. El
+  único artefacto persistible para quick unlock es una KEK envuelta por una clave no exportable de
+  Android Keystore conforme a SEC-SESSION-002 y ADR-0001.
 - Un payload oficial o draft corrupto se conserva cifrado para reparación explícita; no se elimina
   automáticamente ni se reemplaza por un registro vacío.
 - Un intento de bootstrap cuyo resultado remoto sea incierto puede conservar un registro
   transitorio cifrado, excluido de backup y con ciclo de borrado definido por SEC-PRIVACY-001.
-- No se persisten passphrases, MASTER_KEY, KEK, DEK, recovery keys ni plaintext en estado de
-  navegación, saved state, logs o almacenamiento transitorio en claro.
+- No se persisten passphrases, MASTER_KEY, KEK o DEK en claro, recovery keys ni plaintext en estado
+  de navegación, saved state, logs o almacenamiento transitorio en claro. El artefacto de quick
+  unlock no es una excepción para material en claro y queda excluido de backup y transferencia.
 
 ## Seguridad, privacidad y zero-knowledge
 
@@ -392,9 +443,10 @@ crypto y payload continúan gobernando algoritmos, AAD, envelopes, zeroize best-
 esta spec añade las consecuencias de lifecycle y error.
 
 La sesión autenticada no concede acceso al plaintext: después de process death, auto-lock o
-limpieza terminal de sesión siempre es necesario desbloquear el vault. Ningún log, error de UI,
-reporte de agente, test fixture o captura puede contener secretos, payloads ni identificadores
-sensibles.
+limpieza terminal de sesión siempre es necesario ejecutar un nuevo unlock mediante passphrase o,
+si existe un enrolamiento local válido, mediante biometría fuerte o credencial segura del
+dispositivo. Ningún log, error de UI, reporte de agente, test fixture o captura puede contener
+secretos, payloads ni identificadores sensibles.
 
 ## Observabilidad
 
@@ -421,11 +473,13 @@ la Fase 9.
 
 - No hay cambios de API, protocolo, schema Room, envelope, KDF, AEAD, payload o semántica base de
   sync en SCDK-M109.
+- El quick unlock requiere persistencia local versionada y excluida de backup, pero no cambia el
+  wrapper maestro remoto ni permite sincronizar claves de Android Keystore entre dispositivos.
 - Las implementaciones posteriores deben ser compatibles con los datos v1 existentes y no pueden
   eliminar payloads para recuperarse de un error.
-- Esta spec pasa a APPROVED solo después de revisión del owner humano, sin decisiones críticas
-  abiertas y con los ADRs requeridos aceptados. Después podrá pasar a IMPLEMENTING por las tareas
-  de Fase 7.
+- Esta spec está APPROVED tras revisión del owner humano y no contiene decisiones críticas abiertas.
+  Cada decisión técnica reservada solo puede pasar a runtime cuando su ADR concreto esté ACCEPTED;
+  ADR-0001 ya cumple esa condición y ADR-0002/ADR-0003 continúan pendientes.
 - Un rollback de runtime debe conservar blobs cifrados, drafts y checkpoints; cualquier migración
   futura con impacto destructivo requiere su propio ADR y política de rollback.
 
@@ -436,6 +490,7 @@ la Fase 9.
 | FR-AUTH-002        | Sí: refresh, concurrencia y clasificación   | Sí: 401, refresh transitorio/definitivo            | Sí: navegación Login/Unlock y limpieza visible   | Sí: expiración real controlada         |
 | FR-VAULT-002       | Sí: state machine e identidades             | Sí: latencia, offline, timeout y respuesta perdida | Sí: Create/Unlock y recovery                     | Sí: red lenta y reconexión             |
 | SEC-SESSION-001    | Sí: reloj y zeroize observable por contrato | Sí: operaciones canceladas                         | Sí: background, Lock now, process death          | Sí: política de timeout aceptada       |
+| SEC-SESSION-002    | Sí: enrolamiento, fallback y envelope local | Sí: adapter Keystore, corrupción e invalidación    | Sí: prompt, process death, logout y passphrase   | Sí: matriz con/sin sensor o lock seguro |
 | SEC-CRYPTO-002     | Sí: rewrap y passphrase inválida            | Sí: PUT, GET de reconciliación y respuesta perdida | Sí: bloqueo seguro ante resultado incierto       | Sí: comprobar que items siguen iguales |
 | SEC-PRIVACY-001    | Sí: no persistencia de secretos en modelos  | Sí: ciclo del registro transitorio                 | Sí: screenshot, recents, saved state y clipboard | Sí: inspección de logs/build release   |
 | NFR-RESILIENCE-001 | Sí: siete estados y transiciones            | N/A                                                | Sí: estados de Compose y no loops                | Sí: revisión de UX de estados          |
@@ -458,6 +513,9 @@ la Fase 9.
   eliminan automáticamente.
 - [ ] AC-HARDENING-006: expiración terminal, auto-lock y process death eliminan la KEK en memoria,
   limpian plaintext y obligan a pasar por Login o Unlock según corresponda.
+- [ ] AC-HARDENING-006A: el quick unlock del MVP usa una clave no exportable de Android Keystore,
+  acepta biometría fuerte o credencial segura del dispositivo como alternativas, conserva la
+  passphrase como fallback, no define PIN propio y nunca restaura Unlocked tras process death.
 - [ ] AC-HARDENING-007: el cambio de passphrase se define como rewrap de la misma KEK, sin
   modificar DEKs, payloads, revisiones, drafts o identidades de items.
 - [ ] AC-HARDENING-008: backups, screenshots, recents, logs, clipboard y estado transitorio tienen
@@ -468,8 +526,8 @@ la Fase 9.
   superficie pública de la release.
 - [ ] AC-HARDENING-011: todos los requisitos tienen criterios observables, estrategia de test,
   trazabilidad y enlaces a los contratos canónicos sin duplicarlos.
-- [ ] AC-HARDENING-012: el owner humano revisa y promueve esta spec a APPROVED; ningún agente puede
-  marcar por sí solo este criterio.
+- [x] AC-HARDENING-012: el owner humano ha revisado y promovido esta spec a APPROVED; ningún agente
+  puede marcar por sí solo este criterio.
 
 ## Trazabilidad
 
@@ -479,13 +537,13 @@ la Fase 9.
 | NFR-RESILIENCE-002 | SCDK-M113–SCDK-M121                       | core:network, core:auth, core:vault, core:storage        | Matriz unitaria, integración de errores y evidencia de retry seguro |
 | FR-AUTH-002        | SCDK-M114, SCDK-M118                      | core:auth, core:network, app, feature:auth               | Refresh concurrente, cierre terminal y navegación                   |
 | FR-VAULT-002       | SCDK-M116, SCDK-M117, SCDK-M119           | core:vault, feature:vault, app                           | Bootstrap, respuesta perdida, reconciliación y recovery             |
-| SEC-SESSION-001    | SCDK-M110, SCDK-M123, SCDK-M125           | app, core:vault, feature:vault                           | Auto-lock, zeroize, lifecycle y process death                       |
-| SEC-CRYPTO-002     | SCDK-M111, SCDK-M122                      | core:vault, feature:vault                                | Rewrap, invariantes de items y resultado incierto                   |
+| SEC-SESSION-001    | SCDK-M110, SCDK-M122, SCDK-M125           | app, core:vault, feature:vault                           | Auto-lock, zeroize, lifecycle y process death                       |
+| SEC-SESSION-002    | SCDK-M110, SCDK-M131                      | app, core:vault, core:storage, feature:vault             | Android Keystore, prompt del sistema, fallback y process death      |
+| SEC-CRYPTO-002     | SCDK-M111, SCDK-M123, SCDK-M124           | core:vault, feature:vault                                | Rewrap, invariantes de items y resultado incierto                   |
 | SEC-PRIVACY-001    | SCDK-M112, SCDK-M124, SCDK-M126–SCDK-M128 | app, core:auth, core:storage, core:vault, features       | Manifest, R8, logs, screenshots, saved state y clipboard            |
-| NFR-LIFECYCLE-001  | SCDK-M124, SCDK-M125                      | app, core:vault, feature:vault                           | Process death, cold start y rutas seguras                           |
+| NFR-LIFECYCLE-001  | SCDK-M125, SCDK-M131                       | app, core:vault, feature:vault                           | Process death, cold start y rutas seguras                           |
 | FR-SCOPE-001       | SCDK-M129                                 | app, feature:vault, feature:profile, settings.gradle.kts | Inventario de rutas, navegación y auditoría de placeholders         |
 
 Código/runtime es N/A para SCDK-M109: esta tarea solo crea el contrato normativo. La evidencia de
 esta revisión se registra
 en [docs/sdd/agent-reports/SCDK-M109.md](../../sdd/agent-reports/SCDK-M109.md).
-
