@@ -227,7 +227,8 @@ modifica su identidad criptográfica.
    remoto. Las copias temporales de passphrases, MASTER_KEY y KEK se zeroizan best-effort.
 
 Los detalles de orden de persistencia, reconciliación y limpieza se formalizan en
-ADR-0002-PASSPHRASE-REWRAP, que debe estar ACCEPTED antes de implementar.
+[ADR-0002-PASSPHRASE-REWRAP](../../architecture/adr/ADR-0002-PASSPHRASE-REWRAP.md), ACCEPTED por
+el owner humano.
 
 **Criterios observables:** un cambio exitoso conserva la KEK efectiva y todos los payloads; una
 passphrase actual incorrecta no llama al servidor; una respuesta perdida no se declara éxito sin
@@ -479,7 +480,7 @@ la Fase 9.
   eliminar payloads para recuperarse de un error.
 - Esta spec está APPROVED tras revisión del owner humano y no contiene decisiones críticas abiertas.
   Cada decisión técnica reservada solo puede pasar a runtime cuando su ADR concreto esté ACCEPTED;
-  ADR-0001 ya cumple esa condición y ADR-0002/ADR-0003 continúan pendientes.
+  ADR-0001 y ADR-0002 ya cumplen esa condición; ADR-0003 continúa pendiente.
 - Un rollback de runtime debe conservar blobs cifrados, drafts y checkpoints; cualquier migración
   futura con impacto destructivo requiere su propio ADR y política de rollback.
 
@@ -539,7 +540,7 @@ la Fase 9.
 | FR-VAULT-002       | SCDK-M116, SCDK-M117, SCDK-M119           | core:vault, feature:vault, app                           | Bootstrap, respuesta perdida, reconciliación y recovery             |
 | SEC-SESSION-001    | SCDK-M110, SCDK-M122, SCDK-M125           | app, core:vault, feature:vault                           | Auto-lock, zeroize, lifecycle y process death                       |
 | SEC-SESSION-002    | SCDK-M110, SCDK-M131                      | app, core:vault, core:storage, feature:vault             | Android Keystore, prompt del sistema, fallback y process death      |
-| SEC-CRYPTO-002     | SCDK-M111, SCDK-M123, SCDK-M124           | core:vault, feature:vault                                | Rewrap, invariantes de items y resultado incierto                   |
+| SEC-CRYPTO-002     | SCDK-M111, SCDK-M123, SCDK-M124           | core:vault, feature:vault                                | [ADR-0002](../../architecture/adr/ADR-0002-PASSPHRASE-REWRAP.md) ACCEPTED; rewrap, invariantes de items y resultado incierto |
 | SEC-PRIVACY-001    | SCDK-M112, SCDK-M124, SCDK-M126–SCDK-M128 | app, core:auth, core:storage, core:vault, features       | Manifest, R8, logs, screenshots, saved state y clipboard            |
 | NFR-LIFECYCLE-001  | SCDK-M125, SCDK-M131                       | app, core:vault, feature:vault                           | Process death, cold start y rutas seguras                           |
 | FR-SCOPE-001       | SCDK-M129                                 | app, feature:vault, feature:profile, settings.gradle.kts | Inventario de rutas, navegación y auditoría de placeholders         |
