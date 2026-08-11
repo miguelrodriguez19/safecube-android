@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-08-2026 06:39:49
+Updated: 11-08-2026 09:22:39
 
 ```
 safecube-android/
@@ -768,6 +768,7 @@ safecube-android/
 │   ├── architecture/
 │   │   ├── adr/
 │   │   │   ├── ADR-0001-VAULT-AUTO-LOCK.md
+│   │   │   ├── ADR-0002-PASSPHRASE-REWRAP.md
 │   │   │   ├── ADR-TEMPLATE.md
 │   │   │   └── README.md
 │   │   ├── historical/
@@ -809,6 +810,7 @@ safecube-android/
 │   │   │   ├── SCDK-M106--Add-SBOM-and-provenance-attestation.md
 │   │   │   ├── SCDK-M109.md
 │   │   │   ├── SCDK-M110.md
+│   │   │   ├── SCDK-M111.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
