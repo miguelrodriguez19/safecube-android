@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 11-08-2026 09:22:39
+Updated: 12-08-2026 03:11:01
 
 ```
 safecube-android/
@@ -769,6 +769,7 @@ safecube-android/
 │   │   ├── adr/
 │   │   │   ├── ADR-0001-VAULT-AUTO-LOCK.md
 │   │   │   ├── ADR-0002-PASSPHRASE-REWRAP.md
+│   │   │   ├── ADR-0003-SENSITIVE-DATA-SURFACES.md
 │   │   │   ├── ADR-TEMPLATE.md
 │   │   │   └── README.md
 │   │   ├── historical/
@@ -811,6 +812,8 @@ safecube-android/
 │   │   │   ├── SCDK-M109.md
 │   │   │   ├── SCDK-M110.md
 │   │   │   ├── SCDK-M111.md
+│   │   │   ├── SCDK-M112.md
+│   │   │   ├── SCDK-M113.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
