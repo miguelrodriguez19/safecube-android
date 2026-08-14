@@ -12,5 +12,8 @@ sealed interface VaultSyncResult {
         val uploadedCount: Int = 0,
         val downloadedCount: Int = 0,
         val conflictCount: Int = 0,
-    ) : VaultSyncResult
+    ) : VaultSyncResult {
+        val retryDecision
+            get() = reason.retryDecision
+    }
 }

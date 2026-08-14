@@ -1,7 +1,9 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.push
 
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.SecureItemRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.SecureItemRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemSyncDraft
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushItemResult
@@ -79,7 +81,7 @@ class PushLocalVaultChangesUseCase @Inject constructor(
             SecureItemRemoteError.Forbidden,
             is SecureItemRemoteError.HttpError,
             is SecureItemRemoteError.NetworkError,
-                -> PushItemResult.KeptPending
+                -> remoteFailure(draft, "CREATE_REMOTE", remoteResult.error)
         }
     }
 
@@ -119,7 +121,7 @@ class PushLocalVaultChangesUseCase @Inject constructor(
                 SecureItemRemoteError.Forbidden,
                 is SecureItemRemoteError.HttpError,
                 is SecureItemRemoteError.NetworkError,
-                    -> PushItemResult.KeptPending
+                    -> remoteFailure(draft, "UPDATE_REMOTE", remoteResult.error)
             }
         }
     }
@@ -153,7 +155,7 @@ class PushLocalVaultChangesUseCase @Inject constructor(
                     if (secureItemDraftSyncCoordinator.resolveAlreadyDeletedDraft(draft)) {
                         PushItemResult.LocallyResolvedDelete
                     } else {
-                        PushItemResult.KeptPending
+                        fatal(draft, "DELETE_ALREADY_DELETED_RESOLUTION")
                     }
                 }
 
@@ -169,25 +171,28 @@ class PushLocalVaultChangesUseCase @Inject constructor(
                 SecureItemRemoteError.Forbidden,
                 is SecureItemRemoteError.HttpError,
                 is SecureItemRemoteError.NetworkError,
-                    -> PushItemResult.KeptPending
+                    -> remoteFailure(draft, "DELETE_REMOTE", remoteResult.error)
             }
         }
     }
 
     private suspend fun resolveUpdateConflict(draft: SecureItemSyncDraft): PushItemResult {
-        val remoteOfficialItem = fetchRemoteOfficialItem(draft) ?: return markConflictWithoutRemote(
-            draft = draft,
-            operation = "UPDATE_CONFLICT",
-            message = "Update conflicted with backend state.",
-        )
+        val remoteOfficialItem = when (val fetchResult = fetchRemoteOfficialItem(draft)) {
+            is RemoteOfficialFetchResult.Success -> fetchResult.item
+            is RemoteOfficialFetchResult.Missing -> return resolveUpdateRemoteDelete(draft)
+            is RemoteOfficialFetchResult.Error -> return remoteFailure(
+                draft = draft,
+                operation = "UPDATE_CONFLICT_RECONCILIATION",
+                error = fetchResult.error,
+            )
+        }
 
         return if (secureItemDraftSyncCoordinator.replaceOfficialWithRemoteAndConflictedDraft(
-                draft = draft,
-                remoteItem = remoteOfficialItem,
-                lastSyncedAt = remoteOfficialItem.updatedAt,
-                lastSyncError = "Update conflicted with backend state.",
-            )
-        ) {
+            draft = draft,
+            remoteItem = remoteOfficialItem,
+            lastSyncedAt = remoteOfficialItem.updatedAt,
+            lastSyncError = "Update conflicted with backend state.",
+        )) {
             PushItemResult.Conflict
         } else {
             fatal(draft, "UPDATE_CONFLICT_RESOLUTION")
@@ -195,11 +200,19 @@ class PushLocalVaultChangesUseCase @Inject constructor(
     }
 
     private suspend fun resolveDeleteConflict(draft: SecureItemSyncDraft): PushItemResult {
-        val remoteOfficialItem = fetchRemoteOfficialItem(draft) ?: return markConflictWithoutRemote(
-            draft = draft,
-            operation = "DELETE_CONFLICT",
-            message = "Delete conflicted with backend state.",
-        )
+        val remoteOfficialItem = when (val fetchResult = fetchRemoteOfficialItem(draft)) {
+            is RemoteOfficialFetchResult.Success -> fetchResult.item
+            is RemoteOfficialFetchResult.Missing -> return markConflictWithoutRemote(
+                draft = draft,
+                operation = "DELETE_CONFLICT",
+                message = "Delete conflicted with backend state.",
+            )
+            is RemoteOfficialFetchResult.Error -> return remoteFailure(
+                draft = draft,
+                operation = "DELETE_CONFLICT_RECONCILIATION",
+                error = fetchResult.error,
+            )
+        }
 
         return if (secureItemDraftSyncCoordinator.replaceOfficialWithRemoteAndConflictedDraft(
                 draft = draft,
@@ -228,18 +241,32 @@ class PushLocalVaultChangesUseCase @Inject constructor(
         }
     }
 
-    private suspend fun fetchRemoteOfficialItem(draft: SecureItemSyncDraft) =
+    private suspend fun fetchRemoteOfficialItem(
+        draft: SecureItemSyncDraft,
+    ): RemoteOfficialFetchResult =
         draft.remoteItemId?.let { remoteItemId ->
             when (val remoteResult = secureItemRemoteRepository.getVaultItem(remoteItemId)) {
-                is SecureItemRemoteResult.Success -> remoteResult.value.toLocalSecureItem(
-                    logicalItemId = draft.logicalItemId,
-                    itemType = draft.itemType,
-                    createdAt = draft.createdAt,
+                is SecureItemRemoteResult.Success -> RemoteOfficialFetchResult.Success(
+                    remoteResult.value.toLocalSecureItem(
+                        logicalItemId = draft.logicalItemId,
+                        itemType = draft.itemType,
+                        createdAt = draft.createdAt,
+                    ),
                 )
 
-                is SecureItemRemoteResult.Error -> null
+                is SecureItemRemoteResult.Error -> if (
+                    remoteResult.error == SecureItemRemoteError.ItemNotFound
+                ) {
+                    RemoteOfficialFetchResult.Missing
+                } else {
+                    RemoteOfficialFetchResult.Error(remoteResult.error)
+                }
             }
-        }
+        } ?: RemoteOfficialFetchResult.Error(
+            SecureItemRemoteError.HttpError(
+                failure = NetworkFailureClassifier.unknown(),
+            ),
+        )
 
     private suspend fun markConflictWithoutRemote(
         draft: SecureItemSyncDraft,
@@ -254,6 +281,18 @@ class PushLocalVaultChangesUseCase @Inject constructor(
     } else {
         fatal(draft, operation)
     }
+
+    private fun remoteFailure(
+        draft: SecureItemSyncDraft,
+        operation: String,
+        error: SecureItemRemoteError,
+    ): PushItemResult.Fatal = PushItemResult.Fatal(
+        PushLocalVaultChangesError.RemoteFailure(
+            logicalItemId = draft.logicalItemId,
+            operation = operation,
+            failure = error.failure,
+        ),
+    )
 
     private fun fatal(
         draft: SecureItemSyncDraft,
@@ -274,4 +313,13 @@ class PushLocalVaultChangesUseCase @Inject constructor(
             operation = operation,
         ),
     )
+
+    private sealed interface RemoteOfficialFetchResult {
+        data class Success(val item: SecureItem) :
+            RemoteOfficialFetchResult
+
+        data object Missing : RemoteOfficialFetchResult
+
+        data class Error(val error: SecureItemRemoteError) : RemoteOfficialFetchResult
+    }
 }
