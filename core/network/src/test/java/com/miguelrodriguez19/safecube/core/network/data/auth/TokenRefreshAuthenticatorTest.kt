@@ -9,6 +9,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.util.Optional
+import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
@@ -32,6 +38,24 @@ class TokenRefreshAuthenticatorTest {
         val retriedRequest = target.authenticate(
             route = null,
             response = response(code = 200),
+        )
+
+        assertNull(retriedRequest)
+        verify(exactly = 0) { tokenProvider.getAccessToken() }
+        coVerify(exactly = 0) { refreshHandler.refreshAccessToken(any()) }
+        confirmVerified(tokenProvider, refreshHandler)
+    }
+
+    @Test
+    fun `authenticate when protected response is forbidden then does not refresh`() {
+        val target = TokenRefreshAuthenticator(
+            tokenProvider = tokenProvider,
+            tokenRefreshHandler = Optional.of(refreshHandler),
+        )
+
+        val retriedRequest = target.authenticate(
+            route = null,
+            response = response(code = 403),
         )
 
         assertNull(retriedRequest)
@@ -103,6 +127,38 @@ class TokenRefreshAuthenticatorTest {
         verify(exactly = 1) { tokenProvider.getAccessToken() }
         coVerify(exactly = 0) { refreshHandler.refreshAccessToken(any()) }
         confirmVerified(tokenProvider, refreshHandler)
+    }
+
+    @Test
+    fun `authenticate concurrent unauthorized responses perform one effective refresh`() = runBlocking {
+        val accessToken = AtomicReference("expired-token")
+        every { tokenProvider.getAccessToken() } answers { accessToken.get() }
+        coEvery { refreshHandler.refreshAccessToken("expired-token") } answers {
+            Thread.sleep(50)
+            accessToken.set("new-token")
+            "new-token"
+        }
+        val target = TokenRefreshAuthenticator(
+            tokenProvider = tokenProvider,
+            tokenRefreshHandler = Optional.of(refreshHandler),
+        )
+
+        val retriedRequests = withContext(Dispatchers.Default) {
+            (1..8).map {
+                async {
+                    target.authenticate(
+                        route = null,
+                        response = response(
+                            code = 401,
+                            authorizationHeader = "Bearer expired-token",
+                        ),
+                    )
+                }
+            }.awaitAll()
+        }
+
+        assertEquals(8, retriedRequests.count { it != null })
+        coVerify(exactly = 1) { refreshHandler.refreshAccessToken("expired-token") }
     }
 
     @Test

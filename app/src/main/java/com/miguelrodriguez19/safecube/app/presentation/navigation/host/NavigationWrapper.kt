@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.miguelrodriguez19.safecube.app.presentation.navigation.route.Routes
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import kotlinx.coroutines.launch
 
 @Composable
@@ -69,7 +70,9 @@ fun NavigationWrapper() {
             try {
                 dependencies.authRepository.logout()
             } finally {
-                dependencies.accountSessionLifecycle.terminateSession()
+                dependencies.accountSessionLifecycle.terminateSession(
+                    reason = SessionTerminationReason.ManualLogout,
+                )
             }
         }
     }
@@ -101,6 +104,7 @@ fun NavigationWrapper() {
             pendingRecoveryKey = pendingRecoveryKey,
             onPendingRecoveryKeyChanged = { pendingRecoveryKey = it },
             onLogout = onLogout,
+            showSessionExpiredMessage = shouldShowSessionExpiredMessage(sessionState),
         )
     )
 }
