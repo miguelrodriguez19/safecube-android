@@ -3,10 +3,10 @@ package com.miguelrodriguez19.safecube.app.session
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
 import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionResult
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultCleanupResult
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultDataCleaner
 import io.mockk.coEvery
-import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
 import io.mockk.justRun
@@ -37,7 +37,7 @@ class AccountSessionLifecycleImplTest {
             localVaultDataCleaner.clear()
             sessionManager.onLoginSuccess(tokens)
         }
-        coVerify(exactly = 0) { sessionManager.forceLogout() }
+        coVerify(exactly = 0) { sessionManager.forceLogout(any()) }
     }
 
     @Test
@@ -46,13 +46,15 @@ class AccountSessionLifecycleImplTest {
         coEvery {
             localVaultDataCleaner.clear()
         } returns LocalVaultCleanupResult.Failure
-        justRun { sessionManager.forceLogout() }
+        justRun { sessionManager.forceLogout(any()) }
 
         val result = target.activateFreshSession(tokens)
 
         assertEquals(AccountSessionResult.LocalVaultCleanupFailed, result)
         coVerify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
-        coVerify(exactly = 1) { sessionManager.forceLogout() }
+        coVerify(exactly = 1) {
+            sessionManager.forceLogout(SessionTerminationReason.LocalIntegrityFailure)
+        }
     }
 
     @Test
@@ -71,20 +73,36 @@ class AccountSessionLifecycleImplTest {
         coEvery {
             localVaultDataCleaner.clear()
         } returns LocalVaultCleanupResult.Failure
-        justRun { sessionManager.forceLogout() }
+        justRun { sessionManager.forceLogout(any()) }
 
-        val result = target.terminateSession()
+        val result = target.terminateSession(SessionTerminationReason.SessionExpired)
 
         assertEquals(AccountSessionResult.LocalVaultCleanupFailed, result)
         coVerifyOrder {
             localVaultDataCleaner.clear()
-            sessionManager.forceLogout()
+            sessionManager.forceLogout(SessionTerminationReason.LocalIntegrityFailure)
+        }
+    }
+
+    @Test
+    fun `termination exposes the requested reason after successful cleanup`() = runBlocking {
+        coEvery { localVaultDataCleaner.clear() } returns LocalVaultCleanupResult.Success
+        justRun {
+            sessionManager.forceLogout(SessionTerminationReason.SessionExpired)
+        }
+
+        val result = target.terminateSession(SessionTerminationReason.SessionExpired)
+
+        assertEquals(AccountSessionResult.Success, result)
+        coVerifyOrder {
+            localVaultDataCleaner.clear()
+            sessionManager.forceLogout(SessionTerminationReason.SessionExpired)
         }
     }
 
     private fun tokens() = AuthTokens(
         accessToken = "access-token",
         refreshToken = "refresh-token",
-        issuedAt = Instant.parse("2026-07-28T10:00:00Z"),
+        issuedAt = Instant.now(),
     )
 }

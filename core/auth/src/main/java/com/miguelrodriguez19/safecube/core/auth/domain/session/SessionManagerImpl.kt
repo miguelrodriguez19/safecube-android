@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.auth.domain.session
 
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.network.domain.port.TokenProvider
 import javax.inject.Inject
@@ -30,9 +31,9 @@ class SessionManagerImpl @Inject constructor(
         mutableSessionState.value = SessionState.LoggedInVaultLocked
     }
 
-    override fun forceLogout() {
+    override fun forceLogout(reason: SessionTerminationReason) {
         tokenStorage.clear()
-        mutableSessionState.value = SessionState.LoggedOut
+        mutableSessionState.value = SessionState.LoggedOut(reason)
     }
 
     override fun getAccessToken(): String? = tokenStorage.getAccessToken()
@@ -43,7 +44,7 @@ class SessionManagerImpl @Inject constructor(
         return if (hasAccessToken && hasRefreshToken) {
             SessionState.LoggedInVaultLocked
         } else {
-            SessionState.LoggedOut
+            SessionState.LoggedOut()
         }
     }
 }

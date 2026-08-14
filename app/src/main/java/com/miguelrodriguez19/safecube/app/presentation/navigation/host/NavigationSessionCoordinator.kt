@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.miguelrodriguez19.safecube.app.presentation.navigation.route.Routes
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 
 @Composable
 internal fun ObserveSessionRedirect(
@@ -12,30 +13,40 @@ internal fun ObserveSessionRedirect(
     setRoot: (Routes) -> Unit,
 ) {
     LaunchedEffect(sessionState) {
-        when (sessionState) {
-            SessionState.LoggedOut -> {
-                if (currentRoute !in LOGGED_OUT_ROUTES) {
-                    setRoot(Routes.Welcome)
-                }
-            }
-
-            SessionState.LoggedInVaultLocked -> {
-                if (currentRoute in PRE_AUTH_ROUTES) {
-                    setRoot(Routes.PostLoginGate)
-                }
-            }
-        }
+        resolveSessionRedirectTarget(sessionState, currentRoute)?.let(setRoot)
     }
 }
 
+internal fun resolveSessionRedirectTarget(
+    sessionState: SessionState,
+    currentRoute: Routes?,
+): Routes? = when (sessionState) {
+    is SessionState.LoggedOut -> {
+        val destination = when (sessionState.reason) {
+            null,
+            SessionTerminationReason.ManualLogout,
+                -> Routes.Welcome
+
+            SessionTerminationReason.SessionExpired,
+            SessionTerminationReason.RefreshCredentialsRejected,
+            SessionTerminationReason.LocalIntegrityFailure,
+                -> Routes.Login
+        }
+        destination.takeUnless { it == currentRoute }
+    }
+
+    SessionState.LoggedInVaultLocked ->
+        Routes.PostLoginGate.takeIf { currentRoute in PRE_AUTH_ROUTES }
+}
+
+internal fun shouldShowSessionExpiredMessage(sessionState: SessionState): Boolean =
+    sessionState is SessionState.LoggedOut && sessionState.reason in setOf(
+        SessionTerminationReason.SessionExpired,
+        SessionTerminationReason.RefreshCredentialsRejected,
+    )
+
 private val PRE_AUTH_ROUTES = setOf(
     Routes.Splash,
-    Routes.Welcome,
-    Routes.Login,
-    Routes.Signup,
-)
-
-private val LOGGED_OUT_ROUTES = setOf(
     Routes.Welcome,
     Routes.Login,
     Routes.Signup,

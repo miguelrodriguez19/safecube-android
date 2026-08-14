@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.auth.domain.session
 
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import io.mockk.Runs
 import io.mockk.confirmVerified
@@ -42,7 +43,7 @@ class SessionManagerImplTest {
 
         createTarget()
 
-        assertEquals(SessionState.LoggedOut, target.sessionState.value)
+        assertEquals(SessionState.LoggedOut(), target.sessionState.value)
         assertFalse(target.isLoggedIn())
         verify(exactly = 1) { tokenStorage.getAccessToken() }
         verify(exactly = 1) { tokenStorage.getRefreshToken() }
@@ -56,7 +57,7 @@ class SessionManagerImplTest {
 
         createTarget()
 
-        assertEquals(SessionState.LoggedOut, target.sessionState.value)
+        assertEquals(SessionState.LoggedOut(), target.sessionState.value)
         assertFalse(target.isLoggedIn())
         verify(exactly = 1) { tokenStorage.getAccessToken() }
         verify(exactly = 1) { tokenStorage.getRefreshToken() }
@@ -94,9 +95,12 @@ class SessionManagerImplTest {
         every { tokenStorage.clear() } just Runs
         createTarget()
 
-        target.forceLogout()
+        target.forceLogout(SessionTerminationReason.SessionExpired)
 
-        assertEquals(SessionState.LoggedOut, target.sessionState.value)
+        assertEquals(
+            SessionState.LoggedOut(SessionTerminationReason.SessionExpired),
+            target.sessionState.value,
+        )
         assertFalse(target.isLoggedIn())
         verify(exactly = 1) { tokenStorage.getAccessToken() }
         verify(exactly = 1) { tokenStorage.getRefreshToken() }

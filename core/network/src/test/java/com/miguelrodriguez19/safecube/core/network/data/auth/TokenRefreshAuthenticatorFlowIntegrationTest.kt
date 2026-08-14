@@ -111,6 +111,31 @@ class TokenRefreshAuthenticatorFlowIntegrationTest {
         assertTrue(refreshCall.body.readUtf8().contains("\"refreshToken\":\"refresh-1\""))
     }
 
+    @Test
+    fun `401 when refresh returns server failure keeps session and returns unauthorized response`() {
+        val session = MutableSession(
+            accessToken = "expired-access",
+            refreshToken = "refresh-1",
+        )
+        server.dispatcher = refreshUnavailableDispatcher()
+        val client = createAuthenticatedClient(session)
+
+        val response = client.newCall(
+            Request.Builder()
+                .url(server.url("/protected"))
+                .get()
+                .build(),
+        ).execute()
+
+        response.use {
+            assertEquals(401, it.code)
+        }
+        assertEquals("expired-access", session.accessToken)
+        assertEquals("refresh-1", session.refreshToken)
+        assertEquals(0, session.forceLogoutCalls.get())
+        assertEquals(2, server.requestCount)
+    }
+
     private fun createAuthenticatedClient(
         session: MutableSession,
     ): OkHttpClient {
@@ -218,6 +243,15 @@ class TokenRefreshAuthenticatorFlowIntegrationTest {
                     .addHeader("Content-Type", "application/json")
                     .setBody("""{"error":"Invalid credentials"}""")
 
+                else -> MockResponse().setResponseCode(404)
+            }
+    }
+
+    private fun refreshUnavailableDispatcher(): Dispatcher = object : Dispatcher() {
+        override fun dispatch(request: RecordedRequest): MockResponse =
+            when (request.requestUrl?.encodedPath) {
+                "/protected" -> MockResponse().setResponseCode(401)
+                "/auth/refresh" -> MockResponse().setResponseCode(503)
                 else -> MockResponse().setResponseCode(404)
             }
     }

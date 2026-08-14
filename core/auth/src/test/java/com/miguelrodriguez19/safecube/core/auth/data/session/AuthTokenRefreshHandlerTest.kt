@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.core.auth.data.session
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionLifecycle
@@ -38,7 +39,7 @@ class AuthTokenRefreshHandlerTest {
 
         assertEquals("fresh-access", result)
         coVerify(exactly = 0) { accountSessionLifecycle.refreshSession(any()) }
-        coVerify(exactly = 0) { accountSessionLifecycle.terminateSession() }
+        coVerify(exactly = 0) { accountSessionLifecycle.terminateSession(any()) }
     }
 
     @Test
@@ -46,13 +47,15 @@ class AuthTokenRefreshHandlerTest {
         every { tokenStorage.getAccessToken() } returns "expired-access"
         every { tokenStorage.getRefreshToken() } returns null
         coEvery {
-            accountSessionLifecycle.terminateSession()
+            accountSessionLifecycle.terminateSession(SessionTerminationReason.SessionExpired)
         } returns AccountSessionResult.Success
 
         val result = target.refreshAccessToken("expired-access")
 
         assertNull(result)
-        coVerify(exactly = 1) { accountSessionLifecycle.terminateSession() }
+        coVerify(exactly = 1) {
+            accountSessionLifecycle.terminateSession(SessionTerminationReason.SessionExpired)
+        }
     }
 
     @Test
@@ -70,7 +73,7 @@ class AuthTokenRefreshHandlerTest {
 
         assertEquals(tokens.accessToken, result)
         coVerify(exactly = 1) { accountSessionLifecycle.refreshSession(tokens) }
-        coVerify(exactly = 0) { accountSessionLifecycle.terminateSession() }
+        coVerify(exactly = 0) { accountSessionLifecycle.terminateSession(any()) }
     }
 
     @Test
@@ -82,14 +85,30 @@ class AuthTokenRefreshHandlerTest {
             authRepository.refresh("refresh-token")
         } returns AuthResult.Error(AuthError.InvalidCredentials)
         coEvery {
-            accountSessionLifecycle.terminateSession()
+            accountSessionLifecycle.terminateSession(
+                SessionTerminationReason.RefreshCredentialsRejected,
+            )
         } returns AccountSessionResult.Success
 
         val result = target.refreshAccessToken("expired-access")
 
         assertNull(result)
-        coVerify(exactly = 1) { accountSessionLifecycle.terminateSession() }
+        coVerify(exactly = 1) {
+            accountSessionLifecycle.terminateSession(
+                SessionTerminationReason.RefreshCredentialsRejected,
+            )
+        }
         coVerify(exactly = 0) { accountSessionLifecycle.refreshSession(any()) }
+    }
+
+    @Test
+    fun `validation refresh rejection terminates account session`() = runBlocking {
+        assertTerminalRefresh(AuthError.ValidationFailed())
+    }
+
+    @Test
+    fun `forbidden refresh rejection terminates account session`() = runBlocking {
+        assertTerminalRefresh(AuthError.Forbidden)
     }
 
     @Test
@@ -104,7 +123,7 @@ class AuthTokenRefreshHandlerTest {
         val result = target.refreshAccessToken("expired-access")
 
         assertNull(result)
-        coVerify(exactly = 0) { accountSessionLifecycle.terminateSession() }
+        coVerify(exactly = 0) { accountSessionLifecycle.terminateSession(any()) }
         coVerify(exactly = 0) { accountSessionLifecycle.refreshSession(any()) }
     }
 
@@ -113,4 +132,27 @@ class AuthTokenRefreshHandlerTest {
         refreshToken = "new-refresh",
         issuedAt = Instant.parse("2026-07-28T10:00:00Z"),
     )
+
+    private suspend fun assertTerminalRefresh(error: AuthError) {
+        every { tokenStorage.getAccessToken() } returns "expired-access"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { authRepositoryProvider.get() } returns authRepository
+        coEvery {
+            authRepository.refresh("refresh-token")
+        } returns AuthResult.Error(error)
+        coEvery {
+            accountSessionLifecycle.terminateSession(
+                SessionTerminationReason.RefreshCredentialsRejected,
+            )
+        } returns AccountSessionResult.Success
+
+        val result = target.refreshAccessToken("expired-access")
+
+        assertNull(result)
+        coVerify(exactly = 1) {
+            accountSessionLifecycle.terminateSession(
+                SessionTerminationReason.RefreshCredentialsRejected,
+            )
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.app.session
 
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionLifecycle
 import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionResult
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
@@ -25,7 +26,7 @@ class AccountSessionLifecycleImpl @Inject constructor(
             }
 
             LocalVaultCleanupResult.Failure -> {
-                sessionManager.forceLogout()
+                sessionManager.forceLogout(SessionTerminationReason.LocalIntegrityFailure)
                 AccountSessionResult.LocalVaultCleanupFailed
             }
         }
@@ -35,15 +36,21 @@ class AccountSessionLifecycleImpl @Inject constructor(
         sessionManager.onLoginSuccess(tokens)
     }
 
-    override suspend fun terminateSession(): AccountSessionResult = withContext(NonCancellable) {
-        try {
-            when (val cleanupResult = clearLocalVault()) {
-                LocalVaultCleanupResult.Success -> AccountSessionResult.Success
-                LocalVaultCleanupResult.Failure -> AccountSessionResult.LocalVaultCleanupFailed
-            }
-        } finally {
-            sessionManager.forceLogout()
+    override suspend fun terminateSession(
+        reason: SessionTerminationReason,
+    ): AccountSessionResult = withContext(NonCancellable) {
+        val result = when (val cleanupResult = clearLocalVault()) {
+            LocalVaultCleanupResult.Success -> AccountSessionResult.Success
+            LocalVaultCleanupResult.Failure -> AccountSessionResult.LocalVaultCleanupFailed
         }
+        sessionManager.forceLogout(
+            reason = if (result == AccountSessionResult.LocalVaultCleanupFailed) {
+                SessionTerminationReason.LocalIntegrityFailure
+            } else {
+                reason
+            },
+        )
+        result
     }
 
     private suspend fun clearLocalVault(): LocalVaultCleanupResult =

@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.auth.data.session
 
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionLifecycle
@@ -31,7 +32,9 @@ class AuthTokenRefreshHandler @Inject constructor(
         val refreshToken = tokenStorage.getRefreshToken()
             ?.takeIf { it.isNotBlank() }
             ?: run {
-                accountSessionLifecycle.terminateSession()
+                accountSessionLifecycle.terminateSession(
+                    reason = SessionTerminationReason.SessionExpired,
+                )
                 return null
             }
 
@@ -43,7 +46,9 @@ class AuthTokenRefreshHandler @Inject constructor(
 
             is AuthResult.Error -> {
                 if (refreshResult.error.shouldForceLogout()) {
-                    accountSessionLifecycle.terminateSession()
+                    accountSessionLifecycle.terminateSession(
+                        reason = SessionTerminationReason.RefreshCredentialsRejected,
+                    )
                 }
                 null
             }
@@ -54,19 +59,23 @@ class AuthTokenRefreshHandler @Inject constructor(
         AuthError.InvalidCredentials,
         AuthError.Forbidden,
         AuthError.AccountNotActive,
-        AuthError.AccountAlreadyExists,
         is AuthError.ValidationFailed,
-        is AuthError.Conflict -> true
+            -> true
 
-        is AuthError.Unknown -> failure.kind in AUTH_FAILURE_KINDS
+        is AuthError.Unknown -> failure.kind in DEFINITIVE_REFRESH_FAILURE_KINDS
+
+        AuthError.AccountAlreadyExists,
+        is AuthError.Conflict,
+            -> false
     }
 
     private companion object {
-        val AUTH_FAILURE_KINDS = setOf(
+        val DEFINITIVE_REFRESH_FAILURE_KINDS = setOf(
             NetworkFailureKind.Unauthorized,
             NetworkFailureKind.Forbidden,
             NetworkFailureKind.Validation,
-            NetworkFailureKind.Conflict,
+            NetworkFailureKind.Protocol,
+            NetworkFailureKind.MalformedResponse,
         )
     }
 }
