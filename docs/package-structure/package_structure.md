@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 14-08-2026 06:43:44
+Updated: 14-08-2026 08:22:13
 
 ```
 safecube-android/
@@ -80,8 +80,11 @@ safecube-android/
 │   │   │   │       └── data_extraction_rules.xml
 │   │   │   └── AndroidManifest.xml
 │   │   └── test/java/com/miguelrodriguez19/safecube/
-│   │       ├── app/session/
-│   │       │   └── AccountSessionLifecycleImplTest.kt
+│   │       ├── app/
+│   │       │   ├── presentation/navigation/host/
+│   │       │   │   └── NavigationSessionCoordinatorTest.kt
+│   │       │   └── session/
+│   │       │       └── AccountSessionLifecycleImplTest.kt
 │   │       └── ExampleUnitTest.kt
 │   ├── .gitignore
 │   ├── build.gradle.kts
@@ -337,7 +340,8 @@ safecube-android/
 │   │   │   │   │       │   ├── AuthResult.kt
 │   │   │   │   │       │   ├── AuthTokens.kt
 │   │   │   │   │       │   ├── RegisteredAccount.kt
-│   │   │   │   │       │   └── SessionState.kt
+│   │   │   │   │       │   ├── SessionState.kt
+│   │   │   │   │       │   └── SessionTerminationReason.kt
 │   │   │   │   │       ├── repository/
 │   │   │   │   │       │   ├── AuthRepository.kt
 │   │   │   │   │       │   └── TokenStorage.kt
@@ -814,6 +818,7 @@ safecube-android/
 │   │   │   ├── SCDK-M109.md
 │   │   │   ├── SCDK-M110.md
 │   │   │   ├── SCDK-M113.md
+│   │   │   ├── SCDK-M114.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
