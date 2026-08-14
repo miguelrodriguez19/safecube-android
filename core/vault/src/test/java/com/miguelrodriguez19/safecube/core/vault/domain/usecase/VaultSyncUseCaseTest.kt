@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResult
@@ -120,6 +121,26 @@ class VaultSyncUseCaseTest {
         )
         coVerify(exactly = 1) { pushLocalVaultChangesUseCase.invoke() }
         coVerify(exactly = 1) { pullVaultDeltaUseCase.invoke(any()) }
+    }
+
+    @Test
+    fun `invoke when push is retryable then exposes retry decision`() = runBlocking {
+        val logicalItemId = UUID.randomUUID()
+        val pushError = PushLocalVaultChangesError.RemoteFailure(
+            logicalItemId = logicalItemId,
+            operation = "UPDATE_REMOTE",
+            failure = NetworkFailureClassifier.fromHttpStatus(503),
+        )
+        coEvery { pullVaultDeltaUseCase.invoke(null) } returns emptyPullSuccess()
+        coEvery { pushLocalVaultChangesUseCase.invoke() } returns PushLocalVaultChangesResult.Error(pushError)
+
+        val result = target()
+
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.network.domain.model.RetryDecision.Retryable,
+            (result as VaultSyncResult.Error).retryDecision,
+        )
+        assertEquals(VaultSyncError.PushFailed(pushError), result.reason)
     }
 
     @Test

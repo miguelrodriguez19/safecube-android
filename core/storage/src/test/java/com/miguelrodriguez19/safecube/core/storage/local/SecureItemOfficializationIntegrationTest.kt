@@ -14,6 +14,8 @@ import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -100,6 +102,56 @@ class SecureItemOfficializationIntegrationTest {
         assertNotNull(database.secureItemDao().getItem(draft.logicalItemId))
         assertNotNull(database.secureItemDraftDao().getDraft(draft.logicalItemId))
         assertNotNull(
+            database.secureItemSyncCheckpointDao()
+                .getLastAppliedChangeSequence(CHECKPOINT_ACCOUNT_ID),
+        )
+    }
+
+    @Test
+    fun `apply remote page rolls back items drafts and checkpoint when checkpoint write fails`() = runBlocking {
+        val draft = draft()
+        val previousOfficial = official(draft)
+        val nextOfficial = previousOfficial.copy(
+            payload = byteArrayOf(9, 9, 9),
+            itemRevision = previousOfficial.itemRevision + 1,
+            changeSequence = previousOfficial.changeSequence + 1,
+        )
+        assertTrue(target.applyRemoteUpsert(previousOfficial, previousOfficial.updatedAt))
+        database.secureItemDraftDao().upsert(mapper.toEntity(draft))
+        database.secureItemSyncCheckpointDao().upsert(
+            SecureItemSyncCheckpointEntity(
+                accountId = CHECKPOINT_ACCOUNT_ID,
+                lastAppliedChangeSequence = previousOfficial.changeSequence,
+            ),
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            CREATE TRIGGER fail_checkpoint_insert
+            BEFORE INSERT ON secure_item_sync_checkpoints
+            BEGIN
+                SELECT RAISE(ABORT, 'forced checkpoint insert failure');
+            END
+            """.trimIndent(),
+        )
+
+        assertFalse(
+            target.applyRemotePage(
+                accountId = CHECKPOINT_ACCOUNT_ID,
+                items = listOf(nextOfficial),
+                conflictedDrafts = emptyList(),
+                draftsToDelete = emptySet(),
+                lastAppliedChangeSequence = nextOfficial.changeSequence,
+                lastSyncedAt = nextOfficial.updatedAt,
+            ),
+        )
+        val persistedOfficial = database.secureItemDao().getItem(draft.logicalItemId)
+        assertNotNull(persistedOfficial)
+        assertEquals(previousOfficial.itemRevision, persistedOfficial?.itemRevision)
+        assertEquals(previousOfficial.changeSequence, persistedOfficial?.changeSequence)
+        assertArrayEquals(previousOfficial.payload, persistedOfficial?.payload)
+        assertNotNull(database.secureItemDraftDao().getDraft(draft.logicalItemId))
+        assertEquals(
+            previousOfficial.changeSequence,
             database.secureItemSyncCheckpointDao()
                 .getLastAppliedChangeSequence(CHECKPOINT_ACCOUNT_ID),
         )

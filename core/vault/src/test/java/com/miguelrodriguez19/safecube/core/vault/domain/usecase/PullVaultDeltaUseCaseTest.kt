@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
+import com.miguelrodriguez19.safecube.core.network.domain.model.RetryDecision
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItemChangesPage
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.SecureItemRemoteError
@@ -220,6 +221,29 @@ class PullVaultDeltaUseCaseTest {
             ),
             target(limit = 25),
         )
+    }
+
+    @Test
+    fun `pull exposes retryable and terminal remote decisions without advancing checkpoint`() = runBlocking {
+        val accountId = UUID.randomUUID()
+        every { vaultKeyMaterialLocalRepository.get() } returns testVaultKeyMaterial(accountId)
+        coEvery { secureItemRepository.getSyncCheckpoint(accountId) } returns 5
+
+        listOf(
+            SecureItemRemoteError.HttpError(503, null) to RetryDecision.Retryable,
+            SecureItemRemoteError.HttpError(428, null) to RetryDecision.Terminal,
+        ).forEach { (error, decision) ->
+            coEvery {
+                secureItemRemoteRepository.listVaultItemChanges(after = 5, limit = 100)
+            } returns SecureItemRemoteResult.Error(error)
+
+            val result = target()
+
+            assertEquals(decision, (result as PullVaultDeltaResult.Error).reason.retryDecision)
+            coVerify(exactly = 0) {
+                secureItemRepository.applyRemotePage(any(), any(), any(), any(), any(), any())
+            }
+        }
     }
 
     @Test

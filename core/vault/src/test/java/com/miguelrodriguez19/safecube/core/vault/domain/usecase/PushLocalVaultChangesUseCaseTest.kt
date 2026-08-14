@@ -1,11 +1,13 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.RemoteCreateSecureItemResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.RemoteDeleteSecureItemResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.RemoteUpdateSecureItemResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.SecureItemRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.SecureItemRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.RemoteCreateSecureItemRequest
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLocalVaultChangesError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLocalVaultChangesResult
@@ -17,9 +19,11 @@ import com.miguelrodriguez19.safecube.core.vault.test.testSecureItemDraft
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import java.io.IOException
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -67,6 +71,58 @@ class PushLocalVaultChangesUseCaseTest {
             ),
             result,
         )
+    }
+
+    @Test
+    fun `retry after uncertain create reuses the persisted mutation and payload`() = runBlocking {
+        val draft = testSecureItemDraft(
+            remoteItemId = null,
+            draftType = SecureItemDraftType.CREATE,
+        )
+        val requests = mutableListOf<RemoteCreateSecureItemRequest>()
+        val remoteResult = RemoteCreateSecureItemResult(
+            itemId = UUID.randomUUID(),
+            mutationId = draft.mutationId,
+            payloadVersion = draft.payloadVersion,
+            itemRevision = 1,
+            changeSequence = 10,
+            updatedAt = draft.updatedAt,
+        )
+        coEvery { secureItemDraftRepository.getSyncableDraftsOrdered() } returns listOf(draft)
+        coEvery {
+            secureItemRemoteRepository.createVaultItem(capture(requests))
+        } returnsMany listOf(
+            SecureItemRemoteResult.Error(SecureItemRemoteError.NetworkError(IOException())),
+            SecureItemRemoteResult.Success(remoteResult),
+        )
+        coEvery {
+            secureItemDraftSyncCoordinator.officializeCreatedDraft(draft, remoteResult)
+        } returns true
+
+        val firstResult = target()
+        val secondResult = target()
+
+        assertEquals(
+            PushLocalVaultChangesResult.Error(
+                PushLocalVaultChangesError.RemoteFailure(
+                    logicalItemId = draft.logicalItemId,
+                    operation = "CREATE_REMOTE",
+                    failure = NetworkFailureClassifier.fromThrowable(IOException()),
+                ),
+            ),
+            firstResult,
+        )
+        assertEquals(
+            PushLocalVaultChangesResult.Success(1, 1, 0, 0, 0),
+            secondResult,
+        )
+        assertEquals(2, requests.size)
+        assertEquals(requests[0].mutationId, requests[1].mutationId)
+        assertEquals(requests[0].payloadVersion, requests[1].payloadVersion)
+        assertArrayEquals(requests[0].payload, requests[1].payload)
+        coVerify(exactly = 1) {
+            secureItemDraftSyncCoordinator.officializeCreatedDraft(draft, remoteResult)
+        }
     }
 
     @Test
@@ -277,11 +333,12 @@ class PushLocalVaultChangesUseCaseTest {
     }
 
     @Test
-    fun `transient remote errors keep every mutation type pending`() = runBlocking {
+    fun `retryable remote errors expose retry decision and keep every draft unchanged`() = runBlocking {
         val errors = listOf(
-            SecureItemRemoteError.Unauthorized,
-            SecureItemRemoteError.HttpError(503, "unavailable"),
-            SecureItemRemoteError.NetworkError(IllegalStateException("offline")),
+            SecureItemRemoteError.HttpError(408, null),
+            SecureItemRemoteError.HttpError(429, null),
+            SecureItemRemoteError.HttpError(503, null),
+            SecureItemRemoteError.NetworkError(IOException("offline")),
         )
 
         SecureItemDraftType.entries.forEach { type ->
@@ -290,12 +347,12 @@ class PushLocalVaultChangesUseCaseTest {
                 harness.remoteReturns(error)
 
                 assertEquals(
-                    PushLocalVaultChangesResult.Success(
-                        processedCount = 1,
-                        syncedCount = 0,
-                        conflictCount = 0,
-                        keptPendingCount = 1,
-                        locallyResolvedDeleteCount = 0,
+                    PushLocalVaultChangesResult.Error(
+                        PushLocalVaultChangesError.RemoteFailure(
+                            logicalItemId = harness.draft.logicalItemId,
+                            operation = remoteOperation(type),
+                            failure = error.failure,
+                        ),
                     ),
                     harness.target(),
                 )
@@ -304,11 +361,20 @@ class PushLocalVaultChangesUseCaseTest {
     }
 
     @Test
-    fun `create item not found is retryable`() = runBlocking {
+    fun `create item not found is a terminal remote failure`() = runBlocking {
         val harness = harness(SecureItemDraftType.CREATE)
         harness.remoteReturns(SecureItemRemoteError.ItemNotFound)
 
-        assertEquals(1, (harness.target() as PushLocalVaultChangesResult.Success).keptPendingCount)
+        assertEquals(
+            PushLocalVaultChangesResult.Error(
+                PushLocalVaultChangesError.RemoteFailure(
+                    logicalItemId = harness.draft.logicalItemId,
+                    operation = "CREATE_REMOTE",
+                    failure = NetworkFailureClassifier.unknown(404),
+                ),
+            ),
+            harness.target(),
+        )
     }
 
     @Test
@@ -369,9 +435,20 @@ class PushLocalVaultChangesUseCaseTest {
                 harness.coordinator.resolveAlreadyDeletedDraft(harness.draft)
             } returns resolved
 
-            val result = harness.target() as PushLocalVaultChangesResult.Success
-            assertEquals(if (resolved) 1 else 0, result.syncedCount)
-            assertEquals(if (resolved) 0 else 1, result.keptPendingCount)
+            val result = harness.target()
+            if (resolved) {
+                assertEquals(1, (result as PushLocalVaultChangesResult.Success).syncedCount)
+            } else {
+                assertEquals(
+                    PushLocalVaultChangesResult.Error(
+                        PushLocalVaultChangesError.LocalStateUpdateFailed(
+                            logicalItemId = harness.draft.logicalItemId,
+                            operation = "DELETE_ALREADY_DELETED_RESOLUTION",
+                        ),
+                    ),
+                    result,
+                )
+            }
         }
     }
 
@@ -381,13 +458,16 @@ class PushLocalVaultChangesUseCaseTest {
         fetchFailure.remoteReturns(SecureItemRemoteError.PreconditionFailed)
         coEvery {
             fetchFailure.remote.getVaultItem(requireNotNull(fetchFailure.draft.remoteItemId))
-        } returns SecureItemRemoteResult.Error(SecureItemRemoteError.NetworkError(IllegalStateException()))
-        coEvery {
-            fetchFailure.coordinator.markDraftConflict(any(), any())
-        } returns true
+        } returns SecureItemRemoteResult.Error(SecureItemRemoteError.NetworkError(IOException()))
         assertEquals(
-            1,
-            (fetchFailure.target() as PushLocalVaultChangesResult.Success).conflictCount,
+            PushLocalVaultChangesResult.Error(
+                PushLocalVaultChangesError.RemoteFailure(
+                    logicalItemId = fetchFailure.draft.logicalItemId,
+                    operation = "UPDATE_CONFLICT_RECONCILIATION",
+                    failure = NetworkFailureClassifier.fromThrowable(IOException()),
+                ),
+            ),
+            fetchFailure.target(),
         )
 
         val markFailure = harness(SecureItemDraftType.UPDATE)
@@ -402,7 +482,7 @@ class PushLocalVaultChangesUseCaseTest {
             PushLocalVaultChangesResult.Error(
                 PushLocalVaultChangesError.LocalStateUpdateFailed(
                     markFailure.draft.logicalItemId,
-                    "UPDATE_CONFLICT",
+                    "UPDATE_REMOTE_DELETE_RESOLUTION",
                 ),
             ),
             markFailure.target(),
@@ -493,6 +573,12 @@ class PushLocalVaultChangesUseCaseTest {
             )
         } returns replacementSucceeds
         return harness
+    }
+
+    private fun remoteOperation(type: SecureItemDraftType): String = when (type) {
+        SecureItemDraftType.CREATE -> "CREATE_REMOTE"
+        SecureItemDraftType.UPDATE -> "UPDATE_REMOTE"
+        SecureItemDraftType.DELETE -> "DELETE_REMOTE"
     }
 
     private fun Harness.remoteReturns(error: SecureItemRemoteError) {
