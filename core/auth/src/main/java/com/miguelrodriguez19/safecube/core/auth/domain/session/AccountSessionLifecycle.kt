@@ -5,9 +5,7 @@ import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
 sealed interface AccountSessionResult {
     data object Success : AccountSessionResult
 
-    data class LocalVaultCleanupFailed(
-        val cause: Throwable,
-    ) : AccountSessionResult
+    data object LocalVaultCleanupFailed : AccountSessionResult
 }
 
 interface AccountSessionLifecycle {

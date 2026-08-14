@@ -147,7 +147,7 @@ class SignupViewModel @Inject constructor(
                         mutableEvents.emit(SignupUiEvent.SignupSucceeded)
                     }
 
-                    is AccountSessionResult.LocalVaultCleanupFailed -> {
+                    AccountSessionResult.LocalVaultCleanupFailed -> {
                         mutableUiState.update { state ->
                             state.copy(
                                 isLoading = false,

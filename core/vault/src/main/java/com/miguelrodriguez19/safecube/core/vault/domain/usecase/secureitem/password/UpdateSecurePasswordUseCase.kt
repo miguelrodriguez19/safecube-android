@@ -24,11 +24,9 @@ class UpdateSecurePasswordUseCase @Inject internal constructor(
             expectedItemType = SecureItemType.PASSWORD,
             content = passwordDraftToContentMapper.map(draft),
         )
-    } catch (illegalArgumentException: IllegalArgumentException) {
-        SecureItemMutationResult.Error(
-            SecureItemCrudError.ValidationError(
-                illegalArgumentException.message ?: "Invalid password item.",
-            ),
-        )
+        } catch (_: IllegalArgumentException) {
+            SecureItemMutationResult.Error(
+                SecureItemCrudError.ValidationError("Invalid password item."),
+            )
     }
 }

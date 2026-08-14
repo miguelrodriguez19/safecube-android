@@ -165,7 +165,7 @@ class RemoteVaultKeyMaterialDataSourceIntegrationTest {
     }
 
     @Test
-    fun `getKeyMaterial when status is 403 then maps to unauthorized`() = runBlocking {
+    fun `getKeyMaterial when status is 403 then maps to forbidden`() = runBlocking {
         server.enqueue(
             MockResponse()
                 .setResponseCode(403)
@@ -179,7 +179,7 @@ class RemoteVaultKeyMaterialDataSourceIntegrationTest {
         val result = dataSource.getKeyMaterial()
 
         assertEquals(
-            VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.Unauthorized),
+            VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.Forbidden),
             result,
         )
     }

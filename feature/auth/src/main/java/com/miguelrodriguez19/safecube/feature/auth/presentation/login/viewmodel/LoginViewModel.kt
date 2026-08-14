@@ -104,7 +104,7 @@ class LoginViewModel @Inject constructor(
                             mutableEvents.emit(LoginUiEvent.LoginSucceeded)
                         }
 
-                        is AccountSessionResult.LocalVaultCleanupFailed -> {
+                        AccountSessionResult.LocalVaultCleanupFailed -> {
                             mutableUiState.update { state ->
                                 state.copy(
                                     isLoading = false,

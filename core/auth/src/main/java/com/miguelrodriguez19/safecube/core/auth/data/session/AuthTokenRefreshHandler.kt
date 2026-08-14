@@ -5,6 +5,7 @@ import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
 import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionLifecycle
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureKind
 import com.miguelrodriguez19.safecube.core.network.domain.port.TokenRefreshHandler
 import javax.inject.Inject
 import javax.inject.Provider
@@ -57,10 +58,15 @@ class AuthTokenRefreshHandler @Inject constructor(
         is AuthError.ValidationFailed,
         is AuthError.Conflict -> true
 
-        is AuthError.Unknown -> code in AUTH_FAILURE_CODES
+        is AuthError.Unknown -> failure.kind in AUTH_FAILURE_KINDS
     }
 
     private companion object {
-        val AUTH_FAILURE_CODES = setOf(400, 401, 403, 409)
+        val AUTH_FAILURE_KINDS = setOf(
+            NetworkFailureKind.Unauthorized,
+            NetworkFailureKind.Forbidden,
+            NetworkFailureKind.Validation,
+            NetworkFailureKind.Conflict,
+        )
     }
 }

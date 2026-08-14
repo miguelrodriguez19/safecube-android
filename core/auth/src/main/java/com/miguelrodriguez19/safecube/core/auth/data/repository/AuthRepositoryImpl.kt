@@ -14,6 +14,7 @@ import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensRes
 import com.miguelrodriguez19.safecube.core.network.generated.model.RefreshTokenRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountResult
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -92,7 +93,7 @@ class AuthRepositoryImpl @Inject constructor(
                 ?: return AuthResult.Error(
                     error = AuthError.Unknown(
                         code = httpCode,
-                        message = "Missing token payload in successful auth response.",
+                        failure = NetworkFailureClassifier.malformedResponse(httpCode),
                     ),
                 )
             AuthResult.Success(tokens)
@@ -125,15 +126,15 @@ class AuthRepositoryImpl @Inject constructor(
         operation: AuthOperation,
     ): AuthResult.Error = AuthResult.Error(
         error = authErrorMapper.map(
-            statusCode = httpCode,
-            errorBody = errorBody,
+            failure = failure,
             operation = operation,
         ),
     )
 
     private fun NetworkResult.Failure.toUnknownAuthError(): AuthResult.Error = AuthResult.Error(
         error = AuthError.Unknown(
-            message = throwable.message ?: throwable::class.simpleName,
+            code = failure.statusCode,
+            failure = failure,
         ),
     )
 }

@@ -8,6 +8,7 @@ import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthOperation
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
 import com.miguelrodriguez19.safecube.core.auth.domain.model.RegisteredAccount
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountResult
 import io.mockk.coEvery
@@ -72,17 +73,13 @@ class AuthRepositoryImplTest {
 
     @Test
     fun `register when data source returns http error then delegates mapping using signup operation`() = runBlocking {
-        val errorBody = """{"error":"Account already exists"}"""
         val mappedError = AuthError.AccountAlreadyExists
         coEvery { remoteAuthDataSource.register(any()) } returns NetworkResult.HttpError(
-            httpCode = 409,
-            body = null,
-            errorBody = errorBody,
+            failure = NetworkFailureClassifier.fromHttpStatus(409),
         )
         every {
             authErrorMapper.map(
-                statusCode = 409,
-                errorBody = errorBody,
+                failure = NetworkFailureClassifier.fromHttpStatus(409),
                 operation = AuthOperation.SIGNUP,
             )
         } returns mappedError
@@ -96,8 +93,7 @@ class AuthRepositoryImplTest {
         coVerify(exactly = 1) { remoteAuthDataSource.register(any()) }
         verify(exactly = 1) {
             authErrorMapper.map(
-                statusCode = 409,
-                errorBody = errorBody,
+                failure = NetworkFailureClassifier.fromHttpStatus(409),
                 operation = AuthOperation.SIGNUP,
             )
         }
@@ -105,10 +101,9 @@ class AuthRepositoryImplTest {
     }
 
     @Test
-    fun `register when data source returns failure then returns unknown error preserving throwable message`() = runBlocking {
-        coEvery { remoteAuthDataSource.register(any()) } returns NetworkResult.Failure(
-            throwable = IllegalStateException("network down"),
-        )
+    fun `register when data source returns failure then returns sanitized unknown error`() = runBlocking {
+        val failure = IllegalStateException("network down")
+        coEvery { remoteAuthDataSource.register(any()) } returns NetworkResult.Failure(failure)
 
         val result = target.register(
             email = "user@example.com",
@@ -118,8 +113,7 @@ class AuthRepositoryImplTest {
         assertEquals(
             AuthResult.Error(
                 AuthError.Unknown(
-                    code = null,
-                    message = "network down",
+                    failure = NetworkFailureClassifier.fromThrowable(failure),
                 ),
             ),
             result,
@@ -184,7 +178,7 @@ class AuthRepositoryImplTest {
             AuthResult.Error(
                 AuthError.Unknown(
                     code = 200,
-                    message = "Missing token payload in successful auth response.",
+                    failure = NetworkFailureClassifier.malformedResponse(200),
                 ),
             ),
             result,
@@ -214,7 +208,7 @@ class AuthRepositoryImplTest {
             AuthResult.Error(
                 AuthError.Unknown(
                     code = 200,
-                    message = "Missing token payload in successful auth response.",
+                    failure = NetworkFailureClassifier.malformedResponse(200),
                 ),
             ),
             result,
@@ -244,7 +238,7 @@ class AuthRepositoryImplTest {
             AuthResult.Error(
                 AuthError.Unknown(
                     code = 200,
-                    message = "Missing token payload in successful auth response.",
+                    failure = NetworkFailureClassifier.malformedResponse(200),
                 ),
             ),
             result,
@@ -256,16 +250,12 @@ class AuthRepositoryImplTest {
 
     @Test
     fun `login when data source returns http error then delegates mapping using login operation`() = runBlocking {
-        val errorBody = """{"error":"Invalid credentials"}"""
         coEvery { remoteAuthDataSource.login(any()) } returns NetworkResult.HttpError(
-            httpCode = 401,
-            body = null,
-            errorBody = errorBody,
+            failure = NetworkFailureClassifier.fromHttpStatus(401),
         )
         every {
             authErrorMapper.map(
-                statusCode = 401,
-                errorBody = errorBody,
+                failure = NetworkFailureClassifier.fromHttpStatus(401),
                 operation = AuthOperation.LOGIN,
             )
         } returns AuthError.InvalidCredentials
@@ -279,8 +269,7 @@ class AuthRepositoryImplTest {
         coVerify(exactly = 1) { remoteAuthDataSource.login(any()) }
         verify(exactly = 1) {
             authErrorMapper.map(
-                statusCode = 401,
-                errorBody = errorBody,
+                failure = NetworkFailureClassifier.fromHttpStatus(401),
                 operation = AuthOperation.LOGIN,
             )
         }
@@ -288,10 +277,9 @@ class AuthRepositoryImplTest {
     }
 
     @Test
-    fun `login when data source returns failure then returns unknown error preserving throwable message`() = runBlocking {
-        coEvery { remoteAuthDataSource.login(any()) } returns NetworkResult.Failure(
-            throwable = IllegalStateException("network down"),
-        )
+    fun `login when data source returns failure then returns sanitized unknown error`() = runBlocking {
+        val failure = IllegalStateException("network down")
+        coEvery { remoteAuthDataSource.login(any()) } returns NetworkResult.Failure(failure)
 
         val result = target.login(
             email = "user@example.com",
@@ -301,8 +289,7 @@ class AuthRepositoryImplTest {
         assertEquals(
             AuthResult.Error(
                 AuthError.Unknown(
-                    code = null,
-                    message = "network down",
+                    failure = NetworkFailureClassifier.fromThrowable(failure),
                 ),
             ),
             result,
@@ -314,17 +301,13 @@ class AuthRepositoryImplTest {
 
     @Test
     fun `refresh when data source returns http error then delegates mapping using refresh operation`() = runBlocking {
-        val errorBody = """{"error":"Refresh token conflict"}"""
-        val mappedError = AuthError.Conflict(message = "Refresh token conflict")
+        val mappedError = AuthError.Conflict()
         coEvery { remoteAuthDataSource.refresh(any()) } returns NetworkResult.HttpError(
-            httpCode = 409,
-            body = null,
-            errorBody = errorBody,
+            failure = NetworkFailureClassifier.fromHttpStatus(409),
         )
         every {
             authErrorMapper.map(
-                statusCode = 409,
-                errorBody = errorBody,
+                failure = NetworkFailureClassifier.fromHttpStatus(409),
                 operation = AuthOperation.REFRESH,
             )
         } returns mappedError
@@ -341,8 +324,7 @@ class AuthRepositoryImplTest {
         }
         verify(exactly = 1) {
             authErrorMapper.map(
-                statusCode = 409,
-                errorBody = errorBody,
+                failure = NetworkFailureClassifier.fromHttpStatus(409),
                 operation = AuthOperation.REFRESH,
             )
         }
@@ -399,7 +381,7 @@ class AuthRepositoryImplTest {
             AuthResult.Error(
                 AuthError.Unknown(
                     code = 200,
-                    message = "Missing token payload in successful auth response.",
+                    failure = NetworkFailureClassifier.malformedResponse(200),
                 ),
             ),
             result,
@@ -410,10 +392,9 @@ class AuthRepositoryImplTest {
     }
 
     @Test
-    fun `refresh when data source returns failure then returns unknown error preserving throwable message`() = runBlocking {
-        coEvery { remoteAuthDataSource.refresh(any()) } returns NetworkResult.Failure(
-            throwable = IllegalStateException("network down"),
-        )
+    fun `refresh when data source returns failure then returns sanitized unknown error`() = runBlocking {
+        val failure = IllegalStateException("network down")
+        coEvery { remoteAuthDataSource.refresh(any()) } returns NetworkResult.Failure(failure)
 
         val result = target.refresh(
             refreshToken = "refresh-token",
@@ -422,8 +403,7 @@ class AuthRepositoryImplTest {
         assertEquals(
             AuthResult.Error(
                 AuthError.Unknown(
-                    code = null,
-                    message = "network down",
+                    failure = NetworkFailureClassifier.fromThrowable(failure),
                 ),
             ),
             result,
@@ -450,16 +430,12 @@ class AuthRepositoryImplTest {
 
     @Test
     fun `logout when data source returns http error then delegates mapping using logout operation`() = runBlocking {
-        val errorBody = """{"error":"Forbidden"}"""
         coEvery { remoteAuthDataSource.logout() } returns NetworkResult.HttpError(
-            httpCode = 403,
-            body = null,
-            errorBody = errorBody,
+            failure = NetworkFailureClassifier.fromHttpStatus(403),
         )
         every {
             authErrorMapper.map(
-                statusCode = 403,
-                errorBody = errorBody,
+                failure = NetworkFailureClassifier.fromHttpStatus(403),
                 operation = AuthOperation.LOGOUT,
             )
         } returns AuthError.Forbidden
@@ -470,8 +446,7 @@ class AuthRepositoryImplTest {
         coVerify(exactly = 1) { remoteAuthDataSource.logout() }
         verify(exactly = 1) {
             authErrorMapper.map(
-                statusCode = 403,
-                errorBody = errorBody,
+                failure = NetworkFailureClassifier.fromHttpStatus(403),
                 operation = AuthOperation.LOGOUT,
             )
         }
@@ -479,18 +454,16 @@ class AuthRepositoryImplTest {
     }
 
     @Test
-    fun `logout when data source returns failure then returns unknown error with throwable message`() = runBlocking {
-        coEvery { remoteAuthDataSource.logout() } returns NetworkResult.Failure(
-            throwable = IllegalStateException("network down"),
-        )
+    fun `logout when data source returns failure then returns sanitized unknown error`() = runBlocking {
+        val failure = IllegalStateException("network down")
+        coEvery { remoteAuthDataSource.logout() } returns NetworkResult.Failure(failure)
 
         val result = target.logout()
 
         assertEquals(
             AuthResult.Error(
                 AuthError.Unknown(
-                    code = null,
-                    message = "network down",
+                    failure = NetworkFailureClassifier.fromThrowable(failure),
                 ),
             ),
             result,

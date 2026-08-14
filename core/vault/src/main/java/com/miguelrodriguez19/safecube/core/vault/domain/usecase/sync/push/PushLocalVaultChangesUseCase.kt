@@ -76,6 +76,7 @@ class PushLocalVaultChangesUseCase @Inject constructor(
 
             SecureItemRemoteError.ItemNotFound,
             SecureItemRemoteError.Unauthorized,
+            SecureItemRemoteError.Forbidden,
             is SecureItemRemoteError.HttpError,
             is SecureItemRemoteError.NetworkError,
                 -> PushItemResult.KeptPending
@@ -115,6 +116,7 @@ class PushLocalVaultChangesUseCase @Inject constructor(
                 is SecureItemRemoteError.ValidationFailed ->
                     integrityFailure(draft, "UPDATE_VALIDATION")
                 SecureItemRemoteError.Unauthorized,
+                SecureItemRemoteError.Forbidden,
                 is SecureItemRemoteError.HttpError,
                 is SecureItemRemoteError.NetworkError,
                     -> PushItemResult.KeptPending
@@ -164,6 +166,7 @@ class PushLocalVaultChangesUseCase @Inject constructor(
                     integrityFailure(draft, "DELETE_VALIDATION")
 
                 SecureItemRemoteError.Unauthorized,
+                SecureItemRemoteError.Forbidden,
                 is SecureItemRemoteError.HttpError,
                 is SecureItemRemoteError.NetworkError,
                     -> PushItemResult.KeptPending

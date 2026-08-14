@@ -1,5 +1,7 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.model.initialize
 
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailure
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 
 sealed interface VaultInitializeError {
@@ -8,6 +10,8 @@ sealed interface VaultInitializeError {
     ) : VaultInitializeError
 
     data class Crypto(
-        val throwable: Throwable,
-    ) : VaultInitializeError
+        val failure: NetworkFailure,
+    ) : VaultInitializeError {
+        constructor(throwable: Throwable) : this(NetworkFailureClassifier.unknown())
+    }
 }

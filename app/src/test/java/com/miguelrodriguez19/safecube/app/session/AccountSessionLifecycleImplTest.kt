@@ -14,7 +14,6 @@ import io.mockk.mockk
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertSame
 import org.junit.Test
 
 class AccountSessionLifecycleImplTest {
@@ -44,15 +43,14 @@ class AccountSessionLifecycleImplTest {
     @Test
     fun `fresh activation remains logged out when local cleanup fails`() = runBlocking {
         val tokens = tokens()
-        val cause = IllegalStateException("Room unavailable")
         coEvery {
             localVaultDataCleaner.clear()
-        } returns LocalVaultCleanupResult.Failure(cause)
+        } returns LocalVaultCleanupResult.Failure
         justRun { sessionManager.forceLogout() }
 
         val result = target.activateFreshSession(tokens)
 
-        assertSame(cause, (result as AccountSessionResult.LocalVaultCleanupFailed).cause)
+        assertEquals(AccountSessionResult.LocalVaultCleanupFailed, result)
         coVerify(exactly = 0) { sessionManager.onLoginSuccess(any()) }
         coVerify(exactly = 1) { sessionManager.forceLogout() }
     }
@@ -70,15 +68,14 @@ class AccountSessionLifecycleImplTest {
 
     @Test
     fun `termination clears tokens even when local cleanup fails`() = runBlocking {
-        val cause = IllegalStateException("Room unavailable")
         coEvery {
             localVaultDataCleaner.clear()
-        } returns LocalVaultCleanupResult.Failure(cause)
+        } returns LocalVaultCleanupResult.Failure
         justRun { sessionManager.forceLogout() }
 
         val result = target.terminateSession()
 
-        assertSame(cause, (result as AccountSessionResult.LocalVaultCleanupFailed).cause)
+        assertEquals(AccountSessionResult.LocalVaultCleanupFailed, result)
         coVerifyOrder {
             localVaultDataCleaner.clear()
             sessionManager.forceLogout()

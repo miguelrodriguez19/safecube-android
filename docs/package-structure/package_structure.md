@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 12-08-2026 03:11:01
+Updated: 14-08-2026 05:59:10
 
 ```
 safecube-android/
@@ -476,7 +476,8 @@ safecube-android/
 │   │   │   │   │   │   └── TokenRefreshOptionalBindingModule.kt
 │   │   │   │   │   ├── domain/
 │   │   │   │   │   │   ├── model/
-│   │   │   │   │   │   │   └── NetworkConfig.kt
+│   │   │   │   │   │   │   ├── NetworkConfig.kt
+│   │   │   │   │   │   │   └── NetworkFailure.kt
 │   │   │   │   │   │   └── port/
 │   │   │   │   │   │       ├── TokenProvider.kt
 │   │   │   │   │   │       └── TokenRefreshHandler.kt
@@ -495,7 +496,8 @@ safecube-android/
 │   │   │       │   └── client/
 │   │   │       │       └── NetworkClientFactoryIntegrationTest.kt
 │   │   │       └── domain/model/
-│   │   │           └── NetworkConfigTest.kt
+│   │   │           ├── NetworkConfigTest.kt
+│   │   │           └── NetworkFailureClassifierTest.kt
 │   │   └── build.gradle.kts
 │   ├── storage/
 │   │   ├── schemas/com.miguelrodriguez19.safecube.core.storage.AppDatabase/

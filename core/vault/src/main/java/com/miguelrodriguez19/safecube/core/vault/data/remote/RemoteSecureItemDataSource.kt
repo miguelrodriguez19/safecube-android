@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.core.network.generated.api.VaultController
 import com.miguelrodriguez19.safecube.core.network.generated.model.CreateSecureItemRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.ErrorResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateSecureItemRequest
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItemChangesPage
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.RemoteCreateSecureItemRequest
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.request.RemoteDeleteSecureItemRequest
@@ -196,8 +197,7 @@ class RemoteSecureItemDataSource @Inject constructor(
         } else if (response.isSuccessful) {
             SecureItemRemoteResult.Error(
                 error = SecureItemRemoteError.HttpError(
-                    statusCode = response.code(),
-                    errorBody = "Missing response body on successful response.",
+                    failure = NetworkFailureClassifier.malformedResponse(response.code()),
                 ),
             )
         } else {
@@ -218,7 +218,9 @@ class RemoteSecureItemDataSource @Inject constructor(
         throw cancellationException
     } catch (throwable: Throwable) {
         SecureItemRemoteResult.Error(
-            error = SecureItemRemoteError.NetworkError(throwable),
+            error = SecureItemRemoteError.NetworkError(
+                NetworkFailureClassifier.fromThrowable(throwable),
+            ),
         )
     }
 
@@ -229,14 +231,14 @@ class RemoteSecureItemDataSource @Inject constructor(
         400 -> SecureItemRemoteError.ValidationFailed(
             fields = decodeErrorResponse(errorBody)?.fields.orEmpty(),
         )
-        401, 403 -> SecureItemRemoteError.Unauthorized
+        401 -> SecureItemRemoteError.Unauthorized
+        403 -> SecureItemRemoteError.Forbidden
         404 -> SecureItemRemoteError.ItemNotFound
         409 -> SecureItemRemoteError.IdempotencyConflict
         412 -> SecureItemRemoteError.PreconditionFailed
         428 -> SecureItemRemoteError.PreconditionRequired
         else -> SecureItemRemoteError.HttpError(
-            statusCode = statusCode,
-            errorBody = errorBody,
+            failure = NetworkFailureClassifier.fromHttpStatus(statusCode),
         )
     }
 

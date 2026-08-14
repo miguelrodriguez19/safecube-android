@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.core.auth.data.remote
 
 import com.miguelrodriguez19.safecube.core.network.di.RefreshAuthApi
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthenticateAccountRequest
@@ -42,14 +43,12 @@ class RemoteAuthDataSource @Inject constructor(
             )
         } else {
             NetworkResult.HttpError(
-                httpCode = response.code(),
-                body = response.body(),
-                errorBody = runCatching { response.errorBody()?.string() }.getOrNull(),
+                failure = NetworkFailureClassifier.fromHttpStatus(response.code()),
             )
         }
     } catch (cancellationException: CancellationException) {
         throw cancellationException
     } catch (throwable: Throwable) {
-        NetworkResult.Failure(throwable)
+        NetworkResult.Failure(NetworkFailureClassifier.fromThrowable(throwable))
     }
 }

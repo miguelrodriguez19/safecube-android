@@ -5,6 +5,7 @@ import com.miguelrodriguez19.safecube.core.crypto.domain.model.KdfRequest
 import com.miguelrodriguez19.safecube.core.crypto.domain.model.KeyWrapRequest
 import com.miguelrodriguez19.safecube.core.crypto.domain.port.KeyWrapping
 import com.miguelrodriguez19.safecube.core.crypto.domain.service.SaltGenerator
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.vault.domain.config.VaultCryptoDefaults
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
@@ -117,7 +118,7 @@ class VaultInitializeUseCase @Inject constructor(
             throw cancellationException
         } catch (throwable: Throwable) {
             VaultInitializeResult.Error(
-                reason = VaultInitializeError.Crypto(throwable),
+                reason = VaultInitializeError.Crypto(NetworkFailureClassifier.unknown()),
             )
         } finally {
             passphraseBytes.fill(0)
