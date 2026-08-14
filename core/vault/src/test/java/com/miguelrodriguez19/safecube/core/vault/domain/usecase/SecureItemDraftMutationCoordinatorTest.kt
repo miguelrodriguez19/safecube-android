@@ -205,7 +205,7 @@ class SecureItemDraftMutationCoordinatorTest {
             SecureItemCryptoError.MalformedPayload to encryptionValidationError(),
             SecureItemCryptoError.CryptographicFailure to encryptionValidationError(),
             SecureItemCryptoError.ContentDecodingFailed(
-                SecureItemContentDecodeError.InvalidPayload("invalid"),
+                SecureItemContentDecodeError.InvalidPayload,
             ) to encryptionValidationError(),
         )
         every { secureItemIdGenerator.generate() } returns UUID.randomUUID()

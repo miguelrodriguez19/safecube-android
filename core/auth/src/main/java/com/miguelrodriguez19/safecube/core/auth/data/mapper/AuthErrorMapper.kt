@@ -2,13 +2,12 @@ package com.miguelrodriguez19.safecube.core.auth.data.mapper
 
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthOperation
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailure
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
 
 @Singleton
 class AuthErrorMapper @Inject constructor() {
@@ -20,59 +19,50 @@ class AuthErrorMapper @Inject constructor() {
         statusCode: Int,
         errorBody: String?,
         operation: AuthOperation,
-    ): AuthError {
-        val parsed = parseErrorBody(errorBody)
+    ): AuthError = map(
+        failure = NetworkFailureClassifier.fromHttpStatus(statusCode),
+        validationFields = parseValidationFields(errorBody),
+        operation = operation,
+    )
 
-        return when (statusCode) {
-            400 -> AuthError.ValidationFailed(
-                fields = parsed?.fields,
-                message = parsed?.message,
-            )
+    fun map(
+        failure: NetworkFailure,
+        operation: AuthOperation,
+    ): AuthError = map(
+        failure = failure,
+        operation = operation,
+        validationFields = emptySet(),
+    )
 
-            401 -> AuthError.InvalidCredentials
-            403 -> AuthError.Forbidden
-            409 -> {
-                if (operation == AuthOperation.SIGNUP) {
-                    AuthError.AccountAlreadyExists
-                } else {
-                    AuthError.Conflict(message = parsed?.message)
-                }
+    private fun map(
+        failure: NetworkFailure,
+        operation: AuthOperation,
+        validationFields: Set<String>,
+    ): AuthError = when (failure.statusCode) {
+        400 -> AuthError.ValidationFailed(
+            fields = validationFields,
+        )
+
+        401 -> AuthError.InvalidCredentials
+        403 -> AuthError.Forbidden
+        409 -> {
+            if (operation == AuthOperation.SIGNUP) {
+                AuthError.AccountAlreadyExists
+            } else {
+                AuthError.Conflict(failure = failure)
             }
-
-            else -> AuthError.Unknown(
-                code = statusCode,
-                message = parsed?.message,
-            )
         }
+
+        else -> AuthError.Unknown(code = failure.statusCode, failure = failure)
     }
 
-    private fun parseErrorBody(errorBody: String?): ParsedErrorBody? {
-        if (errorBody.isNullOrBlank()) return null
+    private fun parseValidationFields(errorBody: String?): Set<String> {
+        if (errorBody.isNullOrBlank()) return emptySet()
 
         val root = runCatching {
             json.parseToJsonElement(errorBody)
-        }.getOrNull() as? JsonObject ?: return null
+        }.getOrNull() as? JsonObject ?: return emptySet()
 
-        val message = root["error"].extractString()
-            ?.takeIf { it.isNotBlank() }
-        val fields = (root["fields"] as? JsonObject)
-            ?.mapNotNull { (key, value) ->
-                value.extractString()?.let { key to it }
-            }
-            ?.toMap()
-            ?.takeIf { it.isNotEmpty() }
-
-        return ParsedErrorBody(
-            message = message,
-            fields = fields,
-        )
+        return (root["fields"] as? JsonObject)?.keys.orEmpty()
     }
-
-    private fun JsonElement?.extractString(): String? =
-        (this as? JsonPrimitive)?.contentOrNull
-
-    private data class ParsedErrorBody(
-        val message: String?,
-        val fields: Map<String, String>?,
-    )
 }

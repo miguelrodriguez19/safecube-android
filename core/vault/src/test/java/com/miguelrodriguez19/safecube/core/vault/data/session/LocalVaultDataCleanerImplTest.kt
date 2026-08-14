@@ -10,7 +10,6 @@ import io.mockk.justRun
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertSame
 import org.junit.Test
 
 class LocalVaultDataCleanerImplTest {
@@ -41,14 +40,13 @@ class LocalVaultDataCleanerImplTest {
 
     @Test
     fun `clear returns failure after keys are removed when Room fails`() = runBlocking {
-        val cause = IllegalStateException("Room unavailable")
         justRun { vaultInMemoryKekStore.clear() }
         justRun { vaultKeyMaterialLocalRepository.clear() }
-        coEvery { secureItemRepository.clearAllLocalData() } throws cause
+        coEvery { secureItemRepository.clearAllLocalData() } throws IllegalStateException("Room unavailable")
 
         val result = target.clear()
 
-        assertSame(cause, (result as LocalVaultCleanupResult.Failure).cause)
+        assertEquals(LocalVaultCleanupResult.Failure, result)
         coVerifyOrder {
             vaultInMemoryKekStore.clear()
             vaultKeyMaterialLocalRepository.clear()

@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube.core.auth.data.remote
 
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthenticateAccountRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RefreshTokenRequest
@@ -15,7 +16,6 @@ import io.mockk.verify
 import java.time.Instant
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.runBlocking
-import okhttp3.ResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -32,15 +32,12 @@ class RemoteAuthDataSourceTest {
     )
 
     @Test
-    fun `register when error body parsing fails then returns http error with null error body`() = runBlocking {
+    fun `register when api returns validation error then returns sanitized classification`() = runBlocking {
         val response = mockk<Response<RegisterAccountResult>>()
-        val responseBody = mockk<ResponseBody>()
         coEvery { authControllerApi.register(any()) } returns response
         every { response.isSuccessful } returns false
         every { response.code() } returns 400
         every { response.body() } returns null
-        every { response.errorBody() } returns responseBody
-        every { responseBody.string() } throws IllegalStateException("boom")
 
         val result = target.register(
             request = RegisterAccountRequest(
@@ -51,9 +48,7 @@ class RemoteAuthDataSourceTest {
 
         assertEquals(
             NetworkResult.HttpError<RegisterAccountResult>(
-                httpCode = 400,
-                body = null,
-                errorBody = null,
+                failure = NetworkFailureClassifier.fromHttpStatus(400),
             ),
             result,
         )
@@ -67,10 +62,7 @@ class RemoteAuthDataSourceTest {
         }
         verify(exactly = 1) { response.isSuccessful }
         verify(exactly = 1) { response.code() }
-        verify(exactly = 1) { response.body() }
-        verify(exactly = 1) { response.errorBody() }
-        verify(exactly = 1) { responseBody.string() }
-        confirmVerified(authControllerApi, refreshAuthControllerApi, response, responseBody)
+        confirmVerified(authControllerApi, refreshAuthControllerApi, response)
     }
 
     @Test
@@ -142,7 +134,10 @@ class RemoteAuthDataSourceTest {
             request = RefreshTokenRequest(refreshToken = "refresh-token"),
         )
 
-        assertEquals(NetworkResult.Failure(failure), result)
+        assertEquals(
+            NetworkResult.Failure(NetworkFailureClassifier.fromThrowable(failure)),
+            result,
+        )
         coVerify(exactly = 1) {
             refreshAuthControllerApi.refresh(
                 match { request -> request.refreshToken == "refresh-token" },
@@ -152,32 +147,24 @@ class RemoteAuthDataSourceTest {
     }
 
     @Test
-    fun `logout when api returns http error then preserves status body and error payload`() = runBlocking {
+    fun `logout when api returns forbidden then returns sanitized classification`() = runBlocking {
         val response = mockk<Response<Unit>>()
-        val responseBody = mockk<ResponseBody>()
         coEvery { authControllerApi.logout() } returns response
         every { response.isSuccessful } returns false
         every { response.code() } returns 403
         every { response.body() } returns null
-        every { response.errorBody() } returns responseBody
-        every { responseBody.string() } returns """{"error":"Forbidden"}"""
 
         val result = target.logout()
 
         assertEquals(
             NetworkResult.HttpError<Unit>(
-                httpCode = 403,
-                body = null,
-                errorBody = """{"error":"Forbidden"}""",
+                failure = NetworkFailureClassifier.fromHttpStatus(403),
             ),
             result,
         )
         coVerify(exactly = 1) { authControllerApi.logout() }
         verify(exactly = 1) { response.isSuccessful }
         verify(exactly = 1) { response.code() }
-        verify(exactly = 1) { response.body() }
-        verify(exactly = 1) { response.errorBody() }
-        verify(exactly = 1) { responseBody.string() }
-        confirmVerified(authControllerApi, refreshAuthControllerApi, response, responseBody)
+        confirmVerified(authControllerApi, refreshAuthControllerApi, response)
     }
 }

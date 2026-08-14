@@ -1,5 +1,8 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result
 
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailure
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
+
 sealed interface VaultKeyMaterialRemoteResult<out T> {
     data class Success<T>(
         val value: T,
@@ -11,18 +14,36 @@ sealed interface VaultKeyMaterialRemoteResult<out T> {
 }
 
 sealed interface VaultKeyMaterialRemoteError {
-    data object VaultNotInitialized : VaultKeyMaterialRemoteError
+    data object VaultNotInitialized : VaultKeyMaterialRemoteError {
+        override val failure: NetworkFailure = NetworkFailureClassifier.unknown(404)
+    }
 
-    data object VaultAlreadyInitialized : VaultKeyMaterialRemoteError
+    data object VaultAlreadyInitialized : VaultKeyMaterialRemoteError {
+        override val failure: NetworkFailure = NetworkFailureClassifier.fromHttpStatus(409)
+    }
 
-    data object Unauthorized : VaultKeyMaterialRemoteError
+    data object Unauthorized : VaultKeyMaterialRemoteError {
+        override val failure: NetworkFailure = NetworkFailureClassifier.fromHttpStatus(401)
+    }
+
+    data object Forbidden : VaultKeyMaterialRemoteError {
+        override val failure: NetworkFailure = NetworkFailureClassifier.fromHttpStatus(403)
+    }
 
     data class HttpError(
-        val statusCode: Int,
-        val errorBody: String?,
-    ) : VaultKeyMaterialRemoteError
+        override val failure: NetworkFailure,
+    ) : VaultKeyMaterialRemoteError {
+        @Suppress("UNUSED_PARAMETER")
+        constructor(statusCode: Int, errorBody: String?) : this(
+            NetworkFailureClassifier.fromHttpStatus(statusCode),
+        )
+    }
 
     data class NetworkError(
-        val throwable: Throwable,
-    ) : VaultKeyMaterialRemoteError
+        override val failure: NetworkFailure,
+    ) : VaultKeyMaterialRemoteError {
+        constructor(throwable: Throwable) : this(NetworkFailureClassifier.fromThrowable(throwable))
+    }
+
+    val failure: NetworkFailure
 }

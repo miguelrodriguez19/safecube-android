@@ -30,9 +30,7 @@ class AuthErrorMapperTest {
 
         assertTrue(result is AuthError.ValidationFailed)
         val validation = result as AuthError.ValidationFailed
-        assertEquals("Validation failed", validation.message)
-        assertEquals("invalid", validation.fields?.get("email"))
-        assertEquals("too_short", validation.fields?.get("password"))
+        assertEquals(setOf("email", "password"), validation.fields)
     }
 
     @Test

@@ -17,11 +17,9 @@ class CreateSecurePasswordUseCase @Inject internal constructor(
             displayHint = draft.displayHint,
             content = passwordDraftToContentMapper.map(draft),
         )
-    } catch (illegalArgumentException: IllegalArgumentException) {
-        SecureItemMutationResult.Error(
-            SecureItemCrudError.ValidationError(
-                illegalArgumentException.message ?: "Invalid password item.",
-            ),
-        )
+        } catch (_: IllegalArgumentException) {
+            SecureItemMutationResult.Error(
+                SecureItemCrudError.ValidationError("Invalid password item."),
+            )
     }
 }

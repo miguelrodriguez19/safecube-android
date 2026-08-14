@@ -52,15 +52,15 @@ class JsonSecureItemContentCodec @Inject internal constructor(
         return try {
             SecureItemContentDecodeResult.Success(adapter.decode(payload, json))
         } catch (exception: SerializationException) {
-            invalidPayload(exception.message ?: "Payload is not valid JSON.")
+            invalidPayload()
         } catch (exception: IllegalArgumentException) {
-            invalidPayload(exception.message ?: "Payload failed semantic validation.")
+            invalidPayload()
         }
     }
 
-    private fun invalidPayload(message: String): SecureItemContentDecodeResult =
+    private fun invalidPayload(): SecureItemContentDecodeResult =
         SecureItemContentDecodeResult.Error(
-            SecureItemContentDecodeError.InvalidPayload(message),
+            SecureItemContentDecodeError.InvalidPayload,
         )
 
     private fun unsupportedSchemaVersion(

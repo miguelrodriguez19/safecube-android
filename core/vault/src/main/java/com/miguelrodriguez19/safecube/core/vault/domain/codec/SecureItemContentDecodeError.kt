@@ -10,7 +10,5 @@ sealed interface SecureItemContentDecodeError {
         val schemaVersion: Int,
     ) : SecureItemContentDecodeError
 
-    data class InvalidPayload(
-        val message: String,
-    ) : SecureItemContentDecodeError
+    data object InvalidPayload : SecureItemContentDecodeError
 }

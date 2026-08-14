@@ -24,7 +24,7 @@ internal class LocalVaultDataCleanerImpl @Inject constructor(
         } catch (cancellationException: CancellationException) {
             throw cancellationException
         } catch (throwable: Throwable) {
-            LocalVaultCleanupResult.Failure(throwable)
+            LocalVaultCleanupResult.Failure
         }
     }
 }

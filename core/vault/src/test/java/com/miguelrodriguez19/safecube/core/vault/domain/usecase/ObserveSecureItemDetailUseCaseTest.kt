@@ -204,7 +204,7 @@ class ObserveSecureItemDetailUseCaseTest {
         every { secureItemRepository.observeItem(SAMPLE_ITEM_ID) } returns flowOf(item)
         every { secureItemCryptoService.decrypt(item) } returns SecureItemDecryptionResult.Error(
             SecureItemCryptoError.ContentDecodingFailed(
-                SecureItemContentDecodeError.InvalidPayload("boom"),
+                SecureItemContentDecodeError.InvalidPayload,
             ),
         )
 

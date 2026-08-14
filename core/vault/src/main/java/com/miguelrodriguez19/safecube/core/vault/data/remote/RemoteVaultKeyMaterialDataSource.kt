@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.core.vault.data.remote
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMaterialControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.InitVaultKeyMaterialRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateMasterWrappedKekRequest
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
@@ -77,15 +78,13 @@ class RemoteVaultKeyMaterialDataSource @Inject constructor(
         } else if (response.isSuccessful) {
             VaultKeyMaterialRemoteResult.Error(
                 error = VaultKeyMaterialRemoteError.HttpError(
-                    statusCode = response.code(),
-                    errorBody = "Missing response body on successful response.",
+                    failure = NetworkFailureClassifier.malformedResponse(response.code()),
                 ),
             )
         } else {
             VaultKeyMaterialRemoteResult.Error(
                 error = mapHttpError(
                     statusCode = response.code(),
-                    errorBody = runCatching { response.errorBody()?.string() }.getOrNull(),
                 ),
             )
         }
@@ -101,7 +100,6 @@ class RemoteVaultKeyMaterialDataSource @Inject constructor(
             VaultKeyMaterialRemoteResult.Error(
                 error = mapHttpError(
                     statusCode = response.code(),
-                    errorBody = runCatching { response.errorBody()?.string() }.getOrNull(),
                 ),
             )
         }
@@ -115,20 +113,21 @@ class RemoteVaultKeyMaterialDataSource @Inject constructor(
         throw cancellationException
     } catch (throwable: Throwable) {
         VaultKeyMaterialRemoteResult.Error(
-            error = VaultKeyMaterialRemoteError.NetworkError(throwable),
+            error = VaultKeyMaterialRemoteError.NetworkError(
+                NetworkFailureClassifier.fromThrowable(throwable),
+            ),
         )
     }
 
     private fun mapHttpError(
         statusCode: Int,
-        errorBody: String?,
     ): VaultKeyMaterialRemoteError = when (statusCode) {
-        401, 403 -> VaultKeyMaterialRemoteError.Unauthorized
+        401 -> VaultKeyMaterialRemoteError.Unauthorized
+        403 -> VaultKeyMaterialRemoteError.Forbidden
         404 -> VaultKeyMaterialRemoteError.VaultNotInitialized
         409 -> VaultKeyMaterialRemoteError.VaultAlreadyInitialized
         else -> VaultKeyMaterialRemoteError.HttpError(
-            statusCode = statusCode,
-            errorBody = errorBody,
+            failure = NetworkFailureClassifier.fromHttpStatus(statusCode),
         )
     }
 

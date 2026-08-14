@@ -53,6 +53,11 @@ internal class VaultSessionManagerImpl @Inject constructor(
                         state.value = VaultState.Locked
                     }
 
+                    VaultKeyMaterialRemoteError.Forbidden -> {
+                        clearInMemoryKek()
+                        state.value = VaultState.Locked
+                    }
+
                     is VaultKeyMaterialRemoteError.HttpError,
                     is VaultKeyMaterialRemoteError.NetworkError,
                         -> {

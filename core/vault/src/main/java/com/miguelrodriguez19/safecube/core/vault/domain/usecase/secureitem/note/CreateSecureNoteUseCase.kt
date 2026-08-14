@@ -17,11 +17,9 @@ class CreateSecureNoteUseCase @Inject internal constructor(
             displayHint = draft.displayHint,
             content = noteDraftToContentMapper.map(draft),
         )
-    } catch (illegalArgumentException: IllegalArgumentException) {
-        SecureItemMutationResult.Error(
-            SecureItemCrudError.ValidationError(
-                illegalArgumentException.message ?: "Invalid note item.",
-            ),
-        )
+        } catch (_: IllegalArgumentException) {
+            SecureItemMutationResult.Error(
+                SecureItemCrudError.ValidationError("Invalid note item."),
+            )
     }
 }

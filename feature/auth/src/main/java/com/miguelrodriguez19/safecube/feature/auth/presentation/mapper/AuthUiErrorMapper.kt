@@ -17,8 +17,8 @@ internal object AuthUiErrorMapper {
 
     fun map(error: AuthError): AuthUiError = when (error) {
         is AuthError.ValidationFailed -> {
-            val fieldErrors = error.fields.orEmpty()
-                .mapNotNull { (field, _) ->
+            val fieldErrors = error.fields
+                .mapNotNull { field ->
                     validationFieldToRes(field)?.let { field to it }
                 }
                 .toMap()

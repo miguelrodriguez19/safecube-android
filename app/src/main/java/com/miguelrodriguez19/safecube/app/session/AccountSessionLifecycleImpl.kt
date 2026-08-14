@@ -24,9 +24,9 @@ class AccountSessionLifecycleImpl @Inject constructor(
                 AccountSessionResult.Success
             }
 
-            is LocalVaultCleanupResult.Failure -> {
+            LocalVaultCleanupResult.Failure -> {
                 sessionManager.forceLogout()
-                AccountSessionResult.LocalVaultCleanupFailed(cleanupResult.cause)
+                AccountSessionResult.LocalVaultCleanupFailed
             }
         }
     }
@@ -39,8 +39,7 @@ class AccountSessionLifecycleImpl @Inject constructor(
         try {
             when (val cleanupResult = clearLocalVault()) {
                 LocalVaultCleanupResult.Success -> AccountSessionResult.Success
-                is LocalVaultCleanupResult.Failure ->
-                    AccountSessionResult.LocalVaultCleanupFailed(cleanupResult.cause)
+                LocalVaultCleanupResult.Failure -> AccountSessionResult.LocalVaultCleanupFailed
             }
         } finally {
             sessionManager.forceLogout()
@@ -53,6 +52,6 @@ class AccountSessionLifecycleImpl @Inject constructor(
         } catch (cancellationException: CancellationException) {
             throw cancellationException
         } catch (throwable: Throwable) {
-            LocalVaultCleanupResult.Failure(throwable)
+            LocalVaultCleanupResult.Failure
         }
 }

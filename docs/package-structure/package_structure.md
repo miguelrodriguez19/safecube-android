@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 12-08-2026 03:11:01
+Updated: 14-08-2026 06:43:44
 
 ```
 safecube-android/
@@ -476,7 +476,8 @@ safecube-android/
 │   │   │   │   │   │   └── TokenRefreshOptionalBindingModule.kt
 │   │   │   │   │   ├── domain/
 │   │   │   │   │   │   ├── model/
-│   │   │   │   │   │   │   └── NetworkConfig.kt
+│   │   │   │   │   │   │   ├── NetworkConfig.kt
+│   │   │   │   │   │   │   └── NetworkFailure.kt
 │   │   │   │   │   │   └── port/
 │   │   │   │   │   │       ├── TokenProvider.kt
 │   │   │   │   │   │       └── TokenRefreshHandler.kt
@@ -495,7 +496,8 @@ safecube-android/
 │   │   │       │   └── client/
 │   │   │       │       └── NetworkClientFactoryIntegrationTest.kt
 │   │   │       └── domain/model/
-│   │   │           └── NetworkConfigTest.kt
+│   │   │           ├── NetworkConfigTest.kt
+│   │   │           └── NetworkFailureClassifierTest.kt
 │   │   └── build.gradle.kts
 │   ├── storage/
 │   │   ├── schemas/com.miguelrodriguez19.safecube.core.storage.AppDatabase/
@@ -811,8 +813,6 @@ safecube-android/
 │   │   │   ├── SCDK-M106--Add-SBOM-and-provenance-attestation.md
 │   │   │   ├── SCDK-M109.md
 │   │   │   ├── SCDK-M110.md
-│   │   │   ├── SCDK-M111.md
-│   │   │   ├── SCDK-M112.md
 │   │   │   ├── SCDK-M113.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md

@@ -282,7 +282,7 @@ class JsonSecureItemContentCodecTest {
 
         assertEquals(
             SecureItemContentDecodeResult.Error(
-                SecureItemContentDecodeError.InvalidPayload("Payload is not valid JSON."),
+                SecureItemContentDecodeError.InvalidPayload,
             ),
             result,
         )
@@ -323,7 +323,7 @@ class JsonSecureItemContentCodecTest {
 
         assertEquals(
             SecureItemContentDecodeResult.Error(
-                SecureItemContentDecodeError.InvalidPayload("Payload failed semantic validation."),
+                SecureItemContentDecodeError.InvalidPayload,
             ),
             result,
         )
@@ -356,7 +356,7 @@ class JsonSecureItemContentCodecTest {
 
         assertEquals(
             SecureItemContentDecodeResult.Error(
-                SecureItemContentDecodeError.InvalidPayload("body must not be blank."),
+                SecureItemContentDecodeError.InvalidPayload,
             ),
             result,
         )
@@ -374,9 +374,7 @@ class JsonSecureItemContentCodecTest {
 
         assertEquals(
             SecureItemContentDecodeResult.Error(
-                SecureItemContentDecodeError.InvalidPayload(
-                    "at least one of username or email must be present.",
-                ),
+                SecureItemContentDecodeError.InvalidPayload,
             ),
             result,
         )

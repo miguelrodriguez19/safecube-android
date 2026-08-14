@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMateria
 import com.miguelrodriguez19.safecube.core.network.generated.model.InitVaultKeyMaterialRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateMasterWrappedKekRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.VaultKeyMaterialResponse
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
 import io.mockk.coEvery
@@ -47,8 +48,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
             assertEquals(
                 VaultKeyMaterialRemoteResult.Error(
                     VaultKeyMaterialRemoteError.HttpError(
-                        statusCode = 200,
-                        errorBody = "Missing response body on successful response.",
+                        failure = NetworkFailureClassifier.malformedResponse(200),
                     ),
                 ),
                 result,

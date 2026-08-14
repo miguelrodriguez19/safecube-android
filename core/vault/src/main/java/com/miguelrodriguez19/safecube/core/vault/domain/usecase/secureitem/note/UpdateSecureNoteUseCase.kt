@@ -24,11 +24,9 @@ class UpdateSecureNoteUseCase @Inject internal constructor(
             expectedItemType = SecureItemType.NOTE,
             content = noteDraftToContentMapper.map(draft),
         )
-    } catch (illegalArgumentException: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
         SecureItemMutationResult.Error(
-            SecureItemCrudError.ValidationError(
-                illegalArgumentException.message ?: "Invalid note item.",
-            ),
+            SecureItemCrudError.ValidationError("Invalid note item."),
         )
     }
 }

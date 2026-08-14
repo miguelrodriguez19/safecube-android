@@ -536,7 +536,7 @@ la Fase 9.
 | Requirement ID     | Tareas planificadas                       | Código esperado                                          | Tests/evidencia esperados                                           |
 |--------------------|-------------------------------------------|----------------------------------------------------------|---------------------------------------------------------------------|
 | NFR-RESILIENCE-001 | SCDK-M117–SCDK-M121                       | core:vault, feature:auth, feature:vault, app             | State machine, ViewModels y tests instrumentados de estados         |
-| NFR-RESILIENCE-002 | SCDK-M113–SCDK-M121                       | core:network, core:auth, core:vault, core:storage        | Matriz unitaria, integración de errores y evidencia de retry seguro |
+| NFR-RESILIENCE-002 | SCDK-M113–SCDK-M121                       | core:network, core:auth, core:vault, core:storage        | SCDK-M113: matriz unitaria y mapeos sanitizados; integración de errores y ejecución de retry seguro en tareas posteriores |
 | FR-AUTH-002        | SCDK-M114, SCDK-M118                      | core:auth, core:network, app, feature:auth               | Refresh concurrente, cierre terminal y navegación                   |
 | FR-VAULT-002       | SCDK-M116, SCDK-M117, SCDK-M119           | core:vault, feature:vault, app                           | Bootstrap, respuesta perdida, reconciliación y recovery             |
 | SEC-SESSION-001    | SCDK-M110, SCDK-M122, SCDK-M125           | app, core:vault, feature:vault                           | Auto-lock, zeroize, lifecycle y process death                       |
