@@ -5,10 +5,12 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMaterialPrefs
+import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultInitializationPrefs
 import com.miguelrodriguez19.safecube.core.vault.data.codec.JsonSecureItemContentCodec
 import com.miguelrodriguez19.safecube.core.vault.data.crypto.SecureItemPayloadEnvelopeIdentityReader
 import com.miguelrodriguez19.safecube.core.vault.data.crypto.VaultItemCipher
 import com.miguelrodriguez19.safecube.core.vault.data.local.VaultKeyMaterialCache
+import com.miguelrodriguez19.safecube.core.vault.data.local.PendingVaultInitializationStore
 import com.miguelrodriguez19.safecube.core.vault.data.remote.RemoteSecureItemDataSource
 import com.miguelrodriguez19.safecube.core.vault.data.remote.RemoteVaultKeyMaterialDataSource
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRemoteRepository
@@ -17,6 +19,7 @@ import com.miguelrodriguez19.safecube.core.vault.data.session.LocalVaultDataClea
 import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentCodec
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.PendingVaultInitializationRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultDataCleaner
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
@@ -63,6 +66,12 @@ abstract class VaultModule {
     abstract fun bindVaultKeyMaterialLocalRepository(
         vaultKeyMaterialCache: VaultKeyMaterialCache,
     ): VaultKeyMaterialLocalRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPendingVaultInitializationRepository(
+        pendingVaultInitializationStore: PendingVaultInitializationStore,
+    ): PendingVaultInitializationRepository
 
     @Binds
     @Singleton
@@ -114,6 +123,8 @@ abstract class VaultModule {
 
     companion object {
         private const val PREFERENCES_NAME = "vault_key_material_encrypted_preferences"
+        private const val PENDING_INITIALIZATION_PREFERENCES_NAME =
+            "vault_initialization_pending_encrypted_preferences"
 
         @Provides
         @Singleton
@@ -123,6 +134,21 @@ abstract class VaultModule {
         ): SharedPreferences = EncryptedSharedPreferences.create(
             context,
             PREFERENCES_NAME,
+            MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build(),
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
+
+        @Provides
+        @Singleton
+        @EncryptedVaultInitializationPrefs
+        fun provideEncryptedVaultInitializationPrefs(
+            @ApplicationContext context: Context,
+        ): SharedPreferences = EncryptedSharedPreferences.create(
+            context,
+            PENDING_INITIALIZATION_PREFERENCES_NAME,
             MasterKey.Builder(context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build(),

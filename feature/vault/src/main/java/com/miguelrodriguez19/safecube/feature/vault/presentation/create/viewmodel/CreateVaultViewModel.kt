@@ -111,5 +111,6 @@ class CreateVaultViewModel @Inject constructor(
         }
 
         is VaultInitializeError.Crypto -> UiR.string.generic_error
+        is VaultInitializeError.LocalStorage -> UiR.string.generic_error
     }
 }
