@@ -14,4 +14,14 @@ sealed interface VaultInitializeError {
     ) : VaultInitializeError {
         constructor(throwable: Throwable) : this(NetworkFailureClassifier.unknown())
     }
+
+    data class LocalStorage(
+        val operation: LocalStorageOperation,
+    ) : VaultInitializeError
+
+    enum class LocalStorageOperation {
+        Read,
+        Persist,
+        Cleanup,
+    }
 }
