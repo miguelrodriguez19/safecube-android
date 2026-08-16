@@ -10,6 +10,8 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultIn
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.PendingVaultInitializationReadResult
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.PendingVaultInitializationRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultInitializeUseCase
@@ -33,14 +35,22 @@ class VaultInitializeUseCaseTest {
     private val vaultKeyMaterialRemoteRepository = mockk<VaultKeyMaterialRemoteRepository>()
     private val vaultKeyMaterialLocalRepository =
         mockk<VaultKeyMaterialLocalRepository>(relaxed = true)
+    private val pendingVaultInitializationRepository =
+        mockk<PendingVaultInitializationRepository>()
     private val kdfEngine = mockk<KdfEngine>()
     private val keyWrapping = mockk<KeyWrapping>()
     private val saltGenerator = mockk<SaltGenerator>()
 
+    init {
+        every { pendingVaultInitializationRepository.read() } returns
+            PendingVaultInitializationReadResult.Empty
+        every { pendingVaultInitializationRepository.save(any()) } returns true
+        every { pendingVaultInitializationRepository.clear() } returns true
+    }
+
     @Test
     fun `invoke when vault is not initialized then initializes vault and caches refreshed material`() =
         runBlocking {
-            val refreshedVaultKeyMaterial = existingVaultKeyMaterial()
             val derivedMasterKey = ByteArray(32) { index -> (index + 1).toByte() }
             val generatedKek = ByteArray(32) { index -> (index + 51).toByte() }
             val generatedRecoveryKey = ByteArray(32) { index -> (index + 101).toByte() }
@@ -51,11 +61,16 @@ class VaultInitializeUseCaseTest {
             val expectedKdfSalt = kdfSalt.copyOf()
             val kekEncMaster = byteArrayOf(1, 2, 3, 4)
             val kekEncRecovery = byteArrayOf(5, 6, 7, 8)
+            val refreshedVaultKeyMaterial = existingVaultKeyMaterial().copy(
+                kekEncMaster = kekEncMaster.copyOf(),
+                kekEncRecovery = kekEncRecovery.copyOf(),
+                kdfSalt = expectedKdfSalt.copyOf(),
+            )
 
             val kdfRequestSlot = slot<KdfRequest>()
             val wrapRequests = mutableListOf<KeyWrapRequest>()
             val savedVaultKeyMaterial = slot<VaultKeyMaterial>()
-            val initializedVaultKeyMaterial = slot<VaultKeyMaterial>()
+            var initializedVaultKeyMaterial: VaultKeyMaterial? = null
 
             coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returnsMany listOf(
                 VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultNotInitialized),
@@ -75,14 +90,22 @@ class VaultInitializeUseCaseTest {
                 )
 
                 when (wrapRequests.size) {
-                    1 -> kekEncMaster
-                    2 -> kekEncRecovery
+                    1 -> kekEncMaster.copyOf()
+                    2 -> kekEncRecovery.copyOf()
                     else -> error("Unexpected wrap request count")
                 }
             }
             coEvery {
-                vaultKeyMaterialRemoteRepository.initKeyMaterial(capture(initializedVaultKeyMaterial))
-            } returns VaultKeyMaterialRemoteResult.Success(Unit)
+                vaultKeyMaterialRemoteRepository.initKeyMaterial(any())
+            } answers {
+                val value = firstArg<VaultKeyMaterial>()
+                initializedVaultKeyMaterial = value.copy(
+                    kekEncMaster = value.kekEncMaster.copyOf(),
+                    kekEncRecovery = value.kekEncRecovery.copyOf(),
+                    kdfSalt = value.kdfSalt.copyOf(),
+                )
+                VaultKeyMaterialRemoteResult.Success(Unit)
+            }
             every {
                 vaultKeyMaterialLocalRepository.save(capture(savedVaultKeyMaterial))
             } returns Unit
@@ -96,16 +119,17 @@ class VaultInitializeUseCaseTest {
             assertArrayEquals(expectedGeneratedRecoveryKey, recoveryKey)
             assertEquals(32, recoveryKey.size)
 
-            assertNull(initializedVaultKeyMaterial.captured.accountId)
-            assertArrayEquals(kekEncMaster, initializedVaultKeyMaterial.captured.kekEncMaster)
-            assertArrayEquals(kekEncRecovery, initializedVaultKeyMaterial.captured.kekEncRecovery)
-            assertEquals("argon2id", initializedVaultKeyMaterial.captured.kdfAlgorithm)
-            assertArrayEquals(expectedKdfSalt, initializedVaultKeyMaterial.captured.kdfSalt)
-            assertEquals("v1", initializedVaultKeyMaterial.captured.cryptoVersion)
-            assertEquals(65536, initializedVaultKeyMaterial.captured.kdfMemoryKib)
-            assertEquals(3, initializedVaultKeyMaterial.captured.kdfIterations)
-            assertEquals(1, initializedVaultKeyMaterial.captured.kdfParallelism)
-            assertEquals(32, initializedVaultKeyMaterial.captured.kdfOutputLen)
+            val initializedMaterial = requireNotNull(initializedVaultKeyMaterial)
+            assertNull(initializedMaterial.accountId)
+            assertArrayEquals(kekEncMaster, initializedMaterial.kekEncMaster)
+            assertArrayEquals(kekEncRecovery, initializedMaterial.kekEncRecovery)
+            assertEquals("argon2id", initializedMaterial.kdfAlgorithm)
+            assertArrayEquals(expectedKdfSalt, initializedMaterial.kdfSalt)
+            assertEquals("v1", initializedMaterial.cryptoVersion)
+            assertEquals(65536, initializedMaterial.kdfMemoryKib)
+            assertEquals(3, initializedMaterial.kdfIterations)
+            assertEquals(1, initializedMaterial.kdfParallelism)
+            assertEquals(32, initializedMaterial.kdfOutputLen)
 
             assertEquals(
                 refreshedVaultKeyMaterial.accountId,
@@ -142,8 +166,8 @@ class VaultInitializeUseCaseTest {
             assertArrayEquals(expectedDerivedMasterKey, wrapRequests[0].wrappingKey)
             assertArrayEquals(expectedGeneratedKek, wrapRequests[1].keyToWrap)
             assertArrayEquals(expectedGeneratedRecoveryKey, wrapRequests[1].wrappingKey)
-            assertFalse(recoveryKey.contentEquals(initializedVaultKeyMaterial.captured.kekEncMaster))
-            assertFalse(recoveryKey.contentEquals(initializedVaultKeyMaterial.captured.kekEncRecovery))
+            assertFalse(recoveryKey.contentEquals(initializedMaterial.kekEncMaster))
+            assertFalse(recoveryKey.contentEquals(initializedMaterial.kekEncRecovery))
 
             coVerify(exactly = 2) { vaultKeyMaterialRemoteRepository.getKeyMaterial() }
             verify(exactly = 1) { saltGenerator.generate(16) }
@@ -221,8 +245,10 @@ class VaultInitializeUseCaseTest {
     @Test
     fun `invoke when init collides with existing vault then returns already initialized`() =
         runBlocking {
-            coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns
-                    VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultNotInitialized)
+            coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returnsMany listOf(
+                VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.VaultNotInitialized),
+                VaultKeyMaterialRemoteResult.Success(existingVaultKeyMaterial()),
+            )
             every { saltGenerator.generate(16) } returns ByteArray(16) { index -> (index + 1).toByte() }
             every { saltGenerator.generate(32) } returnsMany listOf(
                 ByteArray(32) { index -> (index + 31).toByte() },
@@ -242,13 +268,14 @@ class VaultInitializeUseCaseTest {
             val result = target(passphrase = "irrelevant")
 
             assertEquals(VaultInitializeResult.AlreadyInitialized, result)
-            coVerify(exactly = 1) { vaultKeyMaterialRemoteRepository.getKeyMaterial() }
+            coVerify(exactly = 2) { vaultKeyMaterialRemoteRepository.getKeyMaterial() }
             verify(exactly = 1) { saltGenerator.generate(16) }
             verify(exactly = 2) { saltGenerator.generate(32) }
             verify(exactly = 1) { kdfEngine.deriveKey(any()) }
             verify(exactly = 2) { keyWrapping.wrapKey(any()) }
             coVerify(exactly = 1) { vaultKeyMaterialRemoteRepository.initKeyMaterial(any()) }
-            verify(exactly = 0) { vaultKeyMaterialLocalRepository.save(any()) }
+            verify(exactly = 1) { vaultKeyMaterialLocalRepository.save(any()) }
+            verify(exactly = 1) { pendingVaultInitializationRepository.clear() }
             confirmVerified(
                 vaultKeyMaterialRemoteRepository,
                 vaultKeyMaterialLocalRepository,
@@ -329,9 +356,17 @@ class VaultInitializeUseCaseTest {
         )
     }
 
+    @Test
+    fun `confirm recovery key saved returns false when pending cleanup fails`() {
+        every { pendingVaultInitializationRepository.clear() } throws IllegalStateException("storage unavailable")
+
+        assertFalse(createVaultInitializeUseCase().confirmRecoveryKeySaved())
+    }
+
     private fun createVaultInitializeUseCase(): VaultInitializeUseCase = VaultInitializeUseCase(
         vaultKeyMaterialRemoteRepository = vaultKeyMaterialRemoteRepository,
         vaultKeyMaterialLocalRepository = vaultKeyMaterialLocalRepository,
+        pendingVaultInitializationRepository = pendingVaultInitializationRepository,
         kdfEngine = kdfEngine,
         keyWrapping = keyWrapping,
         saltGenerator = saltGenerator,
