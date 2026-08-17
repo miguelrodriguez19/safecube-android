@@ -8,6 +8,11 @@
     <string name="logout_with_drafts_message">Al cerrar sesión se eliminarán permanentemente los borradores que no se hayan publicado.</string>
     <string name="logout_discard_drafts">Descartar y cerrar sesión</string>
     <string name="loading">Cargando…</string>
+    <string name="retry">Reintentar</string>
+    <string name="vault_bootstrap_loading">Comprobando tu bóveda…</string>
+    <string name="vault_bootstrap_retryable_error">Tu bóveda no está disponible temporalmente.</string>
+    <string name="vault_bootstrap_corrupted_error">Es necesario actualizar el material local de claves de tu bóveda.</string>
+    <string name="vault_bootstrap_terminal_error">No se ha podido verificar tu bóveda.</string>
     <string name="email_label">Correo electrónico</string>
     <string name="password_label">Contraseña</string>
     <string name="confirm_password_label">Confirmar contraseña</string>

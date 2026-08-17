@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.vault.data.local
 
 import android.content.SharedPreferences
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalReadResult
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -9,6 +10,7 @@ import java.util.UUID
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class VaultKeyMaterialCacheTest {
@@ -26,6 +28,9 @@ class VaultKeyMaterialCacheTest {
         }
         every { encryptedPreferences.getInt(any(), any()) } answers {
             values[firstArg<String>()] as? Int ?: secondArg()
+        }
+        every { encryptedPreferences.contains(any()) } answers {
+            values.containsKey(firstArg<String>())
         }
 
         every { editor.putString(any(), any()) } answers {
@@ -100,6 +105,30 @@ class VaultKeyMaterialCacheTest {
     }
 
     @Test
+    fun `read when cache is empty then returns absent`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+
+        val result = target.read()
+
+        assertEquals(VaultKeyMaterialLocalReadResult.Absent, result)
+    }
+
+    @Test
+    fun `read when cache is valid then returns present`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        val expected = sampleVaultKeyMaterial()
+        target.save(expected)
+
+        val result = target.read()
+
+        assertTrue(result is VaultKeyMaterialLocalReadResult.Present)
+        val actual = (result as VaultKeyMaterialLocalReadResult.Present).value
+        assertEquals(expected.accountId, actual.accountId)
+        assertArrayEquals(expected.kekEncMaster, actual.kekEncMaster)
+        assertArrayEquals(expected.kekEncRecovery, actual.kekEncRecovery)
+    }
+
+    @Test
     fun `get when account id is missing then returns null`() {
         val target = VaultKeyMaterialCache(encryptedPreferences)
         target.save(sampleVaultKeyMaterial())
@@ -108,6 +137,17 @@ class VaultKeyMaterialCacheTest {
         val result = target.get()
 
         assertNull(result)
+    }
+
+    @Test
+    fun `read when persisted material is malformed then returns corrupted`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+        values.remove("account_id")
+
+        val result = target.read()
+
+        assertEquals(VaultKeyMaterialLocalReadResult.Corrupted, result)
     }
 
     @Test

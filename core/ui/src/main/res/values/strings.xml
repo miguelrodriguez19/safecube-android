@@ -8,6 +8,11 @@
     <string name="logout_with_drafts_message">Logging out will permanently delete drafts that have not been published.</string>
     <string name="logout_discard_drafts">Discard and log out</string>
     <string name="loading">Loading…</string>
+    <string name="retry">Retry</string>
+    <string name="vault_bootstrap_loading">Checking your vault…</string>
+    <string name="vault_bootstrap_retryable_error">Your vault is temporarily unavailable.</string>
+    <string name="vault_bootstrap_corrupted_error">Your local vault key material needs to be refreshed.</string>
+    <string name="vault_bootstrap_terminal_error">Your vault could not be verified.</string>
     <string name="email_label">Email</string>
     <string name="password_label">Password</string>
     <string name="confirm_password_label">Confirm password</string>
