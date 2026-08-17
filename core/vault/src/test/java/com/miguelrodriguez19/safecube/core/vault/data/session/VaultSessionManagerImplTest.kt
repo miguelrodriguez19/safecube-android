@@ -8,6 +8,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.Vaul
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalReadResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlocker
 import io.mockk.coEvery
@@ -15,6 +16,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
+import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -36,25 +38,14 @@ class VaultSessionManagerImplTest {
 
     @Before
     fun setup() {
-        every { vaultKeyMaterialLocalRepository.get() } returns null
+        every { vaultKeyMaterialLocalRepository.read() } returns VaultKeyMaterialLocalReadResult.Absent
     }
 
     @Test
-    fun `init_whenNoLocalKeyMaterial_thenStateIsNotInitialized`() {
-        every { vaultKeyMaterialLocalRepository.get() } returns null
-
+    fun `init_whenCreated_thenStateIsInitialLoading`() {
         target = createTarget()
 
-        assertEquals(VaultState.NotInitialized, target.vaultState.value)
-    }
-
-    @Test
-    fun `init_whenLocalKeyMaterialExists_thenStateIsLocked`() {
-        every { vaultKeyMaterialLocalRepository.get() } returns createVaultKeyMaterial()
-
-        target = createTarget()
-
-        assertEquals(VaultState.Locked, target.vaultState.value)
+        assertEquals(VaultState.InitialLoading, target.vaultState.value)
     }
 
     @Test
@@ -89,7 +80,7 @@ class VaultSessionManagerImplTest {
         }
 
     @Test
-    fun `refreshVaultState_whenRemoteUnauthorized_thenClearsKekAndStateIsLocked`() = runBlocking {
+    fun `refreshVaultState_whenRemoteUnauthorized_thenRequiresAuthentication`() = runBlocking {
         coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns VaultKeyMaterialRemoteResult.Error(
             VaultKeyMaterialRemoteError.Unauthorized
         )
@@ -97,34 +88,100 @@ class VaultSessionManagerImplTest {
 
         target.refreshVaultState()
 
-        assertEquals(VaultState.Locked, target.vaultState.value)
+        assertEquals(VaultState.AuthenticationRequired, target.vaultState.value)
         verify(exactly = 1) { vaultInMemoryKekStore.clear() }
     }
 
     @Test
-    fun `refreshVaultState_whenRemoteNetworkErrorAndNoCache_thenStateIsUnknown`() = runBlocking {
-        every { vaultKeyMaterialLocalRepository.get() } returns null
+    fun `refreshVaultState_whenRemoteNetworkErrorAndNoCache_thenStateIsRetryableWithoutLocalMaterial`() = runBlocking {
+        val remoteError = VaultKeyMaterialRemoteError.NetworkError(IOException())
         coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns VaultKeyMaterialRemoteResult.Error(
-            VaultKeyMaterialRemoteError.NetworkError(RuntimeException())
+            remoteError,
         )
         target = createTarget()
 
         target.refreshVaultState()
 
-        assertEquals(VaultState.Unknown, target.vaultState.value)
+        assertEquals(
+            VaultState.RetryableRemoteFailure(
+                failure = remoteError.failure,
+                hasValidLocalKeyMaterial = false,
+            ),
+            target.vaultState.value,
+        )
     }
 
     @Test
-    fun `refreshVaultState_whenRemoteNetworkErrorWithCache_thenStateIsLocked`() = runBlocking {
-        every { vaultKeyMaterialLocalRepository.get() } returns createVaultKeyMaterial()
+    fun `refreshVaultState_whenRemoteNetworkErrorWithCache_thenStateIsRetryableWithLocalMaterial`() = runBlocking {
+        val localMaterial = createVaultKeyMaterial()
+        val remoteError = VaultKeyMaterialRemoteError.NetworkError(IOException())
+        every {
+            vaultKeyMaterialLocalRepository.read()
+        } returns VaultKeyMaterialLocalReadResult.Present(localMaterial)
         coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns VaultKeyMaterialRemoteResult.Error(
-            VaultKeyMaterialRemoteError.NetworkError(RuntimeException())
+            remoteError,
         )
         target = createTarget()
 
         target.refreshVaultState()
 
-        assertEquals(VaultState.Locked, target.vaultState.value)
+        assertEquals(
+            VaultState.RetryableRemoteFailure(
+                failure = remoteError.failure,
+                hasValidLocalKeyMaterial = true,
+            ),
+            target.vaultState.value,
+        )
+    }
+
+    @Test
+    fun `refreshVaultState_whenLocalMaterialIsCorruptedAndRemoteUnavailable_thenStateIsCorrupted`() =
+        runBlocking {
+            every {
+                vaultKeyMaterialLocalRepository.read()
+            } returns VaultKeyMaterialLocalReadResult.Corrupted
+            coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns
+                VaultKeyMaterialRemoteResult.Error(
+                    VaultKeyMaterialRemoteError.NetworkError(IOException()),
+                )
+            target = createTarget()
+
+            target.refreshVaultState()
+
+            assertEquals(VaultState.CorruptedLocalKeyMaterial, target.vaultState.value)
+        }
+
+    @Test
+    fun `refreshVaultState_whenLocalMaterialIsCorruptedAndRemoteSucceeds_thenRefreshesCacheOnly`() =
+        runBlocking {
+            val remoteKeyMaterial = createVaultKeyMaterial()
+            every {
+                vaultKeyMaterialLocalRepository.read()
+            } returns VaultKeyMaterialLocalReadResult.Corrupted
+            coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns
+                VaultKeyMaterialRemoteResult.Success(remoteKeyMaterial)
+            target = createTarget()
+
+            target.refreshVaultState()
+
+            assertEquals(VaultState.Locked, target.vaultState.value)
+            verify(exactly = 1) { vaultKeyMaterialLocalRepository.save(remoteKeyMaterial) }
+            verify(exactly = 0) { vaultKeyMaterialLocalRepository.clear() }
+        }
+
+    @Test
+    fun `refreshVaultState_whenRemoteForbidden_thenStaysInExplicitTerminalState`() = runBlocking {
+        val remoteError = VaultKeyMaterialRemoteError.Forbidden
+        coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns
+            VaultKeyMaterialRemoteResult.Error(remoteError)
+        target = createTarget()
+
+        target.refreshVaultState()
+
+        assertEquals(
+            VaultState.TerminalRemoteFailure(remoteError.failure),
+            target.vaultState.value,
+        )
     }
 
     @Test
@@ -180,7 +237,7 @@ class VaultSessionManagerImplTest {
     }
 
     @Test
-    fun `unlockWithPassphrase_whenKeyMaterialUnavailable_thenReturnsErrorAndStateIsNotInitialized`() {
+    fun `unlockWithPassphrase_whenKeyMaterialUnavailableWithoutRemoteConfirmation_thenKeepsStateLocked`() {
         val passphrase = Random.nextLong().toString()
         every { vaultUnlocker.unlockWithPassphrase(passphrase) } returns VaultUnlockResult.Error(
             VaultUnlockError.KeyMaterialUnavailable
@@ -190,7 +247,7 @@ class VaultSessionManagerImplTest {
         val result = target.unlockWithPassphrase(passphrase)
 
         assertEquals(VaultUnlockError.KeyMaterialUnavailable, result)
-        assertEquals(VaultState.NotInitialized, target.vaultState.value)
+        assertEquals(VaultState.Locked, target.vaultState.value)
     }
 
     @Test
@@ -219,7 +276,6 @@ class VaultSessionManagerImplTest {
 
     @Test
     fun `isUnlocked_whenStateIsLocked_thenReturnsFalse`() {
-        every { vaultKeyMaterialLocalRepository.get() } returns createVaultKeyMaterial()
         target = createTarget()
 
         val result = target.isUnlocked()

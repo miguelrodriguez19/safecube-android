@@ -1,11 +1,14 @@
 package com.miguelrodriguez19.safecube.core.vault.data.session
 
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailure
+import com.miguelrodriguez19.safecube.core.network.domain.model.RetryDecision
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalReadResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlocker
@@ -31,41 +34,44 @@ internal class VaultSessionManagerImpl @Inject constructor(
     }
 
     override suspend fun refreshVaultState() {
-        state.value = VaultState.Unknown
+        clearInMemoryKek()
+        state.value = VaultState.InitialLoading
+        val localReadResult = readLocalKeyMaterial()
 
         when (val result = vaultKeyMaterialRemoteRepository.getKeyMaterial()) {
             is VaultKeyMaterialRemoteResult.Success -> {
-                vaultKeyMaterialLocalRepository.save(result.value)
-                clearInMemoryKek()
-                state.value = VaultState.Locked
+                runCatching {
+                    vaultKeyMaterialLocalRepository.save(result.value)
+                }.onSuccess {
+                    state.value = VaultState.Locked
+                }.onFailure {
+                    state.value = VaultState.CorruptedLocalKeyMaterial
+                }
             }
 
             is VaultKeyMaterialRemoteResult.Error -> {
                 when (result.error) {
                     VaultKeyMaterialRemoteError.VaultNotInitialized -> {
                         vaultKeyMaterialLocalRepository.clear()
-                        clearInMemoryKek()
                         state.value = VaultState.NotInitialized
                     }
 
                     VaultKeyMaterialRemoteError.Unauthorized -> {
-                        clearInMemoryKek()
-                        state.value = VaultState.Locked
+                        state.value = VaultState.AuthenticationRequired
                     }
 
-                    VaultKeyMaterialRemoteError.Forbidden -> {
-                        clearInMemoryKek()
-                        state.value = VaultState.Locked
-                    }
-
+                    VaultKeyMaterialRemoteError.Forbidden,
                     is VaultKeyMaterialRemoteError.HttpError,
                     is VaultKeyMaterialRemoteError.NetworkError,
                         -> {
-                        state.value = resolveStateForRemoteFailure()
+                        state.value = resolveStateForRemoteFailure(
+                            failure = result.error.failure,
+                            localReadResult = localReadResult,
+                        )
                     }
 
                     VaultKeyMaterialRemoteError.VaultAlreadyInitialized -> {
-                        state.value = initialVaultState()
+                        state.value = VaultState.TerminalRemoteFailure(result.error.failure)
                     }
                 }
             }
@@ -95,10 +101,18 @@ internal class VaultSessionManagerImpl @Inject constructor(
         }
 
         is VaultUnlockResult.Error -> {
-            state.value = if (result.reason == VaultUnlockError.KeyMaterialUnavailable) {
-                VaultState.NotInitialized
-            } else {
-                VaultState.Locked
+            state.value = when (result.reason) {
+                VaultUnlockError.KeyMaterialUnavailable -> when (readLocalKeyMaterial()) {
+                    VaultKeyMaterialLocalReadResult.Absent -> VaultState.Locked
+                    VaultKeyMaterialLocalReadResult.Corrupted ->
+                        VaultState.CorruptedLocalKeyMaterial
+                    is VaultKeyMaterialLocalReadResult.Present -> VaultState.Locked
+                }
+
+                VaultUnlockError.InvalidCachedKeyMaterial ->
+                    VaultState.CorruptedLocalKeyMaterial
+
+                VaultUnlockError.InvalidCredential -> VaultState.Locked
             }
             result.reason
         }
@@ -113,17 +127,25 @@ internal class VaultSessionManagerImpl @Inject constructor(
         vaultInMemoryKekStore.clear()
     }
 
-    private fun initialVaultState(): VaultState =
-        if (vaultKeyMaterialLocalRepository.get() == null) {
-            VaultState.NotInitialized
-        } else {
-            VaultState.Locked
-        }
+    private fun initialVaultState(): VaultState = VaultState.InitialLoading
 
-    private fun resolveStateForRemoteFailure(): VaultState =
-        if (vaultKeyMaterialLocalRepository.get() == null) {
-            VaultState.Unknown
-        } else {
-            VaultState.Locked
-        }
+    private fun resolveStateForRemoteFailure(
+        failure: NetworkFailure,
+        localReadResult: VaultKeyMaterialLocalReadResult,
+    ): VaultState = when {
+        localReadResult is VaultKeyMaterialLocalReadResult.Corrupted ->
+            VaultState.CorruptedLocalKeyMaterial
+
+        failure.decision == RetryDecision.Retryable ->
+            VaultState.RetryableRemoteFailure(
+                failure = failure,
+                hasValidLocalKeyMaterial = localReadResult is VaultKeyMaterialLocalReadResult.Present,
+            )
+
+        else -> VaultState.TerminalRemoteFailure(failure)
+    }
+
+    private fun readLocalKeyMaterial(): VaultKeyMaterialLocalReadResult = runCatching {
+        vaultKeyMaterialLocalRepository.read()
+    }.getOrDefault(VaultKeyMaterialLocalReadResult.Corrupted)
 }

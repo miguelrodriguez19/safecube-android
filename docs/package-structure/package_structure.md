@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 14-08-2026 08:22:13
+Updated: 17-08-2026 02:42:10
 
 ```
 safecube-android/
@@ -81,8 +81,11 @@ safecube-android/
 │   │   │   └── AndroidManifest.xml
 │   │   └── test/java/com/miguelrodriguez19/safecube/
 │   │       ├── app/
-│   │       │   ├── presentation/navigation/host/
-│   │       │   │   └── NavigationSessionCoordinatorTest.kt
+│   │       │   ├── presentation/navigation/
+│   │       │   │   ├── gate/
+│   │       │   │   │   └── NavigationGatesTest.kt
+│   │       │   │   └── host/
+│   │       │   │       └── NavigationSessionCoordinatorTest.kt
 │   │       │   └── session/
 │   │       │       └── AccountSessionLifecycleImplTest.kt
 │   │       └── ExampleUnitTest.kt
@@ -580,7 +583,10 @@ safecube-android/
 │       │   │   │   │   │   ├── SecureItemPayloadEnvelopeV1Codec.kt
 │       │   │   │   │   │   └── VaultItemCipher.kt
 │       │   │   │   │   ├── local/
+│       │   │   │   │   │   ├── EncryptedVaultInitializationPrefs.kt
 │       │   │   │   │   │   ├── EncryptedVaultKeyMaterialPrefs.kt
+│       │   │   │   │   │   ├── PendingVaultInitializationCodec.kt
+│       │   │   │   │   │   ├── PendingVaultInitializationStore.kt
 │       │   │   │   │   │   └── VaultKeyMaterialCache.kt
 │       │   │   │   │   ├── remote/
 │       │   │   │   │   │   ├── RemoteSecureItemDataSource.kt
@@ -600,6 +606,7 @@ safecube-android/
 │       │   │   │       │   └── VaultCryptoDefaults.kt
 │       │   │   │       ├── model/
 │       │   │   │       │   ├── initialize/
+│       │   │   │       │   │   ├── PendingVaultInitialization.kt
 │       │   │   │       │   │   ├── VaultInitializeError.kt
 │       │   │   │       │   │   └── VaultInitializeResult.kt
 │       │   │   │       │   ├── remote/
@@ -661,9 +668,11 @@ safecube-android/
 │       │   │   │       │   ├── VaultKeyMaterial.kt
 │       │   │   │       │   └── VaultState.kt
 │       │   │   │       ├── repository/
+│       │   │   │       │   ├── PendingVaultInitializationRepository.kt
 │       │   │   │       │   ├── SecureItemDraftRepository.kt
 │       │   │   │       │   ├── SecureItemRemoteRepository.kt
 │       │   │   │       │   ├── SecureItemRepository.kt
+│       │   │   │       │   ├── VaultKeyMaterialLocalReadResult.kt
 │       │   │   │       │   ├── VaultKeyMaterialLocalRepository.kt
 │       │   │   │       │   └── VaultKeyMaterialRemoteRepository.kt
 │       │   │   │       ├── service/
@@ -728,6 +737,8 @@ safecube-android/
 │       │       │   │   ├── SecureItemPayloadEnvelopeV1CodecTest.kt
 │       │       │   │   └── VaultItemCipherTest.kt
 │       │       │   ├── local/
+│       │       │   │   ├── PendingVaultInitializationCodecTest.kt
+│       │       │   │   ├── PendingVaultInitializationStoreTest.kt
 │       │       │   │   └── VaultKeyMaterialCacheTest.kt
 │       │       │   ├── remote/
 │       │       │   │   ├── RemoteSecureItemDataSourceIntegrationTest.kt
@@ -763,6 +774,7 @@ safecube-android/
 │       │       │       ├── PullVaultDeltaUseCaseTest.kt
 │       │       │       ├── PushLocalVaultChangesUseCaseTest.kt
 │       │       │       ├── SecureItemDraftMutationCoordinatorTest.kt
+│       │       │       ├── VaultInitializeRecoveryUseCaseTest.kt
 │       │       │       ├── VaultInitializeUseCaseTest.kt
 │       │       │       ├── VaultSyncExecutionLockTest.kt
 │       │       │       ├── VaultSyncUseCaseTest.kt
@@ -819,6 +831,9 @@ safecube-android/
 │   │   │   ├── SCDK-M110.md
 │   │   │   ├── SCDK-M113.md
 │   │   │   ├── SCDK-M114.md
+│   │   │   ├── SCDK-M115.md
+│   │   │   ├── SCDK-M116.md
+│   │   │   ├── SCDK-M117.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md

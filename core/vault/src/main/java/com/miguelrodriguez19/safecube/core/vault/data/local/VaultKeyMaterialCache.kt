@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.core.vault.data.local
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalReadResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import java.util.Base64
 import java.util.UUID
@@ -26,6 +27,18 @@ class VaultKeyMaterialCache @Inject constructor(
         const val KEY_KDF_OUTPUT_LEN = "kdf_output_len"
         const val KEY_CRYPTO_VERSION = "crypto_version"
         const val MISSING_INT = -1
+        val PERSISTED_KEYS = setOf(
+            KEY_ACCOUNT_ID,
+            KEY_KEK_ENC_MASTER,
+            KEY_KEK_ENC_RECOVERY,
+            KEY_KDF_ALGORITHM,
+            KEY_KDF_SALT,
+            KEY_KDF_MEMORY_KIB,
+            KEY_KDF_ITERATIONS,
+            KEY_KDF_PARALLELISM,
+            KEY_KDF_OUTPUT_LEN,
+            KEY_CRYPTO_VERSION,
+        )
     }
 
     override fun save(vaultKeyMaterial: VaultKeyMaterial) {
@@ -43,7 +56,25 @@ class VaultKeyMaterialCache @Inject constructor(
         }
     }
 
-    override fun get(): VaultKeyMaterial? {
+    override fun read(): VaultKeyMaterialLocalReadResult {
+        if (!hasPersistedMaterial()) {
+            return VaultKeyMaterialLocalReadResult.Absent
+        }
+
+        return parseMaterial()
+            ?.let(VaultKeyMaterialLocalReadResult::Present)
+            ?: VaultKeyMaterialLocalReadResult.Corrupted
+    }
+
+    override fun get(): VaultKeyMaterial? = when (val result = read()) {
+        VaultKeyMaterialLocalReadResult.Absent,
+        VaultKeyMaterialLocalReadResult.Corrupted,
+            -> null
+
+        is VaultKeyMaterialLocalReadResult.Present -> result.value
+    }
+
+    private fun parseMaterial(): VaultKeyMaterial? {
         val accountId = encryptedPreferences.getString(KEY_ACCOUNT_ID, null)
             ?.toUuidOrNull()
             ?: return null
@@ -98,6 +129,8 @@ class VaultKeyMaterialCache @Inject constructor(
         )
     }
 
+    private fun hasPersistedMaterial(): Boolean = PERSISTED_KEYS.any(encryptedPreferences::contains)
+
     override fun clear() {
         encryptedPreferences.edit {
             clear()
@@ -114,4 +147,5 @@ class VaultKeyMaterialCache @Inject constructor(
     private fun String.toUuidOrNull(): UUID? =
         takeIf { it.isNotBlank() }
             ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+
 }
