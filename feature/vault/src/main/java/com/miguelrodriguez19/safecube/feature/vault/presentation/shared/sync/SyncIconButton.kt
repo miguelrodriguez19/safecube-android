@@ -19,6 +19,7 @@ import kotlinx.coroutines.isActive
 @Composable
 internal fun SyncIconButton(
     isSyncing: Boolean,
+    enabled: Boolean,
     onClick: () -> Unit,
     contentDescription: String,
 ) {
@@ -42,7 +43,10 @@ internal fun SyncIconButton(
         }
     }
 
-    IconButton(onClick = onClick) {
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+    ) {
         Icon(
             imageVector = Icons.Default.Sync,
             contentDescription = contentDescription,
