@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 17-08-2026 02:42:10
+Updated: 18-08-2026 05:34:20
 
 ```
 safecube-android/
@@ -834,6 +834,7 @@ safecube-android/
 │   │   │   ├── SCDK-M115.md
 │   │   │   ├── SCDK-M116.md
 │   │   │   ├── SCDK-M117.md
+│   │   │   ├── SCDK-M118.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
@@ -863,43 +864,54 @@ safecube-android/
 │   └── README.md
 ├── feature/
 │   ├── auth/
-│   │   ├── src/main/
-│   │   │   ├── java/com/miguelrodriguez19/safecube/feature/auth/
-│   │   │   │   ├── presentation/
-│   │   │   │   │   ├── component/
-│   │   │   │   │   │   └── AuthActionLabel.kt
-│   │   │   │   │   ├── gate/ui/
-│   │   │   │   │   │   └── PostLoginGateScreen.kt
-│   │   │   │   │   ├── login/
-│   │   │   │   │   │   ├── action/
-│   │   │   │   │   │   │   └── LoginUiAction.kt
-│   │   │   │   │   │   ├── event/
-│   │   │   │   │   │   │   └── LoginUiEvent.kt
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   ├── java/com/miguelrodriguez19/safecube/feature/auth/
+│   │   │   │   │   ├── presentation/
+│   │   │   │   │   │   ├── component/
+│   │   │   │   │   │   │   └── AuthActionLabel.kt
+│   │   │   │   │   │   ├── gate/ui/
+│   │   │   │   │   │   │   └── PostLoginGateScreen.kt
+│   │   │   │   │   │   ├── login/
+│   │   │   │   │   │   │   ├── action/
+│   │   │   │   │   │   │   │   └── LoginUiAction.kt
+│   │   │   │   │   │   │   ├── event/
+│   │   │   │   │   │   │   │   └── LoginUiEvent.kt
+│   │   │   │   │   │   │   ├── state/
+│   │   │   │   │   │   │   │   └── LoginUiState.kt
+│   │   │   │   │   │   │   ├── ui/
+│   │   │   │   │   │   │   │   └── LoginScreen.kt
+│   │   │   │   │   │   │   └── viewmodel/
+│   │   │   │   │   │   │       └── LoginViewModel.kt
+│   │   │   │   │   │   ├── mapper/
+│   │   │   │   │   │   │   └── AuthUiErrorMapper.kt
+│   │   │   │   │   │   ├── signup/
+│   │   │   │   │   │   │   ├── action/
+│   │   │   │   │   │   │   │   └── SignupUiAction.kt
+│   │   │   │   │   │   │   ├── event/
+│   │   │   │   │   │   │   │   └── SignupUiEvent.kt
+│   │   │   │   │   │   │   ├── state/
+│   │   │   │   │   │   │   │   └── SignupUiState.kt
+│   │   │   │   │   │   │   ├── ui/
+│   │   │   │   │   │   │   │   └── SignupScreen.kt
+│   │   │   │   │   │   │   └── viewmodel/
+│   │   │   │   │   │   │       └── SignupViewModel.kt
 │   │   │   │   │   │   ├── state/
-│   │   │   │   │   │   │   └── LoginUiState.kt
-│   │   │   │   │   │   ├── ui/
-│   │   │   │   │   │   │   └── LoginScreen.kt
-│   │   │   │   │   │   └── viewmodel/
-│   │   │   │   │   │       └── LoginViewModel.kt
-│   │   │   │   │   ├── mapper/
-│   │   │   │   │   │   └── AuthUiErrorMapper.kt
-│   │   │   │   │   ├── signup/
-│   │   │   │   │   │   ├── action/
-│   │   │   │   │   │   │   └── SignupUiAction.kt
-│   │   │   │   │   │   ├── event/
-│   │   │   │   │   │   │   └── SignupUiEvent.kt
-│   │   │   │   │   │   ├── state/
-│   │   │   │   │   │   │   └── SignupUiState.kt
-│   │   │   │   │   │   ├── ui/
-│   │   │   │   │   │   │   └── SignupScreen.kt
-│   │   │   │   │   │   └── viewmodel/
-│   │   │   │   │   │       └── SignupViewModel.kt
-│   │   │   │   │   ├── welcome/ui/
-│   │   │   │   │   │   └── WelcomeScreen.kt
-│   │   │   │   │   └── AuthTestTags.kt
-│   │   │   │   └── screens/
-│   │   │   ├── res/values/
-│   │   │   └── AndroidManifest.xml
+│   │   │   │   │   │   │   └── AuthUiOperationState.kt
+│   │   │   │   │   │   ├── welcome/ui/
+│   │   │   │   │   │   │   └── WelcomeScreen.kt
+│   │   │   │   │   │   └── AuthTestTags.kt
+│   │   │   │   │   └── screens/
+│   │   │   │   ├── res/values/
+│   │   │   │   └── AndroidManifest.xml
+│   │   │   └── test/java/com/miguelrodriguez19/safecube/feature/auth/
+│   │   │       ├── presentation/
+│   │   │       │   ├── login/viewmodel/
+│   │   │       │   │   └── LoginViewModelTest.kt
+│   │   │       │   └── signup/viewmodel/
+│   │   │       │       └── SignupViewModelTest.kt
+│   │   │       └── test/
+│   │   │           └── MainDispatcherRule.kt
 │   │   └── build.gradle.kts
 │   ├── build/reports/cyclonedx-direct/
 │   │   └── bom.json

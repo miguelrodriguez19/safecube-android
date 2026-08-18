@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.feature.auth.presentation.login.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionLifecycle
@@ -13,6 +14,8 @@ import com.miguelrodriguez19.safecube.feature.auth.presentation.mapper.AuthUiErr
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.action.LoginUiAction
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.event.LoginUiEvent
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.state.LoginUiState
+import com.miguelrodriguez19.safecube.feature.auth.presentation.state.AuthUiOperationState
+import com.miguelrodriguez19.safecube.feature.auth.presentation.state.isRetryable
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -40,7 +43,8 @@ class LoginViewModel @Inject constructor(
         when (action) {
             is LoginUiAction.EmailChanged -> onEmailChanged(action.value)
             is LoginUiAction.PasswordChanged -> onPasswordChanged(action.value)
-            LoginUiAction.Submit -> login()
+            LoginUiAction.Submit -> submit()
+            LoginUiAction.Retry -> retry()
         }
     }
 
@@ -48,6 +52,7 @@ class LoginViewModel @Inject constructor(
         mutableUiState.update { state ->
             state.copy(
                 email = value,
+                operationState = state.operationState.afterInputChange(),
                 emailErrorRes = null,
                 errorMessageRes = null,
             )
@@ -58,10 +63,24 @@ class LoginViewModel @Inject constructor(
         mutableUiState.update { state ->
             state.copy(
                 password = value,
+                operationState = state.operationState.afterInputChange(),
                 passwordErrorRes = null,
                 errorMessageRes = null,
             )
         }
+    }
+
+    private fun submit() {
+        if (mutableUiState.value.isRetryable) {
+            retry()
+        } else {
+            login()
+        }
+    }
+
+    private fun retry() {
+        if (!mutableUiState.value.isRetryable) return
+        login()
     }
 
     private fun login() {
@@ -76,9 +95,11 @@ class LoginViewModel @Inject constructor(
         if (emailErrorRes != null || passwordErrorRes != null) {
             mutableUiState.update { state ->
                 state.copy(
+                    operationState = AuthUiOperationState.ValidationError,
                     emailErrorRes = emailErrorRes,
                     passwordErrorRes = passwordErrorRes,
                     errorMessageRes = null,
+                    password = "",
                 )
             }
             return
@@ -86,7 +107,7 @@ class LoginViewModel @Inject constructor(
 
         mutableUiState.update { state ->
             state.copy(
-                isLoading = true,
+                operationState = AuthUiOperationState.Loading,
                 emailErrorRes = null,
                 passwordErrorRes = null,
                 errorMessageRes = null,
@@ -99,7 +120,10 @@ class LoginViewModel @Inject constructor(
                     when (accountSessionLifecycle.activateFreshSession(result.data)) {
                         AccountSessionResult.Success -> {
                             mutableUiState.update { state ->
-                                state.copy(isLoading = false)
+                                state.copy(
+                                    operationState = AuthUiOperationState.Idle,
+                                    password = "",
+                                )
                             }
                             mutableEvents.emit(LoginUiEvent.LoginSucceeded)
                         }
@@ -107,7 +131,8 @@ class LoginViewModel @Inject constructor(
                         AccountSessionResult.LocalVaultCleanupFailed -> {
                             mutableUiState.update { state ->
                                 state.copy(
-                                    isLoading = false,
+                                    operationState = AuthUiOperationState.TerminalError,
+                                    password = "",
                                     errorMessageRes = UiR.string.generic_error,
                                 )
                             }
@@ -116,17 +141,29 @@ class LoginViewModel @Inject constructor(
                 }
 
                 is AuthResult.Error -> {
-                    val uiError = AuthUiErrorMapper.map(result.error)
-                    mutableUiState.update { state ->
-                        state.copy(
-                            isLoading = false,
-                            emailErrorRes = uiError.fieldErrors[EMAIL],
-                            passwordErrorRes = uiError.fieldErrors[PASSWORD],
-                            errorMessageRes = uiError.messageRes,
-                        )
-                    }
+                    applyAuthError(result.error)
                 }
             }
         }
     }
+
+    private fun applyAuthError(error: AuthError) {
+        val uiError = AuthUiErrorMapper.map(error)
+        mutableUiState.update { state ->
+            state.copy(
+                operationState = uiError.operationState,
+                password = state.password.takeIf { uiError.operationState.isRetryable() }.orEmpty(),
+                emailErrorRes = uiError.fieldErrors[EMAIL],
+                passwordErrorRes = uiError.fieldErrors[PASSWORD],
+                errorMessageRes = uiError.messageRes,
+            )
+        }
+    }
+
+    private fun AuthUiOperationState.afterInputChange() =
+        when {
+            this == AuthUiOperationState.Loading -> this
+            isRetryable() -> this
+            else -> AuthUiOperationState.Idle
+        }
 }

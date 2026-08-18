@@ -4,4 +4,5 @@ sealed interface LoginUiAction {
     data class EmailChanged(val value: String) : LoginUiAction
     data class PasswordChanged(val value: String) : LoginUiAction
     data object Submit : LoginUiAction
+    data object Retry : LoginUiAction
 }

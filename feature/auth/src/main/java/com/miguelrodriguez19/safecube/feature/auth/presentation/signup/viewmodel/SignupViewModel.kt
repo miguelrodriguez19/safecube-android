@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.feature.auth.presentation.signup.viewmode
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthError
 import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthResult
 import com.miguelrodriguez19.safecube.core.auth.domain.repository.AuthRepository
 import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionLifecycle
@@ -11,6 +12,8 @@ import com.miguelrodriguez19.safecube.feature.auth.presentation.mapper.AuthUiErr
 import com.miguelrodriguez19.safecube.feature.auth.presentation.signup.action.SignupUiAction
 import com.miguelrodriguez19.safecube.feature.auth.presentation.signup.event.SignupUiEvent
 import com.miguelrodriguez19.safecube.feature.auth.presentation.signup.state.SignupUiState
+import com.miguelrodriguez19.safecube.feature.auth.presentation.state.AuthUiOperationState
+import com.miguelrodriguez19.safecube.feature.auth.presentation.state.isRetryable
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,18 +31,26 @@ class SignupViewModel @Inject constructor(
     private val accountSessionLifecycle: AccountSessionLifecycle,
 ) : ViewModel() {
 
+    private enum class RetryOperation {
+        Register,
+        LoginAfterSignup,
+    }
+
     private val mutableUiState = MutableStateFlow(SignupUiState())
     val uiState: StateFlow<SignupUiState> = mutableUiState.asStateFlow()
 
     private val mutableEvents = MutableSharedFlow<SignupUiEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<SignupUiEvent> = mutableEvents.asSharedFlow()
 
+    private var retryOperation: RetryOperation? = null
+
     fun onAction(action: SignupUiAction) {
         when (action) {
             is SignupUiAction.EmailChanged -> onEmailChanged(action.value)
             is SignupUiAction.PasswordChanged -> onPasswordChanged(action.value)
             is SignupUiAction.ConfirmPasswordChanged -> onConfirmPasswordChanged(action.value)
-            SignupUiAction.Submit -> signup()
+            SignupUiAction.Submit -> submit()
+            SignupUiAction.Retry -> retry()
         }
     }
 
@@ -47,6 +58,7 @@ class SignupViewModel @Inject constructor(
         mutableUiState.update { state ->
             state.copy(
                 email = value,
+                operationState = state.operationState.afterInputChange(),
                 emailErrorRes = null,
                 errorMessageRes = null,
             )
@@ -57,6 +69,7 @@ class SignupViewModel @Inject constructor(
         mutableUiState.update { state ->
             state.copy(
                 password = value,
+                operationState = state.operationState.afterInputChange(),
                 passwordErrorRes = null,
                 confirmPasswordErrorRes = null,
                 errorMessageRes = null,
@@ -68,9 +81,28 @@ class SignupViewModel @Inject constructor(
         mutableUiState.update { state ->
             state.copy(
                 confirmPassword = value,
+                operationState = state.operationState.afterInputChange(),
                 confirmPasswordErrorRes = null,
                 errorMessageRes = null,
             )
+        }
+    }
+
+    private fun submit() {
+        if (mutableUiState.value.isRetryable) {
+            retry()
+        } else {
+            signup()
+        }
+    }
+
+    private fun retry() {
+        if (!mutableUiState.value.isRetryable) return
+
+        when (retryOperation) {
+            RetryOperation.Register -> signup()
+            RetryOperation.LoginAfterSignup -> retryLoginAfterSignup()
+            null -> Unit
         }
     }
 
@@ -90,20 +122,25 @@ class SignupViewModel @Inject constructor(
             else -> null
         }
         if (emailErrorRes != null || passwordErrorRes != null || confirmPasswordErrorRes != null) {
+            retryOperation = null
             mutableUiState.update { state ->
                 state.copy(
+                    operationState = AuthUiOperationState.ValidationError,
                     emailErrorRes = emailErrorRes,
                     passwordErrorRes = passwordErrorRes,
                     confirmPasswordErrorRes = confirmPasswordErrorRes,
                     errorMessageRes = null,
+                    password = "",
+                    confirmPassword = "",
                 )
             }
             return
         }
 
+        retryOperation = RetryOperation.Register
         mutableUiState.update { state ->
             state.copy(
-                isLoading = true,
+                operationState = AuthUiOperationState.Loading,
                 emailErrorRes = null,
                 passwordErrorRes = null,
                 confirmPasswordErrorRes = null,
@@ -113,25 +150,42 @@ class SignupViewModel @Inject constructor(
 
         viewModelScope.launch {
             when (val registerResult = authRepository.register(sanitizedEmail, password)) {
-                is AuthResult.Success -> loginAfterSignup(
-                    email = sanitizedEmail,
-                    password = password,
-                )
-
-                is AuthResult.Error -> {
-                    val uiError = AuthUiErrorMapper.map(registerResult.error)
-                    mutableUiState.update { state ->
-                        state.copy(
-                            isLoading = false,
-                            emailErrorRes = uiError.fieldErrors[AuthUiErrorMapper.EMAIL],
-                            passwordErrorRes = uiError.fieldErrors[AuthUiErrorMapper.PASSWORD],
-                            confirmPasswordErrorRes = uiError.fieldErrors[AuthUiErrorMapper.CONFIRM_PASSWORD]
-                                ?: uiError.fieldErrors["confirmPassword"],
-                            errorMessageRes = uiError.messageRes,
-                        )
-                    }
+                is AuthResult.Success -> {
+                    retryOperation = RetryOperation.LoginAfterSignup
+                    loginAfterSignup(
+                        email = sanitizedEmail,
+                        password = password,
+                    )
                 }
+
+                is AuthResult.Error -> applyAuthError(
+                    error = registerResult.error,
+                    retryOperation = RetryOperation.Register,
+                )
             }
+        }
+    }
+
+    private fun retryLoginAfterSignup() {
+        val currentState = mutableUiState.value
+        if (currentState.isLoading) return
+
+        val email = currentState.email.trim()
+        val password = currentState.password
+        if (email.isBlank() || password.isBlank()) return
+
+        mutableUiState.update { state ->
+            state.copy(
+                operationState = AuthUiOperationState.Loading,
+                emailErrorRes = null,
+                passwordErrorRes = null,
+                confirmPasswordErrorRes = null,
+                errorMessageRes = null,
+            )
+        }
+
+        viewModelScope.launch {
+            loginAfterSignup(email = email, password = password)
         }
     }
 
@@ -143,14 +197,24 @@ class SignupViewModel @Inject constructor(
             is AuthResult.Success -> {
                 when (accountSessionLifecycle.activateFreshSession(loginResult.data)) {
                     AccountSessionResult.Success -> {
-                        mutableUiState.update { state -> state.copy(isLoading = false) }
+                        retryOperation = null
+                        mutableUiState.update { state ->
+                            state.copy(
+                                operationState = AuthUiOperationState.Idle,
+                                password = "",
+                                confirmPassword = "",
+                            )
+                        }
                         mutableEvents.emit(SignupUiEvent.SignupSucceeded)
                     }
 
                     AccountSessionResult.LocalVaultCleanupFailed -> {
+                        retryOperation = null
                         mutableUiState.update { state ->
                             state.copy(
-                                isLoading = false,
+                                operationState = AuthUiOperationState.TerminalError,
+                                password = "",
+                                confirmPassword = "",
                                 errorMessageRes = UiR.string.generic_error,
                             )
                         }
@@ -158,17 +222,39 @@ class SignupViewModel @Inject constructor(
                 }
             }
 
-            is AuthResult.Error -> {
-                val uiError = AuthUiErrorMapper.map(loginResult.error)
-                mutableUiState.update { state ->
-                    state.copy(
-                        isLoading = false,
-                        emailErrorRes = uiError.fieldErrors[AuthUiErrorMapper.EMAIL],
-                        passwordErrorRes = uiError.fieldErrors[AuthUiErrorMapper.PASSWORD],
-                        errorMessageRes = uiError.messageRes,
-                    )
-                }
-            }
+            is AuthResult.Error -> applyAuthError(
+                error = loginResult.error,
+                retryOperation = RetryOperation.LoginAfterSignup,
+            )
         }
     }
+
+    private fun applyAuthError(
+        error: AuthError,
+        retryOperation: RetryOperation,
+    ) {
+        val uiError = AuthUiErrorMapper.map(error)
+        this.retryOperation = retryOperation.takeIf { uiError.operationState.isRetryable() }
+        mutableUiState.update { state ->
+            state.copy(
+                operationState = uiError.operationState,
+                password = state.password.takeIf { uiError.operationState.isRetryable() }.orEmpty(),
+                confirmPassword = state.confirmPassword
+                    .takeIf { uiError.operationState.isRetryable() }
+                    .orEmpty(),
+                emailErrorRes = uiError.fieldErrors[AuthUiErrorMapper.EMAIL],
+                passwordErrorRes = uiError.fieldErrors[AuthUiErrorMapper.PASSWORD],
+                confirmPasswordErrorRes = uiError.fieldErrors[AuthUiErrorMapper.CONFIRM_PASSWORD]
+                    ?: uiError.fieldErrors["confirmPassword"],
+                errorMessageRes = uiError.messageRes,
+            )
+        }
+    }
+
+    private fun AuthUiOperationState.afterInputChange() =
+        when {
+            this == AuthUiOperationState.Loading -> this
+            isRetryable() -> this
+            else -> AuthUiOperationState.Idle
+        }
 }

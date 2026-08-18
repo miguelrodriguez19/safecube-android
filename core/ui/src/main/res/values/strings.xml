@@ -30,6 +30,8 @@
     <string name="auth_error_forbidden">Your account cannot access this operation right now</string>
     <string name="auth_error_account_exists">An account with this email already exists</string>
     <string name="auth_error_conflict">The account state is in conflict. Please try again</string>
+    <string name="auth_error_network_retryable">Check your connection and try again.</string>
+    <string name="auth_error_service_unavailable_retryable">The service is temporarily unavailable. Try again.</string>
     <string name="auth_error_email_invalid">Invalid email format</string>
     <string name="auth_error_password_invalid">Invalid password format</string>
     <string name="auth_error_confirm_password_invalid">Invalid confirm password value</string>

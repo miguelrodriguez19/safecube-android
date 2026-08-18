@@ -5,4 +5,5 @@ sealed interface SignupUiAction {
     data class PasswordChanged(val value: String) : SignupUiAction
     data class ConfirmPasswordChanged(val value: String) : SignupUiAction
     data object Submit : SignupUiAction
+    data object Retry : SignupUiAction
 }
