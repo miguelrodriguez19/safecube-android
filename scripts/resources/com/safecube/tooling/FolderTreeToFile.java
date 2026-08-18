@@ -36,7 +36,8 @@ public final class FolderTreeToFile {
     private static File outputFile;
 
     private static final Set<String> EXCLUDED_FOLDERS =
-            Set.of(".git", ".idea",
+            Set.of(".git",
+                    ".idea",
                     "safecube-android/build",
                     "app/build",
                     "core/(?!network)\\w+/build",
@@ -45,7 +46,8 @@ public final class FolderTreeToFile {
                     ".gradle",
                     "\\.kotlin",
                     "gradle/wrapper",
-                    "scripts/.build");
+                    "scripts/.build",
+                    "docs/sdd/agent-reports");
 
     private static final Set<String> EXCLUDED_FILES =
             Set.of(".+.properties", ".DS_Store", "ApiClient.kt", "HttpBearerAuth.kt");
