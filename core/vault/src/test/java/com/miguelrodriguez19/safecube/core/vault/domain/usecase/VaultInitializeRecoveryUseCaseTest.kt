@@ -9,6 +9,7 @@ import com.miguelrodriguez19.safecube.core.network.domain.model.RetryDecision
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitialization
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitializationState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultRecoveryKeyResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
@@ -335,6 +336,30 @@ class VaultInitializeRecoveryUseCaseTest {
 
         assertFalse(result)
         assertEquals(0, pendingClearCount)
+    }
+
+    @Test
+    fun `readPendingRecoveryKey_whenPendingRecordExists_thenReturnsRecoveryKeyCopy`() {
+        pendingValue = samplePendingInitialization()
+        val expectedRecoveryKey = pendingValue!!.recoveryKey.copyOf()
+
+        val result = target.readPendingRecoveryKey()
+
+        assertTrue(result is PendingVaultRecoveryKeyResult.Available)
+        assertArrayEquals(
+            expectedRecoveryKey,
+            (result as PendingVaultRecoveryKeyResult.Available).recoveryKey,
+        )
+        assertArrayEquals(expectedRecoveryKey, pendingValue!!.recoveryKey)
+    }
+
+    @Test
+    fun `readPendingRecoveryKey_whenPendingRecordIsCorrupted_thenReturnsCorrupted`() {
+        pendingReadResultOverride = PendingVaultInitializationReadResult.Corrupted
+
+        val result = target.readPendingRecoveryKey()
+
+        assertEquals(PendingVaultRecoveryKeyResult.Corrupted, result)
     }
 
     private fun configureCrypto() {

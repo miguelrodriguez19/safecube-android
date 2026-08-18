@@ -9,6 +9,7 @@ import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureCl
 import com.miguelrodriguez19.safecube.core.vault.domain.config.VaultCryptoDefaults
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitialization
+import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultRecoveryKeyResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitializationState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
@@ -49,6 +50,21 @@ class VaultInitializeUseCase @Inject constructor(
     fun confirmRecoveryKeySaved(): Boolean = runCatching {
         pendingVaultInitializationRepository.clear()
     }.getOrDefault(false)
+
+    fun readPendingRecoveryKey(): PendingVaultRecoveryKeyResult {
+        val pendingInitialization = when (val pendingResult = readPendingInitialization()) {
+            PendingVaultInitializationReadResult.Empty -> return PendingVaultRecoveryKeyResult.Unavailable
+            is PendingVaultInitializationReadResult.Present -> pendingResult.value
+            PendingVaultInitializationReadResult.Corrupted ->
+                return PendingVaultRecoveryKeyResult.Corrupted
+        }
+
+        return try {
+            PendingVaultRecoveryKeyResult.Available(pendingInitialization.recoveryKey.copyOf())
+        } finally {
+            zeroize(pendingInitialization)
+        }
+    }
 
     private suspend fun initialize(passphrase: String): VaultInitializeResult {
         val pendingInitialization = when (

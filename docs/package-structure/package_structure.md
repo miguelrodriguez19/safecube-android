@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 18-08-2026 05:40:03
+Updated: 18-08-2026 07:20:23
 
 ```
 safecube-android/
@@ -607,6 +607,7 @@ safecube-android/
 │       │   │   │       ├── model/
 │       │   │   │       │   ├── initialize/
 │       │   │   │       │   │   ├── PendingVaultInitialization.kt
+│       │   │   │       │   │   ├── PendingVaultRecoveryKeyResult.kt
 │       │   │   │       │   │   ├── VaultInitializeError.kt
 │       │   │   │       │   │   └── VaultInitializeResult.kt
 │       │   │   │       │   ├── remote/
@@ -822,11 +823,11 @@ safecube-android/
 │   │   │   ├── EXTRA-CD-PIPELINE.md
 │   │   │   ├── SCDK-M100.md
 │   │   │   ├── SCDK-M101.md
-│   │   │   ├── SCDK-M102--Build-and-verify-signed-APK-in-release-workflow.md
-│   │   │   ├── SCDK-M103--Publish-APK-to-GitHub-Releases.md
-│   │   │   ├── SCDK-M104--Create-release-runbook.md
-│   │   │   ├── SCDK-M105--Automate-changelog.md
-│   │   │   ├── SCDK-M106--Add-SBOM-and-provenance-attestation.md
+│   │   │   ├── SCDK-M102.md
+│   │   │   ├── SCDK-M103.md
+│   │   │   ├── SCDK-M104.md
+│   │   │   ├── SCDK-M105.md
+│   │   │   ├── SCDK-M106.md
 │   │   │   ├── SCDK-M109.md
 │   │   │   ├── SCDK-M110.md
 │   │   │   ├── SCDK-M113.md
@@ -835,6 +836,7 @@ safecube-android/
 │   │   │   ├── SCDK-M116.md
 │   │   │   ├── SCDK-M117.md
 │   │   │   ├── SCDK-M118.md
+│   │   │   ├── SCDK-M119.md
 │   │   │   ├── SCDK-M92.md
 │   │   │   ├── SCDK-M93.md
 │   │   │   ├── SCDK-M94.md
@@ -997,6 +999,8 @@ safecube-android/
 │       │   │   │   │   └── sync/
 │       │   │   │   │       ├── SyncIconButton.kt
 │       │   │   │   │       └── VaultSyncUiMapper.kt
+│       │   │   │   ├── state/
+│       │   │   │   │   └── VaultUiOperationState.kt
 │       │   │   │   └── unlock/
 │       │   │   │       ├── action/
 │       │   │   │       │   └── UnlockVaultUiAction.kt
@@ -1011,14 +1015,20 @@ safecube-android/
 │       │   │   └── AndroidManifest.xml
 │       │   └── test/java/com/miguelrodriguez19/safecube/feature/vault/
 │       │       ├── presentation/
+│       │       │   ├── create/viewmodel/
+│       │       │   │   └── CreateVaultViewModelTest.kt
 │       │       │   ├── home/viewmodel/
 │       │       │   │   └── VaultHomeViewModelTest.kt
 │       │       │   ├── noteeditor/viewmodel/
 │       │       │   │   └── NoteEditorViewModelTest.kt
 │       │       │   ├── passwordeditor/viewmodel/
 │       │       │   │   └── PasswordEditorViewModelTest.kt
-│       │       │   └── settings/viewmodel/
-│       │       │       └── SettingsViewModelTest.kt
+│       │       │   ├── recovery/viewmodel/
+│       │       │   │   └── RecoveryKeyViewModelTest.kt
+│       │       │   ├── settings/viewmodel/
+│       │       │   │   └── SettingsViewModelTest.kt
+│       │       │   └── unlock/viewmodel/
+│       │       │       └── UnlockVaultViewModelTest.kt
 │       │       └── test/
 │       │           └── MainDispatcherRule.kt
 │       └── build.gradle.kts
