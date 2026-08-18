@@ -26,6 +26,7 @@ android {
 
 dependencies {
     implementation(project(":core:auth"))
+    implementation(project(":core:network"))
     implementation(project(":core:ui"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -35,4 +36,8 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

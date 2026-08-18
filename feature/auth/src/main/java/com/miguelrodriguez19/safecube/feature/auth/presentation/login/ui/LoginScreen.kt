@@ -124,13 +124,29 @@ private fun LoginContent(
                 )
             }
             Button(
-                onClick = { onAction(LoginUiAction.Submit) },
+                onClick = {
+                    onAction(
+                        if (uiState.isRetryable) {
+                            LoginUiAction.Retry
+                        } else {
+                            LoginUiAction.Submit
+                        },
+                    )
+                },
                 enabled = !uiState.isLoading,
                 modifier = Modifier
                     .padding(top = 16.dp)
                     .fillMaxWidth(),
             ) {
-                Text(stringResource(if (uiState.isLoading) R.string.logging_in else R.string.login))
+                Text(
+                    stringResource(
+                        when {
+                            uiState.isRetryable -> R.string.retry
+                            uiState.isLoading -> R.string.logging_in
+                            else -> R.string.login
+                        },
+                    ),
+                )
             }
             Button(
                 onClick = onSignup,
