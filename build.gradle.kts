@@ -107,16 +107,7 @@ tasks.register("verifyCoverage") {
     group = "verification"
     description = "Runs unit tests, generates Kover reports, and verifies coverage thresholds."
     dependsOn(
-        ":app:testDebugUnitTest",
-        ":core:auth:testDebugUnitTest",
-        ":core:network:testDebugUnitTest",
-        ":core:crypto:testDebugUnitTest",
-        ":core:storage:testDebugUnitTest",
-        ":core:vault:testDebugUnitTest",
-        ":core:ui:testDebugUnitTest",
-        ":feature:auth:testDebugUnitTest",
-        ":feature:profile:testDebugUnitTest",
-        ":feature:vault:testDebugUnitTest",
+        androidModules.map { ":testDebugUnitTest" },
         "koverHtmlReport",
         "koverXmlReport",
         "koverVerify"
