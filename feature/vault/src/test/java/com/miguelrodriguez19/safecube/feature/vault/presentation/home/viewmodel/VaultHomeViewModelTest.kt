@@ -69,15 +69,39 @@ class VaultHomeViewModelTest {
     }
 
     @Test
-    fun `first successful empty Room emission then exposes empty`() = runTest {
+    fun `initial sync with empty Room emission then exposes empty after sync`() = runTest {
         stubObservers()
+        coEvery { syncVaultNowUseCase.invoke() } returns VaultSyncResult.Success(0, 0, 0)
         val target = createTarget()
 
+        target.onVaultScreenShown()
         advanceUntilIdle()
 
         assertEquals(VaultHomeContentState.Empty, target.uiState.value.contentState)
         assertTrue(target.uiState.value.isEmpty)
         assertFalse(target.uiState.value.hasLocalReadError)
+    }
+
+    @Test
+    fun `initial sync with empty Room emission then keeps loading until remote content arrives`() = runTest {
+        val itemFlow = MutableStateFlow<List<VaultItemSummary>>(emptyList())
+        stubObservers(itemFlow = itemFlow)
+        val releaseSync = CompletableDeferred<VaultSyncResult>()
+        coEvery { syncVaultNowUseCase.invoke() } coAnswers { releaseSync.await() }
+        val target = createTarget()
+
+        target.onVaultScreenShown()
+        runCurrent()
+
+        assertEquals(VaultHomeContentState.InitialLoading, target.uiState.value.contentState)
+        assertFalse(target.uiState.value.isEmpty)
+
+        itemFlow.value = listOf(itemSummary())
+        releaseSync.complete(VaultSyncResult.Success(0, 1, 0))
+        advanceUntilIdle()
+
+        assertEquals(VaultHomeContentState.Content, target.uiState.value.contentState)
+        assertEquals(1, target.uiState.value.items.size)
     }
 
     @Test
@@ -283,6 +307,22 @@ class VaultHomeViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { syncVaultNowUseCase.invoke() }
+    }
+
+    @Test
+    fun `new home entry after logout then triggers a new initial sync`() = runTest {
+        stubObservers()
+        coEvery { syncVaultNowUseCase.invoke() } returns VaultSyncResult.Success(0, 0, 0)
+        val firstTarget = createTarget()
+
+        firstTarget.onVaultScreenShown()
+        advanceUntilIdle()
+        firstTarget.onVaultScreenHidden()
+        val secondTarget = createTarget()
+        secondTarget.onVaultScreenShown()
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { syncVaultNowUseCase.invoke() }
     }
 
     private fun createTarget(): VaultHomeViewModel = VaultHomeViewModel(

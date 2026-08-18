@@ -7,7 +7,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.miguelrodriguez19.safecube.app.presentation.navigation.route.Routes
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
@@ -83,6 +85,10 @@ fun NavigationWrapper() {
 
     NavDisplay(
         backStack = backStack,
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
         onBack = {
             handleBackNavigation(
                 currentRoute = backStack.lastOrNull() as? Routes,

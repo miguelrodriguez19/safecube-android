@@ -39,6 +39,7 @@ class VaultHomeViewModel @Inject constructor(
     val uiState = mutableUiState.asStateFlow()
     private var isVaultScreenVisible = false
     private var hasTriggeredInitialSync = false
+    private var hasCompletedInitialSync = false
     private var dirtyState = false
     private var syncJob: Job? = null
 
@@ -75,10 +76,10 @@ class VaultHomeViewModel @Inject constructor(
                     mutableUiState.update { state ->
                         state.copy(
                             items = items,
-                            contentState = if (items.isEmpty()) {
-                                VaultHomeContentState.Empty
-                            } else {
-                                VaultHomeContentState.Content
+                            contentState = when {
+                                items.isNotEmpty() -> VaultHomeContentState.Content
+                                hasCompletedInitialSync -> VaultHomeContentState.Empty
+                                else -> VaultHomeContentState.InitialLoading
                             },
                             localReadError = null,
                         )
@@ -104,7 +105,7 @@ class VaultHomeViewModel @Inject constructor(
                         state.copy(isDirty = isDirty)
                     }
                     if (isVaultScreenVisible && isDirty && !wasDirty) {
-                        requestSync()
+                        requestSync(isInitialSync = false)
                     }
                 }
             } catch (cancellationException: CancellationException) {
@@ -128,11 +129,11 @@ class VaultHomeViewModel @Inject constructor(
         isVaultScreenVisible = true
         if (!hasTriggeredInitialSync) {
             hasTriggeredInitialSync = true
-            requestSync()
+            requestSync(isInitialSync = true)
             return
         }
         if (dirtyState) {
-            requestSync()
+            requestSync(isInitialSync = false)
         }
     }
 
@@ -177,10 +178,10 @@ class VaultHomeViewModel @Inject constructor(
     }
 
     fun syncNow() {
-        requestSync()
+        requestSync(isInitialSync = false)
     }
 
-    private fun requestSync() {
+    private fun requestSync(isInitialSync: Boolean) {
         if (mutableUiState.value.isSyncing || syncJob?.isActive == true) {
             return
         }
@@ -210,8 +211,22 @@ class VaultHomeViewModel @Inject constructor(
                     )
                 }
             } finally {
+                if (isInitialSync) {
+                    hasCompletedInitialSync = true
+                }
                 mutableUiState.update { state ->
-                    state.copy(isSyncing = false)
+                    state.copy(
+                        isSyncing = false,
+                        contentState = if (
+                            isInitialSync &&
+                            state.items.isEmpty() &&
+                            state.localReadError == null
+                        ) {
+                            VaultHomeContentState.Empty
+                        } else {
+                            state.contentState
+                        },
+                    )
                 }
             }
         }
