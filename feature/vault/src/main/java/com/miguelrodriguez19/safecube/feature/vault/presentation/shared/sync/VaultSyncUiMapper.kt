@@ -14,10 +14,16 @@ internal fun SecureItemSyncState.asUiLabel(): String = when (this) {
 }
 
 @Composable
-internal fun VaultSyncError.asUiLabel(): String = when (this) {
-    is VaultSyncError.InvalidVaultState -> stringResource(UiR.string.sync_error_invalid_vault_state)
-    is VaultSyncError.PushFailed -> stringResource(UiR.string.sync_error_push_failed)
-    is VaultSyncError.PullFailed -> stringResource(UiR.string.sync_error_pull_failed)
+internal fun VaultSyncError.asUiLabel(): String = toUiCategory().asUiLabel()
+
+@Composable
+internal fun VaultSyncUiErrorCategory.asUiLabel(): String = when (this) {
+    VaultSyncUiErrorCategory.OfflineOrTimeout -> stringResource(UiR.string.sync_error_offline_timeout)
+    VaultSyncUiErrorCategory.ServiceUnavailable -> stringResource(UiR.string.sync_error_service_unavailable)
+    VaultSyncUiErrorCategory.SessionRequired -> stringResource(UiR.string.sync_error_session_required)
+    VaultSyncUiErrorCategory.Conflict -> stringResource(UiR.string.sync_error_conflict)
+    VaultSyncUiErrorCategory.ProtocolIntegrity -> stringResource(UiR.string.sync_error_protocol_integrity)
+    VaultSyncUiErrorCategory.StorageOrCrypto -> stringResource(UiR.string.sync_error_storage_crypto)
 }
 
 @Composable

@@ -30,16 +30,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
-import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
+import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeContentState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultItemSummaryUiModel
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.viewmodel.VaultHomeViewModel
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.SyncIconButton
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation.AppTab
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation.NavigationBar
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.asUiLabel
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import java.time.Instant
@@ -118,6 +119,7 @@ private fun VaultContent(
                     )
                     SyncIconButton(
                         isSyncing = uiState.isSyncing,
+                        enabled = !uiState.isSyncing,
                         onClick = onSyncNow,
                         contentDescription = stringResource(UiR.string.sync_now_action),
                     )
@@ -142,6 +144,7 @@ private fun VaultContent(
         ) {
             VaultSyncFeedback(
                 uiState = uiState,
+                onSyncNow = onSyncNow,
                 modifier = Modifier.fillMaxWidth(),
             )
             VaultPrimaryActions(
@@ -149,19 +152,40 @@ private fun VaultContent(
                 onCreateNote = onCreateNote,
             )
 
-            if (uiState.items.isEmpty()) {
-                VaultEmptyState(
+            when (uiState.contentState) {
+                VaultHomeContentState.InitialLoading -> VaultLoadingState(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
                 )
-            } else {
-                VaultItemsList(
+
+                VaultHomeContentState.Empty -> VaultEmptyState(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                )
+
+                VaultHomeContentState.Content -> VaultItemsList(
                     items = uiState.items,
                     onEditPassword = onEditPassword,
                     onEditNote = onEditNote,
                     modifier = Modifier.weight(1f),
                 )
+
+                VaultHomeContentState.Error -> if (uiState.items.isEmpty()) {
+                    VaultLocalReadErrorState(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                    )
+                } else {
+                    VaultItemsList(
+                        items = uiState.items,
+                        onEditPassword = onEditPassword,
+                        onEditNote = onEditNote,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
     }
@@ -177,14 +201,29 @@ private fun VaultPrimaryActions(
             onClick = onCreatePassword,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("New password entry")
+            Text(stringResource(UiR.string.vault_home_new_password))
         }
         OutlinedButton(
             onClick = onCreateNote,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("New note")
+            Text(stringResource(UiR.string.vault_home_new_note))
         }
+    }
+}
+
+@Composable
+private fun VaultLoadingState(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(UiR.string.vault_home_loading),
+            style = MaterialTheme.typography.headlineSmall,
+        )
     }
 }
 
@@ -201,14 +240,30 @@ private fun VaultEmptyState(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = "Your vault is empty",
+                text = stringResource(UiR.string.vault_home_empty_title),
                 style = MaterialTheme.typography.headlineSmall,
             )
             Text(
-                text = "Create your first password entry or secure note. Items stored locally will appear here automatically.",
+                text = stringResource(UiR.string.vault_home_empty_description),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
+    }
+}
+
+@Composable
+private fun VaultLocalReadErrorState(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(UiR.string.vault_home_local_read_error),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+        )
     }
 }
 
@@ -302,7 +357,10 @@ private fun VaultItemCard(
                 )
             }
             Text(
-                text = "Updated ${item.updatedAt.asListTimestamp()}",
+                text = stringResource(
+                    UiR.string.vault_item_updated_at,
+                    item.updatedAt.asListTimestamp(),
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -313,6 +371,7 @@ private fun VaultItemCard(
 @Composable
 private fun VaultSyncFeedback(
     uiState: VaultHomeUiState,
+    onSyncNow: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val syncResult = uiState.lastSyncResult
@@ -348,24 +407,42 @@ private fun VaultSyncFeedback(
             syncResult.reason.asUiLabel(),
         )
 
+        uiState.syncErrorCategory != null -> stringResource(
+            UiR.string.sync_last_result_error_with_reason,
+            uiState.syncErrorCategory.asUiLabel(),
+        )
+
         else -> null
     } ?: return
 
-    Text(
-        text = message,
+    Column(
         modifier = modifier,
-        style = MaterialTheme.typography.bodyMedium,
-        color = if (uiState.lastSyncError == null) {
-            MaterialTheme.colorScheme.onSurface
-        } else {
-            MaterialTheme.colorScheme.error
-        },
-    )
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (uiState.lastSyncError == null && uiState.syncErrorCategory == null) {
+                MaterialTheme.colorScheme.onSurface
+            } else {
+                MaterialTheme.colorScheme.error
+            },
+        )
+        if (uiState.isSyncRetryable) {
+            OutlinedButton(
+                onClick = onSyncNow,
+                enabled = !uiState.isSyncing,
+            ) {
+                Text(stringResource(UiR.string.retry))
+            }
+        }
+    }
 }
 
+@Composable
 private fun SecureItemType.asLabel(): String = when (this) {
-    SecureItemType.PASSWORD -> "Password"
-    SecureItemType.NOTE -> "Note"
+    SecureItemType.PASSWORD -> stringResource(UiR.string.vault_item_type_password)
+    SecureItemType.NOTE -> stringResource(UiR.string.vault_item_type_note)
 }
 
 @Composable
@@ -373,13 +450,6 @@ private fun SecureItemDraftType.asLabel(): String = when (this) {
     SecureItemDraftType.CREATE -> stringResource(UiR.string.draft_type_create)
     SecureItemDraftType.UPDATE -> stringResource(UiR.string.draft_type_update)
     SecureItemDraftType.DELETE -> stringResource(UiR.string.draft_type_delete)
-}
-
-@Composable
-private fun VaultSyncError.asUiLabel(): String = when (this) {
-    is VaultSyncError.InvalidVaultState -> stringResource(UiR.string.sync_error_invalid_vault_state)
-    is VaultSyncError.PushFailed -> stringResource(UiR.string.sync_error_push_failed)
-    is VaultSyncError.PullFailed -> stringResource(UiR.string.sync_error_pull_failed)
 }
 
 private fun Instant.asListTimestamp(): String = DateTimeFormatter

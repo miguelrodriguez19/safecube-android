@@ -82,6 +82,7 @@ internal fun SecureItemEditorScaffold(
                     if (showSyncAction && onSyncNow != null) {
                         SyncIconButton(
                             isSyncing = isSyncing,
+                            enabled = !isSyncing,
                             onClick = onSyncNow,
                             contentDescription = stringResource(UiR.string.sync_now_action),
                         )
