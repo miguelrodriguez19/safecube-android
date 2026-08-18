@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.action.CreateVaultUiAction
@@ -28,7 +29,7 @@ import com.miguelrodriguez19.safecube.feature.vault.presentation.create.viewmode
 
 @Composable
 fun CreateVaultScreen(
-    onRecoveryKey: (String) -> Unit,
+    onRecoveryKey: () -> Unit,
     onVaultAlreadyExists: () -> Unit,
     viewModel: CreateVaultViewModel = hiltViewModel(),
 ) {
@@ -37,7 +38,7 @@ fun CreateVaultScreen(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                is CreateVaultUiEvent.NavigateToRecoveryKey -> onRecoveryKey(event.recoveryKeyBase64)
+                CreateVaultUiEvent.NavigateToRecoveryKey -> onRecoveryKey()
                 CreateVaultUiEvent.NavigateToUnlock -> onVaultAlreadyExists()
             }
         }
@@ -61,7 +62,7 @@ private fun CreateVaultContent(
                 modifier = Modifier.statusBarsPadding(),
             ) {
                 Text(
-                    text = "Create Vault",
+                    text = stringResource(UiR.string.vault_create_title),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
                 )
@@ -75,9 +76,9 @@ private fun CreateVaultContent(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text("Step 1: initialize secure vault storage")
+            Text(stringResource(UiR.string.vault_create_step))
             Text(
-                text = "Define your passphrase to initialize the vault.",
+                text = stringResource(UiR.string.vault_create_description),
                 modifier = Modifier.padding(bottom = 12.dp),
             )
             OutlinedTextField(
@@ -86,6 +87,7 @@ private fun CreateVaultContent(
                 label = { Text(stringResource(UiR.string.password_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
                 isError = uiState.passphraseErrorRes != null,
                 enabled = !uiState.isLoading,
             )
@@ -104,11 +106,25 @@ private fun CreateVaultContent(
                 )
             }
             Button(
-                onClick = { onAction(CreateVaultUiAction.Submit) },
+                onClick = {
+                    onAction(
+                        if (uiState.isRetryable) {
+                            CreateVaultUiAction.Retry
+                        } else {
+                            CreateVaultUiAction.Submit
+                        },
+                    )
+                },
                 enabled = !uiState.isLoading,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(if (uiState.isLoading) "Creating vault..." else "Create vault")
+                Text(
+                    text = when {
+                        uiState.isLoading -> stringResource(UiR.string.vault_create_loading)
+                        uiState.isRetryable -> stringResource(UiR.string.retry)
+                        else -> stringResource(UiR.string.vault_create_action)
+                    },
+                )
             }
         }
     }

@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.feature.vault.presentation.create.viewmod
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.network.domain.model.RetryDecision
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
@@ -11,9 +12,10 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultIniti
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.action.CreateVaultUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.event.CreateVaultUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.state.CreateVaultUiState
+import com.miguelrodriguez19.safecube.feature.vault.presentation.state.VaultUiOperationState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Base64
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -37,7 +39,8 @@ class CreateVaultViewModel @Inject constructor(
     fun onAction(action: CreateVaultUiAction) {
         when (action) {
             is CreateVaultUiAction.PassphraseChanged -> onPassphraseChanged(action.value)
-            CreateVaultUiAction.Submit -> createVault()
+            CreateVaultUiAction.Submit -> submit()
+            CreateVaultUiAction.Retry -> retry()
         }
     }
 
@@ -45,10 +48,26 @@ class CreateVaultViewModel @Inject constructor(
         mutableUiState.update { state ->
             state.copy(
                 passphrase = value,
+                operationState = state.operationState.takeIf {
+                    it == VaultUiOperationState.Loading
+                } ?: VaultUiOperationState.Idle,
                 passphraseErrorRes = null,
                 errorMessageRes = null,
             )
         }
+    }
+
+    private fun submit() {
+        if (mutableUiState.value.isRetryable) {
+            retry()
+        } else {
+            createVault()
+        }
+    }
+
+    private fun retry() {
+        if (!mutableUiState.value.isRetryable) return
+        createVault()
     }
 
     private fun createVault() {
@@ -59,6 +78,7 @@ class CreateVaultViewModel @Inject constructor(
         if (passphrase.isBlank()) {
             mutableUiState.update { current ->
                 current.copy(
+                    operationState = VaultUiOperationState.TerminalError,
                     passphraseErrorRes = UiR.string.password_is_required,
                     errorMessageRes = null,
                 )
@@ -68,37 +88,61 @@ class CreateVaultViewModel @Inject constructor(
 
         mutableUiState.update { current ->
             current.copy(
-                isLoading = true,
+                operationState = VaultUiOperationState.Loading,
                 passphraseErrorRes = null,
                 errorMessageRes = null,
             )
         }
 
         viewModelScope.launch {
-            when (val result = vaultInitializeUseCase(passphrase)) {
-                is VaultInitializeResult.Initialized -> {
-                    vaultSessionManager.lock()
-                    mutableUiState.update { current -> current.copy(isLoading = false) }
-                    mutableEvents.emit(
-                        CreateVaultUiEvent.NavigateToRecoveryKey(
-                            recoveryKeyBase64 = Base64.getEncoder().encodeToString(result.recoveryKey),
-                        ),
-                    )
-                }
-
-                is VaultInitializeResult.AlreadyInitialized -> {
-                    vaultSessionManager.lock()
-                    mutableUiState.update { current -> current.copy(isLoading = false) }
-                    mutableEvents.emit(CreateVaultUiEvent.NavigateToUnlock)
-                }
-
-                is VaultInitializeResult.Error -> {
-                    mutableUiState.update { current ->
-                        current.copy(
-                            isLoading = false,
-                            errorMessageRes = mapError(result.reason),
-                        )
+            try {
+                when (val result = vaultInitializeUseCase(passphrase)) {
+                    is VaultInitializeResult.Initialized -> {
+                        result.recoveryKey.fill(0)
+                        vaultSessionManager.lock()
+                        mutableUiState.update { current ->
+                            current.copy(
+                                passphrase = "",
+                                operationState = VaultUiOperationState.Success,
+                            )
+                        }
+                        mutableEvents.emit(CreateVaultUiEvent.NavigateToRecoveryKey)
                     }
+
+                    is VaultInitializeResult.AlreadyInitialized -> {
+                        vaultSessionManager.lock()
+                        mutableUiState.update { current ->
+                            current.copy(
+                                passphrase = "",
+                                operationState = VaultUiOperationState.Success,
+                            )
+                        }
+                        mutableEvents.emit(CreateVaultUiEvent.NavigateToUnlock)
+                    }
+
+                    is VaultInitializeResult.Error -> {
+                        mutableUiState.update { current ->
+                            current.copy(
+                                passphrase = if (isRetryable(result.reason)) current.passphrase else "",
+                                operationState = if (isRetryable(result.reason)) {
+                                    VaultUiOperationState.RetryableError
+                                } else {
+                                    VaultUiOperationState.TerminalError
+                                },
+                                errorMessageRes = mapError(result.reason),
+                            )
+                        }
+                    }
+                }
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (_: Throwable) {
+                mutableUiState.update { current ->
+                    current.copy(
+                        passphrase = "",
+                        operationState = VaultUiOperationState.TerminalError,
+                        errorMessageRes = UiR.string.vault_error_terminal,
+                    )
                 }
             }
         }
@@ -106,11 +150,20 @@ class CreateVaultViewModel @Inject constructor(
 
     private fun mapError(error: VaultInitializeError): Int = when (error) {
         is VaultInitializeError.Remote -> when (error.error) {
-            VaultKeyMaterialRemoteError.Unauthorized -> UiR.string.auth_error_forbidden
-            else -> UiR.string.generic_error
+            VaultKeyMaterialRemoteError.Unauthorized -> UiR.string.vault_error_unauthorized
+            VaultKeyMaterialRemoteError.Forbidden -> UiR.string.vault_error_forbidden
+            else -> if (isRetryable(error)) {
+                UiR.string.vault_error_retryable
+            } else {
+                UiR.string.vault_error_terminal
+            }
         }
 
-        is VaultInitializeError.Crypto -> UiR.string.generic_error
-        is VaultInitializeError.LocalStorage -> UiR.string.generic_error
+        is VaultInitializeError.Crypto -> UiR.string.vault_error_crypto
+        is VaultInitializeError.LocalStorage -> UiR.string.vault_error_local_storage
     }
+
+    private fun isRetryable(initializeError: VaultInitializeError): Boolean =
+        initializeError is VaultInitializeError.Remote &&
+            initializeError.error.failure.decision == RetryDecision.Retryable
 }

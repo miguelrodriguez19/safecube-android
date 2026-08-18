@@ -27,6 +27,7 @@ android {
 dependencies {
     implementation(project(":core:auth"))
     implementation(project(":core:crypto"))
+    implementation(project(":core:network"))
     implementation(project(":core:storage"))
     implementation(project(":core:vault"))
     implementation(project(":core:ui"))
@@ -43,4 +44,5 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(project(":core:ui"))
 }

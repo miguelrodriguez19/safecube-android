@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -27,15 +29,10 @@ import com.miguelrodriguez19.safecube.feature.vault.presentation.recovery.viewmo
 
 @Composable
 fun RecoveryKeyScreen(
-    recoveryKeyBase64: String?,
     onUnlockVault: () -> Unit,
     viewModel: RecoveryKeyViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
-    LaunchedEffect(recoveryKeyBase64) {
-        viewModel.onAction(RecoveryKeyUiAction.SetRecoveryKey(recoveryKeyBase64))
-    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -63,7 +60,7 @@ private fun RecoveryKeyContent(
                 modifier = Modifier.statusBarsPadding(),
             ) {
                 Text(
-                    text = "Recovery Key",
+                    text = stringResource(UiR.string.vault_recovery_title),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
                 )
@@ -77,12 +74,10 @@ private fun RecoveryKeyContent(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text("Step 2: back up your key phrase")
+            Text(stringResource(UiR.string.vault_recovery_step))
             Text(
-                text = if (uiState.recoveryKey.isBlank()) {
-                    "Recovery key unavailable"
-                } else {
-                    uiState.recoveryKey
+                text = uiState.recoveryKey.ifBlank {
+                    stringResource(UiR.string.vault_recovery_unavailable)
                 },
                 modifier = Modifier.padding(bottom = 12.dp),
             )
@@ -94,11 +89,36 @@ private fun RecoveryKeyContent(
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
             }
-            Button(
-                onClick = { onAction(RecoveryKeyUiAction.Continue) },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("I saved it, continue")
+                Checkbox(
+                    checked = uiState.isConfirmed,
+                    onCheckedChange = {
+                        onAction(RecoveryKeyUiAction.ConfirmationChanged(it))
+                    },
+                    enabled = !uiState.isLoading && uiState.recoveryKey.isNotBlank(),
+                )
+                Text(
+                    text = stringResource(UiR.string.vault_recovery_save_confirmation),
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
+            if (uiState.isRetryable) {
+                Button(
+                    onClick = { onAction(RecoveryKeyUiAction.Retry) },
+                    enabled = !uiState.isLoading,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(UiR.string.retry))
+                }
+            }
+            Button(
+                onClick = { onAction(RecoveryKeyUiAction.Continue) },
+                enabled = uiState.canContinue && !uiState.isLoading,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(UiR.string.vault_recovery_continue))
             }
         }
     }
