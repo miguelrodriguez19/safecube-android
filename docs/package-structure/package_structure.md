@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 18-08-2026 07:22:36
+Updated: 18-08-2026 07:27:36
 
 ```
 safecube-android/
@@ -819,32 +819,6 @@ safecube-android/
 │   │   ├── roadmap--fase-7.md
 │   │   └── roadmap--high-level.md
 │   ├── sdd/
-│   │   ├── agent-reports/
-│   │   │   ├── EXTRA-CD-PIPELINE.md
-│   │   │   ├── SCDK-M100.md
-│   │   │   ├── SCDK-M101.md
-│   │   │   ├── SCDK-M102.md
-│   │   │   ├── SCDK-M103.md
-│   │   │   ├── SCDK-M104.md
-│   │   │   ├── SCDK-M105.md
-│   │   │   ├── SCDK-M106.md
-│   │   │   ├── SCDK-M109.md
-│   │   │   ├── SCDK-M110.md
-│   │   │   ├── SCDK-M113.md
-│   │   │   ├── SCDK-M114.md
-│   │   │   ├── SCDK-M115.md
-│   │   │   ├── SCDK-M116.md
-│   │   │   ├── SCDK-M117.md
-│   │   │   ├── SCDK-M118.md
-│   │   │   ├── SCDK-M119.md
-│   │   │   ├── SCDK-M92.md
-│   │   │   ├── SCDK-M93.md
-│   │   │   ├── SCDK-M94.md
-│   │   │   ├── SCDK-M95.md
-│   │   │   ├── SCDK-M96.md
-│   │   │   ├── SCDK-M97.md
-│   │   │   ├── SCDK-M98.md
-│   │   │   └── SCDK-M99.md
 │   │   ├── agent-report-template.md
 │   │   ├── agent-workflow.md
 │   │   ├── definition-of-ready-done.md
@@ -998,6 +972,7 @@ safecube-android/
 │       │   │   │   │   │   └── NavigationBar.kt
 │       │   │   │   │   └── sync/
 │       │   │   │   │       ├── SyncIconButton.kt
+│       │   │   │   │       ├── VaultSyncUiErrorCategory.kt
 │       │   │   │   │       └── VaultSyncUiMapper.kt
 │       │   │   │   ├── state/
 │       │   │   │   │   └── VaultUiOperationState.kt
