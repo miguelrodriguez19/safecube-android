@@ -25,8 +25,6 @@ internal fun navigationEntryProvider(
     addRoute: (Routes) -> Unit,
     replaceCurrent: (Routes) -> Unit,
     popBackStack: () -> Unit,
-    pendingRecoveryKey: String?,
-    onPendingRecoveryKeyChanged: (String?) -> Unit,
     onLogout: () -> Unit,
     showSessionExpiredMessage: Boolean,
 ): (NavKey) -> NavEntry<NavKey> = entryProvider {
@@ -106,8 +104,7 @@ internal fun navigationEntryProvider(
     }
     entry<Routes.CreateVault> {
         CreateVaultScreen(
-            onRecoveryKey = { recoveryKeyBase64 ->
-                onPendingRecoveryKeyChanged(recoveryKeyBase64)
+            onRecoveryKey = {
                 replaceCurrent(Routes.RecoveryKey)
             },
             onVaultAlreadyExists = { replaceCurrent(Routes.UnlockVault) },
@@ -115,9 +112,7 @@ internal fun navigationEntryProvider(
     }
     entry<Routes.RecoveryKey> {
         RecoveryKeyScreen(
-            recoveryKeyBase64 = pendingRecoveryKey,
             onUnlockVault = {
-                onPendingRecoveryKeyChanged(null)
                 replaceCurrent(Routes.UnlockVault)
             },
         )

@@ -4,11 +4,8 @@ import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -24,7 +21,6 @@ fun NavigationWrapper() {
     val dependencies = rememberNavigationDependencies()
     val sessionState by dependencies.sessionManager.sessionState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
-    var pendingRecoveryKey by rememberSaveable { mutableStateOf<String?>(null) }
 
     val setRoot: (Routes) -> Unit = setRoot@{ route ->
         if (backStack.size == 1 && backStack.lastOrNull() == route) return@setRoot
@@ -101,8 +97,6 @@ fun NavigationWrapper() {
             addRoute = addRoute,
             replaceCurrent = replaceCurrent,
             popBackStack = popBackStack,
-            pendingRecoveryKey = pendingRecoveryKey,
-            onPendingRecoveryKeyChanged = { pendingRecoveryKey = it },
             onLogout = onLogout,
             showSessionExpiredMessage = shouldShowSessionExpiredMessage(sessionState),
         )
