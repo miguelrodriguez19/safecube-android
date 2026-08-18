@@ -18,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
@@ -59,7 +60,7 @@ private fun UnlockVaultContent(
                 modifier = Modifier.statusBarsPadding(),
             ) {
                 Text(
-                    text = "Unlock Vault",
+                    text = stringResource(UiR.string.vault_unlock_title),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
                 )
@@ -73,7 +74,7 @@ private fun UnlockVaultContent(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text("Authenticate to open your secure data")
+            Text(stringResource(UiR.string.vault_unlock_description))
             OutlinedTextField(
                 value = uiState.passphrase,
                 onValueChange = { onAction(UnlockVaultUiAction.PassphraseChanged(it)) },
@@ -82,6 +83,7 @@ private fun UnlockVaultContent(
                     .padding(top = 12.dp)
                     .fillMaxWidth(),
                 singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
                 isError = uiState.passphraseErrorRes != null,
                 enabled = !uiState.isLoading,
             )
@@ -92,13 +94,27 @@ private fun UnlockVaultContent(
                 )
             }
             Button(
-                onClick = { onAction(UnlockVaultUiAction.Submit) },
+                onClick = {
+                    onAction(
+                        if (uiState.isRetryable) {
+                            UnlockVaultUiAction.Retry
+                        } else {
+                            UnlockVaultUiAction.Submit
+                        },
+                    )
+                },
                 enabled = !uiState.isLoading,
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
             ) {
-                Text(if (uiState.isLoading) "Unlocking..." else "Unlock")
+                Text(
+                    text = when {
+                        uiState.isLoading -> stringResource(UiR.string.vault_unlock_loading)
+                        uiState.isRetryable -> stringResource(UiR.string.retry)
+                        else -> stringResource(UiR.string.vault_unlock_action)
+                    },
+                )
             }
             uiState.errorMessageRes?.let { errorRes ->
                 Text(
