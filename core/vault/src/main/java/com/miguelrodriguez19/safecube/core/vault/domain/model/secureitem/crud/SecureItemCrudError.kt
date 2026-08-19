@@ -10,4 +10,6 @@ sealed interface SecureItemCrudError {
     ) : SecureItemCrudError
 
     data object CorruptedPayload : SecureItemCrudError
+
+    data object LocalStorageFailure : SecureItemCrudError
 }

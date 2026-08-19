@@ -183,7 +183,13 @@ class SecureItemDraftMutationCoordinatorTest {
                 NoteSecureItemContent("Body"),
             ),
         )
+        assertEquals(
+            SecureItemMutationResult.Error(SecureItemCrudError.VaultLocked),
+            target.softDelete(UUID.randomUUID()),
+        )
         coVerify(exactly = 0) { secureItemDraftRepository.upsert(any()) }
+        coVerify(exactly = 0) { secureItemDraftRepository.getDraft(any()) }
+        coVerify(exactly = 0) { secureItemRepository.getItem(any()) }
     }
 
     @Test

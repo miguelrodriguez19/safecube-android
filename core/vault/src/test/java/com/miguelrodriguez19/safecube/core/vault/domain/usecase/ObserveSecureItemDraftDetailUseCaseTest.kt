@@ -8,6 +8,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemDra
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemDecryptionResult
+import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoError
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDraftDetailUseCase
 import com.miguelrodriguez19.safecube.core.vault.test.FakeVaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.test.testSecureItemDraft
@@ -63,6 +64,28 @@ class ObserveSecureItemDraftDetailUseCaseTest {
 
         assertEquals(
             ObserveSecureItemDraftDetailResult.Error(SecureItemCrudError.VaultLocked),
+            result,
+        )
+    }
+
+    @Test
+    fun `invoke when draft payload is corrupt then returns corrupted payload`() = runBlocking {
+        val draft = testSecureItemDraft()
+        every { secureItemDraftRepository.observeDraft(draft.logicalItemId) } returns flowOf(draft)
+        every { secureItemRepository.observeItem(draft.logicalItemId) } returns flowOf(null)
+        every { secureItemCryptoService.decrypt(any()) } returns SecureItemDecryptionResult.Error(
+            SecureItemCryptoError.CryptographicFailure,
+        )
+
+        val result = ObserveSecureItemDraftDetailUseCase(
+            secureItemDraftRepository = secureItemDraftRepository,
+            secureItemRepository = secureItemRepository,
+            secureItemCryptoService = secureItemCryptoService,
+            vaultSessionManager = vaultSessionManager,
+        ).invoke(draft.logicalItemId).first()
+
+        assertEquals(
+            ObserveSecureItemDraftDetailResult.Error(SecureItemCrudError.CorruptedPayload),
             result,
         )
     }
