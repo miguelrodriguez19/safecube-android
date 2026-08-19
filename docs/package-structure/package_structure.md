@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 18-08-2026 08:52:09
+Updated: 19-08-2026 04:25:24
 
 ```
 safecube-android/
@@ -964,6 +964,8 @@ safecube-android/
 │       │   │   │   │       └── SettingsViewModel.kt
 │       │   │   │   ├── shared/
 │       │   │   │   │   ├── editor/
+│       │   │   │   │   │   ├── state/
+│       │   │   │   │   │   │   └── SecureItemEditorState.kt
 │       │   │   │   │   │   └── SecureItemEditorScaffold.kt
 │       │   │   │   │   ├── error/
 │       │   │   │   │   │   ├── SecureItemCrudErrorMessageMapper.kt

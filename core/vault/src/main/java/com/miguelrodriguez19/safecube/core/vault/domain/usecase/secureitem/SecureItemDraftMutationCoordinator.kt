@@ -170,6 +170,10 @@ internal class SecureItemDraftMutationCoordinator @Inject constructor(
     }
 
     suspend fun softDelete(logicalItemId: UUID): SecureItemMutationResult {
+        if (vaultSessionManager.vaultState.value != VaultState.Unlocked) {
+            return SecureItemMutationResult.Error(SecureItemCrudError.VaultLocked)
+        }
+
         val existingDraft = secureItemDraftRepository.getDraft(logicalItemId)
         if (existingDraft?.draftType == SecureItemDraftType.CREATE) {
             val deleted = secureItemDraftRepository.delete(logicalItemId)

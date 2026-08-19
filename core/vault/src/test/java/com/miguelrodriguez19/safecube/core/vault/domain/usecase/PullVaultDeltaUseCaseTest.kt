@@ -348,6 +348,9 @@ class PullVaultDeltaUseCaseTest {
         coEvery { secureItemDraftRepository.findByRemoteItemId(remote.itemId) } returns null
         coEvery { secureItemDraftRepository.getDraft(logicalItemId) } returns null
         assertLocalApplyFailure(target(), "DECRYPT_REMOTE_SNAPSHOT", remote.itemId)
+        coVerify(exactly = 0) {
+            secureItemRepository.applyRemotePage(any(), any(), any(), any(), any(), any())
+        }
 
         every {
             secureItemCryptoService.decrypt(any())
