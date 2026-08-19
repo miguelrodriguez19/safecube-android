@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDetailResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.ObserveSecureItemDraftDetailResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
@@ -22,13 +23,16 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.passw
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.DiscardSecureItemDraftUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.draft.PrepareSecureItemDraftForSyncUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.action.PasswordEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.event.PasswordEditorUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.state.PasswordEditorUiState
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.state.SecureItemEditorState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.error.asUiMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,6 +54,7 @@ class PasswordEditorViewModel @Inject constructor(
     private val prepareSecureItemDraftForSyncUseCase: PrepareSecureItemDraftForSyncUseCase,
     private val discardSecureItemDraftUseCase: DiscardSecureItemDraftUseCase,
     observeVaultSyncingUseCase: ObserveVaultSyncingUseCase,
+    private val vaultSessionManager: VaultSessionManager,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(PasswordEditorUiState())
     val uiState: StateFlow<PasswordEditorUiState> = mutableUiState.asStateFlow()
@@ -60,6 +65,12 @@ class PasswordEditorViewModel @Inject constructor(
     private var observeDraftJob: Job? = null
     private var latestOfficialDetail: SecureItemDetail? = null
     private var latestDraftDetail: SecureItemDraftDetail? = null
+    private var mutationJob: Job? = null
+    private var loadGeneration = 0L
+    private var officialObservationResolved = false
+    private var draftObservationResolved = false
+    private var officialNotFound = false
+    private var draftNotFound = false
 
     init {
         viewModelScope.launch {
@@ -69,12 +80,48 @@ class PasswordEditorViewModel @Inject constructor(
                 }
             }
         }
+        viewModelScope.launch {
+            vaultSessionManager.vaultState.collect { vaultState ->
+                if (vaultState == VaultState.Locked) {
+                    handleVaultLocked()
+                }
+            }
+        }
     }
 
     fun load(logicalItemId: String?) {
+        val generation = ++loadGeneration
         stopObservingItem()
+        mutationJob?.cancel()
         latestOfficialDetail = null
         latestDraftDetail = null
+        officialObservationResolved = false
+        draftObservationResolved = false
+        officialNotFound = false
+        draftNotFound = false
+        mutableUiState.update { state ->
+            state.copy(
+                logicalItemId = null,
+                displayHint = "",
+                username = "",
+                password = "",
+                websiteUrl = "",
+                notes = "",
+                editorState = SecureItemEditorState.Loading,
+                hasDraft = false,
+                draftType = null,
+                draftSyncStatus = null,
+                requiresSaveAsNew = false,
+                isDraftActionInProgress = false,
+                hasUnsavedLocalChanges = false,
+                errorMessage = null,
+                lastDraftError = null,
+            )
+        }
+        if (vaultSessionManager.vaultState.value == VaultState.Locked) {
+            handleVaultLocked()
+            return
+        }
         if (logicalItemId == null) {
             mutableUiState.value = PasswordEditorUiState(
                 isSyncing = mutableUiState.value.isSyncing,
@@ -91,7 +138,17 @@ class PasswordEditorViewModel @Inject constructor(
         mutableUiState.update { state ->
             state.copy(
                 logicalItemId = parsedLogicalItemId,
-                isLoading = true,
+                editorState = SecureItemEditorState.Loading,
+                displayHint = "",
+                username = "",
+                password = "",
+                websiteUrl = "",
+                notes = "",
+                hasDraft = false,
+                draftType = null,
+                draftSyncStatus = null,
+                requiresSaveAsNew = false,
+                isDraftActionInProgress = false,
                 errorMessage = null,
                 hasUnsavedLocalChanges = false,
                 lastDraftError = null,
@@ -99,20 +156,34 @@ class PasswordEditorViewModel @Inject constructor(
         }
 
         observeItemJob = viewModelScope.launch {
-            observeSecureItemDetailUseCase(parsedLogicalItemId).collect { result ->
-                when (result) {
-                    is ObserveSecureItemDetailResult.Success -> showOfficialDetail(result.detail)
-                    is ObserveSecureItemDetailResult.Error -> showError(result.reason)
+            try {
+                observeSecureItemDetailUseCase(parsedLogicalItemId).collect { result ->
+                    if (generation != loadGeneration) return@collect
+                    when (result) {
+                        is ObserveSecureItemDetailResult.Success -> showOfficialDetail(result.detail)
+                        is ObserveSecureItemDetailResult.Error -> showOfficialError(result.reason)
+                    }
                 }
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (_: Throwable) {
+                if (generation == loadGeneration) handleLocalStorageFailure()
             }
         }
         observeDraftJob = viewModelScope.launch {
-            observeSecureItemDraftDetailUseCase(parsedLogicalItemId).collect { result ->
-                when (result) {
-                    is ObserveSecureItemDraftDetailResult.Success -> showDraftDetail(result)
-                    ObserveSecureItemDraftDetailResult.NotFound -> clearDraft()
-                    is ObserveSecureItemDraftDetailResult.Error -> showDraftError(result.reason)
+            try {
+                observeSecureItemDraftDetailUseCase(parsedLogicalItemId).collect { result ->
+                    if (generation != loadGeneration) return@collect
+                    when (result) {
+                        is ObserveSecureItemDraftDetailResult.Success -> showDraftDetail(result)
+                        ObserveSecureItemDraftDetailResult.NotFound -> clearDraft()
+                        is ObserveSecureItemDraftDetailResult.Error -> showDraftError(result.reason)
+                    }
                 }
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (_: Throwable) {
+                if (generation == loadGeneration) handleLocalStorageFailure()
             }
         }
     }
@@ -128,25 +199,42 @@ class PasswordEditorViewModel @Inject constructor(
             PasswordEditorUiAction.DeleteClicked -> delete()
             PasswordEditorUiAction.PublishDraftClicked -> publishDraft()
             PasswordEditorUiAction.DiscardDraftClicked -> discardDraft()
+            PasswordEditorUiAction.RetryReadClicked -> retryRead()
         }
     }
 
     private fun showOfficialDetail(detail: SecureItemDetail) {
         val content = detail.content as? PasswordSecureItemContent
         if (content == null) {
-            showError(SecureItemCrudError.ItemNotFound)
+            handleInconsistentOfficialDraft()
             return
         }
+        officialObservationResolved = true
+        officialNotFound = false
         latestOfficialDetail = detail
         renderObservedState(officialContent = content)
+    }
+
+    private fun showOfficialError(error: SecureItemCrudError) {
+        officialObservationResolved = true
+        when (error) {
+            SecureItemCrudError.ItemNotFound -> {
+                officialNotFound = true
+                resolveNotFoundOrRenderDraft()
+            }
+
+            else -> showError(error)
+        }
     }
 
     private fun showDraftDetail(result: ObserveSecureItemDraftDetailResult.Success) {
         val content = result.detail.content as? PasswordSecureItemContent
         if (content == null) {
-            showDraftError(SecureItemCrudError.CorruptedPayload)
+            handleInconsistentOfficialDraft()
             return
         }
+        draftObservationResolved = true
+        draftNotFound = false
         latestDraftDetail = result.detail
         mutableUiState.update { state ->
             state.copy(
@@ -161,6 +249,8 @@ class PasswordEditorViewModel @Inject constructor(
     }
 
     private fun clearDraft() {
+        draftObservationResolved = true
+        draftNotFound = true
         latestDraftDetail = null
         mutableUiState.update { state ->
             state.copy(
@@ -171,21 +261,21 @@ class PasswordEditorViewModel @Inject constructor(
                 requiresSaveAsNew = false,
             )
         }
-        renderObservedState(officialContent = null)
+        if (latestOfficialDetail != null) {
+            renderObservedState(officialContent = null)
+        } else {
+            resolveNotFoundOrRenderDraft()
+        }
     }
 
     private fun showDraftError(error: SecureItemCrudError) {
-        latestDraftDetail = null
-        mutableUiState.update { state ->
-            state.copy(
-                hasDraft = false,
-                draftType = null,
-                draftSyncStatus = null,
-                lastDraftError = error.asUiMessage(),
-                requiresSaveAsNew = false,
-            )
+        draftObservationResolved = true
+        if (error == SecureItemCrudError.ItemNotFound) {
+            clearDraft()
+            return
         }
-        renderObservedState(officialContent = null)
+        latestDraftDetail = null
+        showError(error)
     }
 
     private fun renderObservedState(officialContent: PasswordSecureItemContent?) {
@@ -194,6 +284,22 @@ class PasswordEditorViewModel @Inject constructor(
         val draftDetail = latestDraftDetail
         val draftContent = draftDetail?.content as? PasswordSecureItemContent
         val logicalItemId = draftDetail?.logicalItemId ?: detail?.logicalItemId ?: return
+
+        if (
+            detail != null && draftDetail != null &&
+            (detail.logicalItemId != draftDetail.logicalItemId || detail.itemType != draftDetail.itemType)
+        ) {
+            handleInconsistentOfficialDraft()
+            return
+        }
+        if (
+            detail == null && draftDetail != null &&
+            draftDetail.draftType != com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType.CREATE &&
+            !draftDetail.requiresSaveAsNew
+        ) {
+            handleInconsistentOfficialDraft()
+            return
+        }
 
         mutableUiState.update { state ->
             val preserveDraft = state.hasUnsavedLocalChanges && state.logicalItemId == logicalItemId
@@ -233,9 +339,11 @@ class PasswordEditorViewModel @Inject constructor(
                 draftSyncStatus = draftDetail?.draftSyncStatus,
                 lastDraftError = draftDetail?.lastSyncError ?: state.lastDraftError,
                 requiresSaveAsNew = draftDetail?.requiresSaveAsNew == true,
-                isLoading = false,
-                isSaving = false,
-                isDraftActionInProgress = false,
+                editorState = if (state.isSaving) {
+                    SecureItemEditorState.Saving
+                } else {
+                    SecureItemEditorState.EditableContent
+                },
                 hasUnsavedLocalChanges = preserveDraft,
                 errorMessage = null,
             )
@@ -244,9 +352,10 @@ class PasswordEditorViewModel @Inject constructor(
 
     private fun updateState(transform: PasswordEditorUiState.() -> PasswordEditorUiState) {
         mutableUiState.update { state ->
+            if (!state.canEdit) return@update state
             state.transform().copy(
                 errorMessage = null,
-                isLoading = false,
+                editorState = SecureItemEditorState.EditableContent,
                 hasUnsavedLocalChanges = true,
             )
         }
@@ -255,7 +364,7 @@ class PasswordEditorViewModel @Inject constructor(
     private fun publishDraft() {
         val state = mutableUiState.value
         val logicalItemId = state.logicalItemId ?: return
-        if (!state.hasConflict || state.isLoading || state.isSaving || state.isDraftActionInProgress) return
+        if (!state.canEdit || !state.hasConflict || state.isDraftActionInProgress) return
 
         mutableUiState.update { current ->
             current.copy(
@@ -265,24 +374,30 @@ class PasswordEditorViewModel @Inject constructor(
             )
         }
 
-        viewModelScope.launch {
-            when (val result = prepareSecureItemDraftForSyncUseCase(logicalItemId)) {
-                is PrepareSecureItemDraftForSyncResult.Success -> {
-                    stopObservingItem()
-                    mutableUiState.value = PasswordEditorUiState(
-                        isSyncing = mutableUiState.value.isSyncing,
-                    )
-                    mutableEvents.emit(PasswordEditorUiEvent.NavigateBack)
-                }
-
-                is PrepareSecureItemDraftForSyncResult.Error -> {
-                    mutableUiState.update { current ->
-                        current.copy(
-                            isDraftActionInProgress = false,
-                            lastDraftError = result.reason.asUiMessage(),
+        mutationJob = viewModelScope.launch {
+            try {
+                when (val result = prepareSecureItemDraftForSyncUseCase(logicalItemId)) {
+                    is PrepareSecureItemDraftForSyncResult.Success -> {
+                        stopObservingItem()
+                        mutableUiState.value = PasswordEditorUiState(
+                            isSyncing = mutableUiState.value.isSyncing,
                         )
+                        mutableEvents.emit(PasswordEditorUiEvent.NavigateBack)
+                    }
+
+                    is PrepareSecureItemDraftForSyncResult.Error -> {
+                        mutableUiState.update { current ->
+                            current.copy(
+                                isDraftActionInProgress = false,
+                                lastDraftError = result.reason.asUiMessage(),
+                            )
+                        }
                     }
                 }
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (_: Throwable) {
+                handleLocalStorageFailure()
             }
         }
     }
@@ -290,7 +405,7 @@ class PasswordEditorViewModel @Inject constructor(
     private fun discardDraft() {
         val state = mutableUiState.value
         val logicalItemId = state.logicalItemId ?: return
-        if (!state.hasDraft || state.isLoading || state.isSaving || state.isDraftActionInProgress) return
+        if (!state.canEdit || !state.hasDraft || state.isDraftActionInProgress) return
 
         mutableUiState.update { current ->
             current.copy(
@@ -300,82 +415,100 @@ class PasswordEditorViewModel @Inject constructor(
             )
         }
 
-        viewModelScope.launch {
-            when (val result = discardSecureItemDraftUseCase(logicalItemId)) {
-                is DiscardSecureItemDraftResult.Success -> {
-                    if (latestOfficialDetail == null || latestDraftDetail?.draftType == com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType.CREATE) {
-                        stopObservingItem()
-                        mutableUiState.value = PasswordEditorUiState(
-                            isSyncing = mutableUiState.value.isSyncing,
-                        )
-                        mutableEvents.emit(PasswordEditorUiEvent.NavigateBack)
-                    } else {
+        mutationJob = viewModelScope.launch {
+            try {
+                when (val result = discardSecureItemDraftUseCase(logicalItemId)) {
+                    is DiscardSecureItemDraftResult.Success -> {
+                        if (latestOfficialDetail == null || latestDraftDetail?.draftType == com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType.CREATE) {
+                            stopObservingItem()
+                            mutableUiState.value = PasswordEditorUiState(
+                                isSyncing = mutableUiState.value.isSyncing,
+                            )
+                            mutableEvents.emit(PasswordEditorUiEvent.NavigateBack)
+                        } else {
+                            mutableUiState.update { current ->
+                                current.copy(
+                                    isDraftActionInProgress = false,
+                                    lastDraftError = null,
+                                )
+                            }
+                        }
+                    }
+
+                    is DiscardSecureItemDraftResult.Error -> {
                         mutableUiState.update { current ->
                             current.copy(
                                 isDraftActionInProgress = false,
-                                lastDraftError = null,
+                                lastDraftError = result.reason.asUiMessage(),
                             )
                         }
                     }
                 }
-
-                is DiscardSecureItemDraftResult.Error -> {
-                    mutableUiState.update { current ->
-                        current.copy(
-                            isDraftActionInProgress = false,
-                            lastDraftError = result.reason.asUiMessage(),
-                        )
-                    }
-                }
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (_: Throwable) {
+                handleLocalStorageFailure()
             }
         }
     }
 
     private fun save() {
         val state = mutableUiState.value
-        if (state.isLoading || state.isSaving || state.isDraftActionInProgress) return
+        if (!state.canEdit || state.isDraftActionInProgress) return
 
         mutableUiState.update { current ->
             current.copy(
-                isSaving = true,
+                editorState = SecureItemEditorState.Saving,
                 errorMessage = null,
             )
         }
 
-        viewModelScope.launch {
-            val draft = SecurePasswordDraft(
-                displayHint = state.displayHint,
-                username = state.username.trimToNull(),
-                email = null,
-                password = state.password,
-                website = state.websiteUrl.trimToNull()?.let { url ->
-                    SecurePasswordWebsiteDraft(url = url)
-                },
-                notes = state.notes.trimToNull(),
-            )
-            val result = if (state.logicalItemId == null) {
-                createSecurePasswordUseCase(draft)
-            } else {
-                updateSecurePasswordUseCase(state.logicalItemId, draft)
+        mutationJob = viewModelScope.launch {
+            try {
+                val draft = SecurePasswordDraft(
+                    displayHint = state.displayHint,
+                    username = state.username.trimToNull(),
+                    email = null,
+                    password = state.password,
+                    website = state.websiteUrl.trimToNull()?.let { url ->
+                        SecurePasswordWebsiteDraft(url = url)
+                    },
+                    notes = state.notes.trimToNull(),
+                )
+                val result = if (state.logicalItemId == null) {
+                    createSecurePasswordUseCase(draft)
+                } else {
+                    updateSecurePasswordUseCase(state.logicalItemId, draft)
+                }
+                handleMutationResult(result)
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (_: Throwable) {
+                handleLocalStorageFailure()
             }
-            handleMutationResult(result)
         }
     }
 
     private fun delete() {
         val state = mutableUiState.value
         val logicalItemId = state.logicalItemId ?: return
-        if (state.isLoading || state.isSaving || state.isDraftActionInProgress) return
+        if (!state.canEdit || state.isDraftActionInProgress) return
 
         mutableUiState.update { current ->
             current.copy(
-                isSaving = true,
+                editorState = SecureItemEditorState.Saving,
                 errorMessage = null,
             )
         }
 
-        viewModelScope.launch {
-            handleMutationResult(softDeleteSecureItemUseCase(logicalItemId))
+        mutationJob = viewModelScope.launch {
+            try {
+                handleMutationResult(softDeleteSecureItemUseCase(logicalItemId))
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (_: Throwable) {
+                handleLocalStorageFailure()
+            }
         }
     }
 
@@ -396,29 +529,164 @@ class PasswordEditorViewModel @Inject constructor(
     }
 
     private fun showError(error: SecureItemCrudError) {
-        if (error == SecureItemCrudError.ItemNotFound && latestDraftDetail != null) {
-            mutableUiState.update { state ->
+        when (error) {
+            SecureItemCrudError.VaultLocked -> handleVaultLocked()
+            SecureItemCrudError.CorruptedPayload -> handleCorruptedPayload()
+            SecureItemCrudError.LocalStorageFailure -> handleLocalStorageFailure()
+            SecureItemCrudError.ItemNotFound -> showNotFound()
+            is SecureItemCrudError.ValidationError -> mutableUiState.update { state ->
                 state.copy(
-                    isLoading = false,
-                    isSaving = false,
+                    editorState = SecureItemEditorState.EditableContent,
                     isDraftActionInProgress = false,
-                    errorMessage = null,
+                    errorMessage = error.asUiMessage(),
                 )
             }
-            return
         }
+    }
+
+    private fun resolveNotFoundOrRenderDraft() {
+        if (latestDraftDetail != null) {
+            renderObservedState(officialContent = null)
+        } else if (
+            officialObservationResolved && draftObservationResolved && officialNotFound && draftNotFound
+        ) {
+            showNotFound()
+        }
+    }
+
+    private fun showNotFound() {
+        stopObservingItem()
+        latestOfficialDetail = null
+        latestDraftDetail = null
         mutableUiState.update { state ->
             state.copy(
-                isLoading = false,
-                isSaving = false,
+                displayHint = "",
+                username = "",
+                password = "",
+                websiteUrl = "",
+                notes = "",
+                editorState = SecureItemEditorState.NotFound,
+                hasDraft = false,
+                draftType = null,
+                draftSyncStatus = null,
+                requiresSaveAsNew = false,
                 isDraftActionInProgress = false,
-                errorMessage = error.asUiMessage(),
+                hasUnsavedLocalChanges = false,
+                errorMessage = SecureItemCrudError.ItemNotFound.asUiMessage(),
             )
         }
     }
 
+    private fun handleCorruptedPayload() {
+        loadGeneration++
+        stopObservingItem()
+        mutationJob?.cancel()
+        latestOfficialDetail = null
+        latestDraftDetail = null
+        mutableUiState.update { state ->
+            state.copy(
+                displayHint = "",
+                username = "",
+                password = "",
+                websiteUrl = "",
+                notes = "",
+                editorState = SecureItemEditorState.CorruptedPayload,
+                hasDraft = false,
+                draftType = null,
+                draftSyncStatus = null,
+                requiresSaveAsNew = false,
+                isDraftActionInProgress = false,
+                hasUnsavedLocalChanges = false,
+                errorMessage = SecureItemCrudError.CorruptedPayload.asUiMessage(),
+            )
+        }
+    }
+
+    private fun handleInconsistentOfficialDraft() {
+        loadGeneration++
+        stopObservingItem()
+        latestOfficialDetail = null
+        latestDraftDetail = null
+        mutableUiState.update { state ->
+            state.copy(
+                displayHint = "",
+                username = "",
+                password = "",
+                websiteUrl = "",
+                notes = "",
+                editorState = SecureItemEditorState.InconsistentOfficialDraft,
+                hasDraft = false,
+                draftType = null,
+                draftSyncStatus = null,
+                requiresSaveAsNew = false,
+                isDraftActionInProgress = false,
+                hasUnsavedLocalChanges = false,
+                errorMessage = "Official item and draft are inconsistent.",
+            )
+        }
+    }
+
+    private fun handleLocalStorageFailure() {
+        loadGeneration++
+        stopObservingItem()
+        mutationJob?.cancel()
+        latestOfficialDetail = null
+        latestDraftDetail = null
+        mutableUiState.update { state ->
+            state.copy(
+                displayHint = "",
+                username = "",
+                password = "",
+                websiteUrl = "",
+                notes = "",
+                editorState = SecureItemEditorState.LocalStorageFailure,
+                hasDraft = false,
+                draftType = null,
+                draftSyncStatus = null,
+                requiresSaveAsNew = false,
+                isDraftActionInProgress = false,
+                hasUnsavedLocalChanges = false,
+                errorMessage = SecureItemCrudError.LocalStorageFailure.asUiMessage(),
+            )
+        }
+    }
+
+    private fun handleVaultLocked() {
+        if (mutableUiState.value.editorState == SecureItemEditorState.VaultLocked) return
+        loadGeneration++
+        stopObservingItem()
+        mutationJob?.cancel()
+        latestOfficialDetail = null
+        latestDraftDetail = null
+        mutableUiState.update { state ->
+            state.copy(
+                displayHint = "",
+                username = "",
+                password = "",
+                websiteUrl = "",
+                notes = "",
+                editorState = SecureItemEditorState.VaultLocked,
+                hasDraft = false,
+                draftType = null,
+                draftSyncStatus = null,
+                requiresSaveAsNew = false,
+                isDraftActionInProgress = false,
+                hasUnsavedLocalChanges = false,
+                errorMessage = SecureItemCrudError.VaultLocked.asUiMessage(),
+            )
+        }
+        mutableEvents.tryEmit(PasswordEditorUiEvent.NavigateToUnlock)
+    }
+
+    private fun retryRead() {
+        val logicalItemId = mutableUiState.value.logicalItemId ?: return
+        if (!mutableUiState.value.canRetryRead) return
+        load(logicalItemId.toString())
+    }
+
     override fun onCleared() {
         stopObservingItem()
+        mutationJob?.cancel()
         super.onCleared()
     }
 

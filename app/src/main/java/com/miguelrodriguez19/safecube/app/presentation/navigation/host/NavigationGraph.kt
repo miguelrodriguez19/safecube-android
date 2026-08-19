@@ -66,21 +66,29 @@ internal fun navigationEntryProvider(
         )
     }
     entry<Routes.CreatePassword> {
-        PasswordEditorScreen(onBack = popBackStack)
+        PasswordEditorScreen(
+            onBack = popBackStack,
+            onUnlockVault = { setRoot(Routes.UnlockVault) },
+        )
     }
     entry<Routes.EditPassword> { route ->
         PasswordEditorScreen(
             logicalItemId = route.logicalItemId,
             onBack = popBackStack,
+            onUnlockVault = { setRoot(Routes.UnlockVault) },
         )
     }
     entry<Routes.CreateNote> {
-        NoteEditorScreen(onBack = popBackStack)
+        NoteEditorScreen(
+            onBack = popBackStack,
+            onUnlockVault = { setRoot(Routes.UnlockVault) },
+        )
     }
     entry<Routes.EditNote> { route ->
         NoteEditorScreen(
             logicalItemId = route.logicalItemId,
             onBack = popBackStack,
+            onUnlockVault = { setRoot(Routes.UnlockVault) },
         )
     }
     entry<Routes.VaultFolders> {

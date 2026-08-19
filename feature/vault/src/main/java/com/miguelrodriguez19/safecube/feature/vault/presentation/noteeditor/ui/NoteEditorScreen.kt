@@ -24,6 +24,7 @@ import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.asU
 @Composable
 fun NoteEditorScreen(
     onBack: () -> Unit,
+    onUnlockVault: () -> Unit,
     logicalItemId: String? = null,
     viewModel: NoteEditorViewModel = hiltViewModel(),
 ) {
@@ -37,6 +38,7 @@ fun NoteEditorScreen(
         viewModel.events.collect { event ->
             when (event) {
                 NoteEditorUiEvent.NavigateBack -> onBack()
+                NoteEditorUiEvent.NavigateToUnlock -> onUnlockVault()
             }
         }
     }
@@ -59,6 +61,7 @@ private fun NoteEditorContent(
         isEditMode = uiState.isEditMode,
         isLoading = uiState.isLoading,
         isSaving = uiState.isSaving,
+        editorState = uiState.editorState,
         isSyncing = uiState.isSyncing,
         syncStatusLabel = if (uiState.isSyncing) stringResource(UiR.string.sync_status_syncing) else null,
         lastSyncMessage = null,
@@ -80,6 +83,7 @@ private fun NoteEditorContent(
         errorMessage = uiState.errorMessage,
         onBack = onBack,
         onSave = { onAction(NoteEditorUiAction.SaveClicked) },
+        onRetryRead = { onAction(NoteEditorUiAction.RetryReadClicked) },
         showSyncAction = false,
         onSyncNow = null,
         onDelete = if (uiState.isEditMode) {
