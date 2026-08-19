@@ -7,4 +7,5 @@ internal fun SecureItemCrudError.asUiMessage(): String = when (this) {
     SecureItemCrudError.ItemNotFound -> "Item not found."
     is SecureItemCrudError.ValidationError -> message
     SecureItemCrudError.CorruptedPayload -> "Item payload is corrupted."
+    SecureItemCrudError.LocalStorageFailure -> "Local vault data could not be processed."
 }

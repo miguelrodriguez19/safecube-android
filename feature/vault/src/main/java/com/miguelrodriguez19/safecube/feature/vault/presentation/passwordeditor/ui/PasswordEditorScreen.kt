@@ -26,6 +26,7 @@ import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.S
 @Composable
 fun PasswordEditorScreen(
     onBack: () -> Unit,
+    onUnlockVault: () -> Unit,
     logicalItemId: String? = null,
     viewModel: PasswordEditorViewModel = hiltViewModel(),
 ) {
@@ -39,6 +40,7 @@ fun PasswordEditorScreen(
         viewModel.events.collect { event ->
             when (event) {
                 PasswordEditorUiEvent.NavigateBack -> onBack()
+                PasswordEditorUiEvent.NavigateToUnlock -> onUnlockVault()
             }
         }
     }
@@ -61,6 +63,7 @@ private fun PasswordEditorContent(
         isEditMode = uiState.isEditMode,
         isLoading = uiState.isLoading,
         isSaving = uiState.isSaving,
+        editorState = uiState.editorState,
         isSyncing = uiState.isSyncing,
         syncStatusLabel = if (uiState.isSyncing) stringResource(UiR.string.sync_status_syncing) else null,
         lastSyncMessage = null,
@@ -82,6 +85,7 @@ private fun PasswordEditorContent(
         errorMessage = uiState.errorMessage,
         onBack = onBack,
         onSave = { onAction(PasswordEditorUiAction.SaveClicked) },
+        onRetryRead = { onAction(PasswordEditorUiAction.RetryReadClicked) },
         showSyncAction = false,
         onSyncNow = null,
         onDelete = if (uiState.isEditMode) {

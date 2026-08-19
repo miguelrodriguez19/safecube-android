@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import androidx.compose.ui.res.stringResource
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.state.SecureItemEditorState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.SyncIconButton
 
 @Composable
@@ -33,6 +34,7 @@ internal fun SecureItemEditorScaffold(
     isEditMode: Boolean,
     isLoading: Boolean,
     isSaving: Boolean,
+    editorState: SecureItemEditorState,
     isSyncing: Boolean,
     syncStatusLabel: String?,
     lastSyncMessage: String?,
@@ -46,11 +48,16 @@ internal fun SecureItemEditorScaffold(
     errorMessage: String?,
     onBack: () -> Unit,
     onSave: () -> Unit,
+    onRetryRead: () -> Unit,
     showSyncAction: Boolean,
     onSyncNow: (() -> Unit)?,
     onDelete: (() -> Unit)?,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val canMutate = editorState == SecureItemEditorState.EditableContent
+    val canShowContent = editorState == SecureItemEditorState.EditableContent ||
+        editorState == SecureItemEditorState.Saving
+
     Scaffold(
         topBar = {
             Surface(
@@ -135,7 +142,7 @@ internal fun SecureItemEditorScaffold(
                     if (onDiscardDraft != null) {
                         OutlinedButton(
                             onClick = onDiscardDraft,
-                            enabled = !isLoading && !isSaving && !isDraftActionInProgress,
+                            enabled = canMutate && !isDraftActionInProgress,
                             modifier = Modifier.weight(1f),
                         ) {
                             Text(stringResource(UiR.string.draft_action_discard))
@@ -144,7 +151,7 @@ internal fun SecureItemEditorScaffold(
                     if (onPublishDraft != null) {
                         Button(
                             onClick = onPublishDraft,
-                            enabled = !isLoading && !isSaving && !isDraftActionInProgress,
+                            enabled = canMutate && !isDraftActionInProgress,
                             modifier = Modifier.weight(1f),
                         ) {
                             Text(
@@ -167,10 +174,10 @@ internal fun SecureItemEditorScaffold(
 
             if (isLoading) {
                 Text(
-                    text = "Loading item...",
+                    text = stringResource(UiR.string.loading),
                     style = MaterialTheme.typography.bodyMedium,
                 )
-            } else {
+            } else if (canShowContent) {
                 content()
             }
 
@@ -185,19 +192,36 @@ internal fun SecureItemEditorScaffold(
             if (isEditMode && onDelete != null) {
                 OutlinedButton(
                     onClick = onDelete,
-                    enabled = !isLoading && !isSaving && !isDraftActionInProgress,
+                    enabled = canMutate && !isDraftActionInProgress,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Delete")
+                    Text(stringResource(UiR.string.action_delete))
+                }
+            }
+
+            if (editorState == SecureItemEditorState.CorruptedPayload ||
+                editorState == SecureItemEditorState.LocalStorageFailure
+            ) {
+                OutlinedButton(
+                    onClick = onRetryRead,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(UiR.string.retry))
                 }
             }
 
             Button(
                 onClick = onSave,
-                enabled = !isLoading && !isSaving && !isDraftActionInProgress,
+                enabled = canMutate && !isDraftActionInProgress,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(if (isSaving) "Saving..." else "Save")
+                Text(
+                    if (isSaving) {
+                        stringResource(UiR.string.loading)
+                    } else {
+                        stringResource(UiR.string.action_save)
+                    },
+                )
             }
         }
     }

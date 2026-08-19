@@ -12,4 +12,6 @@ sealed interface NoteEditorUiAction {
     data object PublishDraftClicked : NoteEditorUiAction
 
     data object DiscardDraftClicked : NoteEditorUiAction
+
+    data object RetryReadClicked : NoteEditorUiAction
 }

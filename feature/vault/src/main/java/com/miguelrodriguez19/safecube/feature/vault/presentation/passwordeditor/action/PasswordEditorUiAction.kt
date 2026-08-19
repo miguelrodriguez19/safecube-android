@@ -18,4 +18,6 @@ sealed interface PasswordEditorUiAction {
     data object PublishDraftClicked : PasswordEditorUiAction
 
     data object DiscardDraftClicked : PasswordEditorUiAction
+
+    data object RetryReadClicked : PasswordEditorUiAction
 }
