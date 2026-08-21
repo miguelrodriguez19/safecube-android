@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 19-08-2026 04:29:31
+Updated: 21-08-2026 08:25:26
 
 ```
 safecube-android/
@@ -929,6 +929,9 @@ safecube-android/
 │       │   │   │   │   │   └── NoteEditorUiAction.kt
 │       │   │   │   │   ├── event/
 │       │   │   │   │   │   └── NoteEditorUiEvent.kt
+│       │   │   │   │   ├── mutation/
+│       │   │   │   │   │   ├── NoteEditorMutationCoordinator.kt
+│       │   │   │   │   │   └── NoteEditorMutationGateway.kt
 │       │   │   │   │   ├── state/
 │       │   │   │   │   │   └── NoteEditorUiState.kt
 │       │   │   │   │   ├── ui/
@@ -940,6 +943,9 @@ safecube-android/
 │       │   │   │   │   │   └── PasswordEditorUiAction.kt
 │       │   │   │   │   ├── event/
 │       │   │   │   │   │   └── PasswordEditorUiEvent.kt
+│       │   │   │   │   ├── mutation/
+│       │   │   │   │   │   ├── PasswordEditorMutationCoordinator.kt
+│       │   │   │   │   │   └── PasswordEditorMutationGateway.kt
 │       │   │   │   │   ├── state/
 │       │   │   │   │   │   └── PasswordEditorUiState.kt
 │       │   │   │   │   ├── ui/
@@ -964,6 +970,20 @@ safecube-android/
 │       │   │   │   │       └── SettingsViewModel.kt
 │       │   │   │   ├── shared/
 │       │   │   │   │   ├── editor/
+│       │   │   │   │   │   ├── lifecycle/
+│       │   │   │   │   │   │   └── SecureItemEditorLifecycleCoordinator.kt
+│       │   │   │   │   │   ├── mutation/
+│       │   │   │   │   │   │   ├── contract/
+│       │   │   │   │   │   │   │   └── SecureItemEditorMutationGateway.kt
+│       │   │   │   │   │   │   ├── model/
+│       │   │   │   │   │   │   │   └── SecureItemEditorMutationRequest.kt
+│       │   │   │   │   │   │   └── SecureItemEditorMutationCoordinator.kt
+│       │   │   │   │   │   ├── observation/
+│       │   │   │   │   │   │   ├── model/
+│       │   │   │   │   │   │   │   ├── ObservationEvent.kt
+│       │   │   │   │   │   │   │   ├── ObservationSnapshot.kt
+│       │   │   │   │   │   │   │   └── SecureItemEditorObservationResult.kt
+│       │   │   │   │   │   │   └── SecureItemEditorObservationCoordinator.kt
 │       │   │   │   │   │   ├── state/
 │       │   │   │   │   │   │   └── SecureItemEditorState.kt
 │       │   │   │   │   │   └── SecureItemEditorScaffold.kt
