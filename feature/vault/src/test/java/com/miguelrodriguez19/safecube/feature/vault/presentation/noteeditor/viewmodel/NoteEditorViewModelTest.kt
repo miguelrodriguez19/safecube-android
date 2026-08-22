@@ -11,13 +11,13 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.Se
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemCrudError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.NoteSecureItemContent
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.SecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.DiscardSecureItemDraftResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.PrepareSecureItemDraftForSyncResult
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.action.NoteEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.event.NoteEditorUiEvent
-import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.mutation.NoteEditorMutationCoordinator
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.lifecycle.SecureItemEditorLifecycleCoordinator
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.mutation.contract.SecureItemEditorMutationOperations
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.mutation.model.SecureItemEditorMutationRequest
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.observation.SecureItemEditorObservationCoordinator
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.observation.model.SecureItemEditorObservationResult
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.state.SecureItemEditorState
@@ -50,7 +50,7 @@ class NoteEditorViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val observationCoordinator = mockk<SecureItemEditorObservationCoordinator>()
-    private val mutationCoordinator = mockk<NoteEditorMutationCoordinator>()
+    private val mutationOperations = mockk<SecureItemEditorMutationOperations>()
     private val lifecycleCoordinator = mockk<SecureItemEditorLifecycleCoordinator>()
 
     private val syncing = MutableStateFlow(false)
@@ -65,7 +65,7 @@ class NoteEditorViewModelTest {
 
     private fun target(): NoteEditorViewModel = NoteEditorViewModel(
         observationCoordinator = observationCoordinator,
-        mutationCoordinator = mutationCoordinator,
+        mutationOperations = mutationOperations,
         lifecycleCoordinator = lifecycleCoordinator,
     )
 
@@ -114,7 +114,7 @@ class NoteEditorViewModelTest {
                     ),
                 ),
             )
-            coEvery { mutationCoordinator.publish(logicalItemId) } returns
+            coEvery { mutationOperations.publish(logicalItemId) } returns
                     PrepareSecureItemDraftForSyncResult.Success(
                         logicalItemId = logicalItemId,
                         draftType = SecureItemDraftType.UPDATE,
@@ -134,7 +134,7 @@ class NoteEditorViewModelTest {
 
             assertEquals(NoteEditorUiEvent.NavigateBack, event.await())
 
-            coVerify(exactly = 1) { mutationCoordinator.publish(logicalItemId) }
+            coVerify(exactly = 1) { mutationOperations.publish(logicalItemId) }
         }
 
     @Test
@@ -157,9 +157,9 @@ class NoteEditorViewModelTest {
         assertEquals("", target.uiState.value.body)
 
         coVerify(exactly = 0) {
-            mutationCoordinator.save(any(), any(), any<SecureItemContent>())
+            mutationOperations.save(any(), any<SecureItemEditorMutationRequest>())
         }
-        coVerify(exactly = 0) { mutationCoordinator.delete(any()) }
+        coVerify(exactly = 0) { mutationOperations.delete(any()) }
     }
 
     @Test
@@ -186,7 +186,7 @@ class NoteEditorViewModelTest {
     fun `lock during save then cancels mutation and clears note`() = runTest {
         val saveResult = CompletableDeferred<SecureItemMutationResult>()
         coEvery {
-            mutationCoordinator.save(any(), any(), any<SecureItemContent>())
+            mutationOperations.save(any(), any<SecureItemEditorMutationRequest>())
         } coAnswers { saveResult.await() }
 
         val target = target()
@@ -201,7 +201,7 @@ class NoteEditorViewModelTest {
         assertEquals(SecureItemEditorState.VaultLocked, target.uiState.value.editorState)
         assertEquals("", target.uiState.value.body)
         coVerify(exactly = 1) {
-            mutationCoordinator.save(any(), any(), any<SecureItemContent>())
+            mutationOperations.save(any(), any<SecureItemEditorMutationRequest>())
         }
     }
 

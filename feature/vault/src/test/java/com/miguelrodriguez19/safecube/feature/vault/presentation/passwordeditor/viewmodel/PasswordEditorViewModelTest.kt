@@ -10,12 +10,12 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.Se
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.SecureItemMutationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordSecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.PasswordWebsiteSecureItemContent
-import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.itemcontent.SecureItemContent
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.DiscardSecureItemDraftResult
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.action.PasswordEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.event.PasswordEditorUiEvent
-import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.mutation.PasswordEditorMutationCoordinator
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.lifecycle.SecureItemEditorLifecycleCoordinator
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.mutation.contract.SecureItemEditorMutationOperations
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.mutation.model.SecureItemEditorMutationRequest
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.observation.SecureItemEditorObservationCoordinator
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.observation.model.SecureItemEditorObservationResult
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.state.SecureItemEditorState
@@ -47,7 +47,7 @@ class PasswordEditorViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val observationCoordinator = mockk<SecureItemEditorObservationCoordinator>()
-    private val mutationCoordinator = mockk<PasswordEditorMutationCoordinator>()
+    private val mutationOperations = mockk<SecureItemEditorMutationOperations>()
     private val lifecycleCoordinator = mockk<SecureItemEditorLifecycleCoordinator>()
 
     private val syncing = MutableStateFlow(false)
@@ -62,7 +62,7 @@ class PasswordEditorViewModelTest {
 
     private fun target(): PasswordEditorViewModel = PasswordEditorViewModel(
         observationCoordinator = observationCoordinator,
-        mutationCoordinator = mutationCoordinator,
+        mutationOperations = mutationOperations,
         lifecycleCoordinator = lifecycleCoordinator,
     )
 
@@ -104,7 +104,7 @@ class PasswordEditorViewModelTest {
                 ),
             ),
         )
-        coEvery { mutationCoordinator.discard(logicalItemId) } returns
+        coEvery { mutationOperations.discard(logicalItemId) } returns
             DiscardSecureItemDraftResult.Success(logicalItemId)
 
         val target = target()
@@ -117,7 +117,7 @@ class PasswordEditorViewModelTest {
         advanceUntilIdle()
 
         assertEquals(PasswordEditorUiEvent.NavigateBack, event.await())
-        coVerify(exactly = 1) { mutationCoordinator.discard(logicalItemId) }
+        coVerify(exactly = 1) { mutationOperations.discard(logicalItemId) }
     }
 
     @Test
@@ -140,9 +140,9 @@ class PasswordEditorViewModelTest {
         assertEquals("", target.uiState.value.password)
         assertEquals("", target.uiState.value.username)
         coVerify(exactly = 0) {
-            mutationCoordinator.save(any(), any(), any<SecureItemContent>())
+            mutationOperations.save(any(), any<SecureItemEditorMutationRequest>())
         }
-        coVerify(exactly = 0) { mutationCoordinator.delete(any()) }
+        coVerify(exactly = 0) { mutationOperations.delete(any()) }
     }
 
     @Test
@@ -169,7 +169,7 @@ class PasswordEditorViewModelTest {
     fun `lock during save then cancels mutation and clears password`() = runTest {
         val saveResult = CompletableDeferred<SecureItemMutationResult>()
         coEvery {
-            mutationCoordinator.save(any(), any(), any<SecureItemContent>())
+            mutationOperations.save(any(), any<SecureItemEditorMutationRequest>())
         } coAnswers { saveResult.await() }
 
         val target = target()
@@ -185,7 +185,7 @@ class PasswordEditorViewModelTest {
         assertEquals(SecureItemEditorState.VaultLocked, target.uiState.value.editorState)
         assertEquals("", target.uiState.value.password)
         coVerify(exactly = 1) {
-            mutationCoordinator.save(any(), any(), any<SecureItemContent>())
+            mutationOperations.save(any(), any<SecureItemEditorMutationRequest>())
         }
     }
 

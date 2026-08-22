@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 21-08-2026 08:27:08
+Updated: 22-08-2026 06:49:23
 
 ```
 safecube-android/
@@ -930,7 +930,6 @@ safecube-android/
 │       │   │   │   │   ├── event/
 │       │   │   │   │   │   └── NoteEditorUiEvent.kt
 │       │   │   │   │   ├── mutation/
-│       │   │   │   │   │   ├── NoteEditorMutationCoordinator.kt
 │       │   │   │   │   │   └── NoteEditorMutationGateway.kt
 │       │   │   │   │   ├── state/
 │       │   │   │   │   │   └── NoteEditorUiState.kt
@@ -944,7 +943,6 @@ safecube-android/
 │       │   │   │   │   ├── event/
 │       │   │   │   │   │   └── PasswordEditorUiEvent.kt
 │       │   │   │   │   ├── mutation/
-│       │   │   │   │   │   ├── PasswordEditorMutationCoordinator.kt
 │       │   │   │   │   │   └── PasswordEditorMutationGateway.kt
 │       │   │   │   │   ├── state/
 │       │   │   │   │   │   └── PasswordEditorUiState.kt
@@ -974,7 +972,14 @@ safecube-android/
 │       │   │   │   │   │   │   └── SecureItemEditorLifecycleCoordinator.kt
 │       │   │   │   │   │   ├── mutation/
 │       │   │   │   │   │   │   ├── contract/
-│       │   │   │   │   │   │   │   └── SecureItemEditorMutationGateway.kt
+│       │   │   │   │   │   │   │   ├── SecureItemEditorMutationGateway.kt
+│       │   │   │   │   │   │   │   └── SecureItemEditorMutationOperations.kt
+│       │   │   │   │   │   │   ├── di/
+│       │   │   │   │   │   │   │   ├── SecureItemEditorMutationGatewayModule.kt
+│       │   │   │   │   │   │   │   ├── SecureItemEditorMutationModule.kt
+│       │   │   │   │   │   │   │   └── SecureItemTypeKey.kt
+│       │   │   │   │   │   │   ├── factory/
+│       │   │   │   │   │   │   │   └── SecureItemEditorMutationGatewayFactory.kt
 │       │   │   │   │   │   │   ├── model/
 │       │   │   │   │   │   │   │   └── SecureItemEditorMutationRequest.kt
 │       │   │   │   │   │   │   └── SecureItemEditorMutationCoordinator.kt
@@ -1024,6 +1029,10 @@ safecube-android/
 │       │       │   │   └── RecoveryKeyViewModelTest.kt
 │       │       │   ├── settings/viewmodel/
 │       │       │   │   └── SettingsViewModelTest.kt
+│       │       │   ├── shared/editor/mutation/
+│       │       │   │   ├── factory/
+│       │       │   │   │   └── SecureItemEditorMutationGatewayFactoryTest.kt
+│       │       │   │   └── SecureItemEditorMutationCoordinatorTest.kt
 │       │       │   └── unlock/viewmodel/
 │       │       │       └── UnlockVaultViewModelTest.kt
 │       │       └── test/

@@ -10,9 +10,10 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.Discard
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.draft.PrepareSecureItemDraftForSyncResult
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.action.PasswordEditorUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.event.PasswordEditorUiEvent
-import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.mutation.PasswordEditorMutationCoordinator
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.state.PasswordEditorUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.lifecycle.SecureItemEditorLifecycleCoordinator
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.mutation.contract.SecureItemEditorMutationOperations
+import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.mutation.model.SecureItemEditorMutationRequest
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.observation.SecureItemEditorObservationCoordinator
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.observation.model.SecureItemEditorObservationResult
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.editor.state.SecureItemEditorState
@@ -34,7 +35,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class PasswordEditorViewModel @Inject internal constructor(
     private val observationCoordinator: SecureItemEditorObservationCoordinator,
-    private val mutationCoordinator: PasswordEditorMutationCoordinator,
+    private val mutationOperations: SecureItemEditorMutationOperations,
     private val lifecycleCoordinator: SecureItemEditorLifecycleCoordinator,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(PasswordEditorUiState())
@@ -203,7 +204,7 @@ class PasswordEditorViewModel @Inject internal constructor(
         mutableUiState.update { it.copy(isDraftActionInProgress = true, errorMessage = null, lastDraftError = null) }
         mutationJob = viewModelScope.launch {
             try {
-                when (val result = mutationCoordinator.publish(logicalItemId)) {
+                when (val result = mutationOperations.publish(logicalItemId)) {
                     is PrepareSecureItemDraftForSyncResult.Success -> finishWithNavigateBack()
                     is PrepareSecureItemDraftForSyncResult.Error -> mutableUiState.update {
                         it.copy(isDraftActionInProgress = false, lastDraftError = result.reason.asUiMessage())
@@ -224,7 +225,7 @@ class PasswordEditorViewModel @Inject internal constructor(
         mutableUiState.update { it.copy(isDraftActionInProgress = true, errorMessage = null, lastDraftError = null) }
         mutationJob = viewModelScope.launch {
             try {
-                when (val result = mutationCoordinator.discard(logicalItemId)) {
+                when (val result = mutationOperations.discard(logicalItemId)) {
                     is DiscardSecureItemDraftResult.Success -> {
                         val observation = latestObservation
                         if (observation?.officialDetail == null || observation.draftDetail?.draftType?.isCreateDraft() == true) {
@@ -265,10 +266,12 @@ class PasswordEditorViewModel @Inject internal constructor(
                     showError(SecureItemCrudError.ValidationError("Invalid password item."))
                     return@launch
                 }
-                val result = mutationCoordinator.save(
+                val result = mutationOperations.save(
                     logicalItemId = state.logicalItemId,
-                    displayHint = state.displayHint,
-                    content = content,
+                    request = SecureItemEditorMutationRequest(
+                        displayHint = state.displayHint,
+                        content = content,
+                    ),
                 )
                 handleMutationResult(result)
             } catch (cancellationException: CancellationException) {
@@ -285,7 +288,7 @@ class PasswordEditorViewModel @Inject internal constructor(
         mutableUiState.update { it.copy(editorState = SecureItemEditorState.Saving, errorMessage = null) }
         mutationJob = viewModelScope.launch {
             try {
-                handleMutationResult(mutationCoordinator.delete(logicalItemId))
+                handleMutationResult(mutationOperations.delete(logicalItemId))
             } catch (cancellationException: CancellationException) {
                 throw cancellationException
             } catch (_: Throwable) {
