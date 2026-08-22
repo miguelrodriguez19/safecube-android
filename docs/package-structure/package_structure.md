@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 22-08-2026 06:49:28
+Updated: 22-08-2026 07:06:45
 
 ```
 safecube-android/
@@ -914,42 +914,68 @@ safecube-android/
 │       │   │   │   │   │   └── CreateVaultScreen.kt
 │       │   │   │   │   └── viewmodel/
 │       │   │   │   │       └── CreateVaultViewModel.kt
+│       │   │   │   ├── editor/
+│       │   │   │   │   ├── note/
+│       │   │   │   │   │   ├── action/
+│       │   │   │   │   │   │   └── NoteEditorUiAction.kt
+│       │   │   │   │   │   ├── adapter/
+│       │   │   │   │   │   │   └── NoteEditorMutationGateway.kt
+│       │   │   │   │   │   ├── event/
+│       │   │   │   │   │   │   └── NoteEditorUiEvent.kt
+│       │   │   │   │   │   ├── state/
+│       │   │   │   │   │   │   └── NoteEditorUiState.kt
+│       │   │   │   │   │   ├── ui/
+│       │   │   │   │   │   │   └── NoteEditorScreen.kt
+│       │   │   │   │   │   └── viewmodel/
+│       │   │   │   │   │       └── NoteEditorViewModel.kt
+│       │   │   │   │   ├── password/
+│       │   │   │   │   │   ├── action/
+│       │   │   │   │   │   │   └── PasswordEditorUiAction.kt
+│       │   │   │   │   │   ├── adapter/
+│       │   │   │   │   │   │   └── PasswordEditorMutationGateway.kt
+│       │   │   │   │   │   ├── event/
+│       │   │   │   │   │   │   └── PasswordEditorUiEvent.kt
+│       │   │   │   │   │   ├── state/
+│       │   │   │   │   │   │   └── PasswordEditorUiState.kt
+│       │   │   │   │   │   ├── ui/
+│       │   │   │   │   │   │   └── PasswordEditorScreen.kt
+│       │   │   │   │   │   └── viewmodel/
+│       │   │   │   │   │       └── PasswordEditorViewModel.kt
+│       │   │   │   │   └── shared/
+│       │   │   │   │       ├── lifecycle/
+│       │   │   │   │       │   └── SecureItemEditorLifecycleCoordinator.kt
+│       │   │   │   │       ├── mutation/
+│       │   │   │   │       │   ├── contract/
+│       │   │   │   │       │   │   ├── SecureItemEditorMutationGateway.kt
+│       │   │   │   │       │   │   └── SecureItemEditorMutationOperations.kt
+│       │   │   │   │       │   ├── di/
+│       │   │   │   │       │   │   ├── SecureItemEditorMutationGatewayModule.kt
+│       │   │   │   │       │   │   ├── SecureItemEditorMutationModule.kt
+│       │   │   │   │       │   │   └── SecureItemTypeKey.kt
+│       │   │   │   │       │   ├── factory/
+│       │   │   │   │       │   │   └── SecureItemEditorMutationGatewayFactory.kt
+│       │   │   │   │       │   ├── model/
+│       │   │   │   │       │   │   └── SecureItemEditorMutationRequest.kt
+│       │   │   │   │       │   └── SecureItemEditorMutationCoordinator.kt
+│       │   │   │   │       ├── observation/
+│       │   │   │   │       │   ├── model/
+│       │   │   │   │       │   │   ├── ObservationEvent.kt
+│       │   │   │   │       │   │   ├── ObservationSnapshot.kt
+│       │   │   │   │       │   │   └── SecureItemEditorObservationResult.kt
+│       │   │   │   │       │   └── SecureItemEditorObservationCoordinator.kt
+│       │   │   │   │       ├── state/
+│       │   │   │   │       │   └── SecureItemEditorState.kt
+│       │   │   │   │       └── ui/
+│       │   │   │   │           └── SecureItemEditorScaffold.kt
 │       │   │   │   ├── folders/ui/
 │       │   │   │   │   └── VaultFoldersScreen.kt
 │       │   │   │   ├── home/
-│       │   │   │   │   ├── action/
 │       │   │   │   │   ├── state/
 │       │   │   │   │   │   └── VaultHomeUiState.kt
 │       │   │   │   │   ├── ui/
 │       │   │   │   │   │   └── VaultScreen.kt
 │       │   │   │   │   └── viewmodel/
 │       │   │   │   │       └── VaultHomeViewModel.kt
-│       │   │   │   ├── noteeditor/
-│       │   │   │   │   ├── action/
-│       │   │   │   │   │   └── NoteEditorUiAction.kt
-│       │   │   │   │   ├── event/
-│       │   │   │   │   │   └── NoteEditorUiEvent.kt
-│       │   │   │   │   ├── mutation/
-│       │   │   │   │   │   └── NoteEditorMutationGateway.kt
-│       │   │   │   │   ├── state/
-│       │   │   │   │   │   └── NoteEditorUiState.kt
-│       │   │   │   │   ├── ui/
-│       │   │   │   │   │   └── NoteEditorScreen.kt
-│       │   │   │   │   └── viewmodel/
-│       │   │   │   │       └── NoteEditorViewModel.kt
-│       │   │   │   ├── passwordeditor/
-│       │   │   │   │   ├── action/
-│       │   │   │   │   │   └── PasswordEditorUiAction.kt
-│       │   │   │   │   ├── event/
-│       │   │   │   │   │   └── PasswordEditorUiEvent.kt
-│       │   │   │   │   ├── mutation/
-│       │   │   │   │   │   └── PasswordEditorMutationGateway.kt
-│       │   │   │   │   ├── state/
-│       │   │   │   │   │   └── PasswordEditorUiState.kt
-│       │   │   │   │   ├── ui/
-│       │   │   │   │   │   └── PasswordEditorScreen.kt
-│       │   │   │   │   └── viewmodel/
-│       │   │   │   │       └── PasswordEditorViewModel.kt
 │       │   │   │   ├── recovery/
 │       │   │   │   │   ├── action/
 │       │   │   │   │   │   └── RecoveryKeyUiAction.kt
@@ -967,31 +993,6 @@ safecube-android/
 │       │   │   │   │   └── viewmodel/
 │       │   │   │   │       └── SettingsViewModel.kt
 │       │   │   │   ├── shared/
-│       │   │   │   │   ├── editor/
-│       │   │   │   │   │   ├── lifecycle/
-│       │   │   │   │   │   │   └── SecureItemEditorLifecycleCoordinator.kt
-│       │   │   │   │   │   ├── mutation/
-│       │   │   │   │   │   │   ├── contract/
-│       │   │   │   │   │   │   │   ├── SecureItemEditorMutationGateway.kt
-│       │   │   │   │   │   │   │   └── SecureItemEditorMutationOperations.kt
-│       │   │   │   │   │   │   ├── di/
-│       │   │   │   │   │   │   │   ├── SecureItemEditorMutationGatewayModule.kt
-│       │   │   │   │   │   │   │   ├── SecureItemEditorMutationModule.kt
-│       │   │   │   │   │   │   │   └── SecureItemTypeKey.kt
-│       │   │   │   │   │   │   ├── factory/
-│       │   │   │   │   │   │   │   └── SecureItemEditorMutationGatewayFactory.kt
-│       │   │   │   │   │   │   ├── model/
-│       │   │   │   │   │   │   │   └── SecureItemEditorMutationRequest.kt
-│       │   │   │   │   │   │   └── SecureItemEditorMutationCoordinator.kt
-│       │   │   │   │   │   ├── observation/
-│       │   │   │   │   │   │   ├── model/
-│       │   │   │   │   │   │   │   ├── ObservationEvent.kt
-│       │   │   │   │   │   │   │   ├── ObservationSnapshot.kt
-│       │   │   │   │   │   │   │   └── SecureItemEditorObservationResult.kt
-│       │   │   │   │   │   │   └── SecureItemEditorObservationCoordinator.kt
-│       │   │   │   │   │   ├── state/
-│       │   │   │   │   │   │   └── SecureItemEditorState.kt
-│       │   │   │   │   │   └── SecureItemEditorScaffold.kt
 │       │   │   │   │   ├── error/
 │       │   │   │   │   │   ├── SecureItemCrudErrorMessageMapper.kt
 │       │   │   │   │   │   └── SecureItemDraftErrorMessageMapper.kt
@@ -1019,20 +1020,25 @@ safecube-android/
 │       │       ├── presentation/
 │       │       │   ├── create/viewmodel/
 │       │       │   │   └── CreateVaultViewModelTest.kt
+│       │       │   ├── editor/
+│       │       │   │   ├── note/viewmodel/
+│       │       │   │   │   └── NoteEditorViewModelTest.kt
+│       │       │   │   ├── password/viewmodel/
+│       │       │   │   │   └── PasswordEditorViewModelTest.kt
+│       │       │   │   └── shared/mutation/
+│       │       │   │       ├── factory/
+│       │       │   │       │   └── SecureItemEditorMutationGatewayFactoryTest.kt
+│       │       │   │       ├── mutation/factory/
+│       │       │   │       └── SecureItemEditorMutationCoordinatorTest.kt
 │       │       │   ├── home/viewmodel/
 │       │       │   │   └── VaultHomeViewModelTest.kt
 │       │       │   ├── noteeditor/viewmodel/
-│       │       │   │   └── NoteEditorViewModelTest.kt
 │       │       │   ├── passwordeditor/viewmodel/
-│       │       │   │   └── PasswordEditorViewModelTest.kt
 │       │       │   ├── recovery/viewmodel/
 │       │       │   │   └── RecoveryKeyViewModelTest.kt
 │       │       │   ├── settings/viewmodel/
 │       │       │   │   └── SettingsViewModelTest.kt
-│       │       │   ├── shared/editor/mutation/
-│       │       │   │   ├── factory/
-│       │       │   │   │   └── SecureItemEditorMutationGatewayFactoryTest.kt
-│       │       │   │   └── SecureItemEditorMutationCoordinatorTest.kt
+│       │       │   ├── shared/editor/
 │       │       │   └── unlock/viewmodel/
 │       │       │       └── UnlockVaultViewModelTest.kt
 │       │       └── test/

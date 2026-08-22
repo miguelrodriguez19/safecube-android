@@ -14,8 +14,8 @@ import com.miguelrodriguez19.safecube.feature.profile.presentation.profile.ui.Pr
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.ui.CreateVaultScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.folders.ui.VaultFoldersScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.ui.VaultScreen
-import com.miguelrodriguez19.safecube.feature.vault.presentation.noteeditor.ui.NoteEditorScreen
-import com.miguelrodriguez19.safecube.feature.vault.presentation.passwordeditor.ui.PasswordEditorScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.editor.note.ui.NoteEditorScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.editor.password.ui.PasswordEditorScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.recovery.ui.RecoveryKeyScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.ui.SettingsScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.ui.UnlockVaultScreen
