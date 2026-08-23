@@ -84,6 +84,41 @@ class VaultKeyMaterialCacheTest {
     }
 
     @Test
+    fun `update master wrapper when key material is cached then preserves every other field`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        val expected = sampleVaultKeyMaterial()
+        val newMasterWrapper = byteArrayOf(21, 22, 23)
+        target.save(expected)
+
+        target.updateMasterWrappedKek(newMasterWrapper)
+
+        val actual = requireNotNull(target.get())
+        assertArrayEquals(newMasterWrapper, actual.kekEncMaster)
+        assertArrayEquals(expected.kekEncRecovery, actual.kekEncRecovery)
+        assertArrayEquals(expected.kdfSalt, actual.kdfSalt)
+        assertEquals(expected.accountId, actual.accountId)
+        assertEquals(expected.kdfAlgorithm, actual.kdfAlgorithm)
+        assertEquals(expected.kdfMemoryKib, actual.kdfMemoryKib)
+        assertEquals(expected.kdfIterations, actual.kdfIterations)
+        assertEquals(expected.kdfParallelism, actual.kdfParallelism)
+        assertEquals(expected.kdfOutputLen, actual.kdfOutputLen)
+        assertEquals(expected.cryptoVersion, actual.cryptoVersion)
+        verify(exactly = 2) { encryptedPreferences.edit() }
+    }
+
+    @Test
+    fun `clear master wrapper when key material is cached then preserves recovery wrapper`() {
+        val target = VaultKeyMaterialCache(encryptedPreferences)
+        target.save(sampleVaultKeyMaterial())
+
+        target.clearMasterWrappedKek()
+
+        assertNull(target.get())
+        assertTrue(values.containsKey("kek_enc_recovery"))
+        verify(exactly = 1) { editor.remove("kek_enc_master") }
+    }
+
+    @Test
     fun `clear when cache contains key material then removes it`() {
         val target = VaultKeyMaterialCache(encryptedPreferences)
         target.save(sampleVaultKeyMaterial())

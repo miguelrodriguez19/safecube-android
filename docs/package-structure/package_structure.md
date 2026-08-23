@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 23-08-2026 02:13:24
+Updated: 23-08-2026 04:38:17
 
 ```
 safecube-android/
@@ -213,9 +213,8 @@ safecube-android/
 │   │   │   │   │   │       ├── lookups.tab_i
 │   │   │   │   │   │       └── lookups.tab_i.len
 │   │   │   │   │   └── last-build.bin
-│   │   │   │   ├── classpath-snapshot/
-│   │   │   │   │   └── shrunk-classpath-snapshot.bin
-│   │   │   │   └── local-state/
+│   │   │   │   └── classpath-snapshot/
+│   │   │   │       └── shrunk-classpath-snapshot.bin
 │   │   │   └── compileTestKotlin/
 │   │   │       ├── cacheable/
 │   │   │       │   ├── caches-jvm/
@@ -609,137 +608,143 @@ safecube-android/
 │       │   │   │   │       └── VaultSessionManagerImpl.kt
 │       │   │   │   ├── di/
 │       │   │   │   │   └── VaultModule.kt
-│       │   │   │   └── domain/
-│       │   │   │       ├── codec/
-│       │   │   │       │   ├── SecureItemContentCodec.kt
-│       │   │   │       │   ├── SecureItemContentDecodeError.kt
-│       │   │   │       │   └── SecureItemContentDecodeResult.kt
-│       │   │   │       ├── config/
-│       │   │   │       │   └── VaultCryptoDefaults.kt
-│       │   │   │       ├── model/
-│       │   │   │       │   ├── initialize/
-│       │   │   │       │   │   ├── PendingVaultInitialization.kt
-│       │   │   │       │   │   ├── PendingVaultRecoveryKeyResult.kt
-│       │   │   │       │   │   ├── VaultInitializeError.kt
-│       │   │   │       │   │   └── VaultInitializeResult.kt
-│       │   │   │       │   ├── remote/
-│       │   │   │       │   │   ├── request/
-│       │   │   │       │   │   │   ├── RemoteCreateSecureItemRequest.kt
-│       │   │   │       │   │   │   ├── RemoteDeleteSecureItemRequest.kt
-│       │   │   │       │   │   │   └── RemoteUpdateSecureItemRequest.kt
-│       │   │   │       │   │   ├── result/
-│       │   │   │       │   │   │   ├── RemoteCreateSecureItemResult.kt
-│       │   │   │       │   │   │   ├── RemoteDeleteSecureItemResult.kt
-│       │   │   │       │   │   │   ├── RemoteUpdateSecureItemResult.kt
-│       │   │   │       │   │   │   ├── SecureItemRemoteResult.kt
-│       │   │   │       │   │   │   └── VaultKeyMaterialRemoteResult.kt
-│       │   │   │       │   │   ├── RemoteListVaultItemsRequestParams.kt
-│       │   │   │       │   │   ├── RemoteSecureItem.kt
-│       │   │   │       │   │   ├── RemoteSecureItemChangesPage.kt
-│       │   │   │       │   │   └── RemoteSecureItemSummary.kt
-│       │   │   │       │   ├── secureitem/
-│       │   │   │       │   │   ├── crud/
-│       │   │   │       │   │   │   ├── ObserveSecureItemDetailResult.kt
-│       │   │   │       │   │   │   ├── ObserveSecureItemDraftDetailResult.kt
-│       │   │   │       │   │   │   ├── SecureItemCrudError.kt
-│       │   │   │       │   │   │   ├── SecureItemDetail.kt
-│       │   │   │       │   │   │   ├── SecureItemDraftDetail.kt
-│       │   │   │       │   │   │   ├── SecureItemMutationResult.kt
-│       │   │   │       │   │   │   ├── SecureNoteDraft.kt
-│       │   │   │       │   │   │   ├── SecurePasswordDraft.kt
-│       │   │   │       │   │   │   ├── VaultItemDraftSummary.kt
-│       │   │   │       │   │   │   └── VaultItemSummary.kt
-│       │   │   │       │   │   ├── itemcontent/
-│       │   │   │       │   │   │   ├── NoteSecureItemContent.kt
-│       │   │   │       │   │   │   ├── PasswordSecureItemContent.kt
-│       │   │   │       │   │   │   └── SecureItemContent.kt
-│       │   │   │       │   │   ├── EncodedSecureItemContent.kt
-│       │   │   │       │   │   ├── SecureItem.kt
-│       │   │   │       │   │   ├── SecureItemDraftSyncStatus.kt
-│       │   │   │       │   │   ├── SecureItemDraftType.kt
-│       │   │   │       │   │   ├── SecureItemSyncDraft.kt
-│       │   │   │       │   │   ├── SecureItemSyncState.kt
-│       │   │   │       │   │   └── SecureItemType.kt
-│       │   │   │       │   ├── sync/
-│       │   │   │       │   │   ├── draft/
-│       │   │   │       │   │   │   ├── DiscardSecureItemDraftResult.kt
-│       │   │   │       │   │   │   └── PrepareSecureItemDraftForSyncResult.kt
-│       │   │   │       │   │   ├── pull/
-│       │   │   │       │   │   │   ├── PullVaultDeltaApplyResults.kt
-│       │   │   │       │   │   │   ├── PullVaultDeltaError.kt
-│       │   │   │       │   │   │   └── PullVaultDeltaResult.kt
-│       │   │   │       │   │   ├── push/
-│       │   │   │       │   │   │   ├── PushLocalVaultChangesError.kt
-│       │   │   │       │   │   │   ├── PushLocalVaultChangesInternal.kt
-│       │   │   │       │   │   │   └── PushLocalVaultChangesResult.kt
-│       │   │   │       │   │   ├── VaultSyncError.kt
-│       │   │   │       │   │   └── VaultSyncResult.kt
-│       │   │   │       │   ├── unlock/
-│       │   │   │       │   │   ├── VaultUnlockError.kt
-│       │   │   │       │   │   └── VaultUnlockResult.kt
-│       │   │   │       │   ├── AutoLockTimeout.kt
-│       │   │   │       │   ├── UnlockedKeyring.kt
-│       │   │   │       │   ├── VaultKeyMaterial.kt
-│       │   │   │       │   └── VaultState.kt
-│       │   │   │       ├── repository/
-│       │   │   │       │   ├── AutoLockTimeoutRepository.kt
-│       │   │   │       │   ├── PendingVaultInitializationRepository.kt
-│       │   │   │       │   ├── SecureItemDraftRepository.kt
-│       │   │   │       │   ├── SecureItemRemoteRepository.kt
-│       │   │   │       │   ├── SecureItemRepository.kt
-│       │   │   │       │   ├── VaultKeyMaterialLocalReadResult.kt
-│       │   │   │       │   ├── VaultKeyMaterialLocalRepository.kt
-│       │   │   │       │   └── VaultKeyMaterialRemoteRepository.kt
-│       │   │   │       ├── service/
-│       │   │   │       │   ├── EncryptedSecureItemPayload.kt
-│       │   │   │       │   ├── SecureItemCryptoError.kt
-│       │   │   │       │   ├── SecureItemCryptoService.kt
-│       │   │   │       │   ├── SecureItemDecryptionResult.kt
-│       │   │   │       │   ├── SecureItemEncryptionResult.kt
-│       │   │   │       │   └── SecureItemPayloadIdentityReader.kt
-│       │   │   │       ├── session/
-│       │   │   │       │   ├── LocalVaultDataCleaner.kt
-│       │   │   │       │   └── VaultSessionManager.kt
-│       │   │   │       └── usecase/
-│       │   │   │           ├── secureitem/
-│       │   │   │           │   ├── note/
-│       │   │   │           │   │   ├── CreateSecureNoteUseCase.kt
-│       │   │   │           │   │   ├── NoteDraftToContentMapper.kt
-│       │   │   │           │   │   └── UpdateSecureNoteUseCase.kt
-│       │   │   │           │   ├── password/
-│       │   │   │           │   │   ├── CreateSecurePasswordUseCase.kt
-│       │   │   │           │   │   ├── PasswordDraftToContentMapper.kt
-│       │   │   │           │   │   └── UpdateSecurePasswordUseCase.kt
-│       │   │   │           │   ├── CurrentInstantProvider.kt
-│       │   │   │           │   ├── ObserveSecureItemDetailUseCase.kt
-│       │   │   │           │   ├── ObserveSecureItemDraftDetailUseCase.kt
-│       │   │   │           │   ├── ObserveVaultDraftSummariesUseCase.kt
-│       │   │   │           │   ├── ObserveVaultItemSummariesUseCase.kt
-│       │   │   │           │   ├── SecureItemDraftMutationCoordinator.kt
-│       │   │   │           │   ├── SecureItemIdGenerator.kt
-│       │   │   │           │   ├── SecureItemMutationIdGenerator.kt
-│       │   │   │           │   └── SoftDeleteSecureItemUseCase.kt
-│       │   │   │           ├── sync/
-│       │   │   │           │   ├── draft/
-│       │   │   │           │   │   ├── DiscardSecureItemDraftUseCase.kt
-│       │   │   │           │   │   ├── PrepareSecureItemDraftForSyncUseCase.kt
-│       │   │   │           │   │   ├── SecureItemDraftPolicyMappings.kt
-│       │   │   │           │   │   └── SecureItemDraftSyncCoordinator.kt
-│       │   │   │           │   ├── pull/
-│       │   │   │           │   │   ├── PullVaultDeltaMappings.kt
-│       │   │   │           │   │   └── PullVaultDeltaUseCase.kt
-│       │   │   │           │   ├── push/
-│       │   │   │           │   │   ├── PushLocalVaultChangesMappings.kt
-│       │   │   │           │   │   └── PushLocalVaultChangesUseCase.kt
-│       │   │   │           │   ├── ObserveVaultDirtyStateUseCase.kt
-│       │   │   │           │   ├── ObserveVaultSyncingUseCase.kt
-│       │   │   │           │   ├── SyncVaultNowUseCase.kt
-│       │   │   │           │   ├── VaultSyncExecutionLock.kt
-│       │   │   │           │   └── VaultSyncUseCase.kt
-│       │   │   │           └── vault/
-│       │   │   │               ├── VaultInitializeUseCase.kt
-│       │   │   │               ├── VaultUnlocker.kt
-│       │   │   │               └── VaultUnlockUseCase.kt
+│       │   │   │   ├── domain/
+│       │   │   │   │   ├── codec/
+│       │   │   │   │   │   ├── SecureItemContentCodec.kt
+│       │   │   │   │   │   ├── SecureItemContentDecodeError.kt
+│       │   │   │   │   │   └── SecureItemContentDecodeResult.kt
+│       │   │   │   │   ├── config/
+│       │   │   │   │   │   └── VaultCryptoDefaults.kt
+│       │   │   │   │   ├── model/
+│       │   │   │   │   │   ├── initialize/
+│       │   │   │   │   │   │   ├── PendingVaultInitialization.kt
+│       │   │   │   │   │   │   ├── PendingVaultRecoveryKeyResult.kt
+│       │   │   │   │   │   │   ├── VaultInitializeError.kt
+│       │   │   │   │   │   │   └── VaultInitializeResult.kt
+│       │   │   │   │   │   ├── passphrase/
+│       │   │   │   │   │   │   ├── ChangeVaultPassphraseError.kt
+│       │   │   │   │   │   │   └── ChangeVaultPassphraseResult.kt
+│       │   │   │   │   │   ├── remote/
+│       │   │   │   │   │   │   ├── request/
+│       │   │   │   │   │   │   │   ├── RemoteCreateSecureItemRequest.kt
+│       │   │   │   │   │   │   │   ├── RemoteDeleteSecureItemRequest.kt
+│       │   │   │   │   │   │   │   └── RemoteUpdateSecureItemRequest.kt
+│       │   │   │   │   │   │   ├── result/
+│       │   │   │   │   │   │   │   ├── RemoteCreateSecureItemResult.kt
+│       │   │   │   │   │   │   │   ├── RemoteDeleteSecureItemResult.kt
+│       │   │   │   │   │   │   │   ├── RemoteUpdateSecureItemResult.kt
+│       │   │   │   │   │   │   │   ├── SecureItemRemoteResult.kt
+│       │   │   │   │   │   │   │   └── VaultKeyMaterialRemoteResult.kt
+│       │   │   │   │   │   │   ├── RemoteListVaultItemsRequestParams.kt
+│       │   │   │   │   │   │   ├── RemoteSecureItem.kt
+│       │   │   │   │   │   │   ├── RemoteSecureItemChangesPage.kt
+│       │   │   │   │   │   │   └── RemoteSecureItemSummary.kt
+│       │   │   │   │   │   ├── secureitem/
+│       │   │   │   │   │   │   ├── crud/
+│       │   │   │   │   │   │   │   ├── ObserveSecureItemDetailResult.kt
+│       │   │   │   │   │   │   │   ├── ObserveSecureItemDraftDetailResult.kt
+│       │   │   │   │   │   │   │   ├── SecureItemCrudError.kt
+│       │   │   │   │   │   │   │   ├── SecureItemDetail.kt
+│       │   │   │   │   │   │   │   ├── SecureItemDraftDetail.kt
+│       │   │   │   │   │   │   │   ├── SecureItemMutationResult.kt
+│       │   │   │   │   │   │   │   ├── SecureNoteDraft.kt
+│       │   │   │   │   │   │   │   ├── SecurePasswordDraft.kt
+│       │   │   │   │   │   │   │   ├── VaultItemDraftSummary.kt
+│       │   │   │   │   │   │   │   └── VaultItemSummary.kt
+│       │   │   │   │   │   │   ├── itemcontent/
+│       │   │   │   │   │   │   │   ├── NoteSecureItemContent.kt
+│       │   │   │   │   │   │   │   ├── PasswordSecureItemContent.kt
+│       │   │   │   │   │   │   │   └── SecureItemContent.kt
+│       │   │   │   │   │   │   ├── EncodedSecureItemContent.kt
+│       │   │   │   │   │   │   ├── SecureItem.kt
+│       │   │   │   │   │   │   ├── SecureItemDraftSyncStatus.kt
+│       │   │   │   │   │   │   ├── SecureItemDraftType.kt
+│       │   │   │   │   │   │   ├── SecureItemSyncDraft.kt
+│       │   │   │   │   │   │   ├── SecureItemSyncState.kt
+│       │   │   │   │   │   │   └── SecureItemType.kt
+│       │   │   │   │   │   ├── sync/
+│       │   │   │   │   │   │   ├── draft/
+│       │   │   │   │   │   │   │   ├── DiscardSecureItemDraftResult.kt
+│       │   │   │   │   │   │   │   └── PrepareSecureItemDraftForSyncResult.kt
+│       │   │   │   │   │   │   ├── pull/
+│       │   │   │   │   │   │   │   ├── PullVaultDeltaApplyResults.kt
+│       │   │   │   │   │   │   │   ├── PullVaultDeltaError.kt
+│       │   │   │   │   │   │   │   └── PullVaultDeltaResult.kt
+│       │   │   │   │   │   │   ├── push/
+│       │   │   │   │   │   │   │   ├── PushLocalVaultChangesError.kt
+│       │   │   │   │   │   │   │   ├── PushLocalVaultChangesInternal.kt
+│       │   │   │   │   │   │   │   └── PushLocalVaultChangesResult.kt
+│       │   │   │   │   │   │   ├── VaultSyncError.kt
+│       │   │   │   │   │   │   └── VaultSyncResult.kt
+│       │   │   │   │   │   ├── unlock/
+│       │   │   │   │   │   │   ├── VaultUnlockError.kt
+│       │   │   │   │   │   │   └── VaultUnlockResult.kt
+│       │   │   │   │   │   ├── AutoLockTimeout.kt
+│       │   │   │   │   │   ├── UnlockedKeyring.kt
+│       │   │   │   │   │   ├── VaultKeyMaterial.kt
+│       │   │   │   │   │   └── VaultState.kt
+│       │   │   │   │   ├── repository/
+│       │   │   │   │   │   ├── AutoLockTimeoutRepository.kt
+│       │   │   │   │   │   ├── PendingVaultInitializationRepository.kt
+│       │   │   │   │   │   ├── SecureItemDraftRepository.kt
+│       │   │   │   │   │   ├── SecureItemRemoteRepository.kt
+│       │   │   │   │   │   ├── SecureItemRepository.kt
+│       │   │   │   │   │   ├── VaultKeyMaterialLocalReadResult.kt
+│       │   │   │   │   │   ├── VaultKeyMaterialLocalRepository.kt
+│       │   │   │   │   │   └── VaultKeyMaterialRemoteRepository.kt
+│       │   │   │   │   ├── service/
+│       │   │   │   │   │   ├── EncryptedSecureItemPayload.kt
+│       │   │   │   │   │   ├── SecureItemCryptoError.kt
+│       │   │   │   │   │   ├── SecureItemCryptoService.kt
+│       │   │   │   │   │   ├── SecureItemDecryptionResult.kt
+│       │   │   │   │   │   ├── SecureItemEncryptionResult.kt
+│       │   │   │   │   │   └── SecureItemPayloadIdentityReader.kt
+│       │   │   │   │   ├── session/
+│       │   │   │   │   │   ├── LocalVaultDataCleaner.kt
+│       │   │   │   │   │   ├── VaultKekProvider.kt
+│       │   │   │   │   │   └── VaultSessionManager.kt
+│       │   │   │   │   └── usecase/
+│       │   │   │   │       ├── secureitem/
+│       │   │   │   │       │   ├── note/
+│       │   │   │   │       │   │   ├── CreateSecureNoteUseCase.kt
+│       │   │   │   │       │   │   ├── NoteDraftToContentMapper.kt
+│       │   │   │   │       │   │   └── UpdateSecureNoteUseCase.kt
+│       │   │   │   │       │   ├── password/
+│       │   │   │   │       │   │   ├── CreateSecurePasswordUseCase.kt
+│       │   │   │   │       │   │   ├── PasswordDraftToContentMapper.kt
+│       │   │   │   │       │   │   └── UpdateSecurePasswordUseCase.kt
+│       │   │   │   │       │   ├── CurrentInstantProvider.kt
+│       │   │   │   │       │   ├── ObserveSecureItemDetailUseCase.kt
+│       │   │   │   │       │   ├── ObserveSecureItemDraftDetailUseCase.kt
+│       │   │   │   │       │   ├── ObserveVaultDraftSummariesUseCase.kt
+│       │   │   │   │       │   ├── ObserveVaultItemSummariesUseCase.kt
+│       │   │   │   │       │   ├── SecureItemDraftMutationCoordinator.kt
+│       │   │   │   │       │   ├── SecureItemIdGenerator.kt
+│       │   │   │   │       │   ├── SecureItemMutationIdGenerator.kt
+│       │   │   │   │       │   └── SoftDeleteSecureItemUseCase.kt
+│       │   │   │   │       ├── sync/
+│       │   │   │   │       │   ├── draft/
+│       │   │   │   │       │   │   ├── DiscardSecureItemDraftUseCase.kt
+│       │   │   │   │       │   │   ├── PrepareSecureItemDraftForSyncUseCase.kt
+│       │   │   │   │       │   │   ├── SecureItemDraftPolicyMappings.kt
+│       │   │   │   │       │   │   └── SecureItemDraftSyncCoordinator.kt
+│       │   │   │   │       │   ├── pull/
+│       │   │   │   │       │   │   ├── PullVaultDeltaMappings.kt
+│       │   │   │   │       │   │   └── PullVaultDeltaUseCase.kt
+│       │   │   │   │       │   ├── push/
+│       │   │   │   │       │   │   ├── PushLocalVaultChangesMappings.kt
+│       │   │   │   │       │   │   └── PushLocalVaultChangesUseCase.kt
+│       │   │   │   │       │   ├── ObserveVaultDirtyStateUseCase.kt
+│       │   │   │   │       │   ├── ObserveVaultSyncingUseCase.kt
+│       │   │   │   │       │   ├── SyncVaultNowUseCase.kt
+│       │   │   │   │       │   ├── VaultSyncExecutionLock.kt
+│       │   │   │   │       │   └── VaultSyncUseCase.kt
+│       │   │   │   │       └── vault/
+│       │   │   │   │           ├── ChangeVaultPassphraseUseCase.kt
+│       │   │   │   │           ├── VaultInitializeUseCase.kt
+│       │   │   │   │           ├── VaultUnlocker.kt
+│       │   │   │   │           └── VaultUnlockUseCase.kt
+│       │   │   │   └── src/main/java/com/miguelrodriguez19/safecube/core/vault/domain/usecase/vault/
 │       │   │   └── AndroidManifest.xml
 │       │   └── test/java/com/miguelrodriguez19/safecube/core/vault/
 │       │       ├── data/
@@ -783,6 +788,8 @@ safecube-android/
 │       │       │       │   └── PasswordDraftToContentMapperTest.kt
 │       │       │       ├── sync/pull/
 │       │       │       │   └── PullVaultDeltaMappingsTest.kt
+│       │       │       ├── vault/
+│       │       │       │   └── ChangeVaultPassphraseUseCaseTest.kt
 │       │       │       ├── ObserveSecureItemDetailUseCaseTest.kt
 │       │       │       ├── ObserveSecureItemDraftDetailUseCaseTest.kt
 │       │       │       ├── ObserveVaultDirtyStateUseCaseTest.kt
@@ -991,6 +998,17 @@ safecube-android/
 │       │   │   │   │   │   └── VaultScreen.kt
 │       │   │   │   │   └── viewmodel/
 │       │   │   │   │       └── VaultHomeViewModel.kt
+│       │   │   │   ├── passphrase/
+│       │   │   │   │   ├── action/
+│       │   │   │   │   │   └── ChangePassphraseUiAction.kt
+│       │   │   │   │   ├── event/
+│       │   │   │   │   │   └── ChangePassphraseUiEvent.kt
+│       │   │   │   │   ├── state/
+│       │   │   │   │   │   └── ChangePassphraseUiState.kt
+│       │   │   │   │   ├── ui/
+│       │   │   │   │   │   └── ChangePassphraseScreen.kt
+│       │   │   │   │   └── viewmodel/
+│       │   │   │   │       └── ChangePassphraseViewModel.kt
 │       │   │   │   ├── recovery/
 │       │   │   │   │   ├── action/
 │       │   │   │   │   │   └── RecoveryKeyUiAction.kt
@@ -1047,6 +1065,8 @@ safecube-android/
 │       │       │   │       └── SecureItemEditorMutationCoordinatorTest.kt
 │       │       │   ├── home/viewmodel/
 │       │       │   │   └── VaultHomeViewModelTest.kt
+│       │       │   ├── passphrase/viewmodel/
+│       │       │   │   └── ChangePassphraseViewModelTest.kt
 │       │       │   ├── recovery/viewmodel/
 │       │       │   │   └── RecoveryKeyViewModelTest.kt
 │       │       │   ├── settings/viewmodel/
