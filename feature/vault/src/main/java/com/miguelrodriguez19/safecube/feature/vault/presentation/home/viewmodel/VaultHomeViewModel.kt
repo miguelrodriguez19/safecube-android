@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.feature.vault.presentation.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.crud.VaultItemDraftSummary
@@ -11,6 +12,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.Obser
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultDirtyStateUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.SyncVaultNowUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultItemSummaryUiModel
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeContentState
@@ -34,6 +36,7 @@ class VaultHomeViewModel @Inject constructor(
     observeVaultDirtyStateUseCase: ObserveVaultDirtyStateUseCase,
     observeVaultSyncingUseCase: ObserveVaultSyncingUseCase,
     private val syncVaultNowUseCase: SyncVaultNowUseCase,
+    private val vaultSessionManager: VaultSessionManager,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(VaultHomeUiState())
     val uiState = mutableUiState.asStateFlow()
@@ -53,6 +56,13 @@ class VaultHomeViewModel @Inject constructor(
             observeVaultSyncingUseCase().collect { isSyncing ->
                 mutableUiState.update { state ->
                     state.copy(isSyncing = isSyncing || syncJob?.isActive == true)
+                }
+            }
+        }
+        viewModelScope.launch {
+            vaultSessionManager.vaultState.collect { state ->
+                if (state == VaultState.Locked) {
+                    syncJob?.cancel()
                 }
             }
         }
