@@ -42,6 +42,7 @@ fun SettingsScreen(
     onProfile: () -> Unit,
     onLogout: () -> Unit,
     onLockNow: () -> Unit,
+    onChangePassphrase: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val hasActiveDrafts by viewModel.hasActiveDrafts.collectAsState()
@@ -125,6 +126,12 @@ fun SettingsScreen(
             }
             OutlinedButton(onClick = onLockNow, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(UiR.string.settings_lock_now))
+            }
+            OutlinedButton(
+                onClick = onChangePassphrase,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(UiR.string.settings_change_passphrase))
             }
             Button(onClick = onProfile, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(UiR.string.settings_open_profile))

@@ -33,6 +33,7 @@ private fun Routes?.isVaultContentRoute(): Boolean = when (this) {
     is Routes.EditNote,
     Routes.VaultFolders,
     Routes.Settings,
+    Routes.ChangePassphrase,
     Routes.Profile,
         -> true
 

@@ -53,6 +53,10 @@ class NavigationSessionCoordinatorTest {
             Routes.UnlockVault,
             resolveVaultRedirectTarget(VaultState.Locked, Routes.Settings),
         )
+        assertEquals(
+            Routes.UnlockVault,
+            resolveVaultRedirectTarget(VaultState.Locked, Routes.ChangePassphrase),
+        )
     }
 
     @Test
@@ -68,6 +72,10 @@ class NavigationSessionCoordinatorTest {
         assertEquals(
             null,
             resolveVaultRedirectTarget(VaultState.Unlocked, Routes.Vault),
+        )
+        assertEquals(
+            null,
+            resolveVaultRedirectTarget(VaultState.Unlocked, Routes.ChangePassphrase),
         )
     }
 }

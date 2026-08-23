@@ -17,6 +17,7 @@ import com.miguelrodriguez19.safecube.feature.vault.presentation.home.ui.VaultSc
 import com.miguelrodriguez19.safecube.feature.vault.presentation.editor.note.ui.NoteEditorScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.editor.password.ui.PasswordEditorScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.recovery.ui.RecoveryKeyScreen
+import com.miguelrodriguez19.safecube.feature.vault.presentation.passphrase.ui.ChangePassphraseScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.ui.SettingsScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.ui.UnlockVaultScreen
 
@@ -107,6 +108,13 @@ internal fun navigationEntryProvider(
             onProfile = { addRoute(Routes.Profile) },
             onLogout = onLogout,
             onLockNow = onLockNow,
+            onChangePassphrase = { addRoute(Routes.ChangePassphrase) },
+        )
+    }
+    entry<Routes.ChangePassphrase> {
+        ChangePassphraseScreen(
+            onBack = popBackStack,
+            onUnlockVault = { setRoot(Routes.UnlockVault) },
         )
     }
     entry<Routes.Profile> {
