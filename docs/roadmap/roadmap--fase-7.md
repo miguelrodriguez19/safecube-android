@@ -46,6 +46,10 @@ sesión, lifecycle y superficies sensibles sobre los que trabajará la Fase 8.
 La implementación de quick unlock se ejecuta en la card atómica `SCDK-M131`; debe completarse antes
 de `SCDK-M130` y no se integra de forma oportunista en otra card.
 
+La prueba manual multidispositivo de cambio de passphrase ha detectado una condición de carrera
+entre clientes que comparten vault. `SCDK-M132` documenta el bug y queda como dependencia de cierre
+de la fase hasta que el backend defina un contrato de concurrencia y el cliente pueda aplicarlo.
+
 ## Orden de implementación
 
 1. Contratos normativos: `SCDK-M109`–`SCDK-M112`.
@@ -54,7 +58,8 @@ de `SCDK-M130` y no se integra de forma oportunista en otra card.
 4. Controles de seguridad de usuario: `SCDK-M122`–`SCDK-M125`.
 5. Hardening de plataforma y limpieza de alcance: `SCDK-M126`–`SCDK-M129`.
 6. Quick unlock con Android Keystore: `SCDK-M131`.
-7. Verificación transversal y cierre: `SCDK-M130`.
+7. Corrección de concurrencia del cambio de passphrase: `SCDK-M132`.
+8. Verificación transversal y cierre: `SCDK-M130`.
 
 ---
 
@@ -1421,6 +1426,115 @@ válida y cada process death comienza en Locked.
 
 ---
 
+# SCDK-M132. Evitar la sobrescritura concurrente del cambio de passphrase entre dispositivos
+
+## Bug Summary
+
+Dos dispositivos pueden cambiar simultáneamente la passphrase del mismo vault usando la misma
+passphrase base y recibir ambos una respuesta de éxito. El segundo cambio sobrescribe al primero
+sin que el cliente detecte que trabajaba con una versión obsoleta del wrapper maestro.
+
+## Context
+
+- Entorno: dev/test, prueba manual con dos dispositivos autenticados contra el mismo backend.
+- D1 y D2 desbloquean el vault con `aaa` y abren simultáneamente el flujo de cambio de passphrase.
+- D1 cambia `aaa` a `bbb`; D2 cambia después `aaa` a `ccc`.
+- El cliente actual se basa en `SCDK-M123`/`SCDK-M124` y ejecuta `PUT /vault/keys/master` sin una
+  precondición de versión o mecanismo equivalente definido por el backend.
+- El comportamiento correcto queda pendiente de la propuesta de contrato del backend; esta tarea
+  registra el bug y fija la coordinación necesaria para su resolución.
+
+## Expected Behavior
+
+El backend debe aceptar como máximo una actualización para una misma versión base del material
+maestro. Si otro cliente ya modificó el wrapper, el intento concurrente debe rechazarse de forma
+tipada y el cliente no debe mostrar éxito ni conservar una passphrase local que no corresponda con
+el estado remoto.
+
+El cliente debe poder reconciliar un conflicto o un estado indeterminado de forma segura, bloquear
+el vault cuando no pueda establecer el estado remoto y preservar `kekEncRecovery`, items, drafts y
+checkpoints sin recifrarlos ni eliminarlos.
+
+## Actual Behavior
+
+Ambos dispositivos reciben éxito. D1 queda configurado localmente para `bbb` y D2 para `ccc`, aunque
+solo una de esas passphrases puede abrir el wrapper remoto que prevaleció. El último `PUT` gana y no
+existe una señal de conflicto que permita al cliente invalidar el estado obsoleto.
+
+## Steps to Reproduce
+
+1. En D1, inicializar el vault con passphrase `aaa` y dejarlo desbloqueado.
+2. En D2, iniciar sesión y desbloquear el mismo vault con `aaa`.
+3. En ambos dispositivos, abrir simultáneamente Settings → Change passphrase.
+4. En D1, cambiar `aaa` por `bbb` y confirmar que aparece el mensaje de éxito.
+5. Inmediatamente después, en D2, cambiar `aaa` por `ccc` y confirmar que también aparece el
+   mensaje de éxito.
+6. Comprobar que D1 y D2 conservan passphrases distintas para el mismo vault y que uno de los
+   clientes ya no puede desbloquearlo con su passphrase local.
+
+## Impact
+
+- Afecta a usuarios que utilizan el mismo vault desde más de un dispositivo o sesión.
+- Severidad alta y bloqueante para cerrar el cambio de passphrase en v1: puede dejar al usuario
+  con una credencial local inválida y feedback incorrecto.
+- No se ha observado pérdida de items, drafts, recovery key ni datos locales.
+- Workaround temporal: no cambiar la passphrase desde dos dispositivos hasta disponer del contrato
+  de concurrencia del backend.
+
+## Scope
+
+### In Scope
+
+- Acordar con backend una precondición de versión, `ETag`/`If-Match`, mutation idempotente o
+  mecanismo equivalente para `PUT /vault/keys/master`.
+- Actualizar el contrato OpenAPI y regenerar/adaptar el cliente de red.
+- Exponer un resultado tipado para conflicto por versión obsoleta y distinguirlo de 401, 5xx y
+  respuesta perdida.
+- Reconciliar el estado remoto antes de declarar éxito o bloquear de forma segura cuando el estado
+  quede indeterminado.
+- Garantizar que solo cambia `kekEncMaster` y que `kekEncRecovery`, items, drafts y checkpoints
+  permanecen byte-for-byte idénticos.
+- Añadir tests de dos clientes con la misma versión base, ganador único, cliente perdedor y
+  recuperación tras conflicto/respuesta perdida.
+- Actualizar specs, ADR, trazabilidad, documentación y `ciVerify` cuando el contrato esté aprobado.
+
+### Out of Scope
+
+- Cambio de passphrase mediante cliente web o enlace enviado por email.
+- Confirmación de email, recuperación de passphrase olvidada o recuperación sin recovery key.
+- Rotación de KEK o recovery key.
+- Recifrado de payloads SecureItem.
+- Logout global o invalidación de todas las sesiones autenticadas.
+
+## Root Cause Hypothesis (optional)
+
+El cambio de passphrase se valida contra una caché local que puede estar obsoleta y el endpoint
+remoto acepta actualizaciones incondicionales. Sin una condición atómica sobre la versión del
+wrapper, dos clientes pueden pasar la verificación local y ejecutar escrituras válidas en secuencia,
+produciendo una política de último escritor gana.
+
+## Logs / Evidence
+
+- Prueba manual reproducible con D1/D2: `aaa` → `bbb` y `aaa` → `ccc`.
+- Evidencia funcional: ambos dispositivos muestran éxito y mantienen estados locales divergentes.
+- Endpoint implicado: `PUT /vault/keys/master`; reconciliación relacionada: `GET /vault/keys`.
+- No adjuntar passphrases, wrappers, claves, tokens, payloads ni respuestas sensibles en logs,
+  capturas o informes.
+
+## Acceptance Criteria (ACs)
+
+- [ ] El contrato backend/OpenAPI define una condición atómica contra la versión base del wrapper.
+- [ ] Para dos cambios concurrentes solo uno puede declararse exitoso.
+- [ ] El cliente perdedor recibe un resultado tipado de conflicto y no muestra éxito.
+- [ ] Un cliente con caché obsoleta no puede sobrescribir silenciosamente el cambio aceptado.
+- [ ] Conflicto, respuesta perdida y reconciliación incierta terminan en un estado seguro y
+  explicable.
+- [ ] `kekEncRecovery`, items, drafts y checkpoints permanecen sin cambios.
+- [ ] Existen tests deterministas de concurrencia, conflicto y respuesta perdida.
+- [ ] `ciVerify`, trazabilidad y agent report están actualizados.
+
+---
+
 # SCDK-M130. Crear la matriz de regresión y cerrar la verificación de Fase 7
 
 ## Main Story (How, I Want, To)
@@ -1460,7 +1574,7 @@ transiciones reales de sesión, lifecycle, recovery y navegación.
 
 - Spec: `SPEC-HARDENING-V1`.
 - ADRs: `ADR-0001`, `ADR-0002`, `ADR-0003`.
-- Dependencias: `SCDK-M113` a `SCDK-M129`.
+- Dependencias: `SCDK-M113` a `SCDK-M129`, `SCDK-M131`, `SCDK-M132`.
 - No usar sleeps ni secretos reales.
 - Crear `docs/sdd/agent-reports/SCDK-M130.md`.
 
