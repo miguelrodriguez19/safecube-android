@@ -2,14 +2,17 @@ package com.miguelrodriguez19.safecube.feature.vault.presentation.settings.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,10 +24,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.vault.domain.model.AutoLockTimeout
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation.AppTab
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation.NavigationBar
 import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.viewmodel.SettingsViewModel
@@ -36,9 +41,11 @@ fun SettingsScreen(
     onSettings: () -> Unit,
     onProfile: () -> Unit,
     onLogout: () -> Unit,
+    onLockNow: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val hasActiveDrafts by viewModel.hasActiveDrafts.collectAsState()
+    val autoLockTimeout by viewModel.autoLockTimeout.collectAsState()
     var showDraftLogoutWarning by remember { mutableStateOf(false) }
 
     if (showDraftLogoutWarning) {
@@ -75,7 +82,7 @@ fun SettingsScreen(
                 modifier = Modifier.statusBarsPadding(),
             ) {
                 Text(
-                    text = "Settings",
+                    text = stringResource(UiR.string.settings_label),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
                 )
@@ -98,15 +105,29 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = "Account and security",
+                text = stringResource(UiR.string.settings_account_security),
                 style = MaterialTheme.typography.headlineSmall,
             )
             Text(
-                text = "Dummy content: session duration, biometrics, and security preferences.",
+                text = stringResource(UiR.string.settings_auto_lock_description),
                 modifier = Modifier.padding(bottom = 12.dp),
             )
+            Text(
+                text = stringResource(UiR.string.settings_auto_lock_title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            AutoLockTimeout.entries.forEach { timeout ->
+                AutoLockTimeoutOption(
+                    timeout = timeout,
+                    selected = timeout == autoLockTimeout,
+                    onSelected = { viewModel.setAutoLockTimeout(timeout) },
+                )
+            }
+            OutlinedButton(onClick = onLockNow, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(UiR.string.settings_lock_now))
+            }
             Button(onClick = onProfile, modifier = Modifier.fillMaxWidth()) {
-                Text("Open Profile")
+                Text(stringResource(UiR.string.settings_open_profile))
             }
             OutlinedButton(
                 onClick = {
@@ -119,8 +140,43 @@ fun SettingsScreen(
                 enabled = hasActiveDrafts != null,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Log out")
+                Text(stringResource(UiR.string.settings_log_out))
             }
         }
     }
+}
+
+@Composable
+private fun AutoLockTimeoutOption(
+    timeout: AutoLockTimeout,
+    selected: Boolean,
+    onSelected: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .selectable(
+                selected = selected,
+                onClick = onSelected,
+                role = Role.RadioButton,
+            )
+            .padding(vertical = 2.dp),
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = null,
+        )
+        Text(
+            text = stringResource(timeout.labelRes()),
+            modifier = Modifier.padding(start = 8.dp, top = 12.dp),
+        )
+    }
+}
+
+private fun AutoLockTimeout.labelRes(): Int = when (this) {
+    AutoLockTimeout.Immediately -> UiR.string.settings_auto_lock_immediately
+    AutoLockTimeout.ThirtySeconds -> UiR.string.settings_auto_lock_30_seconds
+    AutoLockTimeout.OneMinute -> UiR.string.settings_auto_lock_1_minute
+    AutoLockTimeout.FiveMinutes -> UiR.string.settings_auto_lock_5_minutes
+    AutoLockTimeout.FifteenMinutes -> UiR.string.settings_auto_lock_15_minutes
 }

@@ -17,6 +17,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.Obser
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultDirtyStateUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.ObserveVaultSyncingUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.SyncVaultNowUseCase
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeContentState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeLocalReadError
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.VaultSyncUiErrorCategory
@@ -52,6 +53,20 @@ class VaultHomeViewModelTest {
     private val observeVaultDirtyStateUseCase = mockk<ObserveVaultDirtyStateUseCase>()
     private val observeVaultSyncingUseCase = mockk<ObserveVaultSyncingUseCase>()
     private val syncVaultNowUseCase = mockk<SyncVaultNowUseCase>()
+    private val vaultSessionManager = mockk<VaultSessionManager>()
+    private val vaultState = MutableStateFlow<VaultState>(VaultState.Unlocked)
+
+    private fun target(): VaultHomeViewModel {
+        every { vaultSessionManager.vaultState } returns vaultState
+        return VaultHomeViewModel(
+            observeVaultItemSummariesUseCase = observeVaultItemSummariesUseCase,
+            observeVaultDraftSummariesUseCase = observeVaultDraftSummariesUseCase,
+            observeVaultDirtyStateUseCase = observeVaultDirtyStateUseCase,
+            observeVaultSyncingUseCase = observeVaultSyncingUseCase,
+            syncVaultNowUseCase = syncVaultNowUseCase,
+            vaultSessionManager = vaultSessionManager,
+        )
+    }
 
     @Test
     fun `initialization before Room emits then exposes loading instead of empty`() = runTest {
@@ -59,7 +74,7 @@ class VaultHomeViewModelTest {
         val draftFlow = MutableSharedFlow<List<VaultItemDraftSummary>>()
         stubObservers(itemFlow = itemFlow, draftFlow = draftFlow)
 
-        val target = createTarget()
+        val target = target()
 
         runCurrent()
 
@@ -72,7 +87,7 @@ class VaultHomeViewModelTest {
     fun `initial sync with empty Room emission then exposes empty after sync`() = runTest {
         stubObservers()
         coEvery { syncVaultNowUseCase.invoke() } returns VaultSyncResult.Success(0, 0, 0)
-        val target = createTarget()
+        val target = target()
 
         target.onVaultScreenShown()
         advanceUntilIdle()
@@ -88,7 +103,7 @@ class VaultHomeViewModelTest {
         stubObservers(itemFlow = itemFlow)
         val releaseSync = CompletableDeferred<VaultSyncResult>()
         coEvery { syncVaultNowUseCase.invoke() } coAnswers { releaseSync.await() }
-        val target = createTarget()
+        val target = target()
 
         target.onVaultScreenShown()
         runCurrent()
@@ -102,6 +117,28 @@ class VaultHomeViewModelTest {
 
         assertEquals(VaultHomeContentState.Content, target.uiState.value.contentState)
         assertEquals(1, target.uiState.value.items.size)
+    }
+
+    @Test
+    fun `locking the vault cancels an active protected sync`() = runTest {
+        stubObservers()
+        val syncStarted = CompletableDeferred<Unit>()
+        val releaseSync = CompletableDeferred<VaultSyncResult>()
+        coEvery { syncVaultNowUseCase.invoke() } coAnswers {
+            syncStarted.complete(Unit)
+            releaseSync.await()
+        }
+        val target = target()
+
+        target.onVaultScreenShown()
+        syncStarted.await()
+        runCurrent()
+
+        vaultState.value = VaultState.Locked
+        runCurrent()
+
+        assertFalse(target.uiState.value.isSyncing)
+        assertFalse(releaseSync.isCompleted)
     }
 
     @Test
@@ -149,7 +186,7 @@ class VaultHomeViewModelTest {
         )
         stubSyncObservers()
 
-        val target = createTarget()
+        val target = target()
 
         advanceUntilIdle()
 
@@ -174,7 +211,7 @@ class VaultHomeViewModelTest {
             },
         )
 
-        val target = createTarget()
+        val target = target()
 
         advanceUntilIdle()
 
@@ -199,7 +236,7 @@ class VaultHomeViewModelTest {
             downloadedCount = 2,
             conflictCount = 1,
         )
-        val target = createTarget()
+        val target = target()
 
         advanceUntilIdle()
         target.syncNow()
@@ -262,7 +299,7 @@ class VaultHomeViewModelTest {
             ) to VaultSyncUiErrorCategory.StorageOrCrypto,
         )
         coEvery { syncVaultNowUseCase.invoke() } returnsMany outcomes.map { it.first }
-        val target = createTarget()
+        val target = target()
 
         advanceUntilIdle()
         outcomes.forEach { (expectedResult, expectedCategory) ->
@@ -280,7 +317,7 @@ class VaultHomeViewModelTest {
         stubObservers()
         val release = CompletableDeferred<VaultSyncResult>()
         coEvery { syncVaultNowUseCase.invoke() } coAnswers { release.await() }
-        val target = createTarget()
+        val target = target()
 
         target.syncNow()
         target.syncNow()
@@ -299,7 +336,7 @@ class VaultHomeViewModelTest {
     fun `screen shown more than once then triggers only one initial sync`() = runTest {
         stubObservers()
         coEvery { syncVaultNowUseCase.invoke() } returns VaultSyncResult.Success(0, 0, 0)
-        val target = createTarget()
+        val target = target()
 
         target.onVaultScreenShown()
         target.onVaultScreenHidden()
@@ -313,25 +350,17 @@ class VaultHomeViewModelTest {
     fun `new home entry after logout then triggers a new initial sync`() = runTest {
         stubObservers()
         coEvery { syncVaultNowUseCase.invoke() } returns VaultSyncResult.Success(0, 0, 0)
-        val firstTarget = createTarget()
+        val firstTarget = target()
 
         firstTarget.onVaultScreenShown()
         advanceUntilIdle()
         firstTarget.onVaultScreenHidden()
-        val secondTarget = createTarget()
+        val secondTarget = target()
         secondTarget.onVaultScreenShown()
         advanceUntilIdle()
 
         coVerify(exactly = 2) { syncVaultNowUseCase.invoke() }
     }
-
-    private fun createTarget(): VaultHomeViewModel = VaultHomeViewModel(
-        observeVaultItemSummariesUseCase = observeVaultItemSummariesUseCase,
-        observeVaultDraftSummariesUseCase = observeVaultDraftSummariesUseCase,
-        observeVaultDirtyStateUseCase = observeVaultDirtyStateUseCase,
-        observeVaultSyncingUseCase = observeVaultSyncingUseCase,
-        syncVaultNowUseCase = syncVaultNowUseCase,
-    )
 
     private fun stubObservers(
         itemFlow: Flow<List<VaultItemSummary>> = flowOf(emptyList()),

@@ -22,6 +22,7 @@ fun NavigationWrapper() {
     val activity = remember(context) { context as? Activity }
     val dependencies = rememberNavigationDependencies()
     val sessionState by dependencies.sessionManager.sessionState.collectAsState()
+    val vaultState by dependencies.vaultSessionManager.vaultState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
     val setRoot: (Routes) -> Unit = setRoot@{ route ->
@@ -82,6 +83,11 @@ fun NavigationWrapper() {
         currentRoute = backStack.lastOrNull() as? Routes,
         setRoot = setRoot,
     )
+    ObserveVaultRedirect(
+        vaultState = vaultState,
+        currentRoute = backStack.lastOrNull() as? Routes,
+        setRoot = setRoot,
+    )
 
     NavDisplay(
         backStack = backStack,
@@ -104,6 +110,10 @@ fun NavigationWrapper() {
             replaceCurrent = replaceCurrent,
             popBackStack = popBackStack,
             onLogout = onLogout,
+            onLockNow = {
+                dependencies.vaultAutoLockController.lockNow()
+                setRoot(Routes.UnlockVault)
+            },
             showSessionExpiredMessage = shouldShowSessionExpiredMessage(sessionState),
         )
     )

@@ -54,6 +54,17 @@
     <string name="vault_label">Bóveda</string>
     <string name="folders_label">Carpetas</string>
     <string name="settings_label">Ajustes</string>
+    <string name="settings_account_security">Cuenta y seguridad</string>
+    <string name="settings_auto_lock_title">Bloqueo automático de la bóveda</string>
+    <string name="settings_auto_lock_description">Bloquea la bóveda después de que la aplicación permanezca en segundo plano durante el periodo seleccionado.</string>
+    <string name="settings_auto_lock_immediately">Inmediatamente</string>
+    <string name="settings_auto_lock_30_seconds">30 segundos</string>
+    <string name="settings_auto_lock_1_minute">1 minuto</string>
+    <string name="settings_auto_lock_5_minutes">5 minutos</string>
+    <string name="settings_auto_lock_15_minutes">15 minutos</string>
+    <string name="settings_lock_now">Bloquear ahora</string>
+    <string name="settings_open_profile">Abrir perfil</string>
+    <string name="settings_log_out">Cerrar sesión</string>
     <string name="email_is_required">El correo es obligatorio</string>
     <string name="password_is_required">La contraseña es obligatoria</string>
     <string name="confirm_password_is_required">Confirma la contraseña</string>

@@ -26,6 +26,7 @@ internal fun navigationEntryProvider(
     replaceCurrent: (Routes) -> Unit,
     popBackStack: () -> Unit,
     onLogout: () -> Unit,
+    onLockNow: () -> Unit,
     showSessionExpiredMessage: Boolean,
 ): (NavKey) -> NavEntry<NavKey> = entryProvider {
     entry<Routes.Splash> {
@@ -105,6 +106,7 @@ internal fun navigationEntryProvider(
             onSettings = {},
             onProfile = { addRoute(Routes.Profile) },
             onLogout = onLogout,
+            onLockNow = onLockNow,
         )
     }
     entry<Routes.Profile> {

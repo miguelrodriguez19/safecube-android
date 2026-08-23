@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.app.presentation.navigation.host
 import com.miguelrodriguez19.safecube.app.presentation.navigation.route.Routes
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -43,6 +44,30 @@ class NavigationSessionCoordinatorTest {
                 SessionState.LoggedInVaultLocked,
                 Routes.Login,
             ),
+        )
+    }
+
+    @Test
+    fun `locked vault redirects protected content to unlock root`() {
+        assertEquals(
+            Routes.UnlockVault,
+            resolveVaultRedirectTarget(VaultState.Locked, Routes.Settings),
+        )
+    }
+
+    @Test
+    fun `locked vault does not redirect the post-login gate`() {
+        assertEquals(
+            null,
+            resolveVaultRedirectTarget(VaultState.Locked, Routes.PostLoginGate),
+        )
+    }
+
+    @Test
+    fun `activity recreation while vault remains unlocked does not redirect`() {
+        assertEquals(
+            null,
+            resolveVaultRedirectTarget(VaultState.Unlocked, Routes.Vault),
         )
     }
 }

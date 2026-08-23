@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 22-08-2026 07:09:29
+Updated: 23-08-2026 02:13:24
 
 ```
 safecube-android/
@@ -39,7 +39,8 @@ safecube-android/
 │   │   │   │   │   │   │   ├── NavigationDependencies.kt
 │   │   │   │   │   │   │   ├── NavigationGraph.kt
 │   │   │   │   │   │   │   ├── NavigationSessionCoordinator.kt
-│   │   │   │   │   │   │   └── NavigationWrapper.kt
+│   │   │   │   │   │   │   ├── NavigationWrapper.kt
+│   │   │   │   │   │   │   └── VaultNavigationCoordinator.kt
 │   │   │   │   │   │   └── route/
 │   │   │   │   │   │       └── Routes.kt
 │   │   │   │   │   ├── theme/
@@ -49,6 +50,12 @@ safecube-android/
 │   │   │   │   │   └── ui/
 │   │   │   │   │       └── SplashGateScreen.kt
 │   │   │   │   └── session/
+│   │   │   │       ├── autolock/
+│   │   │   │       │   ├── AutoLockClock.kt
+│   │   │   │       │   ├── AutoLockModule.kt
+│   │   │   │       │   ├── AutoLockScheduler.kt
+│   │   │   │       │   ├── VaultAutoLockController.kt
+│   │   │   │       │   └── VaultAutoLockCoordinator.kt
 │   │   │   │       ├── AccountSessionLifecycleImpl.kt
 │   │   │   │       └── AccountSessionModule.kt
 │   │   │   ├── res/
@@ -87,6 +94,8 @@ safecube-android/
 │   │       │   │   └── host/
 │   │       │   │       └── NavigationSessionCoordinatorTest.kt
 │   │       │   └── session/
+│   │       │       ├── autolock/
+│   │       │       │   └── VaultAutoLockCoordinatorTest.kt
 │   │       │       └── AccountSessionLifecycleImplTest.kt
 │   │       └── ExampleUnitTest.kt
 │   ├── .gitignore
@@ -204,8 +213,9 @@ safecube-android/
 │   │   │   │   │   │       ├── lookups.tab_i
 │   │   │   │   │   │       └── lookups.tab_i.len
 │   │   │   │   │   └── last-build.bin
-│   │   │   │   └── classpath-snapshot/
-│   │   │   │       └── shrunk-classpath-snapshot.bin
+│   │   │   │   ├── classpath-snapshot/
+│   │   │   │   │   └── shrunk-classpath-snapshot.bin
+│   │   │   │   └── local-state/
 │   │   │   └── compileTestKotlin/
 │   │   │       ├── cacheable/
 │   │   │       │   ├── caches-jvm/
@@ -583,6 +593,8 @@ safecube-android/
 │       │   │   │   │   │   ├── SecureItemPayloadEnvelopeV1Codec.kt
 │       │   │   │   │   │   └── VaultItemCipher.kt
 │       │   │   │   │   ├── local/
+│       │   │   │   │   │   ├── AutoLockPreferences.kt
+│       │   │   │   │   │   ├── AutoLockTimeoutRepositoryImpl.kt
 │       │   │   │   │   │   ├── EncryptedVaultInitializationPrefs.kt
 │       │   │   │   │   │   ├── EncryptedVaultKeyMaterialPrefs.kt
 │       │   │   │   │   │   ├── PendingVaultInitializationCodec.kt
@@ -665,10 +677,12 @@ safecube-android/
 │       │   │   │       │   ├── unlock/
 │       │   │   │       │   │   ├── VaultUnlockError.kt
 │       │   │   │       │   │   └── VaultUnlockResult.kt
+│       │   │   │       │   ├── AutoLockTimeout.kt
 │       │   │   │       │   ├── UnlockedKeyring.kt
 │       │   │   │       │   ├── VaultKeyMaterial.kt
 │       │   │   │       │   └── VaultState.kt
 │       │   │   │       ├── repository/
+│       │   │   │       │   ├── AutoLockTimeoutRepository.kt
 │       │   │   │       │   ├── PendingVaultInitializationRepository.kt
 │       │   │   │       │   ├── SecureItemDraftRepository.kt
 │       │   │   │       │   ├── SecureItemRemoteRepository.kt
@@ -738,6 +752,7 @@ safecube-android/
 │       │       │   │   ├── SecureItemPayloadEnvelopeV1CodecTest.kt
 │       │       │   │   └── VaultItemCipherTest.kt
 │       │       │   ├── local/
+│       │       │   │   ├── AutoLockTimeoutRepositoryImplTest.kt
 │       │       │   │   ├── PendingVaultInitializationCodecTest.kt
 │       │       │   │   ├── PendingVaultInitializationStoreTest.kt
 │       │       │   │   └── VaultKeyMaterialCacheTest.kt
@@ -1032,8 +1047,6 @@ safecube-android/
 │       │       │   │       └── SecureItemEditorMutationCoordinatorTest.kt
 │       │       │   ├── home/viewmodel/
 │       │       │   │   └── VaultHomeViewModelTest.kt
-│       │       │   ├── noteeditor/viewmodel/
-│       │       │   ├── passwordeditor/viewmodel/
 │       │       │   ├── recovery/viewmodel/
 │       │       │   │   └── RecoveryKeyViewModelTest.kt
 │       │       │   ├── settings/viewmodel/

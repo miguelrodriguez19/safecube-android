@@ -6,6 +6,9 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMaterialPrefs
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultInitializationPrefs
+import com.miguelrodriguez19.safecube.core.vault.data.local.AutoLockPreferences
+import com.miguelrodriguez19.safecube.core.vault.data.local.AutoLockTimeoutRepositoryImpl
+import com.miguelrodriguez19.safecube.core.vault.data.local.AUTO_LOCK_PREFERENCES_NAME
 import com.miguelrodriguez19.safecube.core.vault.data.codec.JsonSecureItemContentCodec
 import com.miguelrodriguez19.safecube.core.vault.data.crypto.SecureItemPayloadEnvelopeIdentityReader
 import com.miguelrodriguez19.safecube.core.vault.data.crypto.VaultItemCipher
@@ -20,6 +23,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentC
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.PendingVaultInitializationRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.repository.AutoLockTimeoutRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultDataCleaner
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
@@ -72,6 +76,12 @@ abstract class VaultModule {
     abstract fun bindPendingVaultInitializationRepository(
         pendingVaultInitializationStore: PendingVaultInitializationStore,
     ): PendingVaultInitializationRepository
+
+    @Binds
+    @Singleton
+    internal abstract fun bindAutoLockTimeoutRepository(
+        autoLockTimeoutRepositoryImpl: AutoLockTimeoutRepositoryImpl,
+    ): AutoLockTimeoutRepository
 
     @Binds
     @Singleton
@@ -154,6 +164,16 @@ abstract class VaultModule {
                 .build(),
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
+
+        @Provides
+        @Singleton
+        @AutoLockPreferences
+        fun provideAutoLockPreferences(
+            @ApplicationContext context: Context,
+        ): SharedPreferences = context.getSharedPreferences(
+            AUTO_LOCK_PREFERENCES_NAME,
+            Context.MODE_PRIVATE,
         )
     }
 }

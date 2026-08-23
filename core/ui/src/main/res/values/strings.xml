@@ -54,6 +54,17 @@
     <string name="vault_label">Vault</string>
     <string name="folders_label">Folders</string>
     <string name="settings_label">Settings</string>
+    <string name="settings_account_security">Account and security</string>
+    <string name="settings_auto_lock_title">Auto-lock vault</string>
+    <string name="settings_auto_lock_description">Lock the vault after the app stays in the background for the selected period.</string>
+    <string name="settings_auto_lock_immediately">Immediately</string>
+    <string name="settings_auto_lock_30_seconds">30 seconds</string>
+    <string name="settings_auto_lock_1_minute">1 minute</string>
+    <string name="settings_auto_lock_5_minutes">5 minutes</string>
+    <string name="settings_auto_lock_15_minutes">15 minutes</string>
+    <string name="settings_lock_now">Lock now</string>
+    <string name="settings_open_profile">Open profile</string>
+    <string name="settings_log_out">Log out</string>
 
     <string name="email_is_required">Email is required</string>
     <string name="password_is_required">Password is required</string>
