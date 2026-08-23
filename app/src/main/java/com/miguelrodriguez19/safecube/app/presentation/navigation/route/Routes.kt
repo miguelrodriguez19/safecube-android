@@ -45,6 +45,9 @@ sealed class Routes : NavKey {
     data object Settings : Routes()
 
     @Serializable
+    data object ChangePassphrase : Routes()
+
+    @Serializable
     data object Profile : Routes()
 
     @Serializable

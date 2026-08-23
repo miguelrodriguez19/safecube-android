@@ -63,8 +63,30 @@
     <string name="settings_auto_lock_5_minutes">5 minutes</string>
     <string name="settings_auto_lock_15_minutes">15 minutes</string>
     <string name="settings_lock_now">Lock now</string>
+    <string name="settings_change_passphrase">Change passphrase</string>
     <string name="settings_open_profile">Open profile</string>
     <string name="settings_log_out">Log out</string>
+
+    <string name="change_passphrase_title">Change passphrase</string>
+    <string name="change_passphrase_description">Your vault stays unlocked while the same encryption key is protected with the new passphrase.</string>
+    <string name="change_passphrase_current_label">Current passphrase</string>
+    <string name="change_passphrase_new_label">New passphrase</string>
+    <string name="change_passphrase_confirmation_label">Confirm new passphrase</string>
+    <string name="change_passphrase_action">Change passphrase</string>
+    <string name="change_passphrase_loading">Changing passphrase…</string>
+    <string name="change_passphrase_cancel">Cancel</string>
+    <string name="change_passphrase_success">Passphrase changed. Your vault remains unlocked.</string>
+    <string name="change_passphrase_current_required">Enter your current passphrase</string>
+    <string name="change_passphrase_new_required">Enter a new passphrase</string>
+    <string name="change_passphrase_confirmation_required">Confirm your new passphrase</string>
+    <string name="change_passphrase_confirmation_mismatch">Passphrases do not match</string>
+    <string name="change_passphrase_new_must_differ">The new passphrase must be different</string>
+    <string name="change_passphrase_invalid_new">The new passphrase could not be accepted.</string>
+    <string name="change_passphrase_invalid_current">Your current passphrase is incorrect.</string>
+    <string name="change_passphrase_retryable">The change could not be confirmed. Check your connection and try again.</string>
+    <string name="change_passphrase_not_applied">The change was not applied. Check your connection and try again.</string>
+    <string name="change_passphrase_session_required">Your vault session is no longer available. Unlock the vault and try again.</string>
+    <string name="change_passphrase_uncertain">The result could not be confirmed. Unlock the vault after checking your connection.</string>
 
     <string name="email_is_required">Email is required</string>
     <string name="password_is_required">Password is required</string>
