@@ -74,6 +74,18 @@ class VaultKeyMaterialCache @Inject constructor(
         is VaultKeyMaterialLocalReadResult.Present -> result.value
     }
 
+    override fun updateMasterWrappedKek(newKekEncMaster: ByteArray) {
+        encryptedPreferences.edit {
+            putString(KEY_KEK_ENC_MASTER, encode(newKekEncMaster))
+        }
+    }
+
+    override fun clearMasterWrappedKek() {
+        encryptedPreferences.edit {
+            remove(KEY_KEK_ENC_MASTER)
+        }
+    }
+
     private fun parseMaterial(): VaultKeyMaterial? {
         val accountId = encryptedPreferences.getString(KEY_ACCOUNT_ID, null)
             ?.toUuidOrNull()

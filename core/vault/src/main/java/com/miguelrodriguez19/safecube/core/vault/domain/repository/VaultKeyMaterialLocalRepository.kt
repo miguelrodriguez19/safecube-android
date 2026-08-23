@@ -9,5 +9,9 @@ interface VaultKeyMaterialLocalRepository {
 
     fun get(): VaultKeyMaterial?
 
+    fun updateMasterWrappedKek(newKekEncMaster: ByteArray)
+
+    fun clearMasterWrappedKek()
+
     fun clear()
 }

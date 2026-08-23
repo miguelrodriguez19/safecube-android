@@ -19,12 +19,14 @@ import com.miguelrodriguez19.safecube.core.vault.data.remote.RemoteVaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.data.session.VaultSessionManagerImpl
 import com.miguelrodriguez19.safecube.core.vault.data.session.LocalVaultDataCleanerImpl
+import com.miguelrodriguez19.safecube.core.vault.data.session.VaultInMemoryKekStore
 import com.miguelrodriguez19.safecube.core.vault.domain.codec.SecureItemContentCodec
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.PendingVaultInitializationRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.AutoLockTimeoutRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultKekProvider
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultDataCleaner
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemPayloadIdentityReader
@@ -52,6 +54,12 @@ abstract class VaultModule {
     internal abstract fun bindVaultSessionManager(
         vaultSessionManagerImpl: VaultSessionManagerImpl,
     ): VaultSessionManager
+
+    @Binds
+    @Singleton
+    internal abstract fun bindVaultKekProvider(
+        vaultInMemoryKekStore: VaultInMemoryKekStore,
+    ): VaultKekProvider
 
     @Binds
     @Singleton
