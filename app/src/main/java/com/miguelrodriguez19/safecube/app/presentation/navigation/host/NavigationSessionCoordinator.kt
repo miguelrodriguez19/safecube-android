@@ -5,21 +5,28 @@ import androidx.compose.runtime.LaunchedEffect
 import com.miguelrodriguez19.safecube.app.presentation.navigation.route.Routes
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
+import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 
 @Composable
 internal fun ObserveSessionRedirect(
     sessionState: SessionState,
+    vaultState: VaultState,
     currentRoute: Routes?,
     setRoot: (Routes) -> Unit,
 ) {
-    LaunchedEffect(sessionState) {
-        resolveSessionRedirectTarget(sessionState, currentRoute)?.let(setRoot)
+    LaunchedEffect(sessionState, vaultState, currentRoute) {
+        resolveSessionRedirectTarget(
+            sessionState = sessionState,
+            currentRoute = currentRoute,
+            vaultState = vaultState,
+        )?.let(setRoot)
     }
 }
 
 internal fun resolveSessionRedirectTarget(
     sessionState: SessionState,
     currentRoute: Routes?,
+    vaultState: VaultState = VaultState.Unlocked,
 ): Routes? = when (sessionState) {
     is SessionState.LoggedOut -> {
         val destination = when (sessionState.reason) {
@@ -32,11 +39,37 @@ internal fun resolveSessionRedirectTarget(
             SessionTerminationReason.LocalIntegrityFailure,
                 -> Routes.Login
         }
-        destination.takeUnless { it == currentRoute }
+        when (currentRoute) {
+            Routes.Splash -> destination
+            in PRE_AUTH_ROUTES -> null
+            else -> destination
+        }
     }
 
-    SessionState.LoggedInVaultLocked ->
-        Routes.PostLoginGate.takeIf { currentRoute in PRE_AUTH_ROUTES }
+    SessionState.LoggedInVaultLocked -> Routes.PostLoginGate.takeIf {
+        currentRoute in PRE_AUTH_ROUTES ||
+            (vaultState == VaultState.InitialLoading &&
+                currentRoute !in setOf(Routes.Splash, Routes.PostLoginGate))
+    }
+}
+
+internal fun shouldGuardRestoredNavigation(
+    sessionState: SessionState,
+    vaultState: VaultState,
+    currentRoute: Routes?,
+): Boolean {
+    val route = currentRoute ?: return true
+
+    return when (sessionState) {
+        is SessionState.LoggedOut -> route !in PRE_AUTH_ROUTES
+        SessionState.LoggedInVaultLocked -> when {
+            vaultState == VaultState.InitialLoading ->
+                route !in setOf(Routes.Splash, Routes.PostLoginGate)
+
+            vaultState != VaultState.Unlocked -> route.isProtectedVaultRoute()
+            else -> false
+        }
+    }
 }
 
 internal fun shouldShowSessionExpiredMessage(sessionState: SessionState): Boolean =
@@ -51,3 +84,18 @@ private val PRE_AUTH_ROUTES = setOf(
     Routes.Login,
     Routes.Signup,
 )
+
+private fun Routes.isProtectedVaultRoute(): Boolean = when (this) {
+    Routes.Vault,
+    Routes.CreatePassword,
+    is Routes.EditPassword,
+    Routes.CreateNote,
+    is Routes.EditNote,
+    Routes.VaultFolders,
+    Routes.Settings,
+    Routes.ChangePassphrase,
+    Routes.Profile,
+        -> true
+
+    else -> false
+}

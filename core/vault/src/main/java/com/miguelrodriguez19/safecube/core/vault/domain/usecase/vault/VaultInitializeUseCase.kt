@@ -11,6 +11,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitialization
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultRecoveryKeyResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitializationState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitializationStatus
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
@@ -61,6 +62,33 @@ class VaultInitializeUseCase @Inject constructor(
 
         return try {
             PendingVaultRecoveryKeyResult.Available(pendingInitialization.recoveryKey.copyOf())
+        } finally {
+            zeroize(pendingInitialization)
+        }
+    }
+
+    /**
+     * Returns only the lifecycle state of the encrypted pending record. The recovery key and
+     * wrapped material never leave this use case through this API.
+     */
+    fun readPendingInitializationStatus(): PendingVaultInitializationStatus {
+        val pendingInitialization = when (val pendingResult = readPendingInitialization()) {
+            PendingVaultInitializationReadResult.Empty ->
+                return PendingVaultInitializationStatus.None
+
+            is PendingVaultInitializationReadResult.Present -> pendingResult.value
+            PendingVaultInitializationReadResult.Corrupted ->
+                return PendingVaultInitializationStatus.Corrupted
+        }
+
+        return try {
+            when (pendingInitialization.state) {
+                PendingVaultInitializationState.AwaitingRemoteConfirmation ->
+                    PendingVaultInitializationStatus.AwaitingRemoteConfirmation
+
+                PendingVaultInitializationState.RemoteConfirmed ->
+                    PendingVaultInitializationStatus.RemoteConfirmed
+            }
         } finally {
             zeroize(pendingInitialization)
         }

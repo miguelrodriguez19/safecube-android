@@ -143,6 +143,7 @@ internal fun navigationEntryProvider(
     entry<Routes.PostLoginGate> {
         PostLoginGateRoute(
             onCreateVault = { setRoot(Routes.CreateVault) },
+            onRecoveryKey = { setRoot(Routes.RecoveryKey) },
             onUnlockVault = { setRoot(Routes.UnlockVault) },
             onHome = { setRoot(Routes.Vault) },
         )

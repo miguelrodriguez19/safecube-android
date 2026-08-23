@@ -9,6 +9,7 @@ import com.miguelrodriguez19.safecube.core.network.domain.model.RetryDecision
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitialization
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitializationState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitializationStatus
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultRecoveryKeyResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
@@ -360,6 +361,41 @@ class VaultInitializeRecoveryUseCaseTest {
         val result = target.readPendingRecoveryKey()
 
         assertEquals(PendingVaultRecoveryKeyResult.Corrupted, result)
+    }
+
+    @Test
+    fun `readPendingInitializationStatus_whenRecordIsRemoteConfirmed_thenReturnsNonSensitiveStatus`() {
+        pendingValue = samplePendingInitialization().copy(
+            state = PendingVaultInitializationState.RemoteConfirmed,
+        )
+
+        val result = target.readPendingInitializationStatus()
+
+        assertEquals(PendingVaultInitializationStatus.RemoteConfirmed, result)
+    }
+
+    @Test
+    fun `readPendingInitializationStatus_whenRecordAwaitsRemoteConfirmation_thenReturnsNonSensitiveStatus`() {
+        pendingValue = samplePendingInitialization()
+
+        val result = target.readPendingInitializationStatus()
+
+        assertEquals(PendingVaultInitializationStatus.AwaitingRemoteConfirmation, result)
+    }
+
+    @Test
+    fun `readPendingInitializationStatus_whenRecordIsAbsentOrCorrupted_thenDoesNotExposeMaterial`() {
+        assertEquals(
+            PendingVaultInitializationStatus.None,
+            target.readPendingInitializationStatus(),
+        )
+
+        pendingReadResultOverride = PendingVaultInitializationReadResult.Corrupted
+
+        assertEquals(
+            PendingVaultInitializationStatus.Corrupted,
+            target.readPendingInitializationStatus(),
+        )
     }
 
     private fun configureCrypto() {

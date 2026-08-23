@@ -1109,6 +1109,10 @@ vault aunque la KEK ya no exista.
 El estado restaurable solo contiene identificadores y preferencias no sensibles. La recovery key se
 obtiene exclusivamente del almacén transitorio cifrado.
 
+Tras process death, los ViewModels de los editores no se restauran con `SavedStateHandle` ni
+`rememberSaveable`; por diseño, los cambios no guardados en pantalla se descartan. Los drafts que
+ya se guardaron permanecen en Room y se recuperan mediante el flujo normal de unlock y sync.
+
 ### Acceptance Criteria (ACs)
 
 - [ ] `rememberSaveable`, rutas y Bundle no contienen recovery key ni plaintext.

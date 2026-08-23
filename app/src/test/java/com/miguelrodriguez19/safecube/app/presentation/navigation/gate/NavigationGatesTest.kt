@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.app.presentation.navigation.gate
 
 import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitializationStatus
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -89,6 +90,43 @@ class NavigationGatesTest {
         assertEquals(
             GateDestination.AuthenticationRequired,
             resolveGateDestination(VaultState.AuthenticationRequired),
+        )
+    }
+
+    @Test
+    fun `resolveGateDestination_whenConfirmedRecoveryKeyIsPending_thenShowsRecoveryBeforeUnlock`() {
+        assertEquals(
+            GateDestination.RecoveryKey,
+            resolveGateDestination(
+                vaultState = VaultState.Locked,
+                pendingInitializationStatus = PendingVaultInitializationStatus.RemoteConfirmed,
+            ),
+        )
+    }
+
+    @Test
+    fun `resolveGateDestination_whenInitializationIsPending_thenReturnsToCreateFlow`() {
+        assertEquals(
+            GateDestination.CreateVault,
+            resolveGateDestination(
+                vaultState = VaultState.RetryableRemoteFailure(
+                    failure = NetworkFailureClassifier.fromHttpStatus(503),
+                    hasValidLocalKeyMaterial = false,
+                ),
+                pendingInitializationStatus =
+                    PendingVaultInitializationStatus.AwaitingRemoteConfirmation,
+            ),
+        )
+    }
+
+    @Test
+    fun `resolveGateDestination_whenPendingRecordIsCorrupted_thenFailsClosed`() {
+        assertEquals(
+            GateDestination.PendingInitializationError,
+            resolveGateDestination(
+                vaultState = VaultState.Locked,
+                pendingInitializationStatus = PendingVaultInitializationStatus.Corrupted,
+            ),
         )
     }
 }

@@ -37,12 +37,101 @@ class NavigationSessionCoordinatorTest {
     }
 
     @Test
+    fun `logged out session keeps the selected pre-auth route`() {
+        assertEquals(
+            null,
+            resolveSessionRedirectTarget(
+                sessionState = SessionState.LoggedOut(),
+                currentRoute = Routes.Login,
+            ),
+        )
+    }
+
+    @Test
+    fun `logged out session resolves splash to welcome`() {
+        assertEquals(
+            Routes.Welcome,
+            resolveSessionRedirectTarget(
+                sessionState = SessionState.LoggedOut(),
+                currentRoute = Routes.Splash,
+            ),
+        )
+    }
+
+    @Test
     fun `logged in session leaves pre-auth routes at post-login gate`() {
         assertEquals(
             Routes.PostLoginGate,
             resolveSessionRedirectTarget(
                 SessionState.LoggedInVaultLocked,
                 Routes.Login,
+            ),
+        )
+    }
+
+    @Test
+    fun `process state recreation redirects restored protected route to bootstrap gate`() {
+        assertEquals(
+            Routes.PostLoginGate,
+            resolveSessionRedirectTarget(
+                sessionState = SessionState.LoggedInVaultLocked,
+                currentRoute = Routes.Vault,
+                vaultState = VaultState.InitialLoading,
+            ),
+        )
+        assertTrue(
+            shouldGuardRestoredNavigation(
+                sessionState = SessionState.LoggedInVaultLocked,
+                vaultState = VaultState.InitialLoading,
+                currentRoute = Routes.Vault,
+            ),
+        )
+    }
+
+    @Test
+    fun `activity recreation while vault remains unlocked keeps restored protected route`() {
+        assertFalse(
+            shouldGuardRestoredNavigation(
+                sessionState = SessionState.LoggedInVaultLocked,
+                vaultState = VaultState.Unlocked,
+                currentRoute = Routes.Vault,
+            ),
+        )
+        assertEquals(
+            null,
+            resolveSessionRedirectTarget(
+                sessionState = SessionState.LoggedInVaultLocked,
+                currentRoute = Routes.Vault,
+                vaultState = VaultState.Unlocked,
+            ),
+        )
+    }
+
+    @Test
+    fun `locked restored protected route is guarded while unlock root is safe`() {
+        assertTrue(
+            shouldGuardRestoredNavigation(
+                sessionState = SessionState.LoggedInVaultLocked,
+                vaultState = VaultState.Locked,
+                currentRoute = Routes.Settings,
+            ),
+        )
+        assertFalse(
+            shouldGuardRestoredNavigation(
+                sessionState = SessionState.LoggedInVaultLocked,
+                vaultState = VaultState.Locked,
+                currentRoute = Routes.UnlockVault,
+            ),
+        )
+    }
+
+    @Test
+    fun `logged out restored protected route is guarded`() {
+        assertTrue(
+            shouldGuardRestoredNavigation(
+                sessionState = SessionState.LoggedOut(),
+                vaultState = VaultState.InitialLoading,
+                currentRoute = Routes.Vault,
             ),
         )
     }
@@ -68,7 +157,7 @@ class NavigationSessionCoordinatorTest {
     }
 
     @Test
-    fun `activity recreation while vault remains unlocked does not redirect`() {
+    fun `activity recreation helper does not redirect an unlocked vault`() {
         assertEquals(
             null,
             resolveVaultRedirectTarget(VaultState.Unlocked, Routes.Vault),
