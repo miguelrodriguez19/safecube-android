@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitializationStatus
 import com.miguelrodriguez19.safecube.feature.auth.presentation.gate.ui.PostLoginGateScreen
 import dagger.hilt.android.EntryPointAccessors
 
@@ -20,33 +21,42 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun PostLoginGateRoute(
     onCreateVault: () -> Unit,
+    onRecoveryKey: () -> Unit,
     onUnlockVault: () -> Unit,
     onHome: () -> Unit,
 ) {
     val entryPoint = rememberNavigationGatesEntryPoint()
     val vaultSessionManager = remember(entryPoint) { entryPoint.vaultSessionManager() }
+    val vaultInitializeUseCase = remember(entryPoint) { entryPoint.vaultInitializeUseCase() }
     val accountSessionLifecycle = remember(entryPoint) { entryPoint.accountSessionLifecycle() }
     val vaultState by vaultSessionManager.vaultState.collectAsState()
     var refreshAttempt by remember { mutableIntStateOf(0) }
     var isResolving by remember { mutableStateOf(true) }
+    var pendingInitializationStatus by remember {
+        mutableStateOf<PendingVaultInitializationStatus?>(null)
+    }
 
     LaunchedEffect(refreshAttempt) {
         isResolving = true
+        pendingInitializationStatus = null
         try {
+            pendingInitializationStatus = vaultInitializeUseCase.readPendingInitializationStatus()
             vaultSessionManager.refreshVaultState()
         } finally {
             isResolving = false
         }
     }
 
-    LaunchedEffect(vaultState, isResolving) {
-        if (isResolving) return@LaunchedEffect
+    LaunchedEffect(vaultState, pendingInitializationStatus, isResolving) {
+        if (isResolving || pendingInitializationStatus == null) return@LaunchedEffect
 
-        when (resolveGateDestination(vaultState)) {
+        when (resolveGateDestination(vaultState, pendingInitializationStatus!!)) {
             GateDestination.Stay -> Unit
             GateDestination.CreateVault -> onCreateVault()
+            GateDestination.RecoveryKey -> onRecoveryKey()
             GateDestination.UnlockVault -> onUnlockVault()
             GateDestination.Home -> onHome()
+            GateDestination.PendingInitializationError -> Unit
             GateDestination.AuthenticationRequired -> accountSessionLifecycle.terminateSession(
                 reason = SessionTerminationReason.SessionExpired,
             )
@@ -54,8 +64,8 @@ fun PostLoginGateRoute(
     }
 
     PostLoginGateScreen(
-        isLoading = isResolving || shouldShowGateLoading(vaultState),
-        messageRes = resolveGateMessage(vaultState),
+        isLoading = isResolving || shouldShowGateLoading(vaultState, pendingInitializationStatus),
+        messageRes = resolveGateMessage(vaultState, pendingInitializationStatus),
         onRetry = { refreshAttempt += 1 },
     )
 }
@@ -71,7 +81,24 @@ private fun rememberNavigationGatesEntryPoint(): NavigationGatesEntryPoint {
     }
 }
 
-internal fun resolveGateDestination(vaultState: VaultState): GateDestination = when (vaultState) {
+internal fun resolveGateDestination(
+    vaultState: VaultState,
+    pendingInitializationStatus: PendingVaultInitializationStatus =
+        PendingVaultInitializationStatus.None,
+): GateDestination {
+    if (vaultState == VaultState.AuthenticationRequired) {
+        return GateDestination.AuthenticationRequired
+    }
+
+    return when (pendingInitializationStatus) {
+        PendingVaultInitializationStatus.None -> resolveVaultStateDestination(vaultState)
+        PendingVaultInitializationStatus.AwaitingRemoteConfirmation -> GateDestination.CreateVault
+        PendingVaultInitializationStatus.RemoteConfirmed -> GateDestination.RecoveryKey
+        PendingVaultInitializationStatus.Corrupted -> GateDestination.PendingInitializationError
+    }
+}
+
+private fun resolveVaultStateDestination(vaultState: VaultState): GateDestination = when (vaultState) {
     VaultState.InitialLoading -> GateDestination.Stay
     VaultState.NotInitialized -> GateDestination.CreateVault
     VaultState.Locked -> GateDestination.UnlockVault
@@ -91,12 +118,26 @@ internal fun resolveGateDestination(vaultState: VaultState): GateDestination = w
 internal enum class GateDestination {
     Stay,
     CreateVault,
+    RecoveryKey,
     UnlockVault,
     Home,
     AuthenticationRequired,
+    PendingInitializationError,
 }
 
-private fun resolveGateMessage(vaultState: VaultState): Int = when (vaultState) {
+private fun resolveGateMessage(
+    vaultState: VaultState,
+    pendingInitializationStatus: PendingVaultInitializationStatus?,
+): Int = when (pendingInitializationStatus) {
+    PendingVaultInitializationStatus.Corrupted -> UiR.string.vault_error_material_corrupted
+    PendingVaultInitializationStatus.AwaitingRemoteConfirmation,
+    PendingVaultInitializationStatus.RemoteConfirmed,
+    PendingVaultInitializationStatus.None,
+    null,
+        -> resolveVaultStateMessage(vaultState)
+}
+
+private fun resolveVaultStateMessage(vaultState: VaultState): Int = when (vaultState) {
     VaultState.InitialLoading,
     VaultState.AuthenticationRequired,
     VaultState.NotInitialized,
@@ -113,16 +154,29 @@ private fun resolveGateMessage(vaultState: VaultState): Int = when (vaultState) 
     is VaultState.TerminalRemoteFailure -> UiR.string.vault_bootstrap_terminal_error
 }
 
-private fun shouldShowGateLoading(vaultState: VaultState): Boolean = when (vaultState) {
-    VaultState.InitialLoading,
-    VaultState.NotInitialized,
-    VaultState.Locked,
-    VaultState.Unlocked,
-    VaultState.AuthenticationRequired,
+private fun shouldShowGateLoading(
+    vaultState: VaultState,
+    pendingInitializationStatus: PendingVaultInitializationStatus? =
+        PendingVaultInitializationStatus.None,
+): Boolean = when (pendingInitializationStatus) {
+    PendingVaultInitializationStatus.AwaitingRemoteConfirmation,
+    PendingVaultInitializationStatus.RemoteConfirmed,
         -> true
 
-    is VaultState.RetryableRemoteFailure -> vaultState.hasValidLocalKeyMaterial
-    VaultState.CorruptedLocalKeyMaterial,
-    is VaultState.TerminalRemoteFailure,
-        -> false
+    PendingVaultInitializationStatus.Corrupted -> false
+    PendingVaultInitializationStatus.None,
+    null,
+        -> when (vaultState) {
+            VaultState.InitialLoading,
+            VaultState.NotInitialized,
+            VaultState.Locked,
+            VaultState.Unlocked,
+            VaultState.AuthenticationRequired,
+                -> true
+
+            is VaultState.RetryableRemoteFailure -> vaultState.hasValidLocalKeyMaterial
+            VaultState.CorruptedLocalKeyMaterial,
+            is VaultState.TerminalRemoteFailure,
+                -> false
+        }
 }

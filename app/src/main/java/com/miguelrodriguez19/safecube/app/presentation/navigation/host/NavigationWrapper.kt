@@ -12,6 +12,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.miguelrodriguez19.safecube.app.presentation.navigation.route.Routes
+import com.miguelrodriguez19.safecube.app.presentation.ui.SplashGateScreen
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import kotlinx.coroutines.launch
 
@@ -80,6 +81,7 @@ fun NavigationWrapper() {
 
     ObserveSessionRedirect(
         sessionState = sessionState,
+        vaultState = vaultState,
         currentRoute = backStack.lastOrNull() as? Routes,
         setRoot = setRoot,
     )
@@ -89,32 +91,41 @@ fun NavigationWrapper() {
         setRoot = setRoot,
     )
 
-    NavDisplay(
-        backStack = backStack,
-        entryDecorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator(),
-        ),
-        onBack = {
-            handleBackNavigation(
-                currentRoute = backStack.lastOrNull() as? Routes,
-                moveToVaultFromAppSection = moveToVaultFromAppSection,
-                moveToSettingsFromProfile = moveToSettingsFromProfile,
-                onVaultBackPressed = onVaultBackPressed,
-                popBackStack = popBackStack,
-            )
-        },
-        entryProvider = navigationEntryProvider(
-            setRoot = setRoot,
-            addRoute = addRoute,
-            replaceCurrent = replaceCurrent,
-            popBackStack = popBackStack,
-            onLogout = onLogout,
-            onLockNow = {
-                dependencies.vaultAutoLockController.lockNow()
-                setRoot(Routes.UnlockVault)
-            },
-            showSessionExpiredMessage = shouldShowSessionExpiredMessage(sessionState),
+    if (shouldGuardRestoredNavigation(
+            sessionState = sessionState,
+            vaultState = vaultState,
+            currentRoute = backStack.lastOrNull() as? Routes,
         )
-    )
+    ) {
+        SplashGateScreen()
+    } else {
+        NavDisplay(
+            backStack = backStack,
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
+            onBack = {
+                handleBackNavigation(
+                    currentRoute = backStack.lastOrNull() as? Routes,
+                    moveToVaultFromAppSection = moveToVaultFromAppSection,
+                    moveToSettingsFromProfile = moveToSettingsFromProfile,
+                    onVaultBackPressed = onVaultBackPressed,
+                    popBackStack = popBackStack,
+                )
+            },
+            entryProvider = navigationEntryProvider(
+                setRoot = setRoot,
+                addRoute = addRoute,
+                replaceCurrent = replaceCurrent,
+                popBackStack = popBackStack,
+                onLogout = onLogout,
+                onLockNow = {
+                    dependencies.vaultAutoLockController.lockNow()
+                    setRoot(Routes.UnlockVault)
+                },
+                showSessionExpiredMessage = shouldShowSessionExpiredMessage(sessionState),
+            )
+        )
+    }
 }

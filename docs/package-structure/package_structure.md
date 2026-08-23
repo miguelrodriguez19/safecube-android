@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 24-08-2026 12:28:04
+Updated: 24-08-2026 01:43:36
 
 ```
 safecube-android/
@@ -618,6 +618,7 @@ safecube-android/
 │       │   │   │   │   ├── model/
 │       │   │   │   │   │   ├── initialize/
 │       │   │   │   │   │   │   ├── PendingVaultInitialization.kt
+│       │   │   │   │   │   │   ├── PendingVaultInitializationStatus.kt
 │       │   │   │   │   │   │   ├── PendingVaultRecoveryKeyResult.kt
 │       │   │   │   │   │   │   ├── VaultInitializeError.kt
 │       │   │   │   │   │   │   └── VaultInitializeResult.kt
