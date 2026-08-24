@@ -175,5 +175,5 @@ tasks.register("ciVerify") {
 tasks.register("releaseVerify") {
     group = "verification"
     description = "Runs CI gates and release lint without publishing or signing."
-    dependsOn("ciVerify", "lintRelease")
+    dependsOn("ciVerify", "lintRelease", ":app:verifyReleaseSecurityManifest")
 }
