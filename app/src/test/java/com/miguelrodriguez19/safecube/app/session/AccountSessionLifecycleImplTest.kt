@@ -4,6 +4,8 @@ import com.miguelrodriguez19.safecube.core.auth.domain.model.AuthTokens
 import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionResult
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
+import com.miguelrodriguez19.safecube.core.auth.domain.repository.TokenStorage
+import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManagerImpl
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultCleanupResult
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultDataCleaner
 import io.mockk.coEvery
@@ -14,6 +16,7 @@ import io.mockk.mockk
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class AccountSessionLifecycleImplTest {
@@ -100,9 +103,56 @@ class AccountSessionLifecycleImplTest {
         }
     }
 
+    @Test
+    fun `termination clears tokens after vault cleanup contract succeeds`() = runBlocking {
+        val tokenStorage = InMemoryTokenStorage(
+            accessToken = "access-token",
+            refreshToken = "refresh-token",
+        )
+        val realSessionManager = SessionManagerImpl(tokenStorage)
+        val cleaner = mockk<LocalVaultDataCleaner>()
+        coEvery { cleaner.clear() } returns LocalVaultCleanupResult.Success
+        val lifecycle = AccountSessionLifecycleImpl(
+            sessionManager = realSessionManager,
+            localVaultDataCleaner = cleaner,
+        )
+
+        val result = lifecycle.terminateSession(SessionTerminationReason.ManualLogout)
+
+        assertEquals(AccountSessionResult.Success, result)
+        assertNull(tokenStorage.getAccessToken())
+        assertNull(tokenStorage.getRefreshToken())
+        coVerify(exactly = 1) { cleaner.clear() }
+    }
+
     private fun tokens() = AuthTokens(
         accessToken = "access-token",
         refreshToken = "refresh-token",
         issuedAt = Instant.now(),
     )
+
+    private class InMemoryTokenStorage(
+        private var accessToken: String?,
+        private var refreshToken: String?,
+    ) : TokenStorage {
+        override fun saveTokens(
+            accessToken: String,
+            refreshToken: String,
+            issuedAt: Instant?,
+        ) {
+            this.accessToken = accessToken
+            this.refreshToken = refreshToken
+        }
+
+        override fun getAccessToken(): String? = accessToken
+
+        override fun getRefreshToken(): String? = refreshToken
+
+        override fun getIssuedAt(): Instant? = null
+
+        override fun clear() {
+            accessToken = null
+            refreshToken = null
+        }
+    }
 }

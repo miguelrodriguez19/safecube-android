@@ -1,5 +1,8 @@
 import com.miguelrodriguez19.safecube.buildlogic.AppVersionParser
 import com.miguelrodriguez19.safecube.buildlogic.ReleaseSigningConfig
+import org.w3c.dom.Element
+import org.w3c.dom.NodeList
+import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     alias(libs.plugins.android.application)
@@ -137,4 +140,106 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+tasks.register("verifyReleaseSecurityManifest") {
+    group = "verification"
+    description = "Verifies release backup policy and exported components in the merged manifest."
+    dependsOn("processReleaseManifest")
+    doLast {
+        fun NodeList.elements(): Sequence<Element> =
+            (0 until length).asSequence().map { item(it) }.filterIsInstance<Element>()
+
+        val manifestFile = layout.buildDirectory
+            .file("intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml")
+            .get()
+            .asFile
+        check(manifestFile.isFile) {
+            "Merged release manifest not found at ${manifestFile.absolutePath}"
+        }
+
+        val documentBuilderFactory = DocumentBuilderFactory.newInstance().apply {
+            isNamespaceAware = true
+            setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+            setFeature("http://xml.org/sax/features/external-general-entities", false)
+            setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+            isXIncludeAware = false
+            isExpandEntityReferences = false
+            setAttribute("http://javax.xml.XMLConstants/property/accessExternalDTD", "")
+            setAttribute("http://javax.xml.XMLConstants/property/accessExternalSchema", "")
+        }
+        val document = documentBuilderFactory.newDocumentBuilder().parse(manifestFile)
+        val androidNamespace = "http://schemas.android.com/apk/res/android"
+        val application = document.documentElement
+            .getElementsByTagName("application")
+            .elements()
+            .singleOrNull()
+            ?: error("Merged release manifest must declare exactly one application")
+
+        check(application.getAttributeNS(androidNamespace, "allowBackup") == "false") {
+            "Release manifest must set android:allowBackup=false"
+        }
+        check(application.getAttributeNS(androidNamespace, "dataExtractionRules") ==
+            "@xml/data_extraction_rules") {
+            "Release manifest must reference @xml/data_extraction_rules"
+        }
+        check(application.getAttributeNS(androidNamespace, "fullBackupContent") ==
+            "@xml/backup_rules") {
+            "Release manifest must reference @xml/backup_rules"
+        }
+
+        val legacyBackupRules = project.file("src/main/res/xml/backup_rules.xml").readText()
+        val dataExtractionRules = project.file("src/main/res/xml/data_extraction_rules.xml").readText()
+        val explicitRootExclusion = "<exclude domain=\"root\" path=\".\" />"
+        check(explicitRootExclusion in legacyBackupRules) {
+            "Legacy backup rules must exclude the root domain"
+        }
+        check(explicitRootExclusion in dataExtractionRules) {
+            "Data extraction rules must exclude the root domain"
+        }
+        check("<cloud-backup>" in dataExtractionRules && "<device-transfer>" in dataExtractionRules) {
+            "Data extraction rules must cover cloud backup and device transfer"
+        }
+        check("<include" !in legacyBackupRules && "<include" !in dataExtractionRules) {
+            "Backup rules must not contain include exceptions"
+        }
+        check("<!--" !in legacyBackupRules && "<!--" !in dataExtractionRules &&
+            "TODO" !in legacyBackupRules && "TODO" !in dataExtractionRules) {
+            "Backup rules must not contain template comments or TODOs"
+        }
+
+        val exportedComponents = sequenceOf("activity", "activity-alias", "provider", "receiver", "service")
+            .flatMap { tagName ->
+                application.getElementsByTagName(tagName)
+                    .elements()
+                    .filter { component ->
+                        component.parentNode === application &&
+                            component.getAttributeNS(androidNamespace, "exported") == "true"
+                    }
+            }
+            .toList()
+        check(exportedComponents.size == 1) {
+            "Only the launcher activity may be exported; found ${exportedComponents.size} exported components"
+        }
+        val launcher = exportedComponents.single()
+        check(launcher.tagName == "activity") { "The exported component must be an activity" }
+        check(launcher.getAttributeNS(androidNamespace, "name") ==
+            "com.miguelrodriguez19.safecube.app.entrypoint.MainActivity") {
+            "The only exported activity must be MainActivity"
+        }
+        check(launcher.getElementsByTagName("intent-filter").elements().any { intentFilter ->
+            val hasMainAction = intentFilter.getElementsByTagName("action")
+                .elements()
+                .any { action ->
+                    action.getAttributeNS(androidNamespace, "name") == "android.intent.action.MAIN"
+                }
+            val hasLauncherCategory = intentFilter.getElementsByTagName("category")
+                .elements()
+                .any { category ->
+                    category.getAttributeNS(androidNamespace, "name") ==
+                        "android.intent.category.LAUNCHER"
+                }
+            hasMainAction && hasLauncherCategory
+        }) { "MainActivity must retain the MAIN/LAUNCHER intent filter" }
+    }
 }
