@@ -122,7 +122,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
     }
 
     @Test
-    fun `getKeyMaterial when http error is generic then returns http error with body`() = runBlocking {
+    fun `getKeyMaterial when http error is generic then discards error body`() = runBlocking {
         val api = mockk<VaultKeyMaterialControllerApi>()
         val target = RemoteVaultKeyMaterialDataSource(api)
 
@@ -136,8 +136,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
         assertEquals(
             VaultKeyMaterialRemoteResult.Error(
                 VaultKeyMaterialRemoteError.HttpError(
-                    statusCode = 500,
-                    errorBody = """{"error":"boom"}""",
+                    failure = NetworkFailureClassifier.fromHttpStatus(500),
                 ),
             ),
             result,
@@ -147,7 +146,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
     }
 
     @Test
-    fun `getKeyMaterial when http error has no error body then returns generic http error with null body`() = runBlocking {
+    fun `getKeyMaterial when http error has no body then returns generic http error`() = runBlocking {
         val api = mockk<VaultKeyMaterialControllerApi>()
         val response = mockk<Response<VaultKeyMaterialResponse>>()
         val target = RemoteVaultKeyMaterialDataSource(api)
@@ -163,8 +162,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
         assertEquals(
             VaultKeyMaterialRemoteResult.Error(
                 VaultKeyMaterialRemoteError.HttpError(
-                    statusCode = 500,
-                    errorBody = null,
+                    failure = NetworkFailureClassifier.fromHttpStatus(500),
                 ),
             ),
             result,
@@ -174,7 +172,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
     }
 
     @Test
-    fun `getKeyMaterial when error body cannot be read then returns generic http error with null body`() = runBlocking {
+    fun `getKeyMaterial when error body cannot be read then returns generic http error`() = runBlocking {
         val api = mockk<VaultKeyMaterialControllerApi>()
         val response = mockk<Response<VaultKeyMaterialResponse>>()
         val unreadableErrorBody = mockk<ResponseBody>()
@@ -192,8 +190,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
         assertEquals(
             VaultKeyMaterialRemoteResult.Error(
                 VaultKeyMaterialRemoteError.HttpError(
-                    statusCode = 500,
-                    errorBody = null,
+                    failure = NetworkFailureClassifier.fromHttpStatus(500),
                 ),
             ),
             result,
@@ -258,7 +255,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
     }
 
     @Test
-    fun `initKeyMaterial when error body cannot be read then returns generic http error with null body`() = runBlocking {
+    fun `initKeyMaterial when error body cannot be read then returns generic http error`() = runBlocking {
         val api = mockk<VaultKeyMaterialControllerApi>()
         val unreadableErrorBody = mockk<ResponseBody>()
         val response = mockk<Response<Unit>>()
@@ -275,8 +272,7 @@ class RemoteVaultKeyMaterialDataSourceTest {
         assertEquals(
             VaultKeyMaterialRemoteResult.Error(
                 VaultKeyMaterialRemoteError.HttpError(
-                    statusCode = 500,
-                    errorBody = null,
+                    failure = NetworkFailureClassifier.fromHttpStatus(500),
                 ),
             ),
             result,

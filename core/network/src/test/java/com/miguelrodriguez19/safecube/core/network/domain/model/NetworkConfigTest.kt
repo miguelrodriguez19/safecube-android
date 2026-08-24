@@ -9,14 +9,12 @@ class NetworkConfigTest {
     fun `network config when base url ends with slash then creates config`() {
         val target = NetworkConfig(
             baseUrl = "https://api.example.com/",
-            isDebug = true,
             connectTimeoutSeconds = 10,
             readTimeoutSeconds = 20,
             writeTimeoutSeconds = 30,
         )
 
         assertEquals("https://api.example.com/", target.baseUrl)
-        assertEquals(true, target.isDebug)
         assertEquals(10L, target.connectTimeoutSeconds)
         assertEquals(20L, target.readTimeoutSeconds)
         assertEquals(30L, target.writeTimeoutSeconds)

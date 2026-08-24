@@ -11,15 +11,7 @@ sealed interface NetworkResult<out T> {
 
     data class HttpError<T>(
         val failure: NetworkFailure,
-    ) : NetworkResult<T> {
-
-        @Suppress("UNUSED_PARAMETER")
-        constructor(
-            httpCode: Int,
-            body: T?,
-            errorBody: String?,
-        ) : this(NetworkFailureClassifier.fromHttpStatus(httpCode))
-    }
+    ) : NetworkResult<T>
 
     data class Failure(
         val failure: NetworkFailure,

@@ -13,7 +13,6 @@ import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
@@ -52,14 +51,6 @@ object NetworkClientFactory {
 
         authInterceptor?.let(builder::addInterceptor)
         authenticator?.let(builder::authenticator)
-
-        if (config.isDebug) {
-            builder.addInterceptor(
-                HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BODY
-                },
-            )
-        }
 
         return builder.build()
     }

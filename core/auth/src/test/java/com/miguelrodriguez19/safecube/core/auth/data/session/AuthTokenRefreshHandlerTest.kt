@@ -118,7 +118,7 @@ class AuthTokenRefreshHandlerTest {
         every { authRepositoryProvider.get() } returns authRepository
         coEvery {
             authRepository.refresh("refresh-token")
-        } returns AuthResult.Error(AuthError.Unknown(code = 503, message = "Unavailable"))
+        } returns AuthResult.Error(AuthError.Unknown(code = 503))
 
         val result = target.refreshAccessToken("expired-access")
 

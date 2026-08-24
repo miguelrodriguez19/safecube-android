@@ -335,9 +335,15 @@ class PushLocalVaultChangesUseCaseTest {
     @Test
     fun `retryable remote errors expose retry decision and keep every draft unchanged`() = runBlocking {
         val errors = listOf(
-            SecureItemRemoteError.HttpError(408, null),
-            SecureItemRemoteError.HttpError(429, null),
-            SecureItemRemoteError.HttpError(503, null),
+            SecureItemRemoteError.HttpError(
+                failure = NetworkFailureClassifier.fromHttpStatus(408),
+            ),
+            SecureItemRemoteError.HttpError(
+                failure = NetworkFailureClassifier.fromHttpStatus(429),
+            ),
+            SecureItemRemoteError.HttpError(
+                failure = NetworkFailureClassifier.fromHttpStatus(503),
+            ),
             SecureItemRemoteError.NetworkError(IOException("offline")),
         )
 

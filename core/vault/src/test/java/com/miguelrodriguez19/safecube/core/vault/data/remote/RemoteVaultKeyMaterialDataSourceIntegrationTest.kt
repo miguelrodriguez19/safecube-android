@@ -188,7 +188,6 @@ class RemoteVaultKeyMaterialDataSourceIntegrationTest {
         NetworkClientFactory.createService(
             config = NetworkConfig(
                 baseUrl = server.url("/").toString(),
-                isDebug = false,
             ),
         )
 }

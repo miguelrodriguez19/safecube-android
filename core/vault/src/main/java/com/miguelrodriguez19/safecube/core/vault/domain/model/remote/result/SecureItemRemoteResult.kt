@@ -47,12 +47,7 @@ sealed interface SecureItemRemoteError {
 
     data class HttpError(
         override val failure: NetworkFailure,
-    ) : SecureItemRemoteError {
-        @Suppress("UNUSED_PARAMETER")
-        constructor(statusCode: Int, errorBody: String?) : this(
-            NetworkFailureClassifier.fromHttpStatus(statusCode),
-        )
-    }
+    ) : SecureItemRemoteError
 
     data class NetworkError(
         override val failure: NetworkFailure,
