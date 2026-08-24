@@ -1233,12 +1233,12 @@ caracteres ocultos sin cambiar su valor de dominio.
 
 ### Acceptance Criteria (ACs)
 
-- [ ] `FLAG_SECURE` está presente en la ventana activa.
-- [ ] Todos los campos secretos enumerados están visualmente protegidos.
-- [ ] No existen escrituras programáticas de secretos al clipboard.
-- [ ] Tests y auditoría no imprimen valores sensibles.
-- [ ] `ciVerify` pasa.
-- [ ] Trazabilidad y agent report están actualizados.
+- [x] `FLAG_SECURE` está presente en la ventana activa; `MainActivitySmokeTest` lo verifica en la ventana activa.
+- [x] Todos los campos secretos enumerados están visualmente protegidos; Compose test cubre Login/Signup y `verifySensitiveFieldAudit` cubre las seis pantallas.
+- [x] No existen escrituras programáticas de secretos al clipboard; `verifySensitiveClipboardAudit` audita el código propio de todos los módulos Android.
+- [x] Tests y auditoría no imprimen valores sensibles; las pruebas usan valores sintéticos y no registran su contenido.
+- [x] `ciVerify` pasa.
+- [x] Trazabilidad y agent report están actualizados.
 
 ---
 

@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R
@@ -90,6 +91,7 @@ private fun SignupContent(
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
                 singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
                 isError = uiState.passwordErrorRes != null,
                 enabled = !uiState.isLoading,
             )
@@ -109,6 +111,7 @@ private fun SignupContent(
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
                 singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
                 isError = uiState.confirmPasswordErrorRes != null,
                 enabled = !uiState.isLoading,
             )

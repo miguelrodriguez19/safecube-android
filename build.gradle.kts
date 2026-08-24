@@ -139,6 +139,64 @@ tasks.register("validateVersionBump") {
     }
 }
 
+tasks.register("verifySensitiveClipboardAudit") {
+    group = "verification"
+    description = "Verifies that app-owned sensitive surfaces do not write secrets to clipboard."
+    doLast {
+        val sourceRoots = androidModules
+            .map { project(it).projectDir.resolve("src/main") }
+            .filter { it.isDirectory }
+        val forbiddenTokens = listOf(
+            "ClipboardManager",
+            "LocalClipboardManager",
+            "ClipData",
+            "setPrimaryClip",
+            "primaryClip",
+        )
+        val findings = sourceRoots
+            .flatMap { root ->
+                root.walkTopDown()
+                    .filter { candidate -> candidate.isFile && candidate.extension in setOf("kt", "java", "xml") }
+                    .toList()
+            }
+            .flatMap { sourceFile ->
+                sourceFile.readLines().withIndex().flatMap { (index, line) ->
+                    forbiddenTokens
+                        .filter(line::contains)
+                        .map { token -> "${sourceFile.relativeTo(rootDir)}:${index + 1}:$token" }
+                }
+            }
+        check(findings.isEmpty()) {
+            "Sensitive clipboard writes are out of scope; remove these references: ${findings.joinToString()}"
+        }
+    }
+}
+
+tasks.register("verifySensitiveFieldAudit") {
+    group = "verification"
+    description = "Verifies that every password and passphrase field uses visual masking."
+    doLast {
+        val requiredTransformations = mapOf(
+            "feature/auth/src/main/java/com/miguelrodriguez19/safecube/feature/auth/presentation/login/ui/LoginScreen.kt" to 1,
+            "feature/auth/src/main/java/com/miguelrodriguez19/safecube/feature/auth/presentation/signup/ui/SignupScreen.kt" to 2,
+            "feature/vault/src/main/java/com/miguelrodriguez19/safecube/feature/vault/presentation/create/ui/CreateVaultScreen.kt" to 1,
+            "feature/vault/src/main/java/com/miguelrodriguez19/safecube/feature/vault/presentation/unlock/ui/UnlockVaultScreen.kt" to 1,
+            "feature/vault/src/main/java/com/miguelrodriguez19/safecube/feature/vault/presentation/passphrase/ui/ChangePassphraseScreen.kt" to 1,
+            "feature/vault/src/main/java/com/miguelrodriguez19/safecube/feature/vault/presentation/editor/password/ui/PasswordEditorScreen.kt" to 1,
+        )
+        requiredTransformations.forEach { (relativePath, expectedCount) ->
+            val sourceFile = file(relativePath)
+            check(sourceFile.isFile) { "Sensitive field source file not found: $relativePath" }
+            val actualCount = sourceFile.readText()
+                .windowed("visualTransformation = PasswordVisualTransformation()".length, partialWindows = true)
+                .count { window -> window == "visualTransformation = PasswordVisualTransformation()" }
+            check(actualCount == expectedCount) {
+                "$relativePath must contain $expectedCount password visual transformations, found $actualCount"
+            }
+        }
+    }
+}
+
 tasks.register("verifyReleaseSigningConfiguration") {
     group = "verification"
     description = "Verifies the release signing environment and keystore file."
@@ -166,6 +224,8 @@ tasks.register("ciVerify") {
     description = "Runs the canonical CI quality gates without release secrets."
     dependsOn(
         "validateVersion",
+        "verifySensitiveClipboardAudit",
+        "verifySensitiveFieldAudit",
         "verifyCoverage",
         "lintDebug",
         ":app:assembleRelease",
