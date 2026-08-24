@@ -58,7 +58,7 @@ jobs:
           fi
 
           git show "$base_commit:version.properties" > "$RUNNER_TEMP/base-version.properties"
-          ./gradlew --no-daemon validateVersion validateVersionBump \
+          ./gradlew --no-daemon validateVersionBump \
             -PbaseVersionFile="$RUNNER_TEMP/base-version.properties"
 
           version_name="${version_names[0]}"
@@ -169,8 +169,6 @@ jobs:
             echo "Tag, workflow output and VERSION_NAME must match exactly." >&2
             exit 1
           fi
-
-          ./gradlew --no-daemon validateVersion
 
       - name: Decode release keystore into runner temporary storage
         env:

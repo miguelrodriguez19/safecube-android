@@ -66,7 +66,7 @@ UI, preservando el modelo Zero-Knowledge y separando correctamente:
   oficialización.
 - Tests de contrato OpenAPI.
 - Cobertura global mínima de 90% de líneas y 85% de ramas.
-- Última validación local: `verifyCoverage` correcto.
+- Última validación local: gate Kover de `ciVerify` correcto.
 
 ## Ciclo de sincronización vigente
 

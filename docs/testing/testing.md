@@ -44,6 +44,16 @@ The root Gradle tasks below are the canonical commands for local validation and 
 Their dependency graph lives in `build.gradle.kts`; workflows and documentation must invoke these
 tasks instead of maintaining a second list of checks.
 
+The public project-specific task surface is intentionally limited to:
+
+- `ciVerify` and `releaseVerify` for normal quality gates;
+- `validateVersionBump` and `verifyReleaseSigningConfiguration` for release operations.
+
+`verifyReleaseSecurityManifest` and `postProcessOpenApiGeneratedModels` are internal build
+invariants reached through those gates or normal compilation. New feature work must add tests to
+the standard module suites and wire existing gates when necessary; it must not create a new
+story-specific `verify*` task merely to expose acceptance evidence.
+
 Every GitHub Actions job that invokes Gradle checks out the repository and then uses the local
 [`setup-android-gradle`](../../.github/actions/setup-android-gradle/action.yml) composite action.
 That action pins the supported Temurin JDK and `gradle/actions/setup-gradle` versions in one place.
@@ -61,10 +71,11 @@ Run the CI gate locally or in a pull request:
 ./gradlew ciVerify
 ```
 
-`ciVerify` validates the version, runs the unit-test and Kover coverage gate, runs debug lint,
-executes `VaultSyncOpenApiContractTest`, and assembles `:app:assembleRelease` without requiring
-release-signing secrets. It does not publish an artifact and it does not verify the production
-keystore.
+Gradle configuration validates `version.properties` before any task runs. `ciVerify` then runs all
+debug unit tests, generates the Kover HTML/XML reports, enforces coverage thresholds, runs debug
+lint, executes `VaultSyncOpenApiContractTest`, and assembles `:app:assembleRelease` without
+requiring release-signing secrets. It does not publish an artifact and it does not verify the
+production keystore.
 
 Run the release-code gate before publishing:
 
@@ -238,15 +249,8 @@ does not appear in its captured output. See the [secret-scanning runbook](../sec
 for the exact allowlist, GitHub Secret Scanning and Push Protection activation, and incident
 response.
 
-If you want a Maven-like verify flow focused on unit tests + coverage only:
-
-```bash
-./gradlew clean verifyCoverage
-```
-
-This runs tests, generates Kover HTML/XML reports, and enforces Kover thresholds (without lint).
-
-You can also run explicit Kover verification:
+For a verification flow focused on unit tests and coverage only, use the standard test and Kover
+tasks directly:
 
 ```bash
 ./gradlew clean test koverHtmlReport koverXmlReport koverVerify

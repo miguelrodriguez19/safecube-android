@@ -18,10 +18,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R
+import com.miguelrodriguez19.safecube.core.ui.component.SecretOutlinedTextField
 import com.miguelrodriguez19.safecube.feature.auth.presentation.AuthTestTags
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.action.LoginUiAction
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.event.LoginUiEvent
@@ -97,15 +97,13 @@ private fun LoginContent(
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
-            OutlinedTextField(
+            SecretOutlinedTextField(
                 value = uiState.password,
                 onValueChange = { onAction(LoginUiAction.PasswordChanged(it)) },
                 label = { Text(stringResource(R.string.password_label)) },
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
                 isError = uiState.passwordErrorRes != null,
                 enabled = !uiState.isLoading,
             )

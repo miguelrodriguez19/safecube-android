@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,10 +17,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.ui.component.SecretOutlinedTextField
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.action.UnlockVaultUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.event.UnlockVaultUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.state.UnlockVaultUiState
@@ -75,15 +74,13 @@ private fun UnlockVaultContent(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(stringResource(UiR.string.vault_unlock_description))
-            OutlinedTextField(
+            SecretOutlinedTextField(
                 value = uiState.passphrase,
                 onValueChange = { onAction(UnlockVaultUiAction.PassphraseChanged(it)) },
                 label = { Text(stringResource(UiR.string.password_label)) },
                 modifier = Modifier
                     .padding(top = 12.dp)
                     .fillMaxWidth(),
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
                 isError = uiState.passphraseErrorRes != null,
                 enabled = !uiState.isLoading,
             )
