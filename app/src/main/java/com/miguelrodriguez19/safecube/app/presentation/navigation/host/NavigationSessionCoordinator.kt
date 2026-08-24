@@ -3,6 +3,7 @@ package com.miguelrodriguez19.safecube.app.presentation.navigation.host
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.miguelrodriguez19.safecube.app.presentation.navigation.route.Routes
+import com.miguelrodriguez19.safecube.app.presentation.navigation.route.requiresUnlockedVault
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
@@ -66,7 +67,7 @@ internal fun shouldGuardRestoredNavigation(
             vaultState == VaultState.InitialLoading ->
                 route !in setOf(Routes.Splash, Routes.PostLoginGate)
 
-            vaultState != VaultState.Unlocked -> route.isProtectedVaultRoute()
+            vaultState != VaultState.Unlocked -> route.requiresUnlockedVault()
             else -> false
         }
     }
@@ -84,18 +85,3 @@ private val PRE_AUTH_ROUTES = setOf(
     Routes.Login,
     Routes.Signup,
 )
-
-private fun Routes.isProtectedVaultRoute(): Boolean = when (this) {
-    Routes.Vault,
-    Routes.CreatePassword,
-    is Routes.EditPassword,
-    Routes.CreateNote,
-    is Routes.EditNote,
-    Routes.VaultFolders,
-    Routes.Settings,
-    Routes.ChangePassphrase,
-    Routes.Profile,
-        -> true
-
-    else -> false
-}
