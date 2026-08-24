@@ -11,10 +11,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.ui.component.SecretOutlinedTextField
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.asUiLabel
 import com.miguelrodriguez19.safecube.feature.vault.presentation.editor.password.action.PasswordEditorUiAction
@@ -111,14 +111,12 @@ private fun PasswordEditorContent(
                 enabled = !uiState.isSaving,
                 singleLine = true,
             )
-            OutlinedTextField(
+            SecretOutlinedTextField(
                 value = uiState.password,
                 onValueChange = { onAction(PasswordEditorUiAction.PasswordChanged(it)) },
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isSaving,
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
             )
             OutlinedTextField(
                 value = uiState.websiteUrl,

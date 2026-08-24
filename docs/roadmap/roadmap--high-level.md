@@ -140,7 +140,7 @@ La publicación en Google Play queda fuera de este programa inicial.
 - `versionName` está fijado manualmente como `1.0`.
 - La build `release` usa todavía el keystore de debug.
 - La aplicación permite backup y sus reglas siguen siendo las plantillas por defecto.
-- `verifyCoverage` supera los umbrales actuales.
+- El gate Kover integrado en `ciVerify` supera los umbrales actuales.
 - `lintDebug` bloquea la build por errores y avisos de localización.
 - Las pruebas instrumentadas y de UI todavía no representan los flujos reales del producto.
 

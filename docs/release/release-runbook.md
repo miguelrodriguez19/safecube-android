@@ -306,7 +306,6 @@ Nunca copiar valores de secrets, Base64, passwords, rutas privadas ni el keystor
 3. Ejecutar como mínimo:
 
    ```bash
-   ./gradlew validateVersion
    ./gradlew ciVerify
    ```
 

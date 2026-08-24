@@ -54,7 +54,7 @@ Para actualizar la versión en cualquier pull request que vaya a fusionarse en `
 3. Incrementar ambos valores frente a la versión de la base de la pull request. `VERSION_NAME` debe
    tener precedencia SemVer estrictamente mayor; el build metadata por sí solo no constituye un
    incremento. `VERSION_CODE` debe ser estrictamente mayor, también si solo cambia el prerelease.
-4. Ejecutar `./gradlew validateVersion` y confirmar que muestra únicamente ambos valores.
+4. Ejecutar `./gradlew ciVerify`; la configuración valida ambos valores antes de iniciar los gates.
 5. Ejecutar los quality gates y continuar con el flujo de publicación documentado aquí.
 
 No se debe actualizar la versión directamente en `app/build.gradle.kts`, ni inferirla desde ramas,
@@ -394,8 +394,8 @@ El APK público debe ser:
 1. Elegir la versión objetivo del release train y actualizar `VERSION_NAME` y `VERSION_CODE` en
    `version.properties` en la pull request. Cada integración usa el siguiente sufijo `-rc.N`;
    la promoción estable elimina el sufijo y vuelve a aumentar `VERSION_CODE`.
-2. Ejecutar `./gradlew validateVersion` y `validateVersionBump` contra la versión base, y confirmar
-   que ambos valores aumentan.
+2. Ejecutar `./gradlew validateVersionBump` contra la versión base y confirmar que ambos valores
+   aumentan. Cualquier invocación Gradle valida primero el formato de la versión actual.
 3. Pasar `Pull Request Quality / quality / version-guard` y los demás checks requeridos.
 4. Fusionar el cambio en `main`.
 5. Dejar que `create-candidate-tag` cree el tag exacto `v<versionName>` sobre el commit fusionado.

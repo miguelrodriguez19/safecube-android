@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,10 +21,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.ui.component.SecretOutlinedTextField
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passphrase.action.ChangePassphraseUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passphrase.event.ChangePassphraseUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.passphrase.state.ChangePassphraseUiState
@@ -192,14 +191,12 @@ private fun PassphraseField(
     enabled: Boolean,
     onValueChange: (String) -> Unit,
 ) {
-    OutlinedTextField(
+    SecretOutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(stringResource(labelRes)) },
         modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
         enabled = enabled,
-        visualTransformation = PasswordVisualTransformation(),
         isError = errorRes != null,
         supportingText = errorRes?.let { resource ->
             { Text(stringResource(resource)) }

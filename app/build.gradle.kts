@@ -143,7 +143,6 @@ dependencies {
 }
 
 tasks.register("verifyReleaseSecurityManifest") {
-    group = "verification"
     description = "Verifies release backup policy and exported components in the merged manifest."
     dependsOn("processReleaseManifest")
     doLast {

@@ -115,7 +115,8 @@ se fijará como `0.1.0` con `versionCode = 1`; no implica publicar esa versión.
 - Fallar durante la configuración si falta el archivo, una propiedad o existe una propiedad vacía.
 - Validar `VERSION_NAME` contra SemVer 2.0.0 completo.
 - Validar que `VERSION_CODE` sea un entero mayor que cero.
-- Añadir una tarea raíz `validateVersion` que muestre únicamente versión y código, sin secretos.
+- Validar la versión durante la configuración de cualquier invocación Gradle, sin imprimir
+  información adicional ni depender de una tarea específica.
 - Encapsular el parser y la validación en
   `buildSrc/src/main/kotlin/com/miguelrodriguez19/safecube/buildlogic/AppVersion.kt`.
 - Añadir tests JUnit en
@@ -147,12 +148,12 @@ VERSION_NAME=0.1.0
 VERSION_CODE=1
 ```
 
-`./gradlew validateVersion` devuelve código `0` solo si ambas propiedades son válidas.
+`./gradlew help` devuelve código `0` solo si ambas propiedades son válidas.
 
 ### Acceptance Criteria (ACs)
 
 - `versionName` y `versionCode` del APK proceden exclusivamente de `version.properties`.
-- `./gradlew validateVersion` pasa con la configuración versionada.
+- `./gradlew help` pasa con la configuración versionada.
 - Un SemVer o código inválido detiene la build con un mensaje accionable.
 - `rg "versionName\\s*="` y `rg "versionCode\\s*="` no encuentran otro valor funcional hardcodeado
   para la app.
@@ -287,9 +288,9 @@ quality gates localmente y en GitHub Actions.
 
 ## Context, Functional Description & Goal
 
-El proyecto ya dispone de `verifyCoverage`, pero lint, validación de versión, contrato OpenAPI y
-ensamblado release se invocan por separado. Duplicar listas de comandos entre documentación y YAML
-provocaría divergencias.
+El proyecto ya dispone de tests y gates Kover estándar, pero lint, validación de versión, contrato
+OpenAPI y ensamblado release se invocan por separado. Duplicar listas de comandos entre
+documentación y YAML provocaría divergencias.
 
 ## Steps/Scope
 
@@ -297,15 +298,15 @@ provocaría divergencias.
 
 - Crear una tarea raíz `ciVerify`.
 - Hacer que `ciVerify` dependa de:
-  - `validateVersion`;
-  - `verifyCoverage`;
-  - `lintDebug`;
+  - la validación de versión ejecutada durante configuración;
+  - tests JVM de todos los módulos y tareas estándar de report/verify de Kover;
+  - tareas `lintDebug` de los módulos Android;
   - el test de contrato `VaultSyncOpenApiContractTest`;
   - `:app:assembleRelease`.
 - Garantizar que el contrato OpenAPI se ejecuta dentro del gate incluso si cambia la agregación de
   cobertura.
 - Crear una tarea raíz `releaseVerify`.
-- Hacer que `releaseVerify` dependa de `ciVerify` y `lintRelease`.
+- Hacer que `releaseVerify` dependa de `ciVerify` y de las tareas `lintRelease` de los módulos.
 - Mantener `verifyReleaseSigningConfiguration` fuera de `ciVerify` y añadirlo al flujo público de
   release.
 - Actualizar `docs/testing/testing.md` con ambos comandos y sus diferencias.

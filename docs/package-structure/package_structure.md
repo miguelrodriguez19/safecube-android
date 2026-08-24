@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 24-08-2026 10:54:18
+Updated: 24-08-2026 11:16:37
 
 ```
 safecube-android/
@@ -102,6 +102,8 @@ safecube-android/
 │   │       │   │   │   └── NavigationGatesTest.kt
 │   │       │   │   └── host/
 │   │       │   │       └── NavigationSessionCoordinatorTest.kt
+│   │       │   ├── security/
+│   │       │   │   └── SensitiveSourcePolicyTest.kt
 │   │       │   ├── session/
 │   │       │   │   ├── autolock/
 │   │       │   │   │   └── VaultAutoLockCoordinatorTest.kt
@@ -575,6 +577,8 @@ safecube-android/
 │   ├── ui/
 │   │   ├── src/main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/core/ui/
+│   │   │   │   ├── component/
+│   │   │   │   │   └── SecretOutlinedTextField.kt
 │   │   │   │   ├── components/
 │   │   │   │   │   └── .gitkeep
 │   │   │   │   └── theme/

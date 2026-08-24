@@ -15,10 +15,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R
+import com.miguelrodriguez19.safecube.core.ui.component.SecretOutlinedTextField
 import com.miguelrodriguez19.safecube.feature.auth.presentation.signup.action.SignupUiAction
 import com.miguelrodriguez19.safecube.feature.auth.presentation.signup.event.SignupUiEvent
 import com.miguelrodriguez19.safecube.feature.auth.presentation.signup.state.SignupUiState
@@ -83,15 +83,13 @@ private fun SignupContent(
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
-            OutlinedTextField(
+            SecretOutlinedTextField(
                 value = uiState.password,
                 onValueChange = { onAction(SignupUiAction.PasswordChanged(it)) },
                 label = { Text(stringResource(R.string.password_label)) },
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
                 isError = uiState.passwordErrorRes != null,
                 enabled = !uiState.isLoading,
             )
@@ -103,15 +101,13 @@ private fun SignupContent(
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
-            OutlinedTextField(
+            SecretOutlinedTextField(
                 value = uiState.confirmPassword,
                 onValueChange = { onAction(SignupUiAction.ConfirmPasswordChanged(it)) },
                 label = { Text(stringResource(R.string.confirm_password_label)) },
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
                 isError = uiState.confirmPasswordErrorRes != null,
                 enabled = !uiState.isLoading,
             )
