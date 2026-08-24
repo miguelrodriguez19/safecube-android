@@ -1,15 +1,21 @@
 package com.miguelrodriguez19.safecube
 
+import android.view.WindowManager
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.miguelrodriguez19.safecube.app.entrypoint.MainActivity
 import com.miguelrodriguez19.safecube.feature.auth.presentation.AuthTestTags
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -49,6 +55,48 @@ class MainActivitySmokeTest {
         composeRule
             .onNodeWithTag(AuthTestTags.LOGIN_SCREEN)
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun activeWindowRejectsScreenshotsAndRecentsThumbnails() {
+        assertTrue(
+            composeRule.activity.window.attributes.flags and
+                WindowManager.LayoutParams.FLAG_SECURE != 0,
+        )
+    }
+
+    @Test
+    fun loginPasswordIsVisuallyMasked() {
+        composeRule
+            .onNodeWithTag(AuthTestTags.WELCOME_LOGIN_ACTION)
+            .performClick()
+        composeRule
+            .onNodeWithText("Password")
+            .performTextInput("test-password")
+
+        composeRule
+            .onNodeWithText("•••••••••••••")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun signupPasswordsAreVisuallyMasked() {
+        composeRule
+            .onNodeWithTag(AuthTestTags.WELCOME_LOGIN_ACTION)
+            .performClick()
+        composeRule
+            .onNodeWithText("Go to Signup")
+            .performClick()
+        composeRule
+            .onNodeWithText("Password")
+            .performTextInput("test-password")
+        composeRule
+            .onNodeWithText("Confirm password")
+            .performTextInput("test-password")
+
+        composeRule
+            .onAllNodesWithText("•••••••••••••")
+            .assertCountEquals(2)
     }
 }
 
