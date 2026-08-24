@@ -8,7 +8,6 @@ import java.time.Instant
 import kotlinx.serialization.Serializable
 import okhttp3.Authenticator
 import okhttp3.Interceptor
-import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
@@ -37,19 +36,19 @@ class NetworkClientFactoryIntegrationTest {
     }
 
     @Test
-    fun `createOkHttpClient when debug is enabled then adds logging interceptor`() {
+    fun `createOkHttpClient when debug and release configs are used then never adds logging`() {
         val config = NetworkConfig(baseUrl = server.url("/").toString())
 
-        val debugClient = NetworkClientFactory.createOkHttpClient(config.copy(isDebug = true))
-        val releaseClient = NetworkClientFactory.createOkHttpClient(config.copy(isDebug = false))
+        val debugClient = NetworkClientFactory.createOkHttpClient(config)
+        val releaseClient = NetworkClientFactory.createOkHttpClient(config)
 
-        assertTrue(debugClient.interceptors.any { it is HttpLoggingInterceptor })
-        assertFalse(releaseClient.interceptors.any { it is HttpLoggingInterceptor })
+        assertFalse(debugClient.hasHttpLoggingInterceptor())
+        assertFalse(releaseClient.hasHttpLoggingInterceptor())
     }
 
     @Test
     fun `createOkHttpClient when auth components are provided then keeps them`() {
-        val config = NetworkConfig(baseUrl = server.url("/").toString(), isDebug = false)
+        val config = NetworkConfig(baseUrl = server.url("/").toString())
         val authInterceptor = mockk<Interceptor>(relaxed = true)
         val authenticator = mockk<Authenticator>(relaxed = true)
 
@@ -67,7 +66,6 @@ class NetworkClientFactoryIntegrationTest {
     fun `createRetrofit when config is valid then uses expected base url`() {
         val config = NetworkConfig(
             baseUrl = server.url("/").toString(),
-            isDebug = false,
         )
 
         val retrofit = NetworkClientFactory.createRetrofit(config)
@@ -78,7 +76,7 @@ class NetworkClientFactoryIntegrationTest {
 
     @Test
     fun `createRetrofit when okHttpClient is provided then uses it`() {
-        val config = NetworkConfig(baseUrl = server.url("/").toString(), isDebug = false)
+        val config = NetworkConfig(baseUrl = server.url("/").toString())
         val client = NetworkClientFactory.createOkHttpClient(config)
 
         val retrofit = NetworkClientFactory.createRetrofit(
@@ -99,7 +97,6 @@ class NetworkClientFactoryIntegrationTest {
         )
         val config = NetworkConfig(
             baseUrl = server.url("/").toString(),
-            isDebug = false,
         )
 
         val api = NetworkClientFactory.createService<PingApi>(config)
@@ -157,6 +154,11 @@ class NetworkClientFactoryIntegrationTest {
         assertEquals(byteArrayOf(7, 8, 9).toList(), parsed.kdfSalt.toList())
     }
 }
+
+private fun okhttp3.OkHttpClient.hasHttpLoggingInterceptor(): Boolean =
+    (interceptors + networkInterceptors).any {
+        it.javaClass.name == "okhttp3.logging.HttpLoggingInterceptor"
+    }
 
 private interface PingApi {
     @GET("ping")

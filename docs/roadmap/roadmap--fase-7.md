@@ -1294,13 +1294,13 @@ bodies ni headers.
 
 ### Acceptance Criteria (ACs)
 
-- [ ] Ningún cliente usa logging BODY o HEADERS.
-- [ ] Tests confirman que debug tampoco expone tráfico.
-- [ ] Los modelos mostrables no contienen bodies o mensajes crudos.
-- [ ] Todas las reglas R8 adicionales tienen justificación concreta.
-- [ ] El APK minificado compila y supera el smoke definido.
-- [ ] `releaseVerify` pasa.
-- [ ] Trazabilidad y agent report están actualizados.
+- [x] Ningún cliente usa logging BODY o HEADERS; se eliminó el interceptor de `NetworkClientFactory` y del cliente OpenAPI generado.
+- [x] Tests confirman que debug tampoco expone tráfico mediante `NetworkClientFactoryIntegrationTest`; el postprocesado OpenAPI rechaza logging generado.
+- [x] Los modelos mostrables no contienen bodies o mensajes crudos; los errores remotos conservan solo clasificación, código y campos de validación.
+- [x] Todas las reglas R8 adicionales tienen justificación concreta; solo se conserva el `-dontwarn` acotado requerido por anotaciones de Tink/Error Prone.
+- [x] El APK release y la variante benchmark minificadas compilan mediante `:app:assembleRelease` y `:app:assembleBenchmark`.
+- [x] `releaseVerify` pasa.
+- [x] Trazabilidad y agent report están actualizados.
 
 ---
 

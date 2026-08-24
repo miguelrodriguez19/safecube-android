@@ -9,10 +9,6 @@ data class NetworkConfig(
      */
     val baseUrl: String,
     /**
-     * Enables verbose HTTP logging when true.
-     */
-    val isDebug: Boolean = false,
-    /**
      * Connect timeout in seconds.
      */
     val connectTimeoutSeconds: Long = 15,

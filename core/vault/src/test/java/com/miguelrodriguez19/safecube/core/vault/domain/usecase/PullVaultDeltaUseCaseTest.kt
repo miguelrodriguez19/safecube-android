@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.core.vault.domain.usecase
 
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.network.domain.model.RetryDecision
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItem
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItemChangesPage
@@ -230,8 +231,12 @@ class PullVaultDeltaUseCaseTest {
         coEvery { secureItemRepository.getSyncCheckpoint(accountId) } returns 5
 
         listOf(
-            SecureItemRemoteError.HttpError(503, null) to RetryDecision.Retryable,
-            SecureItemRemoteError.HttpError(428, null) to RetryDecision.Terminal,
+            SecureItemRemoteError.HttpError(
+                failure = NetworkFailureClassifier.fromHttpStatus(503),
+            ) to RetryDecision.Retryable,
+            SecureItemRemoteError.HttpError(
+                failure = NetworkFailureClassifier.fromHttpStatus(428),
+            ) to RetryDecision.Terminal,
         ).forEach { (error, decision) ->
             coEvery {
                 secureItemRemoteRepository.listVaultItemChanges(after = 5, limit = 100)

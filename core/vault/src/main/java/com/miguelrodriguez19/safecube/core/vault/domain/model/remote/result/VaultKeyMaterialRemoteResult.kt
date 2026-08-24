@@ -32,12 +32,7 @@ sealed interface VaultKeyMaterialRemoteError {
 
     data class HttpError(
         override val failure: NetworkFailure,
-    ) : VaultKeyMaterialRemoteError {
-        @Suppress("UNUSED_PARAMETER")
-        constructor(statusCode: Int, errorBody: String?) : this(
-            NetworkFailureClassifier.fromHttpStatus(statusCode),
-        )
-    }
+    ) : VaultKeyMaterialRemoteError
 
     data class NetworkError(
         override val failure: NetworkFailure,

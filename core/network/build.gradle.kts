@@ -88,6 +88,45 @@ tasks.named<GenerateTask>("openApiGenerate") {
 tasks.register("postProcessOpenApiGeneratedModels") {
     dependsOn("openApiGenerate")
     doLast {
+        val generatedApiClient = file(
+            "${openApiOutput.get().asFile.path}/src/main/kotlin/${generatedNetworkPackage.replace('.', '/')}/infrastructure/ApiClient.kt",
+        )
+        if (generatedApiClient.isFile) {
+            val originalContent = generatedApiClient.readText()
+            val loggingInterceptorImport = "import okhttp3.logging.HttpLoggingInterceptor\n"
+            val loggingProperty = "    var logger: ((String) -> Unit)? = null\n"
+            val loggingSetup = """    private val defaultClientBuilder: OkHttpClient.Builder by lazy {
+        OkHttpClient()
+            .newBuilder()
+            .addInterceptor(HttpLoggingInterceptor { message -> logger?.invoke(message) }
+                .apply { level = HttpLoggingInterceptor.Level.BODY }
+            )
+    }"""
+            val loggingSetter = """    fun setLogger(logger: (String) -> Unit): ApiClient {
+        this.logger = logger
+        return this
+    }
+"""
+            val sanitizedContent = originalContent
+                .replace(loggingInterceptorImport, "")
+                .replace(loggingProperty, "")
+                .replace(loggingSetup, """    private val defaultClientBuilder: OkHttpClient.Builder by lazy {
+        OkHttpClient().newBuilder()
+    }""")
+                .replace(loggingSetter, "")
+            check(
+                !sanitizedContent.contains("HttpLoggingInterceptor") &&
+                    !sanitizedContent.contains("okhttp3.logging") &&
+                    !sanitizedContent.contains("Level.BODY") &&
+                    !sanitizedContent.contains("Level.HEADERS"),
+            ) {
+                "Generated OpenAPI ApiClient still contains HTTP logging"
+            }
+            if (sanitizedContent != originalContent) {
+                generatedApiClient.writeText(sanitizedContent)
+            }
+        }
+
         val generatedModelDir = file(
             "${openApiOutput.get().asFile.path}/src/main/kotlin/${generatedModelPackage.replace('.', '/')}",
         )
@@ -185,7 +224,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
 
     implementation(libs.okhttp)
-    implementation(libs.okhttp.logging)
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.kotlinx.serialization)

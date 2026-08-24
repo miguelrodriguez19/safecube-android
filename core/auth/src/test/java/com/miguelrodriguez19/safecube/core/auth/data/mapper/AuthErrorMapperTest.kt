@@ -41,7 +41,7 @@ class AuthErrorMapperTest {
             operation = AuthOperation.LOGIN,
         )
 
-        assertEquals(AuthError.ValidationFailed(fields = null, message = null), result)
+        assertEquals(AuthError.ValidationFailed(fields = emptySet()), result)
     }
 
     @Test
@@ -52,7 +52,7 @@ class AuthErrorMapperTest {
             operation = AuthOperation.LOGIN,
         )
 
-        assertEquals(AuthError.ValidationFailed(fields = null, message = null), result)
+        assertEquals(AuthError.ValidationFailed(fields = emptySet()), result)
     }
 
     @Test
@@ -65,11 +65,7 @@ class AuthErrorMapperTest {
 
         assertEquals(
             AuthError.ValidationFailed(
-                fields = mapOf(
-                    "email" to "12",
-                    "password" to "   ",
-                ),
-                message = null,
+                fields = setOf("email", "password"),
             ),
             result,
         )
@@ -85,8 +81,7 @@ class AuthErrorMapperTest {
 
         assertEquals(
             AuthError.ValidationFailed(
-                fields = null,
-                message = "Validation failed",
+                fields = emptySet(),
             ),
             result,
         )
@@ -133,7 +128,7 @@ class AuthErrorMapperTest {
             operation = AuthOperation.REFRESH,
         )
 
-        assertEquals(AuthError.Conflict(message = "Refresh token conflict"), result)
+        assertEquals(AuthError.Conflict(), result)
     }
 
     @Test
@@ -144,7 +139,7 @@ class AuthErrorMapperTest {
             operation = AuthOperation.REFRESH,
         )
 
-        assertEquals(AuthError.Conflict(message = null), result)
+        assertEquals(AuthError.Conflict(), result)
     }
 
     @Test
@@ -155,7 +150,7 @@ class AuthErrorMapperTest {
             operation = AuthOperation.REFRESH,
         )
 
-        assertEquals(AuthError.Conflict(message = null), result)
+        assertEquals(AuthError.Conflict(), result)
     }
 
     @Test
@@ -169,7 +164,6 @@ class AuthErrorMapperTest {
         assertEquals(
             AuthError.Unknown(
                 code = 500,
-                message = "Server exploded",
             ),
             result,
         )
@@ -186,7 +180,6 @@ class AuthErrorMapperTest {
         assertEquals(
             AuthError.Unknown(
                 code = 500,
-                message = null,
             ),
             result,
         )
@@ -203,7 +196,6 @@ class AuthErrorMapperTest {
         assertEquals(
             AuthError.Unknown(
                 code = 500,
-                message = null,
             ),
             result,
         )

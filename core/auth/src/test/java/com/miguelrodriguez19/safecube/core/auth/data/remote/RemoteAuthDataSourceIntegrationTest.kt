@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.auth.data.remote
 
 import com.miguelrodriguez19.safecube.core.network.data.client.NetworkClientFactory
 import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
+import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthTokensResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.AuthenticateAccountRequest
@@ -86,7 +87,7 @@ class RemoteAuthDataSourceIntegrationTest {
     }
 
     @Test
-    fun `register when auth api returns http error then preserves code null body and raw error body`() = runBlocking {
+    fun `register when auth api returns http error then discards the error body`() = runBlocking {
         val errorJson = """{"error":"Validation failed","fields":{"email":"invalid"}}"""
         authServer.enqueue(
             MockResponse()
@@ -104,9 +105,7 @@ class RemoteAuthDataSourceIntegrationTest {
 
         assertEquals(
             NetworkResult.HttpError<RegisterAccountResult>(
-                httpCode = 400,
-                body = null,
-                errorBody = errorJson,
+                failure = NetworkFailureClassifier.fromHttpStatus(400),
             ),
             result,
         )
@@ -186,7 +185,6 @@ class RemoteAuthDataSourceIntegrationTest {
         NetworkClientFactory.createService(
             config = NetworkConfig(
                 baseUrl = server.url("/").toString(),
-                isDebug = false,
             ),
         )
 }

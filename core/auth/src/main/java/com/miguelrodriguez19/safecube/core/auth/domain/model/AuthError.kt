@@ -7,12 +7,7 @@ sealed interface AuthError {
     data class ValidationFailed(
         val fields: Set<String> = emptySet(),
         override val failure: NetworkFailure = NetworkFailureClassifier.fromHttpStatus(400),
-    ) : AuthError {
-        @Suppress("UNUSED_PARAMETER")
-        constructor(fields: Map<String, String>?, message: String?) : this(
-            fields = fields?.keys.orEmpty(),
-        )
-    }
+    ) : AuthError
 
     data object InvalidCredentials : AuthError {
         override val failure: NetworkFailure = NetworkFailureClassifier.fromHttpStatus(401)
@@ -32,23 +27,13 @@ sealed interface AuthError {
 
     data class Conflict(
         override val failure: NetworkFailure = NetworkFailureClassifier.fromHttpStatus(409),
-    ) : AuthError {
-        @Suppress("UNUSED_PARAMETER")
-        constructor(message: String?) : this()
-    }
+    ) : AuthError
 
     data class Unknown(
         val code: Int? = null,
         override val failure: NetworkFailure = code?.let(NetworkFailureClassifier::fromHttpStatus)
             ?: NetworkFailureClassifier.unknown(),
-    ) : AuthError {
-        @Suppress("UNUSED_PARAMETER")
-        constructor(code: Int? = null, message: String? = null) : this(
-            code = code,
-            failure = code?.let(NetworkFailureClassifier::fromHttpStatus)
-                ?: NetworkFailureClassifier.unknown(),
-        )
-    }
+    ) : AuthError
 
     val failure: NetworkFailure
 }

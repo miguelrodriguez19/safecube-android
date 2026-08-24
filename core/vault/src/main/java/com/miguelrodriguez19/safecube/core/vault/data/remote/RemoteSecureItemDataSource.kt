@@ -2,7 +2,6 @@ package com.miguelrodriguez19.safecube.core.vault.data.remote
 
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultControllerApi
 import com.miguelrodriguez19.safecube.core.network.generated.model.CreateSecureItemRequest
-import com.miguelrodriguez19.safecube.core.network.generated.model.ErrorResponse
 import com.miguelrodriguez19.safecube.core.network.generated.model.UpdateSecureItemRequest
 import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkFailureClassifier
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.RemoteSecureItemChangesPage
@@ -23,6 +22,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import retrofit2.Response
 
 @Singleton
@@ -229,7 +230,7 @@ class RemoteSecureItemDataSource @Inject constructor(
         errorBody: String?,
     ): SecureItemRemoteError = when (statusCode) {
         400 -> SecureItemRemoteError.ValidationFailed(
-            fields = decodeErrorResponse(errorBody)?.fields.orEmpty(),
+            fields = decodeValidationFields(errorBody),
         )
         401 -> SecureItemRemoteError.Unauthorized
         403 -> SecureItemRemoteError.Forbidden
@@ -242,12 +243,15 @@ class RemoteSecureItemDataSource @Inject constructor(
         )
     }
 
-    private fun decodeErrorResponse(errorBody: String?): ErrorResponse? =
-        errorBody?.let { body ->
-            runCatching {
-                json.decodeFromString<ErrorResponse>(body)
-            }.getOrNull()
-        }
+    private fun decodeValidationFields(errorBody: String?): Set<String> {
+        if (errorBody.isNullOrBlank()) return emptySet()
+
+        val root = runCatching {
+            json.parseToJsonElement(errorBody)
+        }.getOrNull() as? JsonObject ?: return emptySet()
+
+        return root["fields"]?.jsonObject?.keys.orEmpty()
+    }
 
     private inline fun <T, R> SecureItemRemoteResult<T>.mapSuccess(
         transform: (T) -> R,

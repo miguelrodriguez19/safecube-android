@@ -141,7 +141,6 @@ class TokenRefreshAuthenticatorFlowIntegrationTest {
     ): OkHttpClient {
         val config = NetworkConfig(
             baseUrl = server.url("/").toString(),
-            isDebug = false,
         )
         val refreshApi: AuthControllerApi = NetworkClientFactory.createService(config = config)
         val tokenProvider = TokenProvider { session.accessToken }

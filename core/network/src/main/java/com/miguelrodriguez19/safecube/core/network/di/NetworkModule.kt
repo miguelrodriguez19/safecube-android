@@ -30,7 +30,6 @@ object NetworkModule {
     @Singleton
     fun provideNetworkConfig(): NetworkConfig = NetworkConfig(
         baseUrl = BuildConfig.BASE_URL,
-        isDebug = BuildConfig.DEBUG,
     )
 
     /**
