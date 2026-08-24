@@ -123,6 +123,20 @@ class NavigationSessionCoordinatorTest {
                 currentRoute = Routes.UnlockVault,
             ),
         )
+        assertFalse(
+            shouldGuardRestoredNavigation(
+                sessionState = SessionState.LoggedInVaultLocked,
+                vaultState = VaultState.Locked,
+                currentRoute = Routes.CreateVault,
+            ),
+        )
+        assertTrue(
+            shouldGuardRestoredNavigation(
+                sessionState = SessionState.LoggedInVaultLocked,
+                vaultState = VaultState.Locked,
+                currentRoute = Routes.App,
+            ),
+        )
     }
 
     @Test

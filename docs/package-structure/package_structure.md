@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 24-08-2026 01:43:36
+Updated: 24-08-2026 01:19:52
 
 ```
 safecube-android/
@@ -32,6 +32,12 @@ safecube-android/
 │   │   │   │   ├── presentation/
 │   │   │   │   │   ├── navigation/
 │   │   │   │   │   │   ├── gate/
+│   │   │   │   │   │   │   ├── event/
+│   │   │   │   │   │   │   │   └── PostLoginGateUiEvent.kt
+│   │   │   │   │   │   │   ├── state/
+│   │   │   │   │   │   │   │   └── PostLoginGateUiState.kt
+│   │   │   │   │   │   │   ├── viewmodel/
+│   │   │   │   │   │   │   │   └── PostLoginGateViewModel.kt
 │   │   │   │   │   │   │   ├── NavigationGates.kt
 │   │   │   │   │   │   │   └── NavigationGatesEntryPoint.kt
 │   │   │   │   │   │   ├── host/
@@ -42,6 +48,7 @@ safecube-android/
 │   │   │   │   │   │   │   ├── NavigationWrapper.kt
 │   │   │   │   │   │   │   └── VaultNavigationCoordinator.kt
 │   │   │   │   │   │   └── route/
+│   │   │   │   │   │       ├── RouteAccessPolicy.kt
 │   │   │   │   │   │       └── Routes.kt
 │   │   │   │   │   ├── theme/
 │   │   │   │   │   │   ├── Color.kt
@@ -90,13 +97,17 @@ safecube-android/
 │   │       ├── app/
 │   │       │   ├── presentation/navigation/
 │   │       │   │   ├── gate/
+│   │       │   │   │   ├── viewmodel/
+│   │       │   │   │   │   └── PostLoginGateViewModelTest.kt
 │   │       │   │   │   └── NavigationGatesTest.kt
 │   │       │   │   └── host/
 │   │       │   │       └── NavigationSessionCoordinatorTest.kt
-│   │       │   └── session/
-│   │       │       ├── autolock/
-│   │       │       │   └── VaultAutoLockCoordinatorTest.kt
-│   │       │       └── AccountSessionLifecycleImplTest.kt
+│   │       │   ├── session/
+│   │       │   │   ├── autolock/
+│   │       │   │   │   └── VaultAutoLockCoordinatorTest.kt
+│   │       │   │   └── AccountSessionLifecycleImplTest.kt
+│   │       │   └── test/
+│   │       │       └── MainDispatcherRule.kt
 │   │       └── ExampleUnitTest.kt
 │   ├── .gitignore
 │   ├── build.gradle.kts

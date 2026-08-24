@@ -4,19 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.miguelrodriguez19.safecube.app.presentation.navigation.gate.event.PostLoginGateUiEvent
+import com.miguelrodriguez19.safecube.app.presentation.navigation.gate.viewmodel.PostLoginGateViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.PendingVaultInitializationStatus
 import com.miguelrodriguez19.safecube.feature.auth.presentation.gate.ui.PostLoginGateScreen
-import dagger.hilt.android.EntryPointAccessors
-
-
 
 @Composable
 fun PostLoginGateRoute(
@@ -24,61 +18,26 @@ fun PostLoginGateRoute(
     onRecoveryKey: () -> Unit,
     onUnlockVault: () -> Unit,
     onHome: () -> Unit,
+    viewModel: PostLoginGateViewModel = hiltViewModel(),
 ) {
-    val entryPoint = rememberNavigationGatesEntryPoint()
-    val vaultSessionManager = remember(entryPoint) { entryPoint.vaultSessionManager() }
-    val vaultInitializeUseCase = remember(entryPoint) { entryPoint.vaultInitializeUseCase() }
-    val accountSessionLifecycle = remember(entryPoint) { entryPoint.accountSessionLifecycle() }
-    val vaultState by vaultSessionManager.vaultState.collectAsState()
-    var refreshAttempt by remember { mutableIntStateOf(0) }
-    var isResolving by remember { mutableStateOf(true) }
-    var pendingInitializationStatus by remember {
-        mutableStateOf<PendingVaultInitializationStatus?>(null)
-    }
+    val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(refreshAttempt) {
-        isResolving = true
-        pendingInitializationStatus = null
-        try {
-            pendingInitializationStatus = vaultInitializeUseCase.readPendingInitializationStatus()
-            vaultSessionManager.refreshVaultState()
-        } finally {
-            isResolving = false
-        }
-    }
-
-    LaunchedEffect(vaultState, pendingInitializationStatus, isResolving) {
-        if (isResolving || pendingInitializationStatus == null) return@LaunchedEffect
-
-        when (resolveGateDestination(vaultState, pendingInitializationStatus!!)) {
-            GateDestination.Stay -> Unit
-            GateDestination.CreateVault -> onCreateVault()
-            GateDestination.RecoveryKey -> onRecoveryKey()
-            GateDestination.UnlockVault -> onUnlockVault()
-            GateDestination.Home -> onHome()
-            GateDestination.PendingInitializationError -> Unit
-            GateDestination.AuthenticationRequired -> accountSessionLifecycle.terminateSession(
-                reason = SessionTerminationReason.SessionExpired,
-            )
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                PostLoginGateUiEvent.CreateVault -> onCreateVault()
+                PostLoginGateUiEvent.RecoveryKey -> onRecoveryKey()
+                PostLoginGateUiEvent.UnlockVault -> onUnlockVault()
+                PostLoginGateUiEvent.Home -> onHome()
+            }
         }
     }
 
     PostLoginGateScreen(
-        isLoading = isResolving || shouldShowGateLoading(vaultState, pendingInitializationStatus),
-        messageRes = resolveGateMessage(vaultState, pendingInitializationStatus),
-        onRetry = { refreshAttempt += 1 },
+        isLoading = uiState.isLoading,
+        messageRes = uiState.messageRes,
+        onRetry = viewModel::retry,
     )
-}
-
-@Composable
-private fun rememberNavigationGatesEntryPoint(): NavigationGatesEntryPoint {
-    val context = LocalContext.current
-    return remember(context) {
-        EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            NavigationGatesEntryPoint::class.java,
-        )
-    }
 }
 
 internal fun resolveGateDestination(
@@ -125,7 +84,7 @@ internal enum class GateDestination {
     PendingInitializationError,
 }
 
-private fun resolveGateMessage(
+internal fun resolveGateMessage(
     vaultState: VaultState,
     pendingInitializationStatus: PendingVaultInitializationStatus?,
 ): Int = when (pendingInitializationStatus) {
@@ -154,7 +113,7 @@ private fun resolveVaultStateMessage(vaultState: VaultState): Int = when (vaultS
     is VaultState.TerminalRemoteFailure -> UiR.string.vault_bootstrap_terminal_error
 }
 
-private fun shouldShowGateLoading(
+internal fun shouldShowGateLoading(
     vaultState: VaultState,
     pendingInitializationStatus: PendingVaultInitializationStatus? =
         PendingVaultInitializationStatus.None,
