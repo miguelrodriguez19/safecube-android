@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 25-08-2026 09:19:56
+Updated: 25-08-2026 09:48:56
 
 ```
 safecube-android/
@@ -235,8 +235,9 @@ safecube-android/
 │   │   │   │   │   │       ├── lookups.tab_i
 │   │   │   │   │   │       └── lookups.tab_i.len
 │   │   │   │   │   └── last-build.bin
-│   │   │   │   └── classpath-snapshot/
-│   │   │   │       └── shrunk-classpath-snapshot.bin
+│   │   │   │   ├── classpath-snapshot/
+│   │   │   │   │   └── shrunk-classpath-snapshot.bin
+│   │   │   │   └── local-state/
 │   │   │   └── compileTestKotlin/
 │   │   │       ├── cacheable/
 │   │   │       │   ├── caches-jvm/

@@ -39,14 +39,14 @@ class UnlockVaultViewModel @Inject constructor(
     private val eventsChannel = Channel<UnlockVaultUiEvent>(Channel.BUFFERED)
     val events: Flow<UnlockVaultUiEvent> = eventsChannel.receiveAsFlow()
 
-    private var automaticQuickUnlockHandled = false
+    private var quickUnlockAvailabilityChecked = false
     private var pendingPrompt: QuickUnlockPromptRequest? = null
     private var navigationEmitted = false
 
     fun onAction(action: UnlockVaultUiAction) {
         when (action) {
             is UnlockVaultUiAction.PassphraseChanged -> onPassphraseChanged(action.value)
-            UnlockVaultUiAction.ScreenEntered -> prepareAutomaticQuickUnlock()
+            UnlockVaultUiAction.ScreenEntered -> checkQuickUnlockAvailability()
             UnlockVaultUiAction.Submit -> submit()
             UnlockVaultUiAction.Retry -> retry()
             UnlockVaultUiAction.RetryQuickUnlock -> prepareQuickUnlock()
@@ -72,10 +72,13 @@ class UnlockVaultViewModel @Inject constructor(
         }
     }
 
-    private fun prepareAutomaticQuickUnlock() {
-        if (automaticQuickUnlockHandled) return
-        automaticQuickUnlockHandled = true
+    private fun checkQuickUnlockAvailability() {
+        if (quickUnlockAvailabilityChecked) return
+        quickUnlockAvailabilityChecked = true
         if (vaultSessionManager.quickUnlockOfferState() == QuickUnlockOfferState.Enrolled) {
+            mutableUiState.update { current ->
+                current.copy(hasQuickUnlockEnrollment = true)
+            }
             prepareQuickUnlock()
         }
     }

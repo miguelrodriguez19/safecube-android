@@ -10,6 +10,7 @@ data class UnlockVaultUiState(
     val operationState: VaultUiOperationState = VaultUiOperationState.Idle,
     val errorMessageRes: Int? = null,
     val showQuickUnlockOffer: Boolean = false,
+    val hasQuickUnlockEnrollment: Boolean = false,
     val canRetryQuickUnlock: Boolean = false,
 ) {
     val isLoading: Boolean

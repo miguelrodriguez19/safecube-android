@@ -173,7 +173,7 @@ private fun UnlockVaultContent(
                     color = MaterialTheme.colorScheme.error,
                 )
             }
-            if (uiState.canRetryQuickUnlock) {
+            if (uiState.hasQuickUnlockEnrollment) {
                 OutlinedButton(
                     onClick = { onAction(UnlockVaultUiAction.RetryQuickUnlock) },
                     enabled = !uiState.isLoading,
