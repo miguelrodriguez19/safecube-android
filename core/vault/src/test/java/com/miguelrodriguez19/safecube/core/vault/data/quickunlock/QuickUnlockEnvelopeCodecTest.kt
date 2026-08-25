@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.core.vault.data.quickunlock
 
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class QuickUnlockEnvelopeCodecTest {
@@ -24,5 +25,13 @@ class QuickUnlockEnvelopeCodecTest {
     fun `decode whenVersionLengthOrTagIsInvalid returnsInvalid`() {
         assertEquals(QuickUnlockEnvelopeDecodeResult.Invalid, target.decode(byteArrayOf(0x02)))
         assertEquals(QuickUnlockEnvelopeDecodeResult.Invalid, target.decode(ByteArray(60)))
+        assertEquals(QuickUnlockEnvelopeDecodeResult.Invalid, target.decode(ByteArray(0)))
+    }
+
+    @Test
+    fun `encode rejects nonce and ciphertext lengths other than a 32 byte kek envelope`() {
+        assertNull(target.encode(ByteArray(11), ByteArray(48)))
+        assertNull(target.encode(ByteArray(12), ByteArray(47)))
+        assertNull(target.encode(ByteArray(12), ByteArray(49)))
     }
 }

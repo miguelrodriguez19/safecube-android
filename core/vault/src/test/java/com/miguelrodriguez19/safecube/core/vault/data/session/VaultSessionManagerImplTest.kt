@@ -367,6 +367,252 @@ class VaultSessionManagerImplTest {
         verify(exactly = 0) { quickUnlockManager.finishUnlock(any(), any()) }
     }
 
+    @Test
+    fun `quick unlock enrollment when vault is locked requires passphrase without manager call`() {
+        target = createTarget()
+        target.lock()
+
+        val result = target.prepareQuickUnlockEnrollment(consentGranted = true)
+
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentPreparationResult.RequiresPassphrase,
+            result,
+        )
+        verify(exactly = 0) { quickUnlockManager.prepareEnrollment(any(), any()) }
+    }
+
+    @Test
+    fun `clear quick unlock enrollment fails closed without local account or valid session`() {
+        target = createTarget()
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCleanupResult.AccountUnavailable,
+            target.clearQuickUnlockEnrollment(),
+        )
+        val accountId = java.util.UUID.randomUUID()
+        every {
+            vaultKeyMaterialLocalRepository.read()
+        } returns VaultKeyMaterialLocalReadResult.Present(createVaultKeyMaterial().copy(accountId = accountId))
+        every { accountSessionValidator.isValid(accountId) } returns false
+
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCleanupResult.SessionInvalid,
+            target.clearQuickUnlockEnrollment(),
+        )
+        verify(exactly = 0) { quickUnlockManager.clearEnrollment(any()) }
+    }
+
+    @Test
+    fun `quick unlock offer and marker require local account`() {
+        target = createTarget()
+
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState.AccountUnavailable,
+            target.quickUnlockOfferState(),
+        )
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockStoreResult.AccountUnavailable,
+            target.markQuickUnlockOfferSeen(),
+        )
+    }
+
+    @Test
+    fun `quick unlock offer and marker delegate for the locally derived account`() {
+        val accountId = java.util.UUID.randomUUID()
+        every { vaultKeyMaterialLocalRepository.read() } returns localMaterialFor(accountId)
+        every { quickUnlockManager.offerState(accountId) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState.Available
+        every { quickUnlockManager.markOfferSeen(accountId) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockStoreResult.Saved
+        target = createTarget()
+
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState.Available,
+            target.quickUnlockOfferState(),
+        )
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockStoreResult.Saved,
+            target.markQuickUnlockOfferSeen(),
+        )
+    }
+
+    @Test
+    fun `prepare enrollment requires account and session before delegating ready operation`() {
+        target = createTarget()
+        unlockTarget()
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentPreparationResult.AccountUnavailable,
+            target.prepareQuickUnlockEnrollment(true),
+        )
+
+        val accountId = java.util.UUID.randomUUID()
+        every { vaultKeyMaterialLocalRepository.read() } returns localMaterialFor(accountId)
+        every { accountSessionValidator.isValid(accountId) } returns false
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentPreparationResult.SessionInvalid,
+            target.prepareQuickUnlockEnrollment(true),
+        )
+
+        val operationId = java.util.UUID.randomUUID().toString()
+        every { accountSessionValidator.isValid(accountId) } returns true
+        every { quickUnlockManager.prepareEnrollment(accountId, true) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentPreparationResult.Ready(operationId)
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentPreparationResult.Ready(operationId),
+            target.prepareQuickUnlockEnrollment(true),
+        )
+    }
+
+    @Test
+    fun `finish enrollment handles successful state account and session changes`() {
+        val accountId = java.util.UUID.randomUUID()
+        val operationId = java.util.UUID.randomUUID().toString()
+        every { vaultKeyMaterialLocalRepository.read() } returns localMaterialFor(accountId)
+        every { accountSessionValidator.isValid(accountId) } returns true
+        every { quickUnlockManager.prepareEnrollment(accountId, true) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentPreparationResult.Ready(operationId)
+        every { quickUnlockManager.finishEnrollment(accountId, operationId) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentResult.Enrolled
+        target = createTarget()
+        unlockTarget()
+
+        target.prepareQuickUnlockEnrollment(true)
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentResult.Enrolled,
+            target.finishQuickUnlockEnrollment(operationId),
+        )
+
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentResult.AccountUnavailable,
+            target.finishQuickUnlockEnrollment("missing"),
+        )
+    }
+
+    @Test
+    fun `finish enrollment cancels operation when vault becomes locked`() {
+        val accountId = java.util.UUID.randomUUID()
+        val operationId = java.util.UUID.randomUUID().toString()
+        every { vaultKeyMaterialLocalRepository.read() } returns localMaterialFor(accountId)
+        every { accountSessionValidator.isValid(accountId) } returns true
+        every { quickUnlockManager.prepareEnrollment(accountId, true) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentPreparationResult.Ready(operationId)
+        every { quickUnlockManager.cancelUnlock(operationId) } returns Unit
+        target = createTarget()
+        unlockTarget()
+        target.prepareQuickUnlockEnrollment(true)
+        target.lock()
+
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentResult.AccountUnavailable,
+            target.finishQuickUnlockEnrollment(operationId),
+        )
+        verify(exactly = 1) { quickUnlockManager.cancelUnlock(operationId) }
+    }
+
+    @Test
+    fun `prepare quick unlock covers wrong state absent account session and ready operation`() {
+        target = createTarget()
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.TemporarilyUnavailable,
+            target.prepareQuickUnlock(),
+        )
+        target.lock()
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.AccountUnavailable,
+            target.prepareQuickUnlock(),
+        )
+
+        val accountId = java.util.UUID.randomUUID()
+        every { vaultKeyMaterialLocalRepository.read() } returns localMaterialFor(accountId)
+        every { accountSessionValidator.isValid(accountId) } returns false
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.SessionInvalid,
+            target.prepareQuickUnlock(),
+        )
+
+        val operationId = java.util.UUID.randomUUID().toString()
+        every { accountSessionValidator.isValid(accountId) } returns true
+        every { quickUnlockManager.prepareUnlock(accountId) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.Ready(operationId)
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.Ready(operationId),
+            target.prepareQuickUnlock(),
+        )
+    }
+
+    @Test
+    fun `finish quick unlock installs unlocked state only after a validated manager success`() {
+        val accountId = java.util.UUID.randomUUID()
+        val operationId = java.util.UUID.randomUUID().toString()
+        every { vaultKeyMaterialLocalRepository.read() } returns localMaterialFor(accountId)
+        every { accountSessionValidator.isValid(accountId) } returns true
+        every { quickUnlockManager.prepareUnlock(accountId) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.Ready(operationId)
+        every { quickUnlockManager.finishUnlock(accountId, operationId) } returns QuickUnlockCompletionResult.Unlocked
+        target = createTarget()
+        target.lock()
+
+        target.prepareQuickUnlock()
+        assertEquals(QuickUnlockCompletionResult.Unlocked, target.finishQuickUnlock(operationId))
+        assertEquals(VaultState.Unlocked, target.vaultState.value)
+    }
+
+    @Test
+    fun `finish quick unlock cancels operation after account or session changes`() {
+        val firstAccount = java.util.UUID.randomUUID()
+        val secondAccount = java.util.UUID.randomUUID()
+        val operationId = java.util.UUID.randomUUID().toString()
+        every { vaultKeyMaterialLocalRepository.read() } returnsMany listOf(
+            localMaterialFor(firstAccount),
+            localMaterialFor(secondAccount),
+        )
+        every { accountSessionValidator.isValid(firstAccount) } returns true
+        every { quickUnlockManager.prepareUnlock(firstAccount) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.Ready(operationId)
+        every { quickUnlockManager.cancelUnlock(operationId) } returns Unit
+        target = createTarget()
+        target.lock()
+        target.prepareQuickUnlock()
+
+        assertEquals(QuickUnlockCompletionResult.AccountChanged, target.finishQuickUnlock(operationId))
+        verify(exactly = 1) { quickUnlockManager.cancelUnlock(operationId) }
+    }
+
+    @Test
+    fun `finish quick unlock cancels operation when account session becomes invalid`() {
+        val accountId = java.util.UUID.randomUUID()
+        val operationId = java.util.UUID.randomUUID().toString()
+        every { vaultKeyMaterialLocalRepository.read() } returns localMaterialFor(accountId)
+        every { accountSessionValidator.isValid(accountId) } returnsMany listOf(true, false)
+        every { quickUnlockManager.prepareUnlock(accountId) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.Ready(operationId)
+        every { quickUnlockManager.cancelUnlock(operationId) } returns Unit
+        target = createTarget()
+        target.lock()
+        target.prepareQuickUnlock()
+
+        assertEquals(QuickUnlockCompletionResult.SessionInvalid, target.finishQuickUnlock(operationId))
+        verify(exactly = 1) { quickUnlockManager.cancelUnlock(operationId) }
+    }
+
+    @Test
+    fun `cancel and clear quick unlock enrollment delegate only after account validation`() {
+        val accountId = java.util.UUID.randomUUID()
+        every { vaultKeyMaterialLocalRepository.read() } returns localMaterialFor(accountId)
+        every { accountSessionValidator.isValid(accountId) } returns true
+        every { quickUnlockManager.clearEnrollment(accountId) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCleanupResult.Cleared
+        every { quickUnlockManager.cancelUnlock("operation") } returns Unit
+        target = createTarget()
+
+        target.cancelQuickUnlock("operation")
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCleanupResult.Cleared,
+            target.clearQuickUnlockEnrollment(),
+        )
+        verify(exactly = 1) { quickUnlockManager.cancelUnlock("operation") }
+        verify(exactly = 1) { quickUnlockManager.clearEnrollment(accountId) }
+    }
+
     private fun createTarget() = VaultSessionManagerImpl(
         vaultUnlocker = vaultUnlocker,
         vaultKeyMaterialLocalRepository = vaultKeyMaterialLocalRepository,
@@ -375,6 +621,16 @@ class VaultSessionManagerImplTest {
         quickUnlockManager = quickUnlockManager,
         accountSessionValidator = Optional.of(accountSessionValidator),
     )
+
+    private fun localMaterialFor(accountId: java.util.UUID): VaultKeyMaterialLocalReadResult.Present =
+        VaultKeyMaterialLocalReadResult.Present(createVaultKeyMaterial().copy(accountId = accountId))
+
+    private fun unlockTarget() {
+        every { vaultUnlocker.unlockWithPassphrase("passphrase") } returns VaultUnlockResult.Unlocked(
+            UnlockedKeyring(kek = ByteArray(32) { 1 }),
+        )
+        target.unlockWithPassphrase("passphrase")
+    }
 
     private fun createVaultKeyMaterial() = VaultKeyMaterial(
         kekEncMaster = Random.nextBytes(32),

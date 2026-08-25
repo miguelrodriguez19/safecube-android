@@ -1,43 +1,31 @@
 package com.miguelrodriguez19.safecube.core.vault.data.quickunlock
 
-import android.app.KeyguardManager
-import android.content.Context
-import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
-import android.security.keystore.KeyProperties
 import android.security.keystore.UserNotAuthenticatedException
-import androidx.biometric.BiometricManager
-import dagger.hilt.android.qualifiers.ApplicationContext
-import java.security.KeyStore
 import java.security.UnrecoverableKeyException
 import java.util.UUID
 import javax.crypto.AEADBadTagException
 import javax.crypto.BadPaddingException
 import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
-    @ApplicationContext private val context: Context,
+    private val platform: QuickUnlockAndroidKeyStorePlatform,
     private val envelopeCodec: QuickUnlockEnvelopeCodec,
 ) : QuickUnlockKeyStore {
     private val pendingCiphers = mutableMapOf<String, PendingCipher>()
 
     @Synchronized
     override fun isSupported(): Boolean {
-        val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or
-            BiometricManager.Authenticators.DEVICE_CREDENTIAL
-        return context.getSystemService(KeyguardManager::class.java)?.isDeviceSecure == true &&
-            BiometricManager.from(context).canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
+        return platform.isSupported()
     }
 
     @Synchronized
     override fun hasAlias(accountId: UUID): Boolean = runCatching {
-        keyStore().containsAlias(QuickUnlockAliasFactory.aliasFor(accountId))
+        platform.hasAlias(accountId)
     }.getOrDefault(false)
 
     @Synchronized
@@ -46,18 +34,17 @@ internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
         operationId: String,
     ): QuickUnlockKeyStorePrepareResult {
         if (!isSupported()) return QuickUnlockKeyStorePrepareResult.Unsupported
-        val alias = QuickUnlockAliasFactory.aliasFor(accountId)
         return try {
-            if (keyStore().containsAlias(alias)) return QuickUnlockKeyStorePrepareResult.InvalidEnrollment
+            if (platform.hasAlias(accountId)) return QuickUnlockKeyStorePrepareResult.InvalidEnrollment
             val cipher = Cipher.getInstance(TRANSFORMATION)
-            cipher.init(Cipher.ENCRYPT_MODE, createKey(alias))
+            cipher.init(Cipher.ENCRYPT_MODE, platform.createKey(accountId))
             pendingCiphers[operationId] = PendingCipher(
                 cipher = cipher,
                 aad = QuickUnlockAliasFactory.aadFor(accountId),
             )
             QuickUnlockKeyStorePrepareResult.Ready
         } catch (_: Throwable) {
-            deleteAlias(alias)
+            platform.delete(accountId)
             QuickUnlockKeyStorePrepareResult.TemporarilyUnavailable
         }
     }
@@ -95,7 +82,8 @@ internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
             val cipher = Cipher.getInstance(TRANSFORMATION)
             cipher.init(
                 Cipher.DECRYPT_MODE,
-                loadKey(QuickUnlockAliasFactory.aliasFor(accountId)),
+                platform.loadKey(accountId)
+                    ?: throw UnrecoverableKeyException(QuickUnlockAliasFactory.aliasFor(accountId)),
                 GCMParameterSpec(TAG_LENGTH_BITS, decoded.nonce),
             )
             pendingCiphers[operationId] = PendingCipher(
@@ -160,52 +148,10 @@ internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
     }
 
     @Synchronized
-    override fun delete(accountId: UUID): Boolean = deleteAlias(QuickUnlockAliasFactory.aliasFor(accountId))
+    override fun delete(accountId: UUID): Boolean = platform.delete(accountId)
 
     @Synchronized
-    override fun deleteAll(): Boolean = runCatching {
-        val keyStore = keyStore()
-        val aliases = keyStore.aliases()
-        val matchingAliases = buildList {
-            while (aliases.hasMoreElements()) {
-                aliases.nextElement().takeIf {
-                    it.startsWith(QuickUnlockAliasFactory.ALIAS_PREFIX)
-                }?.let(::add)
-            }
-        }
-        matchingAliases.forEach(keyStore::deleteEntry)
-        true
-    }.getOrDefault(false)
-
-    private fun createKey(alias: String): SecretKey {
-        val authenticatorPolicy = KeyProperties.AUTH_BIOMETRIC_STRONG or
-            KeyProperties.AUTH_DEVICE_CREDENTIAL
-        return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE).apply {
-            init(
-                KeyGenParameterSpec.Builder(
-                    alias,
-                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
-                )
-                    .setKeySize(KEK_LENGTH * 8)
-                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .setUserAuthenticationRequired(true)
-                    .setUserAuthenticationParameters(0, authenticatorPolicy)
-                    .build(),
-            )
-        }.generateKey()
-    }
-
-    private fun loadKey(alias: String): SecretKey = keyStore().getKey(alias, null) as? SecretKey
-        ?: throw UnrecoverableKeyException(alias)
-
-    private fun deleteAlias(alias: String): Boolean = runCatching {
-        val keyStore = keyStore()
-        if (keyStore.containsAlias(alias)) keyStore.deleteEntry(alias)
-        true
-    }.getOrDefault(false)
-
-    private fun keyStore(): KeyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+    override fun deleteAll(): Boolean = platform.deleteAll()
 
     private data class PendingCipher(
         val cipher: Cipher,
@@ -214,7 +160,6 @@ internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
     )
 
     private companion object {
-        const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val TRANSFORMATION = "AES/GCM/NoPadding"
         const val KEK_LENGTH = 32
         const val TAG_LENGTH_BITS = 128

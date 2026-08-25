@@ -8,6 +8,8 @@ import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMat
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultInitializationPrefs
 import com.miguelrodriguez19.safecube.core.vault.data.local.AutoLockPreferences
 import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.AndroidKeystoreQuickUnlockAdapter
+import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.AndroidQuickUnlockKeyStorePlatformImpl
+import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.QuickUnlockAndroidKeyStorePlatform
 import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.QuickUnlockKeyStore
 import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.QuickUnlockManagerImpl
 import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.QuickUnlockPreferences
@@ -90,6 +92,12 @@ abstract class VaultModule {
     internal abstract fun bindQuickUnlockKeyStore(
         androidKeystoreQuickUnlockAdapter: AndroidKeystoreQuickUnlockAdapter,
     ): QuickUnlockKeyStore
+
+    @Binds
+    @Singleton
+    internal abstract fun bindQuickUnlockAndroidKeyStorePlatform(
+        platform: AndroidQuickUnlockKeyStorePlatformImpl,
+    ): QuickUnlockAndroidKeyStorePlatform
 
     @Binds
     @Singleton

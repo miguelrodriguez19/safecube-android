@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 25-08-2026 08:21:23
+Updated: 25-08-2026 09:19:34
 
 ```
 safecube-android/
@@ -235,9 +235,8 @@ safecube-android/
 │   │   │   │   │   │       ├── lookups.tab_i
 │   │   │   │   │   │       └── lookups.tab_i.len
 │   │   │   │   │   └── last-build.bin
-│   │   │   │   ├── classpath-snapshot/
-│   │   │   │   │   └── shrunk-classpath-snapshot.bin
-│   │   │   │   └── local-state/
+│   │   │   │   └── classpath-snapshot/
+│   │   │   │       └── shrunk-classpath-snapshot.bin
 │   │   │   └── compileTestKotlin/
 │   │   │       ├── cacheable/
 │   │   │       │   ├── caches-jvm/
@@ -601,6 +600,7 @@ safecube-android/
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
 │   └── vault/
+│       ├── data/quickunlock/
 │       ├── src/
 │       │   ├── main/
 │       │   │   ├── java/com/miguelrodriguez19/safecube/core/vault/
@@ -626,7 +626,9 @@ safecube-android/
 │       │   │   │   │   │   └── VaultKeyMaterialCache.kt
 │       │   │   │   │   ├── quickunlock/
 │       │   │   │   │   │   ├── AndroidKeystoreQuickUnlockAdapter.kt
+│       │   │   │   │   │   ├── AndroidQuickUnlockKeyStorePlatformImpl.kt
 │       │   │   │   │   │   ├── QuickUnlockAliasFactory.kt
+│       │   │   │   │   │   ├── QuickUnlockAndroidKeyStorePlatform.kt
 │       │   │   │   │   │   ├── QuickUnlockEnvelopeCodec.kt
 │       │   │   │   │   │   ├── QuickUnlockKeyStore.kt
 │       │   │   │   │   │   ├── QuickUnlockManagerImpl.kt
@@ -802,6 +804,8 @@ safecube-android/
 │       │       │   │   ├── PendingVaultInitializationStoreTest.kt
 │       │       │   │   └── VaultKeyMaterialCacheTest.kt
 │       │       │   ├── quickunlock/
+│       │       │   │   ├── AndroidKeystoreQuickUnlockAdapterTest.kt
+│       │       │   │   ├── QuickUnlockAliasFactoryTest.kt
 │       │       │   │   ├── QuickUnlockEnvelopeCodecTest.kt
 │       │       │   │   ├── QuickUnlockManagerImplTest.kt
 │       │       │   │   └── QuickUnlockStoreTest.kt
