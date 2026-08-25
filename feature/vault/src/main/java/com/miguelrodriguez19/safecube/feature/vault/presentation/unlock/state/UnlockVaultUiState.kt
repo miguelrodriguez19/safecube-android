@@ -9,6 +9,8 @@ data class UnlockVaultUiState(
     val passphraseErrorRes: Int? = null,
     val operationState: VaultUiOperationState = VaultUiOperationState.Idle,
     val errorMessageRes: Int? = null,
+    val showQuickUnlockOffer: Boolean = false,
+    val canRetryQuickUnlock: Boolean = false,
 ) {
     val isLoading: Boolean
         get() = operationState.isLoading

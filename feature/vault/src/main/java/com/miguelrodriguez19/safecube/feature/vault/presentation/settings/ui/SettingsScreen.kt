@@ -18,6 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,13 +26,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.vault.domain.model.AutoLockTimeout
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState
+import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.findFragmentActivity
+import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.launchQuickUnlockPrompt
+import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.quickUnlockPromptCipherProvider
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation.AppTab
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation.NavigationBar
+import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.event.SettingsUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.viewmodel.SettingsViewModel
 
 @Composable
@@ -47,7 +54,31 @@ fun SettingsScreen(
 ) {
     val hasActiveDrafts by viewModel.hasActiveDrafts.collectAsState()
     val autoLockTimeout by viewModel.autoLockTimeout.collectAsState()
+    val quickUnlockUiState by viewModel.quickUnlockUiState.collectAsState()
+    val context = LocalContext.current
+    val activity = context.findFragmentActivity()
+    val cipherProvider = runCatching { quickUnlockPromptCipherProvider(context) }.getOrNull()
     var showDraftLogoutWarning by remember { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is SettingsUiEvent.LaunchQuickUnlockPrompt -> {
+                    if (activity == null || cipherProvider == null) {
+                        viewModel.onQuickUnlockPromptCancelled(event.request.operationId)
+                    } else {
+                        launchQuickUnlockPrompt(
+                            activity = activity,
+                            cipherProvider = cipherProvider,
+                            request = event.request,
+                            onSucceeded = viewModel::onQuickUnlockPromptSucceeded,
+                            onCancelledOrError = viewModel::onQuickUnlockPromptCancelled,
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     if (showDraftLogoutWarning) {
         AlertDialog(
@@ -124,6 +155,38 @@ fun SettingsScreen(
                     onSelected = { viewModel.setAutoLockTimeout(timeout) },
                 )
             }
+            Text(
+                text = stringResource(UiR.string.settings_quick_unlock_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+            Text(stringResource(UiR.string.settings_quick_unlock_description))
+            Text(
+                text = stringResource(quickUnlockUiState.offerState.statusRes()),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (quickUnlockUiState.offerState == QuickUnlockOfferState.Enrolled) {
+                OutlinedButton(
+                    onClick = viewModel::disableQuickUnlock,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(UiR.string.settings_quick_unlock_disable))
+                }
+            } else {
+                OutlinedButton(
+                    onClick = viewModel::enableQuickUnlock,
+                    enabled = quickUnlockUiState.offerState != QuickUnlockOfferState.Unsupported,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(UiR.string.settings_quick_unlock_enable))
+                }
+            }
+            quickUnlockUiState.errorMessageRes?.let { errorRes ->
+                Text(
+                    text = stringResource(errorRes),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             OutlinedButton(onClick = onLockNow, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(UiR.string.settings_lock_now))
             }
@@ -186,4 +249,10 @@ private fun AutoLockTimeout.labelRes(): Int = when (this) {
     AutoLockTimeout.OneMinute -> UiR.string.settings_auto_lock_1_minute
     AutoLockTimeout.FiveMinutes -> UiR.string.settings_auto_lock_5_minutes
     AutoLockTimeout.FifteenMinutes -> UiR.string.settings_auto_lock_15_minutes
+}
+
+private fun QuickUnlockOfferState.statusRes(): Int = when (this) {
+    QuickUnlockOfferState.Enrolled -> UiR.string.settings_quick_unlock_status_enabled
+    QuickUnlockOfferState.Unsupported -> UiR.string.settings_quick_unlock_status_unsupported
+    else -> UiR.string.settings_quick_unlock_status_disabled
 }

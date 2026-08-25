@@ -4,7 +4,14 @@ package com.miguel.rodriguez19.safecube.feature.vault.presentation.unlock.viewmo
 
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentPreparationResult
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCompletionResult
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.PendingQuickUnlockEnrollment
+import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptOperation
+import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptRequest
 import com.miguelrodriguez19.safecube.feature.vault.presentation.state.VaultUiOperationState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.action.UnlockVaultUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.event.UnlockVaultUiEvent
@@ -20,6 +27,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,6 +37,16 @@ class UnlockVaultViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val vaultSessionManager = mockk<VaultSessionManager>()
+
+    @Before
+    fun setUp() {
+        every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.AccountUnavailable
+    }
+
+    @After
+    fun tearDown() {
+        PendingQuickUnlockEnrollment.clear()
+    }
 
     @Test
     fun `submit with invalid passphrase then exposes terminal error and clears passphrase`() = runTest {
@@ -113,6 +132,135 @@ class UnlockVaultViewModelTest {
         assertEquals(VaultUiOperationState.Success, target.uiState.value.operationState)
         assertTrue(target.uiState.value.passphrase.isEmpty())
         assertEquals(UnlockVaultUiEvent.NavigateToApp, event.await())
+    }
+
+    @Test
+    fun `screen entry enrolled emits one automatic quick unlock prompt`() = runTest {
+        every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.Enrolled
+        every { vaultSessionManager.prepareQuickUnlock() } returns
+            QuickUnlockPreparationResult.Ready("quick-operation")
+        val target = UnlockVaultViewModel(vaultSessionManager)
+        val event = async { target.events.first() }
+
+        target.onAction(UnlockVaultUiAction.ScreenEntered)
+        target.onAction(UnlockVaultUiAction.ScreenEntered)
+
+        assertEquals(
+            UnlockVaultUiEvent.LaunchQuickUnlockPrompt(
+                QuickUnlockPromptRequest("quick-operation", QuickUnlockPromptOperation.Unlock),
+            ),
+            event.await(),
+        )
+        verify(exactly = 1) { vaultSessionManager.prepareQuickUnlock() }
+    }
+
+    @Test
+    fun `quick unlock cancellation keeps the passphrase form available and supports manual retry`() = runTest {
+        every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.Enrolled
+        every { vaultSessionManager.prepareQuickUnlock() } returnsMany listOf(
+            QuickUnlockPreparationResult.Ready("first-operation"),
+            QuickUnlockPreparationResult.Ready("second-operation"),
+        )
+        every { vaultSessionManager.cancelQuickUnlock("first-operation") } returns Unit
+        val target = UnlockVaultViewModel(vaultSessionManager)
+        val firstEvent = async { target.events.first() }
+
+        target.onAction(UnlockVaultUiAction.ScreenEntered)
+        firstEvent.await()
+        target.onAction(UnlockVaultUiAction.QuickUnlockPromptCancelled("first-operation"))
+
+        assertTrue(target.uiState.value.canRetryQuickUnlock)
+        assertEquals(VaultUiOperationState.Idle, target.uiState.value.operationState)
+        assertEquals(UiR.string.quick_unlock_error, target.uiState.value.errorMessageRes)
+        verify(exactly = 1) { vaultSessionManager.cancelQuickUnlock("first-operation") }
+        verify(exactly = 0) { vaultSessionManager.finishQuickUnlock("first-operation") }
+
+        val retryEvent = async { target.events.first() }
+        target.onAction(UnlockVaultUiAction.RetryQuickUnlock)
+
+        assertEquals(
+            UnlockVaultUiEvent.LaunchQuickUnlockPrompt(
+                QuickUnlockPromptRequest("second-operation", QuickUnlockPromptOperation.Unlock),
+            ),
+            retryEvent.await(),
+        )
+        verify(exactly = 2) { vaultSessionManager.prepareQuickUnlock() }
+    }
+
+    @Test
+    fun `quick unlock authentication success completes the operation and navigates`() = runTest {
+        every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.Enrolled
+        every { vaultSessionManager.prepareQuickUnlock() } returns
+            QuickUnlockPreparationResult.Ready("quick-operation")
+        every { vaultSessionManager.finishQuickUnlock("quick-operation") } returns
+            QuickUnlockCompletionResult.Unlocked
+        val target = UnlockVaultViewModel(vaultSessionManager)
+        val promptEvent = async { target.events.first() }
+
+        target.onAction(UnlockVaultUiAction.ScreenEntered)
+        promptEvent.await()
+        val navigationEvent = async { target.events.first() }
+        target.onAction(UnlockVaultUiAction.QuickUnlockPromptSucceeded("quick-operation"))
+
+        assertEquals(UnlockVaultUiEvent.NavigateToApp, navigationEvent.await())
+        verify(exactly = 1) { vaultSessionManager.finishQuickUnlock("quick-operation") }
+    }
+
+    @Test
+    fun `passphrase unlock offer cancellation discards enrollment and then navigates`() = runTest {
+        val passphrase = sensitiveValue()
+        every { vaultSessionManager.unlockWithPassphrase(passphrase) } returns null
+        every { vaultSessionManager.isUnlocked() } returns true
+        every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.Available
+        every { vaultSessionManager.prepareQuickUnlockEnrollment(true) } returns
+            QuickUnlockEnrollmentPreparationResult.Ready("enrollment-operation")
+        every { vaultSessionManager.cancelQuickUnlock("enrollment-operation") } returns Unit
+        val target = UnlockVaultViewModel(vaultSessionManager)
+
+        target.onAction(UnlockVaultUiAction.PassphraseChanged(passphrase))
+        target.onAction(UnlockVaultUiAction.Submit)
+        advanceUntilIdle()
+        assertTrue(target.uiState.value.showQuickUnlockOffer)
+
+        val promptEvent = async { target.events.first() }
+        target.onAction(UnlockVaultUiAction.EnableQuickUnlock)
+
+        assertEquals(
+            UnlockVaultUiEvent.LaunchQuickUnlockPrompt(
+                QuickUnlockPromptRequest("enrollment-operation", QuickUnlockPromptOperation.Enrollment),
+            ),
+            promptEvent.await(),
+        )
+        val navigationEvent = async { target.events.first() }
+        target.onAction(UnlockVaultUiAction.QuickUnlockPromptCancelled("enrollment-operation"))
+
+        assertEquals(UnlockVaultUiEvent.NavigateToApp, navigationEvent.await())
+        verify(exactly = 1) { vaultSessionManager.cancelQuickUnlock("enrollment-operation") }
+        verify(exactly = 0) { vaultSessionManager.lock() }
+    }
+
+    @Test
+    fun `pending settings enrollment is consumed by the next passphrase unlock`() = runTest {
+        val passphrase = sensitiveValue()
+        PendingQuickUnlockEnrollment.request()
+        every { vaultSessionManager.unlockWithPassphrase(passphrase) } returns null
+        every { vaultSessionManager.isUnlocked() } returns true
+        every { vaultSessionManager.prepareQuickUnlockEnrollment(true) } returns
+            QuickUnlockEnrollmentPreparationResult.Ready("pending-enrollment")
+        val target = UnlockVaultViewModel(vaultSessionManager)
+        val event = async { target.events.first() }
+
+        target.onAction(UnlockVaultUiAction.PassphraseChanged(passphrase))
+        target.onAction(UnlockVaultUiAction.Submit)
+        advanceUntilIdle()
+
+        assertEquals(
+            UnlockVaultUiEvent.LaunchQuickUnlockPrompt(
+                QuickUnlockPromptRequest("pending-enrollment", QuickUnlockPromptOperation.Enrollment),
+            ),
+            event.await(),
+        )
+        verify(exactly = 1) { vaultSessionManager.prepareQuickUnlockEnrollment(true) }
     }
 
     private fun sensitiveValue(): String = UUID.randomUUID().toString()
