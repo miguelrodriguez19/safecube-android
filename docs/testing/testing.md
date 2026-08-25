@@ -163,10 +163,14 @@ Test XML/HTML, Android Lint and Kover coverage reports are uploaded with `if: al
 when a gate fails. The unsigned release APK built by `ciVerify` is deliberately excluded from CI
 artifacts because it is not publicable.
 
-The separate `instrumented-smoke` job has a 30-minute timeout and runs only
-`MainActivitySmokeTest` on a clean Gradle Managed Device named `pixel2Api30` (Pixel 2, API 30,
-`aosp-atd`, x86_64). It explicitly enables KVM and uses SwiftShader because GitHub Actions runners
-do not offer hardware rendering. `testOptions.animationsDisabled` keeps animations disabled. On
+The separate `instrumented-smoke` job has a 30-minute timeout and runs the complete app
+instrumented suite on a clean Gradle Managed Device named `pixel2Api30` (Pixel 2, API 30, `aosp`,
+64-bit). Besides `MainActivitySmokeTest`, this includes
+`QuickUnlockDeviceCredentialTest`, which provisions a test device credential and drives the real
+single system prompt. It verifies authenticated-Cipher use, cancellation, enrolment preservation on
+lock, cleanup on logout/account change, Activity recreation and a remote cold process that never
+starts Unlocked. It explicitly enables KVM and uses SwiftShader because GitHub Actions runners do
+not offer hardware rendering. `testOptions.animationsDisabled` keeps animations disabled. On
 failure, CI retains managed-device test results, the available logcat output and a screenshot when
 the failed device remains available to `adb`.
 
@@ -295,15 +299,27 @@ Run the SafeCube smoke suite on a connected API 30 emulator:
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
+Run the same complete suite through the managed API 30 device used by CI:
+
+```bash
+./gradlew :app:pixel2Api30DebugAndroidTest \
+  -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+```
+
 Requirements:
 
 - An API 30 emulator must be running and visible through `adb devices`.
 - The suite uses Android Test Orchestrator and clears application data between tests.
-- The smoke tests start `MainActivity`, assert Welcome, and navigate to Login without submitting
-  credentials or contacting the backend.
+- `MainActivitySmokeTest` starts `MainActivity`, asserts Welcome, and navigates to Login without
+  submitting credentials or contacting the backend.
+- `QuickUnlockDeviceCredentialTest` is self-contained: it does not call backend APIs and verifies
+  quick unlock through the Android system credential UI. It never records a credential, passphrase
+  or key material in its evidence.
 
 ## Current baseline
 
 - `app/src/test/.../ExampleUnitTest.kt` provides a JVM smoke test.
 - `app/src/androidTest/.../MainActivitySmokeTest.kt` validates real startup and Welcome → Login navigation on API 30.
+- `app/src/androidTest/.../QuickUnlockDeviceCredentialTest.kt` validates the Android Keystore quick
+  unlock prompt, cancellation, cleanup and cold-process boundary on API 30.
 - `core/network/src/test/.../NetworkClientFactoryTest.kt` validates HTTP layer with `MockWebServer`.
