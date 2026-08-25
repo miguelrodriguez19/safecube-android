@@ -48,7 +48,7 @@ dependencies {
     implementation(project(":core:crypto"))
     implementation(project(":core:network"))
     implementation(libs.androidx.core.ktx)
-    implementation("androidx.biometric:biometric:1.1.0")
+    implementation(libs.androidx.biometric)
     implementation(libs.androidx.security.crypto)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)

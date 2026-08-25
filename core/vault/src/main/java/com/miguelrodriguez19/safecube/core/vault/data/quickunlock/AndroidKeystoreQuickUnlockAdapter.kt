@@ -51,8 +51,10 @@ internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
             if (keyStore().containsAlias(alias)) return QuickUnlockKeyStorePrepareResult.InvalidEnrollment
             val cipher = Cipher.getInstance(TRANSFORMATION)
             cipher.init(Cipher.ENCRYPT_MODE, createKey(alias))
-            cipher.updateAAD(QuickUnlockAliasFactory.aadFor(accountId))
-            pendingCiphers[operationId] = PendingCipher(cipher)
+            pendingCiphers[operationId] = PendingCipher(
+                cipher = cipher,
+                aad = QuickUnlockAliasFactory.aadFor(accountId),
+            )
             QuickUnlockKeyStorePrepareResult.Ready
         } catch (_: Throwable) {
             deleteAlias(alias)
@@ -67,6 +69,7 @@ internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
     ): QuickUnlockKeyStoreWrapResult {
         val pending = pendingCiphers.remove(operationId) ?: return QuickUnlockKeyStoreWrapResult.Failed
         return try {
+            pending.cipher.updateAAD(pending.aad)
             envelopeCodec.encode(pending.cipher.iv, pending.cipher.doFinal(kek))
                 ?.let(QuickUnlockKeyStoreWrapResult::Success)
                 ?: QuickUnlockKeyStoreWrapResult.Failed
@@ -95,8 +98,11 @@ internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
                 loadKey(QuickUnlockAliasFactory.aliasFor(accountId)),
                 GCMParameterSpec(TAG_LENGTH_BITS, decoded.nonce),
             )
-            cipher.updateAAD(QuickUnlockAliasFactory.aadFor(accountId))
-            pendingCiphers[operationId] = PendingCipher(cipher, decoded.ciphertextAndTag)
+            pendingCiphers[operationId] = PendingCipher(
+                cipher = cipher,
+                aad = QuickUnlockAliasFactory.aadFor(accountId),
+                ciphertextAndTag = decoded.ciphertextAndTag,
+            )
             QuickUnlockKeyStorePrepareResult.Ready
         } catch (_: KeyPermanentlyInvalidatedException) {
             QuickUnlockKeyStorePrepareResult.InvalidEnrollment
@@ -116,6 +122,7 @@ internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
         return try {
             val ciphertextAndTag = pending.ciphertextAndTag
                 ?: return QuickUnlockKeyStoreFinishResult.InvalidEnrollment
+            pending.cipher.updateAAD(pending.aad)
             val plaintext = pending.cipher.doFinal(ciphertextAndTag)
             if (plaintext.size == KEK_LENGTH) {
                 QuickUnlockKeyStoreFinishResult.Success(plaintext)
@@ -138,6 +145,14 @@ internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
 
     @Synchronized
     override fun cipherFor(operationId: String): Cipher? = pendingCiphers[operationId]?.cipher
+
+    @Synchronized
+    override fun acceptAuthenticatedCipher(operationId: String, cipher: Cipher?): Boolean {
+        val pending = pendingCiphers[operationId] ?: return false
+        if (cipher == null) return false
+        pendingCiphers[operationId] = pending.copy(cipher = cipher)
+        return true
+    }
 
     @Synchronized
     override fun cancel(operationId: String) {
@@ -194,6 +209,7 @@ internal class AndroidKeystoreQuickUnlockAdapter @Inject constructor(
 
     private data class PendingCipher(
         val cipher: Cipher,
+        val aad: ByteArray,
         val ciphertextAndTag: ByteArray? = null,
     )
 

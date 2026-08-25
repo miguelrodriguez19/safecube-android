@@ -6,6 +6,9 @@ import javax.crypto.Cipher
 /** Public bridge for the UI to build its system-prompt CryptoObject without receiving key material. */
 interface QuickUnlockPromptCipherProvider {
     fun cipherFor(operationId: String): Cipher?
+
+    /** Records the Cipher returned by BiometricPrompt after a successful authentication callback. */
+    fun acceptAuthenticatedCipher(operationId: String, cipher: Cipher?): Boolean
 }
 
 internal interface QuickUnlockKeyStore : QuickUnlockPromptCipherProvider {

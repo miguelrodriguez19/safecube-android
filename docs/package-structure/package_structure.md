@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 25-08-2026 07:22:23
+Updated: 25-08-2026 08:20:40
 
 ```
 safecube-android/
@@ -23,7 +23,14 @@ safecube-android/
 ├── app/
 │   ├── src/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
-│   │   │   └── MainActivitySmokeTest.kt
+│   │   │   ├── test/
+│   │   │   ├── MainActivitySmokeTest.kt
+│   │   │   └── QuickUnlockDeviceCredentialTest.kt
+│   │   ├── debug/
+│   │   │   ├── java/com/miguelrodriguez19/safecube/app/testsupport/
+│   │   │   │   ├── QuickUnlockColdStartProbeService.kt
+│   │   │   │   └── QuickUnlockInstrumentationEntryPoint.kt
+│   │   │   └── AndroidManifest.xml
 │   │   ├── main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/
 │   │   │   │   ├── entrypoint/
@@ -64,7 +71,8 @@ safecube-android/
 │   │   │   │       │   ├── VaultAutoLockController.kt
 │   │   │   │       │   └── VaultAutoLockCoordinator.kt
 │   │   │   │       ├── AccountSessionLifecycleImpl.kt
-│   │   │   │       └── AccountSessionModule.kt
+│   │   │   │       ├── AccountSessionModule.kt
+│   │   │   │       └── QuickUnlockAccountSessionValidatorImpl.kt
 │   │   │   ├── res/
 │   │   │   │   ├── drawable/
 │   │   │   │   │   ├── ic_launcher_background.xml
@@ -107,7 +115,8 @@ safecube-android/
 │   │       │   ├── session/
 │   │       │   │   ├── autolock/
 │   │       │   │   │   └── VaultAutoLockCoordinatorTest.kt
-│   │       │   │   └── AccountSessionLifecycleImplTest.kt
+│   │       │   │   ├── AccountSessionLifecycleImplTest.kt
+│   │       │   │   └── QuickUnlockAccountSessionValidatorImplTest.kt
 │   │       │   └── test/
 │   │       │       └── MainDispatcherRule.kt
 │   │       └── ExampleUnitTest.kt
@@ -226,8 +235,9 @@ safecube-android/
 │   │   │   │   │   │       ├── lookups.tab_i
 │   │   │   │   │   │       └── lookups.tab_i.len
 │   │   │   │   │   └── last-build.bin
-│   │   │   │   └── classpath-snapshot/
-│   │   │   │       └── shrunk-classpath-snapshot.bin
+│   │   │   │   ├── classpath-snapshot/
+│   │   │   │   │   └── shrunk-classpath-snapshot.bin
+│   │   │   │   └── local-state/
 │   │   │   └── compileTestKotlin/
 │   │   │       ├── cacheable/
 │   │   │       │   ├── caches-jvm/
@@ -1044,6 +1054,9 @@ safecube-android/
 │       │   │   │   │   │   └── ChangePassphraseScreen.kt
 │       │   │   │   │   └── viewmodel/
 │       │   │   │   │       └── ChangePassphraseViewModel.kt
+│       │   │   │   ├── quickunlock/
+│       │   │   │   │   ├── PendingQuickUnlockEnrollment.kt
+│       │   │   │   │   └── QuickUnlockPrompt.kt
 │       │   │   │   ├── recovery/
 │       │   │   │   │   ├── action/
 │       │   │   │   │   │   └── RecoveryKeyUiAction.kt
@@ -1057,6 +1070,9 @@ safecube-android/
 │       │   │   │   │       └── RecoveryKeyViewModel.kt
 │       │   │   │   ├── settings/
 │       │   │   │   │   ├── event/
+│       │   │   │   │   │   └── SettingsUiEvent.kt
+│       │   │   │   │   ├── state/
+│       │   │   │   │   │   └── SettingsQuickUnlockUiState.kt
 │       │   │   │   │   ├── ui/
 │       │   │   │   │   │   └── SettingsScreen.kt
 │       │   │   │   │   └── viewmodel/

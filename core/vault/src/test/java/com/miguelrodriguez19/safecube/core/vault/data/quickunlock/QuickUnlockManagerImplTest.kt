@@ -145,6 +145,21 @@ class QuickUnlockManagerImplTest {
         assertEquals(1, keyStore.deleteCalls)
     }
 
+    @Test
+    fun `finish enrollment when keystore reports authentication failure clears partial artifact`() {
+        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
+        keyStore.wrapResult = QuickUnlockKeyStoreWrapResult.Failed
+        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
+        every { store.markOfferSeen(accountId) } returns true
+
+        val prepared = target.prepareEnrollment(accountId, consentGranted = true)
+            as QuickUnlockEnrollmentPreparationResult.Ready
+        val result = target.finishEnrollment(accountId, prepared.operationId)
+
+        assertEquals(QuickUnlockEnrollmentResult.StorageFailure, result)
+        verify(exactly = 1) { store.clearEnrollmentArtifact(accountId) }
+    }
+
     private class FakeQuickUnlockKeyStore : QuickUnlockKeyStore {
         var wrapResult: QuickUnlockKeyStoreWrapResult = QuickUnlockKeyStoreWrapResult.Failed
         var finishResult: QuickUnlockKeyStoreFinishResult = QuickUnlockKeyStoreFinishResult.AuthenticationFailed
@@ -172,6 +187,8 @@ class QuickUnlockManagerImplTest {
         override fun finishUnwrap(operationId: String) = finishResult
 
         override fun cipherFor(operationId: String): Cipher? = null
+
+        override fun acceptAuthenticatedCipher(operationId: String, cipher: Cipher?): Boolean = true
 
         override fun cancel(operationId: String) = Unit
 
