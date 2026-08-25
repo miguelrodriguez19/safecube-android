@@ -4,6 +4,8 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRep
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.PendingVaultInitializationRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultCleanupResult
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCleanupResult
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockManager
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerifyOrder
@@ -20,11 +22,13 @@ class LocalVaultDataCleanerImplTest {
     private val pendingVaultInitializationRepository =
         mockk<PendingVaultInitializationRepository>()
     private val secureItemRepository = mockk<SecureItemRepository>()
+    private val quickUnlockManager = mockk<QuickUnlockManager>()
     private val target = LocalVaultDataCleanerImpl(
         vaultInMemoryKekStore = vaultInMemoryKekStore,
         vaultKeyMaterialLocalRepository = vaultKeyMaterialLocalRepository,
         pendingVaultInitializationRepository = pendingVaultInitializationRepository,
         secureItemRepository = secureItemRepository,
+        quickUnlockManager = quickUnlockManager,
     )
 
     @Test
@@ -32,6 +36,7 @@ class LocalVaultDataCleanerImplTest {
         justRun { vaultInMemoryKekStore.clear() }
         justRun { vaultKeyMaterialLocalRepository.clear() }
         every { pendingVaultInitializationRepository.clear() } returns true
+        every { quickUnlockManager.clearAllEnrollments() } returns QuickUnlockCleanupResult.Cleared
         coJustRun { secureItemRepository.clearAllLocalData() }
 
         val result = target.clear()
@@ -40,6 +45,7 @@ class LocalVaultDataCleanerImplTest {
         coVerifyOrder {
             vaultInMemoryKekStore.clear()
             vaultKeyMaterialLocalRepository.clear()
+            quickUnlockManager.clearAllEnrollments()
             pendingVaultInitializationRepository.clear()
             secureItemRepository.clearAllLocalData()
         }
@@ -50,6 +56,7 @@ class LocalVaultDataCleanerImplTest {
         justRun { vaultInMemoryKekStore.clear() }
         justRun { vaultKeyMaterialLocalRepository.clear() }
         every { pendingVaultInitializationRepository.clear() } returns true
+        every { quickUnlockManager.clearAllEnrollments() } returns QuickUnlockCleanupResult.Cleared
         coEvery { secureItemRepository.clearAllLocalData() } throws IllegalStateException("Room unavailable")
 
         val result = target.clear()
@@ -58,6 +65,7 @@ class LocalVaultDataCleanerImplTest {
         coVerifyOrder {
             vaultInMemoryKekStore.clear()
             vaultKeyMaterialLocalRepository.clear()
+            quickUnlockManager.clearAllEnrollments()
             pendingVaultInitializationRepository.clear()
             secureItemRepository.clearAllLocalData()
         }
@@ -68,6 +76,7 @@ class LocalVaultDataCleanerImplTest {
         justRun { vaultInMemoryKekStore.clear() }
         justRun { vaultKeyMaterialLocalRepository.clear() }
         every { pendingVaultInitializationRepository.clear() } returns false
+        every { quickUnlockManager.clearAllEnrollments() } returns QuickUnlockCleanupResult.Cleared
         coJustRun { secureItemRepository.clearAllLocalData() }
 
         val result = target.clear()
@@ -76,8 +85,22 @@ class LocalVaultDataCleanerImplTest {
         coVerifyOrder {
             vaultInMemoryKekStore.clear()
             vaultKeyMaterialLocalRepository.clear()
+            quickUnlockManager.clearAllEnrollments()
             pendingVaultInitializationRepository.clear()
             secureItemRepository.clearAllLocalData()
         }
+    }
+
+    @Test
+    fun `clear returns failure when quick unlock cleanup fails`() = runBlocking {
+        justRun { vaultInMemoryKekStore.clear() }
+        justRun { vaultKeyMaterialLocalRepository.clear() }
+        every { quickUnlockManager.clearAllEnrollments() } returns QuickUnlockCleanupResult.Failed
+        every { pendingVaultInitializationRepository.clear() } returns true
+        coJustRun { secureItemRepository.clearAllLocalData() }
+
+        val result = target.clear()
+
+        assertEquals(LocalVaultCleanupResult.Failure, result)
     }
 }

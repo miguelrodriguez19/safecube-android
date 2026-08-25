@@ -3,10 +3,13 @@ package com.miguelrodriguez19.safecube.core.vault.data.session
 import com.miguelrodriguez19.safecube.core.vault.domain.model.UnlockedKeyring
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
+import com.miguelrodriguez19.safecube.core.vault.domain.model.quickunlock.VaultUnlockProvenance
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockResult
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCompletionResult
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockManager
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalReadResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
@@ -17,6 +20,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
 import java.io.IOException
+import java.util.Optional
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -33,6 +37,8 @@ class VaultSessionManagerImplTest {
         mockk<VaultKeyMaterialLocalRepository>(relaxed = true)
     private val vaultKeyMaterialRemoteRepository = mockk<VaultKeyMaterialRemoteRepository>()
     private val vaultInMemoryKekStore = mockk<VaultInMemoryKekStore>(relaxed = true)
+    private val quickUnlockManager = mockk<QuickUnlockManager>()
+    private val accountSessionValidator = mockk<com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockAccountSessionValidator>()
 
     private lateinit var target: VaultSessionManagerImpl
 
@@ -199,7 +205,7 @@ class VaultSessionManagerImplTest {
         assertEquals(VaultState.Unlocked, target.vaultState.value)
         verifyOrder {
             vaultInMemoryKekStore.clear()
-            vaultInMemoryKekStore.replace(expectedKek)
+            vaultInMemoryKekStore.replace(expectedKek, VaultUnlockProvenance.Passphrase)
         }
     }
 
@@ -218,7 +224,7 @@ class VaultSessionManagerImplTest {
         assertEquals(VaultState.Unlocked, target.vaultState.value)
         verifyOrder {
             vaultInMemoryKekStore.clear()
-            vaultInMemoryKekStore.replace(expectedKek)
+            vaultInMemoryKekStore.replace(expectedKek, VaultUnlockProvenance.RecoveryKey)
         }
     }
 
@@ -283,11 +289,91 @@ class VaultSessionManagerImplTest {
         assertFalse(result)
     }
 
+    @Test
+    fun `finishQuickUnlock_whenOperationWasNotPrepared_thenReturnsAccountUnavailable`() {
+        val operationId = java.util.UUID.randomUUID().toString()
+        target = createTarget()
+
+        val result = target.finishQuickUnlock(operationId)
+
+        assertEquals(QuickUnlockCompletionResult.AccountUnavailable, result)
+        verify(exactly = 0) { quickUnlockManager.cancelUnlock(operationId) }
+        verify(exactly = 0) { quickUnlockManager.finishUnlock(any(), any()) }
+    }
+
+    @Test
+    fun `finishQuickUnlock_whenLocalAccountChanged_rejectsCallbackBeforeInstallingKek`() {
+        val firstAccount = java.util.UUID.randomUUID()
+        val secondAccount = java.util.UUID.randomUUID()
+        val operationId = java.util.UUID.randomUUID().toString()
+        every { vaultKeyMaterialLocalRepository.read() } returnsMany listOf(
+            VaultKeyMaterialLocalReadResult.Present(createVaultKeyMaterial().copy(accountId = firstAccount)),
+            VaultKeyMaterialLocalReadResult.Present(createVaultKeyMaterial().copy(accountId = secondAccount)),
+        )
+        every { accountSessionValidator.isValid(firstAccount) } returns true
+        every { quickUnlockManager.cancelUnlock(any()) } returns Unit
+        every { quickUnlockManager.prepareUnlock(firstAccount) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.Ready(operationId)
+        target = createTarget()
+        target.lock()
+
+        target.prepareQuickUnlock()
+        val result = target.finishQuickUnlock(operationId)
+
+        assertEquals(QuickUnlockCompletionResult.AccountChanged, result)
+        verify(exactly = 1) { quickUnlockManager.cancelUnlock(operationId) }
+        verify(exactly = 0) { quickUnlockManager.finishUnlock(any(), any()) }
+    }
+
+    @Test
+    fun `prepareQuickUnlock_whenAccountSessionIsInvalid_returnsSessionInvalid`() {
+        val accountId = java.util.UUID.randomUUID()
+        every {
+            vaultKeyMaterialLocalRepository.read()
+        } returns VaultKeyMaterialLocalReadResult.Present(createVaultKeyMaterial().copy(accountId = accountId))
+        every { accountSessionValidator.isValid(accountId) } returns false
+        target = createTarget()
+        target.lock()
+
+        val result = target.prepareQuickUnlock()
+
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.SessionInvalid,
+            result,
+        )
+        verify(exactly = 0) { quickUnlockManager.prepareUnlock(any()) }
+    }
+
+    @Test
+    fun `lock when quick unlock callback is pending cancels it before callback can install kek`() {
+        val accountId = java.util.UUID.randomUUID()
+        val operationId = java.util.UUID.randomUUID().toString()
+        every {
+            vaultKeyMaterialLocalRepository.read()
+        } returns VaultKeyMaterialLocalReadResult.Present(createVaultKeyMaterial().copy(accountId = accountId))
+        every { accountSessionValidator.isValid(accountId) } returns true
+        every { quickUnlockManager.prepareUnlock(accountId) } returns
+            com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult.Ready(operationId)
+        every { quickUnlockManager.cancelUnlock(any()) } returns Unit
+        target = createTarget()
+        target.lock()
+
+        target.prepareQuickUnlock()
+        target.lock()
+        val result = target.finishQuickUnlock(operationId)
+
+        assertEquals(QuickUnlockCompletionResult.AccountUnavailable, result)
+        verify(exactly = 1) { quickUnlockManager.cancelUnlock(operationId) }
+        verify(exactly = 0) { quickUnlockManager.finishUnlock(any(), any()) }
+    }
+
     private fun createTarget() = VaultSessionManagerImpl(
         vaultUnlocker = vaultUnlocker,
         vaultKeyMaterialLocalRepository = vaultKeyMaterialLocalRepository,
         vaultKeyMaterialRemoteRepository = vaultKeyMaterialRemoteRepository,
         vaultInMemoryKekStore = vaultInMemoryKekStore,
+        quickUnlockManager = quickUnlockManager,
+        accountSessionValidator = Optional.of(accountSessionValidator),
     )
 
     private fun createVaultKeyMaterial() = VaultKeyMaterial(

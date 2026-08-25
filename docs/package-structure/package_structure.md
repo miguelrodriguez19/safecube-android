@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 24-08-2026 11:26:55
+Updated: 25-08-2026 07:22:23
 
 ```
 safecube-android/
@@ -614,11 +614,20 @@ safecube-android/
 │       │   │   │   │   │   ├── PendingVaultInitializationCodec.kt
 │       │   │   │   │   │   ├── PendingVaultInitializationStore.kt
 │       │   │   │   │   │   └── VaultKeyMaterialCache.kt
+│       │   │   │   │   ├── quickunlock/
+│       │   │   │   │   │   ├── AndroidKeystoreQuickUnlockAdapter.kt
+│       │   │   │   │   │   ├── QuickUnlockAliasFactory.kt
+│       │   │   │   │   │   ├── QuickUnlockEnvelopeCodec.kt
+│       │   │   │   │   │   ├── QuickUnlockKeyStore.kt
+│       │   │   │   │   │   ├── QuickUnlockManagerImpl.kt
+│       │   │   │   │   │   ├── QuickUnlockPreferences.kt
+│       │   │   │   │   │   └── QuickUnlockStore.kt
 │       │   │   │   │   ├── remote/
 │       │   │   │   │   │   ├── RemoteSecureItemDataSource.kt
 │       │   │   │   │   │   └── RemoteVaultKeyMaterialDataSource.kt
 │       │   │   │   │   └── session/
 │       │   │   │   │       ├── LocalVaultDataCleanerImpl.kt
+│       │   │   │   │       ├── QuickUnlockKeyMaterialAccess.kt
 │       │   │   │   │       ├── VaultInMemoryKekStore.kt
 │       │   │   │   │       └── VaultSessionManagerImpl.kt
 │       │   │   │   ├── di/
@@ -640,6 +649,8 @@ safecube-android/
 │       │   │   │   │   │   ├── passphrase/
 │       │   │   │   │   │   │   ├── ChangeVaultPassphraseError.kt
 │       │   │   │   │   │   │   └── ChangeVaultPassphraseResult.kt
+│       │   │   │   │   │   ├── quickunlock/
+│       │   │   │   │   │   │   └── VaultUnlockProvenance.kt
 │       │   │   │   │   │   ├── remote/
 │       │   │   │   │   │   │   ├── request/
 │       │   │   │   │   │   │   │   ├── RemoteCreateSecureItemRequest.kt
@@ -699,6 +710,9 @@ safecube-android/
 │       │   │   │   │   │   ├── UnlockedKeyring.kt
 │       │   │   │   │   │   ├── VaultKeyMaterial.kt
 │       │   │   │   │   │   └── VaultState.kt
+│       │   │   │   │   ├── quickunlock/
+│       │   │   │   │   │   ├── QuickUnlockAccountSessionValidator.kt
+│       │   │   │   │   │   └── QuickUnlockManager.kt
 │       │   │   │   │   ├── repository/
 │       │   │   │   │   │   ├── AutoLockTimeoutRepository.kt
 │       │   │   │   │   │   ├── PendingVaultInitializationRepository.kt
@@ -777,6 +791,10 @@ safecube-android/
 │       │       │   │   ├── PendingVaultInitializationCodecTest.kt
 │       │       │   │   ├── PendingVaultInitializationStoreTest.kt
 │       │       │   │   └── VaultKeyMaterialCacheTest.kt
+│       │       │   ├── quickunlock/
+│       │       │   │   ├── QuickUnlockEnvelopeCodecTest.kt
+│       │       │   │   ├── QuickUnlockManagerImplTest.kt
+│       │       │   │   └── QuickUnlockStoreTest.kt
 │       │       │   ├── remote/
 │       │       │   │   ├── RemoteSecureItemDataSourceIntegrationTest.kt
 │       │       │   │   ├── RemoteSecureItemDataSourceTest.kt
@@ -1038,6 +1056,7 @@ safecube-android/
 │       │   │   │   │   └── viewmodel/
 │       │   │   │   │       └── RecoveryKeyViewModel.kt
 │       │   │   │   ├── settings/
+│       │   │   │   │   ├── event/
 │       │   │   │   │   ├── ui/
 │       │   │   │   │   │   └── SettingsScreen.kt
 │       │   │   │   │   └── viewmodel/
