@@ -113,7 +113,6 @@ jobs:
         run: >-
           ./gradlew --no-daemon :app:pixel2Api30DebugAndroidTest
           -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
-          -Pandroid.testInstrumentationRunnerArguments.class=com.miguelrodriguez19.safecube.MainActivitySmokeTest
 
       - name: Collect managed-device diagnostics
         if: failure()
