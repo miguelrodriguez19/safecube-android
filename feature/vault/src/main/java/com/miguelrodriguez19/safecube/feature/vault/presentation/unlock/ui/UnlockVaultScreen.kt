@@ -23,6 +23,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.ui.component.SecretOutlinedTextField
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.action.UnlockVaultUiAction
@@ -32,6 +34,7 @@ import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.lau
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.quickUnlockPromptCipherProvider
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.state.UnlockVaultUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.viewmodel.UnlockVaultViewModel
+import kotlinx.coroutines.awaitCancellation
 
 @Composable
 fun UnlockVaultScreen(
@@ -74,8 +77,15 @@ fun UnlockVaultScreen(
         }
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.onAction(UnlockVaultUiAction.ScreenEntered)
+    LaunchedEffect(viewModel, activity) {
+        if (activity == null) {
+            viewModel.onAction(UnlockVaultUiAction.ScreenEntered)
+        } else {
+            activity.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.onAction(UnlockVaultUiAction.ScreenEntered)
+                awaitCancellation()
+            }
+        }
     }
 
     UnlockVaultContent(
