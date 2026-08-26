@@ -23,6 +23,7 @@ class LocalVaultDataCleanerImplTest {
         mockk<PendingVaultInitializationRepository>()
     private val secureItemRepository = mockk<SecureItemRepository>()
     private val quickUnlockManager = mockk<QuickUnlockManager>()
+
     private val target = LocalVaultDataCleanerImpl(
         vaultInMemoryKekStore = vaultInMemoryKekStore,
         vaultKeyMaterialLocalRepository = vaultKeyMaterialLocalRepository,
@@ -30,6 +31,7 @@ class LocalVaultDataCleanerImplTest {
         secureItemRepository = secureItemRepository,
         quickUnlockManager = quickUnlockManager,
     )
+
 
     @Test
     fun `clear removes keys before transactional vault data`() = runBlocking {

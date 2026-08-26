@@ -33,7 +33,6 @@ kover {
                     "*_HiltModules*",
                     "*_HiltComponents*",
                     "*_Impl",
-                    // Android Keystore/BiometricManager is exercised on-device by QuickUnlockDeviceCredentialTest.
                     "*AndroidQuickUnlockKeyStorePlatformImpl",
                     "*Dao_Impl*",
                     "*Database_Impl*",

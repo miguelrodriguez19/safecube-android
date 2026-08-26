@@ -28,6 +28,7 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.UUID
 
 @Singleton
 internal class VaultSessionManagerImpl @Inject constructor(
@@ -39,7 +40,7 @@ internal class VaultSessionManagerImpl @Inject constructor(
     private val accountSessionValidator: Optional<QuickUnlockAccountSessionValidator>,
 ) : VaultSessionManager {
     private val state = MutableStateFlow(initialVaultState())
-    private val quickUnlockOperationAccounts = mutableMapOf<String, java.util.UUID>()
+    private val quickUnlockOperationAccounts = mutableMapOf<String, UUID>()
 
     override val vaultState: StateFlow<VaultState> = state.asStateFlow()
 
@@ -271,13 +272,13 @@ internal class VaultSessionManagerImpl @Inject constructor(
         vaultKeyMaterialLocalRepository.read()
     }.getOrDefault(VaultKeyMaterialLocalReadResult.Corrupted)
 
-    private fun activeAccountId(): java.util.UUID? = when (val result = readLocalKeyMaterial()) {
+    private fun activeAccountId(): UUID? = when (val result = readLocalKeyMaterial()) {
         is VaultKeyMaterialLocalReadResult.Present -> result.value.accountId
         VaultKeyMaterialLocalReadResult.Absent,
         VaultKeyMaterialLocalReadResult.Corrupted,
             -> null
     }
 
-    private fun hasValidAccountSession(accountId: java.util.UUID): Boolean =
+    private fun hasValidAccountSession(accountId: UUID): Boolean =
         accountSessionValidator.orElse(null)?.isValid(accountId) == true
 }

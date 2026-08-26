@@ -29,7 +29,7 @@ internal class QuickUnlockManagerImpl @Inject constructor(
         return when (val envelope = store.readEnvelope(accountId)) {
             is QuickUnlockStoredEnvelope.Present -> when {
                 envelopeCodec.decode(envelope.value) !is QuickUnlockEnvelopeDecodeResult.Valid ||
-                    !keyStore.hasAlias(accountId) -> {
+                        !keyStore.hasAlias(accountId) -> {
                     clearInvalidEnrollment(accountId)
                     QuickUnlockOfferState.InvalidEnrollment
                 }
@@ -89,7 +89,8 @@ internal class QuickUnlockManagerImpl @Inject constructor(
         val operationId = UUID.randomUUID().toString()
         return when (keyStore.prepareWrap(accountId, operationId)) {
             QuickUnlockKeyStorePrepareResult.Ready -> {
-                pendingOperations[operationId] = PendingQuickUnlockOperation.Enrollment(accountId, kek)
+                pendingOperations[operationId] =
+                    PendingQuickUnlockOperation.Enrollment(accountId, kek)
                 QuickUnlockEnrollmentPreparationResult.Ready(operationId)
             }
 
@@ -141,6 +142,7 @@ internal class QuickUnlockManagerImpl @Inject constructor(
                     clearInvalidEnrollment(accountId)
                     QuickUnlockEnrollmentResult.Unsupported
                 }
+
                 QuickUnlockKeyStoreWrapResult.Failed -> {
                     clearInvalidEnrollment(accountId)
                     QuickUnlockEnrollmentResult.StorageFailure
@@ -161,6 +163,7 @@ internal class QuickUnlockManagerImpl @Inject constructor(
                 keyStore.delete(accountId)
                 return QuickUnlockPreparationResult.NotEnrolled
             }
+
             QuickUnlockStoredEnvelope.Corrupted -> {
                 clearInvalidEnrollment(accountId)
                 return QuickUnlockPreparationResult.InvalidEnrollment
@@ -175,7 +178,8 @@ internal class QuickUnlockManagerImpl @Inject constructor(
         val operationId = UUID.randomUUID().toString()
         return when (keyStore.prepareUnwrap(accountId, envelope, operationId)) {
             QuickUnlockKeyStorePrepareResult.Ready -> {
-                pendingOperations[operationId] = PendingQuickUnlockOperation.Unlock(accountId, envelope.copyOf())
+                pendingOperations[operationId] =
+                    PendingQuickUnlockOperation.Unlock(accountId, envelope.copyOf())
                 QuickUnlockPreparationResult.Ready(operationId)
             }
 
@@ -269,14 +273,15 @@ internal class QuickUnlockManagerImpl @Inject constructor(
         }
     }
 
-    private fun matchesCurrentEnrollment(operation: PendingQuickUnlockOperation.Unlock): Boolean = when (
-        val current = store.readEnvelope(operation.accountId)
-    ) {
-        is QuickUnlockStoredEnvelope.Present -> current.value.contentEquals(operation.envelope)
-        QuickUnlockStoredEnvelope.Absent,
-        QuickUnlockStoredEnvelope.Corrupted,
-            -> false
-    }
+    private fun matchesCurrentEnrollment(operation: PendingQuickUnlockOperation.Unlock): Boolean =
+        when (
+            val current = store.readEnvelope(operation.accountId)
+        ) {
+            is QuickUnlockStoredEnvelope.Present -> current.value.contentEquals(operation.envelope)
+            QuickUnlockStoredEnvelope.Absent,
+            QuickUnlockStoredEnvelope.Corrupted,
+                -> false
+        }
 
     private fun clearInvalidEnrollment(accountId: UUID) {
         store.clearEnrollmentArtifact(accountId)

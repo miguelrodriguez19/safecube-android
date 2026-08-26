@@ -2,43 +2,82 @@ package com.miguelrodriguez19.safecube.core.vault.data.quickunlock
 
 import com.miguelrodriguez19.safecube.core.vault.data.session.QuickUnlockKeyMaterialAccess
 import com.miguelrodriguez19.safecube.core.vault.domain.model.quickunlock.VaultUnlockProvenance
-import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCompletionResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCleanupResult
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCompletionResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentPreparationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentResult
-import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockStoreResult
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
+import java.security.SecureRandom
 import java.util.UUID
-import javax.crypto.Cipher
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 class QuickUnlockManagerImplTest {
-    private val store = mockk<QuickUnlockStore>(relaxed = true)
-    private val keyStore = FakeQuickUnlockKeyStore()
-    private val keyMaterialAccess = FakeQuickUnlockKeyMaterialAccess()
-    private val target = QuickUnlockManagerImpl(store, keyStore, keyMaterialAccess, QuickUnlockEnvelopeCodec())
-    private val accountId = UUID.fromString("aa3e81ea-9253-4d75-ae46-5640f2738b4a")
-    private val envelope = ByteArray(61) { it.toByte() }.also { it[0] = 0x01 }
+    private val store = mockk<QuickUnlockStore>()
+    private val keyStore = mockk<QuickUnlockKeyStore>()
+    private val keyMaterialAccess = mockk<QuickUnlockKeyMaterialAccess>()
+    private val envelopeCodec = QuickUnlockEnvelopeCodec()
+    private val target = QuickUnlockManagerImpl(store, keyStore, keyMaterialAccess, envelopeCodec)
+    private val secureRandom = SecureRandom()
+    private val accountId = UUID.randomUUID()
+    private val envelope = validEnvelope()
+    private val defaultKek = randomBytes(32)
+    private var replacedKek: ByteArray? = null
+
+    @Before
+    fun setUp() {
+        replacedKek = null
+        every { store.readEnvelope(any()) } returns QuickUnlockStoredEnvelope.Present(envelope)
+        every { store.hasSeenOffer(any()) } returns true
+        every { store.markOfferSeen(any()) } returns true
+        every { store.saveEnvelope(any(), any()) } returns true
+        every { store.clearEnrollmentArtifact(any()) } returns true
+        every { store.clearAll() } returns true
+
+        every { keyStore.isSupported() } returns true
+        every { keyStore.hasAlias(any()) } returns true
+        every { keyStore.prepareWrap(any(), any()) } returns QuickUnlockKeyStorePrepareResult.Ready
+        every { keyStore.finishWrap(any(), any()) } returns QuickUnlockKeyStoreWrapResult.Success(envelope)
+        every { keyStore.prepareUnwrap(any(), any(), any()) } returns QuickUnlockKeyStorePrepareResult.Ready
+        every { keyStore.finishUnwrap(any()) } returns QuickUnlockKeyStoreFinishResult.AuthenticationFailed
+        every { keyStore.cancel(any()) } just Runs
+        every { keyStore.delete(any()) } returns true
+        every { keyStore.deleteAll() } returns true
+
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.None
+        every { keyMaterialAccess.currentForEnrollment() } answers { defaultKek.copyOf() }
+        every { keyMaterialAccess.replaceAfterQuickUnlock(any()) } answers {
+            replacedKek = firstArg<ByteArray>().copyOf()
+        }
+    }
 
     @Test
-    fun `prepare and finish unlock when enrollment is unchanged stores kek through internal sink`() {
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Present(envelope)
-        keyStore.finishResult = QuickUnlockKeyStoreFinishResult.Success(ByteArray(32) { 7 })
+    fun `finishUnlock_whenEnrollmentIsUnchanged_thenStoresKekThroughInternalSink`() {
+        val expectedKek = randomBytes(32)
+        val expectedKekSnapshot = expectedKek.copyOf()
+        every { keyStore.finishUnwrap(any()) } returns QuickUnlockKeyStoreFinishResult.Success(expectedKek)
 
         val prepared = target.prepareUnlock(accountId) as QuickUnlockPreparationResult.Ready
         val result = target.finishUnlock(accountId, prepared.operationId)
 
         assertEquals(QuickUnlockCompletionResult.Unlocked, result)
-        assertTrue(keyMaterialAccess.replacedKek!!.all { it == 7.toByte() })
+        assertArrayEquals(expectedKekSnapshot, requireNotNull(replacedKek))
     }
 
     @Test
-    fun `finish unlock when envelope changed rejects stale callback without accepting kek`() {
+    fun `finishUnlock_whenEnrollmentChangesBeforeCallback_thenReturnsStaleOperation`() {
         every { store.readEnvelope(accountId) } returnsMany listOf(
             QuickUnlockStoredEnvelope.Present(envelope),
             QuickUnlockStoredEnvelope.Absent,
@@ -48,13 +87,12 @@ class QuickUnlockManagerImplTest {
         val result = target.finishUnlock(accountId, prepared.operationId)
 
         assertEquals(QuickUnlockCompletionResult.StaleOperation, result)
-        assertEquals(null, keyMaterialAccess.replacedKek)
+        assertNull(replacedKek)
+        verify(exactly = 1) { keyStore.cancel(prepared.operationId) }
     }
 
     @Test
-    fun `finish unlock when authentication fails preserves enrollment`() {
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Present(envelope)
-        keyStore.finishResult = QuickUnlockKeyStoreFinishResult.AuthenticationFailed
+    fun `finishUnlock_whenAuthenticationFails_thenPreservesEnrollment`() {
         val prepared = target.prepareUnlock(accountId) as QuickUnlockPreparationResult.Ready
 
         val result = target.finishUnlock(accountId, prepared.operationId)
@@ -64,97 +102,270 @@ class QuickUnlockManagerImplTest {
     }
 
     @Test
-    fun `prepare unlock when operation for account is pending is single flight`() {
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Present(envelope)
-
+    fun `prepareUnlock_whenOperationForAccountIsPending_thenReturnsOperationInProgress`() {
         val first = target.prepareUnlock(accountId)
+
         val second = target.prepareUnlock(accountId)
 
         assertTrue(first is QuickUnlockPreparationResult.Ready)
         assertEquals(QuickUnlockPreparationResult.OperationInProgress, second)
+        verify(exactly = 1) { keyStore.prepareUnwrap(any(), any(), any()) }
     }
 
     @Test
-    fun `offer state when alias is absent clears invalid enrollment`() {
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Present(envelope)
-        keyStore.aliasPresent = false
+    fun `offerState_whenAliasIsAbsent_thenClearsInvalidEnrollment`() {
+        every { keyStore.hasAlias(accountId) } returns false
 
         val result = target.offerState(accountId)
 
-        assertEquals(com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState.InvalidEnrollment, result)
+        assertEquals(QuickUnlockOfferState.InvalidEnrollment, result)
         verify(exactly = 1) { store.clearEnrollmentArtifact(accountId) }
+        verify(exactly = 1) { keyStore.delete(accountId) }
     }
 
     @Test
-    fun `prepare enrollment without passphrase provenance requires passphrase`() {
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.RecoveryKey
+    fun `prepareEnrollment_whenUnlockProvenanceIsNotPassphrase_thenRequiresPassphrase`() {
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.RecoveryKey
+        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
 
         val result = target.prepareEnrollment(accountId, consentGranted = true)
 
         assertEquals(QuickUnlockEnrollmentPreparationResult.RequiresPassphrase, result)
+        verify(exactly = 0) { store.markOfferSeen(any()) }
     }
 
     @Test
-    fun `prepare and finish enrollment only saves authenticated envelope`() {
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
-        keyStore.wrapResult = QuickUnlockKeyStoreWrapResult.Success(envelope)
+    fun `finishEnrollment_whenPassphraseUnlockIsValid_thenSavesAuthenticatedEnvelope`() {
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
         every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.markOfferSeen(accountId) } returns true
-        every { store.saveEnvelope(accountId, envelope) } returns true
-
         val prepared = target.prepareEnrollment(accountId, consentGranted = true)
             as QuickUnlockEnrollmentPreparationResult.Ready
+
         val result = target.finishEnrollment(accountId, prepared.operationId)
 
         assertEquals(QuickUnlockEnrollmentResult.Enrolled, result)
-        verify(exactly = 1) { store.saveEnvelope(accountId, envelope) }
+        verify(exactly = 1) {
+            store.saveEnvelope(accountId, match { it.contentEquals(envelope) })
+        }
     }
 
     @Test
-    fun `prepare enrollment whenofferSeenCannotPersist doesNotCreateKey`() {
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
+    fun `prepareEnrollment_whenOfferMarkerCannotPersist_thenReturnsStorageFailureWithoutCreatingKey`() {
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
         every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
         every { store.markOfferSeen(accountId) } returns false
 
         val result = target.prepareEnrollment(accountId, consentGranted = true)
 
         assertEquals(QuickUnlockEnrollmentPreparationResult.StorageFailure, result)
-        assertEquals(0, keyStore.prepareWrapCalls)
+        verify(exactly = 0) { keyStore.prepareWrap(any(), any()) }
     }
 
     @Test
-    fun `cancel enrollment keeps offerSeen and removes newly created alias`() {
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
+    fun `cancelUnlock_whenEnrollmentOperationIsPending_thenKeepsOfferMarkerAndDeletesAlias`() {
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
         every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.markOfferSeen(accountId) } returns true
-
         val prepared = target.prepareEnrollment(accountId, consentGranted = true)
             as QuickUnlockEnrollmentPreparationResult.Ready
+
         target.cancelUnlock(prepared.operationId)
 
         verify(exactly = 1) { store.markOfferSeen(accountId) }
-        assertEquals(1, keyStore.deleteCalls)
+        verify(exactly = 1) { keyStore.delete(accountId) }
+        verify(exactly = 1) { keyStore.cancel(prepared.operationId) }
     }
 
     @Test
-    fun `clear enrollment when artifact cleanup fails still deletes alias and reports failure`() {
+    fun `clearEnrollment_whenArtifactCleanupFails_thenDeletesAliasAndReportsFailure`() {
         every { store.clearEnrollmentArtifact(accountId) } returns false
 
         val result = target.clearEnrollment(accountId)
 
         assertEquals(QuickUnlockCleanupResult.Failed, result)
-        assertEquals(1, keyStore.deleteCalls)
+        verify(exactly = 1) { keyStore.delete(accountId) }
     }
 
     @Test
-    fun `finish enrollment when keystore reports authentication failure clears partial artifact`() {
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
-        keyStore.wrapResult = QuickUnlockKeyStoreWrapResult.Failed
+    fun `finishEnrollment_whenKeystoreWrapFails_thenClearsPartialArtifact`() {
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
         every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.markOfferSeen(accountId) } returns true
-
+        every { keyStore.finishWrap(any(), any()) } returns QuickUnlockKeyStoreWrapResult.Failed
         val prepared = target.prepareEnrollment(accountId, consentGranted = true)
             as QuickUnlockEnrollmentPreparationResult.Ready
+
+        val result = target.finishEnrollment(accountId, prepared.operationId)
+
+        assertEquals(QuickUnlockEnrollmentResult.StorageFailure, result)
+        verify(exactly = 1) { store.clearEnrollmentArtifact(accountId) }
+        verify(exactly = 1) { keyStore.delete(accountId) }
+    }
+
+    @Test
+    fun `offerState_whenUnsupportedSeenOrCorrupted_thenReturnsClosedStates`() {
+        every { keyStore.isSupported() } returnsMany listOf(false, true, true)
+        every { keyStore.hasAlias(accountId) } returns false
+        every { store.readEnvelope(accountId) } returnsMany listOf(
+            QuickUnlockStoredEnvelope.Absent,
+            QuickUnlockStoredEnvelope.Corrupted,
+        )
+        every { store.hasSeenOffer(accountId) } returns true
+
+        val unsupported = target.offerState(accountId)
+        val seen = target.offerState(accountId)
+        val corrupted = target.offerState(accountId)
+
+        assertEquals(QuickUnlockOfferState.Unsupported, unsupported)
+        assertEquals(QuickUnlockOfferState.Seen, seen)
+        assertEquals(QuickUnlockOfferState.InvalidEnrollment, corrupted)
+        verify(exactly = 1) { store.clearEnrollmentArtifact(accountId) }
+    }
+
+    @Test
+    fun `offerState_whenEnrollmentIsAvailableEnrolledOrOrphaned_thenReturnsMatchingState`() {
+        every { store.readEnvelope(accountId) } returnsMany listOf(
+            QuickUnlockStoredEnvelope.Absent,
+            QuickUnlockStoredEnvelope.Present(envelope),
+            QuickUnlockStoredEnvelope.Absent,
+        )
+        every { store.hasSeenOffer(accountId) } returns false
+        every { keyStore.hasAlias(accountId) } returnsMany listOf(false, true, true)
+
+        val available = target.offerState(accountId)
+        val enrolled = target.offerState(accountId)
+        val orphaned = target.offerState(accountId)
+
+        assertEquals(QuickUnlockOfferState.Available, available)
+        assertEquals(QuickUnlockOfferState.Enrolled, enrolled)
+        assertEquals(QuickUnlockOfferState.InvalidEnrollment, orphaned)
+        verify(exactly = 1) { keyStore.delete(accountId) }
+    }
+
+    @Test
+    fun `prepareUnlock_whenEnrollmentIsAbsentTemporaryOrInvalid_thenReturnsClosedResults`() {
+        every { store.readEnvelope(accountId) } returnsMany listOf(
+            QuickUnlockStoredEnvelope.Absent,
+            QuickUnlockStoredEnvelope.Present(envelope),
+            QuickUnlockStoredEnvelope.Present(envelope),
+            QuickUnlockStoredEnvelope.Present(envelope),
+        )
+        every { keyStore.prepareUnwrap(any(), any(), any()) } returnsMany listOf(
+            QuickUnlockKeyStorePrepareResult.Unsupported,
+            QuickUnlockKeyStorePrepareResult.TemporarilyUnavailable,
+            QuickUnlockKeyStorePrepareResult.InvalidEnrollment,
+        )
+
+        val absent = target.prepareUnlock(accountId)
+        val unsupported = target.prepareUnlock(accountId)
+        val temporary = target.prepareUnlock(accountId)
+        val invalid = target.prepareUnlock(accountId)
+
+        assertEquals(QuickUnlockPreparationResult.NotEnrolled, absent)
+        assertEquals(QuickUnlockPreparationResult.Unsupported, unsupported)
+        assertEquals(QuickUnlockPreparationResult.TemporarilyUnavailable, temporary)
+        assertEquals(QuickUnlockPreparationResult.InvalidEnrollment, invalid)
+        verify(exactly = 1) { store.clearEnrollmentArtifact(accountId) }
+    }
+
+    @Test
+    fun `finishUnlock_whenKeystoreIsTemporaryOrInvalid_thenDoesNotInstallKek`() {
+        every { keyStore.finishUnwrap(any()) } returnsMany listOf(
+            QuickUnlockKeyStoreFinishResult.TemporarilyUnavailable,
+            QuickUnlockKeyStoreFinishResult.InvalidEnrollment,
+        )
+        val temporaryOperation = (target.prepareUnlock(accountId) as QuickUnlockPreparationResult.Ready).operationId
+        val temporary = target.finishUnlock(accountId, temporaryOperation)
+        val invalidOperation = (target.prepareUnlock(accountId) as QuickUnlockPreparationResult.Ready).operationId
+        val invalid = target.finishUnlock(accountId, invalidOperation)
+
+        assertEquals(QuickUnlockCompletionResult.TemporarilyUnavailable, temporary)
+        assertEquals(QuickUnlockCompletionResult.InvalidEnrollment, invalid)
+        assertNull(replacedKek)
+        verify(exactly = 1) { store.clearEnrollmentArtifact(accountId) }
+    }
+
+    @Test
+    fun `prepareEnrollment_whenConsentUnsupportedExistingOrPending_thenReturnsGuardedResults`() {
+        val consentRequired = target.prepareEnrollment(accountId, consentGranted = false)
+        every { keyStore.isSupported() } returnsMany listOf(false, true, true)
+        val unsupported = target.prepareEnrollment(accountId, consentGranted = true)
+        val alreadyEnrolled = target.prepareEnrollment(accountId, consentGranted = true)
+
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
+        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
+        val prepared = target.prepareEnrollment(accountId, consentGranted = true)
+        val inProgress = target.prepareEnrollment(accountId, consentGranted = true)
+
+        assertEquals(QuickUnlockEnrollmentPreparationResult.ConsentRequired, consentRequired)
+        assertEquals(QuickUnlockEnrollmentPreparationResult.Unsupported, unsupported)
+        assertEquals(QuickUnlockEnrollmentPreparationResult.AlreadyEnrolled, alreadyEnrolled)
+        assertTrue(prepared is QuickUnlockEnrollmentPreparationResult.Ready)
+        assertEquals(QuickUnlockEnrollmentPreparationResult.OperationInProgress, inProgress)
+    }
+
+    @Test
+    fun `clearAllEnrollments_whenPersistentCleanupFails_thenAttemptsKeystoreCleanup`() {
+        every { store.clearAll() } returns false
+
+        val result = target.clearAllEnrollments()
+
+        assertEquals(QuickUnlockCleanupResult.Failed, result)
+        verify(exactly = 1) { keyStore.deleteAll() }
+    }
+
+    @Test
+    fun `markOfferSeen_whenStoreSucceedsOrFails_thenMapsStoreResult`() {
+        every { store.markOfferSeen(accountId) } returnsMany listOf(true, false)
+
+        val saved = target.markOfferSeen(accountId)
+        val failed = target.markOfferSeen(accountId)
+
+        assertEquals(QuickUnlockStoreResult.Saved, saved)
+        assertEquals(QuickUnlockStoreResult.Failed, failed)
+    }
+
+    @Test
+    fun `prepareEnrollment_whenPendingKekIsMissingOrKeystoreFails_thenReturnsClosedResults`() {
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
+        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
+        every { keyMaterialAccess.currentForEnrollment() } returnsMany listOf(
+            defaultKek.copyOf(),
+            null,
+            defaultKek.copyOf(),
+            defaultKek.copyOf(),
+        )
+        every { keyStore.prepareWrap(any(), any()) } returnsMany listOf(
+            QuickUnlockKeyStorePrepareResult.Ready,
+            QuickUnlockKeyStorePrepareResult.Unsupported,
+            QuickUnlockKeyStorePrepareResult.TemporarilyUnavailable,
+        )
+
+        val prepared = target.prepareEnrollment(accountId, consentGranted = true)
+        val inProgress = target.prepareEnrollment(accountId, consentGranted = true)
+        target.cancelUnlock((prepared as QuickUnlockEnrollmentPreparationResult.Ready).operationId)
+        val missingKek = target.prepareEnrollment(accountId, consentGranted = true)
+        val unsupported = target.prepareEnrollment(accountId, consentGranted = true)
+        val temporary = target.prepareEnrollment(accountId, consentGranted = true)
+
+        assertTrue(prepared is QuickUnlockEnrollmentPreparationResult.Ready)
+        assertEquals(QuickUnlockEnrollmentPreparationResult.OperationInProgress, inProgress)
+        assertEquals(QuickUnlockEnrollmentPreparationResult.RequiresPassphrase, missingKek)
+        assertEquals(QuickUnlockEnrollmentPreparationResult.Unsupported, unsupported)
+        assertEquals(QuickUnlockEnrollmentPreparationResult.StorageFailure, temporary)
+    }
+
+    @Test
+    fun `finishEnrollment_whenOperationIsMissingOrPersistenceFails_thenReturnsStorageFailure`() {
+        val missingOperation = operationId()
+        assertEquals(
+            QuickUnlockEnrollmentResult.StorageFailure,
+            target.finishEnrollment(accountId, missingOperation),
+        )
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
+        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
+        every { store.saveEnvelope(any(), any()) } returns false
+        val prepared = target.prepareEnrollment(accountId, consentGranted = true)
+            as QuickUnlockEnrollmentPreparationResult.Ready
+
         val result = target.finishEnrollment(accountId, prepared.operationId)
 
         assertEquals(QuickUnlockEnrollmentResult.StorageFailure, result)
@@ -162,143 +373,13 @@ class QuickUnlockManagerImplTest {
     }
 
     @Test
-    fun `offer state distinguishes unsupported seen and corrupt enrollment`() {
-        keyStore.supported = false
-        assertEquals(QuickUnlockOfferState.Unsupported, target.offerState(accountId))
-        keyStore.supported = true
-        keyStore.aliasPresent = false
+    fun `finishEnrollment_whenPassphraseMaterialChanges_thenRequiresPassphraseBeforeWriting`() {
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
         every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.hasSeenOffer(accountId) } returns true
-        assertEquals(QuickUnlockOfferState.Seen, target.offerState(accountId))
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Corrupted
-
-        assertEquals(QuickUnlockOfferState.InvalidEnrollment, target.offerState(accountId))
-        verify(exactly = 1) { store.clearEnrollmentArtifact(accountId) }
-    }
-
-    @Test
-    fun `offer state distinguishes available enrolled and orphaned aliases`() {
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.hasSeenOffer(accountId) } returns false
-        keyStore.aliasPresent = false
-
-        assertEquals(QuickUnlockOfferState.Available, target.offerState(accountId))
-
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Present(envelope)
-        keyStore.aliasPresent = true
-        assertEquals(QuickUnlockOfferState.Enrolled, target.offerState(accountId))
-
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        assertEquals(QuickUnlockOfferState.InvalidEnrollment, target.offerState(accountId))
-        assertEquals(1, keyStore.deleteCalls)
-    }
-
-    @Test
-    fun `prepare unlock reports absent temporary and invalid enrollments without accepting kek`() {
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        assertEquals(QuickUnlockPreparationResult.NotEnrolled, target.prepareUnlock(accountId))
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Present(envelope)
-        keyStore.prepareUnwrapResult = QuickUnlockKeyStorePrepareResult.Unsupported
-        assertEquals(QuickUnlockPreparationResult.Unsupported, target.prepareUnlock(accountId))
-        keyStore.prepareUnwrapResult = QuickUnlockKeyStorePrepareResult.TemporarilyUnavailable
-        assertEquals(QuickUnlockPreparationResult.TemporarilyUnavailable, target.prepareUnlock(accountId))
-        keyStore.prepareUnwrapResult = QuickUnlockKeyStorePrepareResult.InvalidEnrollment
-
-        assertEquals(QuickUnlockPreparationResult.InvalidEnrollment, target.prepareUnlock(accountId))
-        verify(atLeast = 1) { store.clearEnrollmentArtifact(accountId) }
-    }
-
-    @Test
-    fun `finish unlock reports temporary and invalid keystore outcomes without installing kek`() {
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Present(envelope)
-        keyStore.finishResult = QuickUnlockKeyStoreFinishResult.TemporarilyUnavailable
-        val temporary = target.prepareUnlock(accountId) as QuickUnlockPreparationResult.Ready
-
-        assertEquals(QuickUnlockCompletionResult.TemporarilyUnavailable, target.finishUnlock(accountId, temporary.operationId))
-        keyStore.finishResult = QuickUnlockKeyStoreFinishResult.InvalidEnrollment
-        val invalid = target.prepareUnlock(accountId) as QuickUnlockPreparationResult.Ready
-
-        assertEquals(QuickUnlockCompletionResult.InvalidEnrollment, target.finishUnlock(accountId, invalid.operationId))
-        assertEquals(null, keyMaterialAccess.replacedKek)
-        verify(atLeast = 1) { store.clearEnrollmentArtifact(accountId) }
-    }
-
-    @Test
-    fun `prepare enrollment rejects consent unsupported existing and pending account operations`() {
-        assertEquals(
-            QuickUnlockEnrollmentPreparationResult.ConsentRequired,
-            target.prepareEnrollment(accountId, consentGranted = false),
-        )
-        keyStore.supported = false
-        assertEquals(
-            QuickUnlockEnrollmentPreparationResult.Unsupported,
-            target.prepareEnrollment(accountId, consentGranted = true),
-        )
-        keyStore.supported = true
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Present(envelope)
-        assertEquals(
-            QuickUnlockEnrollmentPreparationResult.AlreadyEnrolled,
-            target.prepareEnrollment(accountId, consentGranted = true),
-        )
-    }
-
-    @Test
-    fun `clear all reports failure but attempts both persistent and keystore cleanup`() {
-        every { store.clearAll() } returns false
-
-        val result = target.clearAllEnrollments()
-
-        assertEquals(QuickUnlockCleanupResult.Failed, result)
-        assertEquals(1, keyStore.deleteAllCalls)
-    }
-
-    @Test
-    fun `mark offer returns saved and failed according to durable store result`() {
-        every { store.markOfferSeen(accountId) } returns true
-        assertEquals(com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockStoreResult.Saved, target.markOfferSeen(accountId))
-        every { store.markOfferSeen(accountId) } returns false
-        assertEquals(com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockStoreResult.Failed, target.markOfferSeen(accountId))
-    }
-
-    @Test
-    fun `prepare enrollment handles pending null kek and all keystore prepare failures`() {
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.markOfferSeen(accountId) } returns true
-        val first = target.prepareEnrollment(accountId, true) as QuickUnlockEnrollmentPreparationResult.Ready
-        assertEquals(QuickUnlockEnrollmentPreparationResult.OperationInProgress, target.prepareEnrollment(accountId, true))
-        target.cancelUnlock(first.operationId)
-        keyMaterialAccess.kek = ByteArray(0)
-        assertEquals(QuickUnlockEnrollmentPreparationResult.RequiresPassphrase, target.prepareEnrollment(accountId, true))
-        keyMaterialAccess.kek = ByteArray(32) { 3 }
-        keyStore.prepareWrapResult = QuickUnlockKeyStorePrepareResult.Unsupported
-        assertEquals(QuickUnlockEnrollmentPreparationResult.Unsupported, target.prepareEnrollment(accountId, true))
-        keyStore.prepareWrapResult = QuickUnlockKeyStorePrepareResult.TemporarilyUnavailable
-        assertEquals(QuickUnlockEnrollmentPreparationResult.StorageFailure, target.prepareEnrollment(accountId, true))
-    }
-
-    @Test
-    fun `finish enrollment reports missing operation and persistence failure`() {
-        assertEquals(QuickUnlockEnrollmentResult.StorageFailure, target.finishEnrollment(accountId, "missing"))
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.markOfferSeen(accountId) } returns true
-        every { store.saveEnvelope(accountId, any()) } returns false
-        keyStore.wrapResult = QuickUnlockKeyStoreWrapResult.Success(envelope)
-        val prepared = target.prepareEnrollment(accountId, true) as QuickUnlockEnrollmentPreparationResult.Ready
-
-        assertEquals(QuickUnlockEnrollmentResult.StorageFailure, target.finishEnrollment(accountId, prepared.operationId))
-        verify(atLeast = 1) { store.clearEnrollmentArtifact(accountId) }
-    }
-
-    @Test
-    fun `finish enrollment rejects changed passphrase material before writing envelope`() {
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.markOfferSeen(accountId) } returns true
         val prepared = target.prepareEnrollment(accountId, consentGranted = true)
             as QuickUnlockEnrollmentPreparationResult.Ready
-        keyMaterialAccess.kek = ByteArray(32) { 9 }
+        val changedKek = defaultKek.copyOf().also { it[0] = (it[0] + 1).toByte() }
+        every { keyMaterialAccess.currentForEnrollment() } returns changedKek
 
         val result = target.finishEnrollment(accountId, prepared.operationId)
 
@@ -307,124 +388,71 @@ class QuickUnlockManagerImplTest {
     }
 
     @Test
-    fun `finish enrollment rejects missing wrong type and changed account callbacks`() {
-        assertEquals(QuickUnlockEnrollmentResult.StorageFailure, target.finishEnrollment(accountId, "missing"))
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Present(envelope)
-        val unlock = target.prepareUnlock(accountId) as QuickUnlockPreparationResult.Ready
-
-        assertEquals(QuickUnlockEnrollmentResult.StorageFailure, target.finishEnrollment(accountId, unlock.operationId))
-
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.markOfferSeen(accountId) } returns true
-        val enrollment = target.prepareEnrollment(accountId, true) as QuickUnlockEnrollmentPreparationResult.Ready
-
-        assertEquals(
-            QuickUnlockEnrollmentResult.RequiresPassphrase,
-            target.finishEnrollment(UUID.randomUUID(), enrollment.operationId),
+    fun `finishEnrollment_whenOperationTypeOrAccountChanges_thenReturnsGuardedResult`() {
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
+        every { store.readEnvelope(accountId) } returnsMany listOf(
+            QuickUnlockStoredEnvelope.Present(envelope),
+            QuickUnlockStoredEnvelope.Absent,
         )
-    }
-
-    @Test
-    fun `finish enrollment maps unsupported keystore result and clears artifacts`() {
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
-        keyStore.wrapResult = QuickUnlockKeyStoreWrapResult.Unsupported
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.markOfferSeen(accountId) } returns true
-        val prepared = target.prepareEnrollment(accountId, true) as QuickUnlockEnrollmentPreparationResult.Ready
-
-        assertEquals(QuickUnlockEnrollmentResult.Unsupported, target.finishEnrollment(accountId, prepared.operationId))
-        verify(exactly = 1) { store.clearEnrollmentArtifact(accountId) }
-    }
-
-    @Test
-    fun `finish unlock rejects wrong type and account callbacks`() {
-        keyMaterialAccess.unlockProvenance = VaultUnlockProvenance.Passphrase
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
-        every { store.markOfferSeen(accountId) } returns true
-        val enrollment = target.prepareEnrollment(accountId, true) as QuickUnlockEnrollmentPreparationResult.Ready
-
-        assertEquals(QuickUnlockCompletionResult.StaleOperation, target.finishUnlock(accountId, enrollment.operationId))
-
-        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Present(envelope)
         val unlock = target.prepareUnlock(accountId) as QuickUnlockPreparationResult.Ready
-        assertEquals(QuickUnlockCompletionResult.StaleOperation, target.finishUnlock(UUID.randomUUID(), unlock.operationId))
+        val wrongType = target.finishEnrollment(accountId, unlock.operationId)
+        val enrollment = target.prepareEnrollment(accountId, consentGranted = true)
+            as QuickUnlockEnrollmentPreparationResult.Ready
+        val wrongAccount = target.finishEnrollment(UUID.randomUUID(), enrollment.operationId)
+
+        assertEquals(QuickUnlockEnrollmentResult.StorageFailure, wrongType)
+        assertEquals(QuickUnlockEnrollmentResult.RequiresPassphrase, wrongAccount)
     }
 
     @Test
-    fun `clear enrollment and all report both successful and failed cleanup combinations`() {
-        every { store.clearEnrollmentArtifact(accountId) } returns true
-        keyStore.deleteResult = true
-        assertEquals(QuickUnlockCleanupResult.Cleared, target.clearEnrollment(accountId))
+    fun `finishEnrollment_whenKeystoreReportsUnsupported_thenClearsArtifacts`() {
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
+        every { store.readEnvelope(accountId) } returns QuickUnlockStoredEnvelope.Absent
+        every { keyStore.finishWrap(any(), any()) } returns QuickUnlockKeyStoreWrapResult.Unsupported
+        val prepared = target.prepareEnrollment(accountId, consentGranted = true)
+            as QuickUnlockEnrollmentPreparationResult.Ready
 
-        keyStore.deleteResult = false
-        assertEquals(QuickUnlockCleanupResult.Failed, target.clearEnrollment(accountId))
+        val result = target.finishEnrollment(accountId, prepared.operationId)
 
+        assertEquals(QuickUnlockEnrollmentResult.Unsupported, result)
+        verify(exactly = 1) { store.clearEnrollmentArtifact(accountId) }
+        verify(exactly = 1) { keyStore.delete(accountId) }
+    }
+
+    @Test
+    fun `finishUnlock_whenOperationTypeOrAccountChanges_thenReturnsStaleOperation`() {
+        every { keyMaterialAccess.provenance() } returns VaultUnlockProvenance.Passphrase
+        every { store.readEnvelope(accountId) } returnsMany listOf(
+            QuickUnlockStoredEnvelope.Absent,
+            QuickUnlockStoredEnvelope.Present(envelope),
+        )
+        val enrollment = target.prepareEnrollment(accountId, consentGranted = true)
+            as QuickUnlockEnrollmentPreparationResult.Ready
+        val wrongType = target.finishUnlock(accountId, enrollment.operationId)
+        val unlock = target.prepareUnlock(accountId) as QuickUnlockPreparationResult.Ready
+        val wrongAccount = target.finishUnlock(UUID.randomUUID(), unlock.operationId)
+
+        assertEquals(QuickUnlockCompletionResult.StaleOperation, wrongType)
+        assertEquals(QuickUnlockCompletionResult.StaleOperation, wrongAccount)
+    }
+
+    @Test
+    fun `clearEnrollmentAndAllEnrollments_whenCleanupResultsVary_thenMapsEachResult`() {
+        val cleared = target.clearEnrollment(accountId)
+        every { keyStore.delete(accountId) } returns false
+        val failedEnrollment = target.clearEnrollment(accountId)
         every { store.clearAll() } returns true
-        keyStore.deleteAllResult = false
-        assertEquals(QuickUnlockCleanupResult.Failed, target.clearAllEnrollments())
+        every { keyStore.deleteAll() } returns false
+        val failedAll = target.clearAllEnrollments()
+
+        assertEquals(QuickUnlockCleanupResult.Cleared, cleared)
+        assertEquals(QuickUnlockCleanupResult.Failed, failedEnrollment)
+        assertEquals(QuickUnlockCleanupResult.Failed, failedAll)
     }
 
-    private class FakeQuickUnlockKeyStore : QuickUnlockKeyStore {
-        var supported = true
-        var wrapResult: QuickUnlockKeyStoreWrapResult = QuickUnlockKeyStoreWrapResult.Failed
-        var finishResult: QuickUnlockKeyStoreFinishResult = QuickUnlockKeyStoreFinishResult.AuthenticationFailed
-        var prepareUnwrapResult: QuickUnlockKeyStorePrepareResult = QuickUnlockKeyStorePrepareResult.Ready
-        var aliasPresent: Boolean = true
-        var prepareWrapCalls = 0
-        var prepareWrapResult: QuickUnlockKeyStorePrepareResult = QuickUnlockKeyStorePrepareResult.Ready
-        var deleteCalls = 0
-        var deleteAllCalls = 0
-        var deleteResult = true
-        var deleteAllResult = true
+    private fun validEnvelope(): ByteArray = randomBytes(61).also { it[0] = 0x01 }
 
-        override fun isSupported(): Boolean = supported
+    private fun operationId(): String = UUID.randomUUID().toString()
 
-        override fun hasAlias(accountId: UUID): Boolean = aliasPresent
-
-        override fun prepareWrap(accountId: UUID, operationId: String): QuickUnlockKeyStorePrepareResult {
-            prepareWrapCalls += 1
-            return prepareWrapResult
-        }
-
-        override fun finishWrap(operationId: String, kek: ByteArray) = wrapResult
-
-        override fun prepareUnwrap(
-            accountId: UUID,
-            envelope: ByteArray,
-            operationId: String,
-        ) = prepareUnwrapResult
-
-        override fun finishUnwrap(operationId: String) = finishResult
-
-        override fun cipherFor(operationId: String): Cipher? = null
-
-        override fun acceptAuthenticatedCipher(operationId: String, cipher: Cipher?): Boolean = true
-
-        override fun cancel(operationId: String) = Unit
-
-        override fun delete(accountId: UUID): Boolean {
-            deleteCalls += 1
-            return deleteResult
-        }
-
-        override fun deleteAll(): Boolean {
-            deleteAllCalls += 1
-            return deleteAllResult
-        }
-    }
-
-    private class FakeQuickUnlockKeyMaterialAccess : QuickUnlockKeyMaterialAccess {
-        var unlockProvenance = VaultUnlockProvenance.None
-        var kek = ByteArray(32) { 3 }
-        var replacedKek: ByteArray? = null
-
-        override fun currentForEnrollment(): ByteArray? = kek.takeIf { it.isNotEmpty() }?.copyOf()
-
-        override fun provenance(): VaultUnlockProvenance = unlockProvenance
-
-        override fun replaceAfterQuickUnlock(kek: ByteArray) {
-            replacedKek = kek.copyOf()
-        }
-    }
+    private fun randomBytes(size: Int): ByteArray = ByteArray(size).also(secureRandom::nextBytes)
 }

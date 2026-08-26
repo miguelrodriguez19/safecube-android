@@ -8,7 +8,7 @@ import org.junit.Test
 class QuickUnlockAliasFactoryTest {
     @Test
     fun `alias is deterministic opaque and aad binds the canonical account purpose`() {
-        val accountId = UUID.fromString("00000000-0000-4000-8000-000000000001")
+        val accountId = UUID.randomUUID()
         val alias = QuickUnlockAliasFactory.aliasFor(accountId)
 
         assertEquals(alias, QuickUnlockAliasFactory.aliasFor(accountId))

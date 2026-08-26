@@ -1,175 +1,273 @@
 package com.miguelrodriguez19.safecube.core.vault.data.quickunlock
 
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import java.security.SecureRandom
 import java.util.UUID
+import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 class AndroidKeystoreQuickUnlockAdapterTest {
-    private val platform = FakePlatform()
-    private val target = AndroidKeystoreQuickUnlockAdapter(platform, QuickUnlockEnvelopeCodec())
-    private val accountId = UUID.fromString("b7c29b86-c5e0-4a53-a29a-b7fc97ec3f1b")
+    private val platform = mockk<QuickUnlockAndroidKeyStorePlatform>()
+    private val envelopeCodec = QuickUnlockEnvelopeCodec()
+    private val target = AndroidKeystoreQuickUnlockAdapter(platform, envelopeCodec)
+    private val accountId = UUID.randomUUID()
+    private val key = generateKey()
+    private val secureRandom = SecureRandom()
+
+    @Before
+    fun setUp() {
+        every { platform.isSupported() } returns true
+        every { platform.hasAlias(any()) } returns false
+        every { platform.createKey(any()) } returns key
+        every { platform.loadKey(any()) } returns key
+        every { platform.delete(any()) } returns true
+        every { platform.deleteAll() } returns true
+    }
 
     @Test
-    fun `wrap then unwrap round trips kek using the authenticated cipher lifecycle`() {
-        val kek = ByteArray(32) { it.toByte() }
-        val wrapOperation = "wrap"
+    fun `prepareWrap_whenPlatformUnsupported_thenReturnsUnsupported`() {
+        every { platform.isSupported() } returns false
+        val operationId = operationId()
 
-        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareWrap(accountId, wrapOperation))
-        assertNotNull(target.cipherFor(wrapOperation))
-        assertTrue(target.acceptAuthenticatedCipher(wrapOperation, target.cipherFor(wrapOperation)))
-        val envelope = (target.finishWrap(wrapOperation, kek) as QuickUnlockKeyStoreWrapResult.Success).envelope
-        val unwrapOperation = "unwrap"
+        val result = target.prepareWrap(accountId, operationId)
 
-        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareUnwrap(accountId, envelope, unwrapOperation))
-        assertTrue(target.acceptAuthenticatedCipher(unwrapOperation, target.cipherFor(unwrapOperation)))
-        val result = target.finishUnwrap(unwrapOperation) as QuickUnlockKeyStoreFinishResult.Success
+        assertEquals(QuickUnlockKeyStorePrepareResult.Unsupported, result)
+        verify(exactly = 0) { platform.hasAlias(any()) }
+    }
 
-        assertArrayEquals(kek, result.kek)
+    @Test
+    fun `prepareWrap_whenAliasAlreadyExists_thenReturnsInvalidEnrollment`() {
+        every { platform.hasAlias(accountId) } returns true
+        val operationId = operationId()
+
+        val result = target.prepareWrap(accountId, operationId)
+
+        assertEquals(QuickUnlockKeyStorePrepareResult.InvalidEnrollment, result)
+        verify(exactly = 0) { platform.createKey(any()) }
+    }
+
+    @Test
+    fun `prepareWrap_whenPlatformFailsToCreateKey_thenDeletesAliasAndReturnsTemporaryUnavailable`() {
+        every { platform.createKey(accountId) } throws IllegalStateException()
+        val operationId = operationId()
+
+        val result = target.prepareWrap(accountId, operationId)
+
+        assertEquals(QuickUnlockKeyStorePrepareResult.TemporarilyUnavailable, result)
+        verify(exactly = 1) { platform.delete(accountId) }
+    }
+
+    @Test
+    fun `prepareWrap_whenPlatformIsReady_thenStoresCipherForOperation`() {
+        val operationId = operationId()
+
+        val result = target.prepareWrap(accountId, operationId)
+
+        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, result)
+        assertTrue(target.cipherFor(operationId) != null)
+    }
+
+    @Test
+    fun `finishWrap_whenAuthenticatedCipherIsAccepted_thenReturnsEnvelope`() {
+        val kek = randomBytes(32)
+        val operationId = operationId()
+        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareWrap(accountId, operationId))
+        val cipher = requireNotNull(target.cipherFor(operationId))
+        assertTrue(target.acceptAuthenticatedCipher(operationId, cipher))
+
+        val result = target.finishWrap(operationId, kek)
+
+        assertTrue(result is QuickUnlockKeyStoreWrapResult.Success)
+        val envelope = (result as QuickUnlockKeyStoreWrapResult.Success).envelope
+        assertTrue(envelopeCodec.decode(envelope) is QuickUnlockEnvelopeDecodeResult.Valid)
+    }
+
+    @Test
+    fun `finishWrap_whenKekLengthIsInvalid_thenReturnsFailed`() {
+        val operationId = operationId()
+        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareWrap(accountId, operationId))
+        val cipher = requireNotNull(target.cipherFor(operationId))
+        assertTrue(target.acceptAuthenticatedCipher(operationId, cipher))
+
+        val result = target.finishWrap(operationId, randomBytes(31))
+
+        assertEquals(QuickUnlockKeyStoreWrapResult.Failed, result)
+    }
+
+    @Test
+    fun `prepareUnwrap_whenEnvelopeIsMalformed_thenReturnsInvalidEnrollment`() {
+        val operationId = operationId()
+
+        val result = target.prepareUnwrap(accountId, randomBytes(60), operationId)
+
+        assertEquals(QuickUnlockKeyStorePrepareResult.InvalidEnrollment, result)
+        verify(exactly = 0) { platform.loadKey(any()) }
+    }
+
+    @Test
+    fun `prepareUnwrap_whenKeyIsMissing_thenReturnsInvalidEnrollment`() {
+        every { platform.loadKey(accountId) } returns null
+        val operationId = operationId()
+
+        val result = target.prepareUnwrap(accountId, validEnvelope(), operationId)
+
+        assertEquals(QuickUnlockKeyStorePrepareResult.InvalidEnrollment, result)
+    }
+
+    @Test
+    fun `prepareUnwrap_whenPlatformUnsupported_thenReturnsUnsupported`() {
+        every { platform.isSupported() } returns false
+        val operationId = operationId()
+
+        val result = target.prepareUnwrap(accountId, validEnvelope(), operationId)
+
+        assertEquals(QuickUnlockKeyStorePrepareResult.Unsupported, result)
+        verify(exactly = 0) { platform.loadKey(any()) }
+    }
+
+    @Test
+    fun `finishUnwrap_whenAuthenticatedCipherIsAccepted_thenReturnsKek`() {
+        val expectedKek = randomBytes(32)
+        val operationId = operationId()
+        val envelope = envelopeFor(expectedKek)
+        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareUnwrap(accountId, envelope, operationId))
+        val cipher = requireNotNull(target.cipherFor(operationId))
+        assertTrue(target.acceptAuthenticatedCipher(operationId, cipher))
+
+        val result = target.finishUnwrap(operationId) as QuickUnlockKeyStoreFinishResult.Success
+
+        assertArrayEquals(expectedKek, result.kek)
         result.kek.fill(0)
     }
 
     @Test
-    fun `prepare wrap when unsupported or alias exists returns closed result`() {
-        platform.supported = false
-        assertEquals(QuickUnlockKeyStorePrepareResult.Unsupported, target.prepareWrap(accountId, "first"))
-        platform.supported = true
-        platform.keys[accountId] = generateKey()
+    fun `finishUnwrap_whenCiphertextIsTampered_thenReturnsInvalidEnrollment`() {
+        val operationId = operationId()
+        val envelope = envelopeFor(randomBytes(32)).also {
+            it[it.lastIndex] = (it.last() + 1).toByte()
+        }
+        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareUnwrap(accountId, envelope, operationId))
+        val cipher = requireNotNull(target.cipherFor(operationId))
+        assertTrue(target.acceptAuthenticatedCipher(operationId, cipher))
 
-        assertEquals(QuickUnlockKeyStorePrepareResult.InvalidEnrollment, target.prepareWrap(accountId, "second"))
+        val result = target.finishUnwrap(operationId)
+
+        assertEquals(QuickUnlockKeyStoreFinishResult.InvalidEnrollment, result)
     }
 
     @Test
-    fun `prepare unwrap when envelope corrupted or key missing fails closed`() {
-        assertEquals(
-            QuickUnlockKeyStorePrepareResult.InvalidEnrollment,
-            target.prepareUnwrap(accountId, ByteArray(61), "bad"),
-        )
-        val envelope = ByteArray(61).also { it[0] = 0x01 }
+    fun `cipherFor_whenOperationIsUnknown_thenReturnsNull`() {
+        val result = target.cipherFor(operationId())
 
-        assertEquals(
-            QuickUnlockKeyStorePrepareResult.InvalidEnrollment,
-            target.prepareUnwrap(accountId, envelope, "missing"),
-        )
+        assertNull(result)
     }
 
     @Test
-    fun `accept authenticated cipher rejects missing operation or cipher`() {
-        assertFalse(target.acceptAuthenticatedCipher("missing", null))
-        assertFalse(target.acceptAuthenticatedCipher("missing", javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")))
+    fun `acceptAuthenticatedCipher_whenOperationIsUnknown_thenReturnsFalse`() {
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
 
-        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareWrap(accountId, "wrap"))
-        assertFalse(target.acceptAuthenticatedCipher("wrap", null))
-        target.cancel("wrap")
-        assertFalse(target.acceptAuthenticatedCipher("wrap", javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")))
+        val result = target.acceptAuthenticatedCipher(operationId(), cipher)
+
+        assertFalse(result)
     }
 
     @Test
-    fun `finish operations with no pending cipher fail closed`() {
-        assertNull(target.cipherFor("missing"))
-        assertEquals(QuickUnlockKeyStoreWrapResult.Failed, target.finishWrap("missing", ByteArray(32)))
-        assertEquals(QuickUnlockKeyStoreFinishResult.AuthenticationFailed, target.finishUnwrap("missing"))
+    fun `acceptAuthenticatedCipher_whenCipherIsNull_thenReturnsFalse`() {
+        val operationId = operationId()
+        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareWrap(accountId, operationId))
+
+        val result = target.acceptAuthenticatedCipher(operationId, null)
+
+        assertFalse(result)
     }
 
     @Test
-    fun `has alias fails closed when the platform cannot inspect the keystore`() {
-        platform.failHasAlias = true
+    fun `acceptAuthenticatedCipher_whenOperationIsCancelled_thenReturnsFalse`() {
+        val operationId = operationId()
+        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareWrap(accountId, operationId))
+        val cipher = requireNotNull(target.cipherFor(operationId))
+        target.cancel(operationId)
 
-        assertFalse(target.hasAlias(accountId))
+        val result = target.acceptAuthenticatedCipher(operationId, cipher)
+
+        assertFalse(result)
     }
 
     @Test
-    fun `finish wrap rejects a kek with an invalid envelope length`() {
-        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareWrap(accountId, "bad-kek"))
+    fun `finishWrap_whenOperationIsUnknown_thenReturnsFailed`() {
+        val result = target.finishWrap(operationId(), randomBytes(32))
 
-        assertEquals(QuickUnlockKeyStoreWrapResult.Failed, target.finishWrap("bad-kek", ByteArray(31)))
+        assertEquals(QuickUnlockKeyStoreWrapResult.Failed, result)
     }
 
     @Test
-    fun `finish unwrap rejects an authenticated envelope with corrupted ciphertext`() {
-        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareWrap(accountId, "seed"))
-        val key = requireNotNull(platform.keys[accountId])
-        target.cancel("seed")
-        val nonce = ByteArray(12) { it.toByte() }
-        val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+    fun `finishUnwrap_whenOperationIsUnknown_thenReturnsAuthenticationFailed`() {
+        val result = target.finishUnwrap(operationId())
+
+        assertEquals(QuickUnlockKeyStoreFinishResult.AuthenticationFailed, result)
+    }
+
+    @Test
+    fun `hasAlias_whenPlatformInspectionFails_thenReturnsFalse`() {
+        every { platform.hasAlias(accountId) } throws IllegalStateException()
+
+        val result = target.hasAlias(accountId)
+
+        assertFalse(result)
+    }
+
+    @Test
+    fun `delete_whenPlatformReturnsFalse_thenReturnsFalse`() {
+        every { platform.delete(accountId) } returns false
+
+        val result = target.delete(accountId)
+
+        assertFalse(result)
+        verify(exactly = 1) { platform.delete(accountId) }
+    }
+
+    @Test
+    fun `deleteAll_whenPlatformReturnsFalse_thenReturnsFalse`() {
+        every { platform.deleteAll() } returns false
+
+        val result = target.deleteAll()
+
+        assertFalse(result)
+        verify(exactly = 1) { platform.deleteAll() }
+    }
+
+    private fun envelopeFor(kek: ByteArray): ByteArray {
+        val nonce = randomBytes(12)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(
-            javax.crypto.Cipher.ENCRYPT_MODE,
+            Cipher.ENCRYPT_MODE,
             key,
-            javax.crypto.spec.GCMParameterSpec(128, nonce),
+            GCMParameterSpec(128, nonce),
         )
         cipher.updateAAD(QuickUnlockAliasFactory.aadFor(accountId))
-        val ciphertextAndTag = cipher.doFinal(ByteArray(32)).also { it[it.lastIndex] = (it.last() + 1).toByte() }
-        val envelope = requireNotNull(QuickUnlockEnvelopeCodec().encode(nonce, ciphertextAndTag))
-
-        assertEquals(QuickUnlockKeyStorePrepareResult.Ready, target.prepareUnwrap(accountId, envelope, "short-kek"))
-        assertEquals(QuickUnlockKeyStoreFinishResult.InvalidEnrollment, target.finishUnwrap("short-kek"))
+        return requireNotNull(envelopeCodec.encode(nonce, cipher.doFinal(kek)))
     }
 
-    @Test
-    fun `prepare wrap cleans up key after platform failure and delegated deletion results are retained`() {
-        platform.failCreate = true
+    private fun validEnvelope(): ByteArray = requireNotNull(
+        envelopeCodec.encode(randomBytes(12), randomBytes(48)),
+    )
 
-        assertEquals(QuickUnlockKeyStorePrepareResult.TemporarilyUnavailable, target.prepareWrap(accountId, "wrap"))
-        assertEquals(1, platform.deleteCalls)
-        platform.deleteResult = false
-        assertFalse(target.delete(accountId))
-        platform.deleteAllResult = false
-        assertFalse(target.deleteAll())
-    }
+    private fun operationId(): String = UUID.randomUUID().toString()
 
-    @Test
-    fun `prepare unwrap maps unsupported and missing key to closed results`() {
-        platform.supported = false
-        assertEquals(QuickUnlockKeyStorePrepareResult.Unsupported, target.prepareUnwrap(accountId, validEnvelope(), "unsupported"))
-        platform.supported = true
-
-        assertEquals(QuickUnlockKeyStorePrepareResult.InvalidEnrollment, target.prepareUnwrap(accountId, validEnvelope(), "missing"))
-    }
-
-    private class FakePlatform : QuickUnlockAndroidKeyStorePlatform {
-        var supported = true
-        val keys = mutableMapOf<UUID, SecretKey>()
-        var failHasAlias = false
-        var failCreate = false
-        var deleteResult = true
-        var deleteAllResult = true
-        var deleteCalls = 0
-
-        override fun isSupported(): Boolean = supported
-
-        override fun createKey(accountId: UUID): SecretKey {
-            check(!failCreate)
-            return generateKey().also { keys[accountId] = it }
-        }
-
-        override fun loadKey(accountId: UUID): SecretKey? = keys[accountId]
-
-        override fun hasAlias(accountId: UUID): Boolean {
-            check(!failHasAlias)
-            return keys.containsKey(accountId)
-        }
-
-        override fun delete(accountId: UUID): Boolean {
-            deleteCalls += 1
-            keys.remove(accountId)
-            return deleteResult
-        }
-
-        override fun deleteAll(): Boolean {
-            keys.clear()
-            return deleteAllResult
-        }
-    }
+    private fun randomBytes(size: Int): ByteArray = ByteArray(size).also(secureRandom::nextBytes)
 
     private companion object {
         fun generateKey(): SecretKey = KeyGenerator.getInstance("AES").apply { init(256) }.generateKey()
-
-        fun validEnvelope(): ByteArray = ByteArray(61).also { it[0] = 0x01 }
     }
 }

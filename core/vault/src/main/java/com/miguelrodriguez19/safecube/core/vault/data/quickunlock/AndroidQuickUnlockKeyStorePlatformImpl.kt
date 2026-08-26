@@ -15,17 +15,19 @@ import javax.inject.Singleton
 
 @Singleton
 internal class AndroidQuickUnlockKeyStorePlatformImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) : QuickUnlockAndroidKeyStorePlatform {
     override fun isSupported(): Boolean {
         val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or
-            BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                BiometricManager.Authenticators.DEVICE_CREDENTIAL
         return context.getSystemService(KeyguardManager::class.java)?.isDeviceSecure == true &&
-            BiometricManager.from(context).canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
+                BiometricManager.from(context)
+                    .canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
     }
 
     override fun createKey(accountId: UUID): SecretKey {
-        val authenticators = KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
+        val authenticators =
+            KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
         return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE).apply {
             init(
                 KeyGenParameterSpec.Builder(

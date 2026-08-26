@@ -97,6 +97,7 @@ android {
 }
 
 dependencies {
+    // Modules
     implementation(project(":core:auth"))
     implementation(project(":core:network"))
     implementation(project(":core:ui"))
@@ -130,18 +131,21 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
 
     // Testing
+    androidTestUtil(libs.androidx.test.orchestrator)
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
+
     androidTestImplementation(project(":core:crypto"))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.rules)
     androidTestImplementation(libs.androidx.test.uiautomator)
-    androidTestUtil(libs.androidx.test.orchestrator)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    // Debug
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(project(":core:crypto"))

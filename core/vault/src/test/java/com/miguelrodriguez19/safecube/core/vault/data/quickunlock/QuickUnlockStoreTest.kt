@@ -16,7 +16,7 @@ class QuickUnlockStoreTest {
     private val preferences = mockk<SharedPreferences>()
     private val editor = mockk<SharedPreferences.Editor>()
     private val target = QuickUnlockStore(preferences)
-    private val accountId = UUID.fromString("00000000-0000-4000-8000-000000000001")
+    private val accountId = UUID.randomUUID()
 
     @Test
     fun `readEnvelope decodes only the per account persisted artifact`() {
