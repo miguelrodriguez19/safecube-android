@@ -15,6 +15,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultKekProvider
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import javax.inject.Inject
@@ -262,7 +263,9 @@ class ChangeVaultPassphraseUseCase @Inject constructor(
 
     private fun failClosedAfterUncertainResult(): ChangeVaultPassphraseResult {
         runCatching { vaultKeyMaterialLocalRepository.clearMasterWrappedKek() }
-        runCatching { vaultSessionManager.lock() }
+        runCatching {
+            vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry)
+        }
         return ChangeVaultPassphraseResult.Error(
             ChangeVaultPassphraseError.ReconciliationRequired,
         )

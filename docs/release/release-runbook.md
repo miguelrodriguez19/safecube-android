@@ -83,7 +83,7 @@ En **Settings → Rules → Rulesets** o **Branches**, exigir:
    ```text
    Pull Request Quality / quality / version-guard
    Pull Request Quality / quality / verify
-   Pull Request Quality / quality / instrumented-smoke
+   Pull Request Quality / quality / instrumented-tests
    Dependency Review / dependency-review
    CodeQL / Analyze (java-kotlin)
    Secret scan / gitleaks

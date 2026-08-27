@@ -88,7 +88,8 @@ android {
                 create("pixel2Api30") {
                     device = "Pixel 2"
                     apiLevel = 30
-                    systemImageSource = "aosp-atd"
+                    // Full AOSP is required for locksettings and the real DEVICE_CREDENTIAL system UI.
+                    systemImageSource = "aosp"
                     require64Bit = true
                 }
             }
@@ -97,6 +98,7 @@ android {
 }
 
 dependencies {
+    // Modules
     implementation(project(":core:auth"))
     implementation(project(":core:network"))
     implementation(project(":core:ui"))
@@ -113,6 +115,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.biometric)
+    implementation(libs.androidx.fragment)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
@@ -128,18 +132,24 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
 
     // Testing
+    androidTestUtil(libs.androidx.test.orchestrator)
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    androidTestImplementation(project(":core:crypto"))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.rules)
-    androidTestUtil(libs.androidx.test.orchestrator)
+    androidTestImplementation(libs.androidx.test.uiautomator)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    // Debug
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugImplementation(project(":core:crypto"))
 }
 
 tasks.register("verifyReleaseSecurityManifest") {
@@ -190,11 +200,19 @@ tasks.register("verifyReleaseSecurityManifest") {
         val legacyBackupRules = project.file("src/main/res/xml/backup_rules.xml").readText()
         val dataExtractionRules = project.file("src/main/res/xml/data_extraction_rules.xml").readText()
         val explicitRootExclusion = "<exclude domain=\"root\" path=\".\" />"
+        val quickUnlockExclusion =
+            "<exclude domain=\"sharedpref\" path=\"quick_unlock_preferences.xml\" />"
         check(explicitRootExclusion in legacyBackupRules) {
             "Legacy backup rules must exclude the root domain"
         }
+        check(quickUnlockExclusion in legacyBackupRules) {
+            "Legacy backup rules must explicitly exclude quick unlock preferences"
+        }
         check(explicitRootExclusion in dataExtractionRules) {
             "Data extraction rules must exclude the root domain"
+        }
+        check(dataExtractionRules.countOccurrences(quickUnlockExclusion) == 2) {
+            "Data extraction rules must explicitly exclude quick unlock preferences from cloud backup and transfer"
         }
         check("<cloud-backup>" in dataExtractionRules && "<device-transfer>" in dataExtractionRules) {
             "Data extraction rules must cover cloud backup and device transfer"
@@ -242,3 +260,6 @@ tasks.register("verifyReleaseSecurityManifest") {
         }) { "MainActivity must retain the MAIN/LAUNCHER intent filter" }
     }
 }
+
+private fun String.countOccurrences(value: String): Int =
+    split(value).size - 1

@@ -10,6 +10,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLoca
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLocalVaultChangesResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.VaultSyncExecutionLock
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.VaultSyncUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.pull.PullVaultDeltaUseCase
@@ -34,11 +35,16 @@ class VaultSyncUseCaseTest {
     private val vaultState = MutableStateFlow<VaultState>(VaultState.Unlocked)
     private val vaultSessionManager = object : VaultSessionManager {
         override val vaultState: StateFlow<VaultState> = this@VaultSyncUseCaseTest.vaultState
+        override fun quickUnlockPromptMode() = QuickUnlockPromptMode.AutomaticOnUnlockEntry
+        override fun requestQuickUnlockEnrollmentAfterPassphrase() = false
+        override fun consumeQuickUnlockEnrollmentAfterPassphrase() = false
+        override fun clearPendingQuickUnlockEnrollment() = Unit
         override fun isUnlocked(): Boolean = vaultState.value is VaultState.Unlocked
         override suspend fun refreshVaultState() = error("Not required in test")
         override fun unlockWithPassphrase(passphrase: String): VaultUnlockError? = error("Not required in test")
         override fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockError? = error("Not required in test")
         override fun lock() = error("Not required in test")
+        override fun lock(promptMode: QuickUnlockPromptMode) = error("Not required in test")
     }
 
     private val pushLocalVaultChangesUseCase = mockk<PushLocalVaultChangesUseCase>()

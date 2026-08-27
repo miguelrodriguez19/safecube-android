@@ -33,6 +33,7 @@ kover {
                     "*_HiltModules*",
                     "*_HiltComponents*",
                     "*_Impl",
+                    "*AndroidQuickUnlockKeyStorePlatformImpl",
                     "*Dao_Impl*",
                     "*Database_Impl*",
                     "*ComposableSingletons*",
@@ -48,6 +49,7 @@ dependencies {
     implementation(project(":core:crypto"))
     implementation(project(":core:network"))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.biometric)
     implementation(libs.androidx.security.crypto)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)

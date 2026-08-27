@@ -16,6 +16,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultKekProvider
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -54,7 +55,7 @@ class ChangeVaultPassphraseUseCaseTest {
     @Before
     fun setUp() {
         every { vaultSessionManager.isUnlocked() } returns true
-        every { vaultSessionManager.lock() } just Runs
+        every { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) } just Runs
         every { vaultKekProvider.snapshot() } answers { activeKek.copyOf() }
         every { localRepository.read() } returns VaultKeyMaterialLocalReadResult.Present(
             cachedMaterial,
@@ -88,7 +89,7 @@ class ChangeVaultPassphraseUseCaseTest {
         coVerify(exactly = 1) { remoteRepository.updateMasterWrappedKek(newMasterWrapper) }
         verify(exactly = 1) { localRepository.updateMasterWrappedKek(newMasterWrapper) }
         verify(exactly = 0) { localRepository.clearMasterWrappedKek() }
-        verify(exactly = 0) { vaultSessionManager.lock() }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
     }
 
     @Test
@@ -104,7 +105,7 @@ class ChangeVaultPassphraseUseCaseTest {
         )
         coVerify(exactly = 0) { remoteRepository.updateMasterWrappedKek(any()) }
         verify(exactly = 0) { localRepository.updateMasterWrappedKek(any()) }
-        verify(exactly = 0) { vaultSessionManager.lock() }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
     }
 
     @Test
@@ -120,7 +121,7 @@ class ChangeVaultPassphraseUseCaseTest {
         )
         coVerify(exactly = 0) { remoteRepository.updateMasterWrappedKek(any()) }
         verify(exactly = 0) { localRepository.updateMasterWrappedKek(any()) }
-        verify(exactly = 0) { vaultSessionManager.lock() }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
     }
 
     @Test
@@ -140,7 +141,7 @@ class ChangeVaultPassphraseUseCaseTest {
         )
         coVerify(exactly = 0) { remoteRepository.getKeyMaterial() }
         verify(exactly = 0) { localRepository.updateMasterWrappedKek(any()) }
-        verify(exactly = 0) { vaultSessionManager.lock() }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
     }
 
     @Test
@@ -162,7 +163,7 @@ class ChangeVaultPassphraseUseCaseTest {
         )
         coVerify(exactly = 0) { remoteRepository.getKeyMaterial() }
         verify(exactly = 0) { localRepository.updateMasterWrappedKek(any()) }
-        verify(exactly = 0) { vaultSessionManager.lock() }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
     }
 
     @Test
@@ -183,7 +184,7 @@ class ChangeVaultPassphraseUseCaseTest {
         coVerify(exactly = 1) { remoteRepository.getKeyMaterial() }
         verify(exactly = 1) { localRepository.updateMasterWrappedKek(newMasterWrapper) }
         verify(exactly = 0) { localRepository.clearMasterWrappedKek() }
-        verify(exactly = 0) { vaultSessionManager.lock() }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
     }
 
     @Test
@@ -206,7 +207,7 @@ class ChangeVaultPassphraseUseCaseTest {
         )
         verify(exactly = 0) { localRepository.updateMasterWrappedKek(any()) }
         verify(exactly = 0) { localRepository.clearMasterWrappedKek() }
-        verify(exactly = 0) { vaultSessionManager.lock() }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
     }
 
     @Test
@@ -236,7 +237,7 @@ class ChangeVaultPassphraseUseCaseTest {
             error.retryDecision,
         )
         verify(exactly = 1) { localRepository.clearMasterWrappedKek() }
-        verify(exactly = 1) { vaultSessionManager.lock() }
+        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
         verify(exactly = 0) { localRepository.updateMasterWrappedKek(any()) }
     }
 
@@ -259,7 +260,7 @@ class ChangeVaultPassphraseUseCaseTest {
             result,
         )
         verify(exactly = 1) { localRepository.clearMasterWrappedKek() }
-        verify(exactly = 1) { vaultSessionManager.lock() }
+        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
     }
 
     @Test
@@ -279,7 +280,7 @@ class ChangeVaultPassphraseUseCaseTest {
             result,
         )
         verify(exactly = 1) { localRepository.clearMasterWrappedKek() }
-        verify(exactly = 1) { vaultSessionManager.lock() }
+        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
     }
 
     @Test
@@ -476,7 +477,7 @@ class ChangeVaultPassphraseUseCaseTest {
             result,
         )
         verify(exactly = 1) { localRepository.clearMasterWrappedKek() }
-        verify(exactly = 1) { vaultSessionManager.lock() }
+        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) }
     }
 
     @Test
@@ -511,7 +512,9 @@ class ChangeVaultPassphraseUseCaseTest {
         }
 
         verify(exactly = invalidRemoteMaterials.size) { localRepository.clearMasterWrappedKek() }
-        verify(exactly = invalidRemoteMaterials.size) { vaultSessionManager.lock() }
+        verify(exactly = invalidRemoteMaterials.size) {
+            vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry)
+        }
     }
 
     private fun stubSuccessfulCrypto() {

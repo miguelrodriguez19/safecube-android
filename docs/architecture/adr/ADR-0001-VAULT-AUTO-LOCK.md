@@ -131,6 +131,14 @@ rechazada para v1: no existe PIN propio de SafeCube.
 - La implementación genera una clave de wrapping no exportable en Android Keystore, asociada a la
   cuenta local y autorizada por uso. Con ella envuelve la KEK mediante cifrado autenticado y
   persiste únicamente un envelope local versionado y los metadatos no secretos imprescindibles.
+- La realización v1 de `SCDK-M131` fija el envelope como AES-256-GCM, versión 1, con nonce de 96
+  bits y tag de 128 bits. El AAD se deriva de la cuenta local y del propósito de KEK, por lo que un
+  envelope no puede reutilizarse para otra cuenta. El alias de Keystore se deriva por cuenta y no
+  contiene el identificador de cuenta en claro.
+- La autorización de la clave es por uso (timeout `0`) y su política admite
+  `BIOMETRIC_STRONG | DEVICE_CREDENTIAL`. Unlock y enrolamiento presentan un único prompt del
+  sistema para esas alternativas; la operación usa el `Cipher` devuelto autenticado por dicho
+  prompt y rechaza callbacks sin ese resultado criptográfico.
 - La KEK en claro solo existe en memoria durante Vault session Unlocked. La clave Keystore, el
   envelope y sus nonces nunca se sincronizan, envían al backend, incluyen en backup/device transfer
   ni restauran mediante navegación.
@@ -143,6 +151,30 @@ rechazada para v1: no existe PIN propio de SafeCube.
 - Logout, cambio de cuenta y eliminación local de cuenta destruyen la clave Keystore y el envelope
   asociados. Auto-lock, Lock now y process death eliminan la KEK activa pero conservan el
   enrolamiento para un unlock posterior.
+- Tras un unlock por passphrase, la oferta se muestra una vez por cuenta y requiere consentimiento
+  explícito. Settings permite activar, desactivar o re-enrolar posteriormente; cancelar el prompt
+  de enrolamiento deja el vault Unlocked, mientras que cancelar o fallar un prompt de unlock deja
+  el vault Locked. La corrupción o invalidación borra solo el enrolamiento inutilizable y conserva
+  la decisión de oferta para que Settings permita recuperarlo mediante passphrase.
+
+### 2.1 Política process-local de presentación
+
+El origen del bloqueo se conserva separado de `VaultState.Locked` y solo decide cómo se presenta el
+siguiente Unlock. Auto-lock y `Lock now` seleccionan `ManualOnly`; process death, cold start,
+restauración normal y refresh que terminan en Locked seleccionan `AutomaticOnUnlockEntry`. El modo
+no se persiste, no viaja en rutas ni `SavedStateHandle`, y no cambia el contrato transversal de
+`VaultState`.
+
+| Entrada en Unlock | Prompt automático | Acción manual |
+|---|---:|---:|
+| Auto-lock o `Lock now` | No | Quick unlock y passphrase |
+| Process death/cold start o restauración normal | Una vez al entrar en `RESUMED` | Quick unlock y passphrase |
+| Cancelación, error, corrupción o invalidación | No se relanza | Quick unlock si el enrolamiento sigue válido y passphrase |
+
+El estado Locked y el formulario de passphrase se muestran de inmediato. El prompt queda
+representado por estado observable mientras la operación está pendiente, de modo que una
+recreación de Activity puede reconstruir el host y reconectar el callback sin presentar una segunda
+operación. Si la pantalla desaparece definitivamente, la operación pendiente se cancela.
 
 ### 3. Opciones de configuración
 

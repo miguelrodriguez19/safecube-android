@@ -11,6 +11,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureI
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.service.EncryptedSecureItemPayload
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -114,6 +115,14 @@ class FakeVaultSessionManager(
 
     override val vaultState: StateFlow<VaultState> = mutableVaultState
 
+    override fun quickUnlockPromptMode() = QuickUnlockPromptMode.AutomaticOnUnlockEntry
+
+    override fun requestQuickUnlockEnrollmentAfterPassphrase() = false
+
+    override fun consumeQuickUnlockEnrollmentAfterPassphrase() = false
+
+    override fun clearPendingQuickUnlockEnrollment() = Unit
+
     fun setState(state: VaultState) {
         mutableVaultState.value = state
     }
@@ -127,6 +136,10 @@ class FakeVaultSessionManager(
     override fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockError? = null
 
     override fun lock() {
+        mutableVaultState.value = VaultState.Locked
+    }
+
+    override fun lock(promptMode: QuickUnlockPromptMode) {
         mutableVaultState.value = VaultState.Locked
     }
 }

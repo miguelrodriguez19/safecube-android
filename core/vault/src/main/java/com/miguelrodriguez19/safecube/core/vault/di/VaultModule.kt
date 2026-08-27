@@ -7,6 +7,14 @@ import androidx.security.crypto.MasterKey
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultKeyMaterialPrefs
 import com.miguelrodriguez19.safecube.core.vault.data.local.EncryptedVaultInitializationPrefs
 import com.miguelrodriguez19.safecube.core.vault.data.local.AutoLockPreferences
+import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.AndroidKeystoreQuickUnlockAdapter
+import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.AndroidQuickUnlockKeyStorePlatformImpl
+import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.QuickUnlockAndroidKeyStorePlatform
+import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.QuickUnlockKeyStore
+import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.QuickUnlockManagerImpl
+import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.QuickUnlockPreferences
+import com.miguelrodriguez19.safecube.core.vault.data.quickunlock.QuickUnlockPromptCipherProvider
+import com.miguelrodriguez19.safecube.core.vault.data.session.QuickUnlockKeyMaterialAccess
 import com.miguelrodriguez19.safecube.core.vault.data.local.AutoLockTimeoutRepositoryImpl
 import com.miguelrodriguez19.safecube.core.vault.data.local.AUTO_LOCK_PREFERENCES_NAME
 import com.miguelrodriguez19.safecube.core.vault.data.codec.JsonSecureItemContentCodec
@@ -28,6 +36,8 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.AutoLockTimeo
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultKekProvider
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultDataCleaner
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockManager
+import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockAccountSessionValidator
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemPayloadIdentityReader
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.CurrentInstantProvider
@@ -39,6 +49,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.Syste
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlockUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlocker
 import dagger.Binds
+import dagger.BindsOptionalOf
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,6 +60,9 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class VaultModule {
+    @BindsOptionalOf
+    abstract fun optionalQuickUnlockAccountSessionValidator(): QuickUnlockAccountSessionValidator
+
     @Binds
     @Singleton
     internal abstract fun bindVaultSessionManager(
@@ -60,6 +74,36 @@ abstract class VaultModule {
     internal abstract fun bindVaultKekProvider(
         vaultInMemoryKekStore: VaultInMemoryKekStore,
     ): VaultKekProvider
+
+    @Binds
+    @Singleton
+    internal abstract fun bindQuickUnlockKeyMaterialAccess(
+        vaultInMemoryKekStore: VaultInMemoryKekStore,
+    ): QuickUnlockKeyMaterialAccess
+
+    @Binds
+    @Singleton
+    internal abstract fun bindQuickUnlockManager(
+        quickUnlockManagerImpl: QuickUnlockManagerImpl,
+    ): QuickUnlockManager
+
+    @Binds
+    @Singleton
+    internal abstract fun bindQuickUnlockKeyStore(
+        androidKeystoreQuickUnlockAdapter: AndroidKeystoreQuickUnlockAdapter,
+    ): QuickUnlockKeyStore
+
+    @Binds
+    @Singleton
+    internal abstract fun bindQuickUnlockAndroidKeyStorePlatform(
+        platform: AndroidQuickUnlockKeyStorePlatformImpl,
+    ): QuickUnlockAndroidKeyStorePlatform
+
+    @Binds
+    @Singleton
+    internal abstract fun bindQuickUnlockPromptCipherProvider(
+        androidKeystoreQuickUnlockAdapter: AndroidKeystoreQuickUnlockAdapter,
+    ): QuickUnlockPromptCipherProvider
 
     @Binds
     @Singleton
@@ -143,6 +187,7 @@ abstract class VaultModule {
         private const val PREFERENCES_NAME = "vault_key_material_encrypted_preferences"
         private const val PENDING_INITIALIZATION_PREFERENCES_NAME =
             "vault_initialization_pending_encrypted_preferences"
+        private const val QUICK_UNLOCK_PREFERENCES_NAME = "quick_unlock_preferences"
 
         @Provides
         @Singleton
@@ -181,6 +226,16 @@ abstract class VaultModule {
             @ApplicationContext context: Context,
         ): SharedPreferences = context.getSharedPreferences(
             AUTO_LOCK_PREFERENCES_NAME,
+            Context.MODE_PRIVATE,
+        )
+
+        @Provides
+        @Singleton
+        @QuickUnlockPreferences
+        fun provideQuickUnlockPreferences(
+            @ApplicationContext context: Context,
+        ): SharedPreferences = context.getSharedPreferences(
+            QUICK_UNLOCK_PREFERENCES_NAME,
             Context.MODE_PRIVATE,
         )
     }

@@ -74,6 +74,7 @@ kover {
                     "*_HiltModules*",
                     "*_HiltComponents*",
                     "*_Impl",
+                    "*AndroidQuickUnlockKeyStorePlatformImpl",
                     "*Dao_Impl*",
                     "*Database_Impl*",
                     "*ComposableSingletons*",
@@ -127,6 +128,17 @@ tasks.register("verifyReleaseSigningConfiguration") {
             File(keystorePath).isFile
         }
     }
+}
+
+tasks.register("verifyKover") {
+    group = "verification"
+    description = "Development quality runner. "
+    dependsOn(
+        androidModules.map { "$it:testDebugUnitTest" },
+        "koverHtmlReport",
+        "koverXmlReport",
+        "koverVerify"
+    )
 }
 
 tasks.register("ciVerify") {

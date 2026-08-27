@@ -8,6 +8,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultIn
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultInitializeUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.action.CreateVaultUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.event.CreateVaultUiEvent
@@ -72,7 +73,7 @@ class CreateVaultViewModelTest {
             ),
             VaultInitializeResult.Initialized(recoveryKeyValue()),
         )
-        every { vaultSessionManager.lock() } just runs
+        every { vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry) } just runs
         val target = CreateVaultViewModel(vaultInitializeUseCase, vaultSessionManager)
         val event = async { target.events.first() }
 
@@ -85,7 +86,9 @@ class CreateVaultViewModelTest {
         assertEquals(VaultUiOperationState.Success, target.uiState.value.operationState)
         assertEquals(CreateVaultUiEvent.NavigateToRecoveryKey, event.await())
         coVerify(exactly = 2) { vaultInitializeUseCase(passphrase) }
-        verify(exactly = 1) { vaultSessionManager.lock() }
+        verify(exactly = 1) {
+            vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry)
+        }
     }
 
     @Test
