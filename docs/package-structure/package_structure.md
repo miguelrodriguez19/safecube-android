@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 26-08-2026 08:29:19
+Updated: 27-08-2026 08:10:22
 
 ```
 safecube-android/
@@ -639,6 +639,7 @@ safecube-android/
 │       │   │   │   │   │   └── RemoteVaultKeyMaterialDataSource.kt
 │       │   │   │   │   └── session/
 │       │   │   │   │       ├── LocalVaultDataCleanerImpl.kt
+│       │   │   │   │       ├── PendingQuickUnlockEnrollmentStore.kt
 │       │   │   │   │       ├── QuickUnlockKeyMaterialAccess.kt
 │       │   │   │   │       ├── VaultInMemoryKekStore.kt
 │       │   │   │   │       └── VaultSessionManagerImpl.kt
@@ -816,6 +817,7 @@ safecube-android/
 │       │       │   │   └── RemoteVaultKeyMaterialDataSourceTest.kt
 │       │       │   └── session/
 │       │       │       ├── LocalVaultDataCleanerImplTest.kt
+│       │       │       ├── PendingQuickUnlockEnrollmentStoreTest.kt
 │       │       │       ├── VaultInMemoryKekStoreTest.kt
 │       │       │       └── VaultSessionManagerImplTest.kt
 │       │       ├── domain/
@@ -825,6 +827,7 @@ safecube-android/
 │       │       │   │   ├── SecureItemContentTest.kt
 │       │       │   │   ├── SecureItemSyncDraftTest.kt
 │       │       │   │   └── SecureItemTest.kt
+│       │       │   ├── session/
 │       │       │   └── usecase/
 │       │       │       ├── draft/
 │       │       │       │   ├── DiscardSecureItemDraftUseCaseTest.kt
@@ -1059,7 +1062,6 @@ safecube-android/
 │       │   │   │   │   └── viewmodel/
 │       │   │   │   │       └── ChangePassphraseViewModel.kt
 │       │   │   │   ├── quickunlock/
-│       │   │   │   │   ├── PendingQuickUnlockEnrollment.kt
 │       │   │   │   │   └── QuickUnlockPrompt.kt
 │       │   │   │   ├── recovery/
 │       │   │   │   │   ├── action/

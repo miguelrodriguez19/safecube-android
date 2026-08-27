@@ -206,6 +206,26 @@ con un adapter de Keystore falso para éxito, cancelación, invalidación y corr
 instrumentados con biometría/credencial del dispositivo, process death, logout y fallback a
 passphrase.
 
+#### Política observable de presentación del prompt
+
+La política de presentación es process-local y no forma parte de `VaultState`, de la navegación ni
+de ningún estado restaurable:
+
+| Entrada en Unlock | Estado del vault | Prompt automático | Acción manual |
+|---|---|---:|---:|
+| Auto-lock por timeout | Locked | No | Sí |
+| `Lock now` desde Settings | Locked | No | Sí |
+| Process death/cold start con sesión válida | Locked | Sí, una vez y solo en `RESUMED` | Sí |
+| Restauración normal en Locked | Locked | Sí, una vez y solo en `RESUMED` | Sí |
+| Cancelación o error del prompt | Locked | No se relanza solo | Sí |
+| Dispositivo incompatible | Locked | No | Passphrase |
+| Enrolamiento desde Settings que exige passphrase | Locked | No | Passphrase |
+| Corrupción o invalidación | Locked | No después del fallo | Passphrase |
+
+El botón manual aparece siempre que exista un enrolamiento válido. La passphrase permanece visible
+como fallback. El prompt nunca se presenta en background y una cancelación no cambia la política para
+provocar otro lanzamiento automático.
+
 ### SEC-CRYPTO-002 — Cambio de passphrase mediante rewrap
 
 El cambio de passphrase en v1 reenvuelve la misma KEK; no rota la KEK, no recifra items y no

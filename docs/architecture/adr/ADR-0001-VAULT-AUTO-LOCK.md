@@ -157,6 +157,25 @@ rechazada para v1: no existe PIN propio de SafeCube.
   el vault Locked. La corrupción o invalidación borra solo el enrolamiento inutilizable y conserva
   la decisión de oferta para que Settings permita recuperarlo mediante passphrase.
 
+### 2.1 Política process-local de presentación
+
+El origen del bloqueo se conserva separado de `VaultState.Locked` y solo decide cómo se presenta el
+siguiente Unlock. Auto-lock y `Lock now` seleccionan `ManualOnly`; process death, cold start,
+restauración normal y refresh que terminan en Locked seleccionan `AutomaticOnUnlockEntry`. El modo
+no se persiste, no viaja en rutas ni `SavedStateHandle`, y no cambia el contrato transversal de
+`VaultState`.
+
+| Entrada en Unlock | Prompt automático | Acción manual |
+|---|---:|---:|
+| Auto-lock o `Lock now` | No | Quick unlock y passphrase |
+| Process death/cold start o restauración normal | Una vez al entrar en `RESUMED` | Quick unlock y passphrase |
+| Cancelación, error, corrupción o invalidación | No se relanza | Quick unlock si el enrolamiento sigue válido y passphrase |
+
+El estado Locked y el formulario de passphrase se muestran de inmediato. El prompt queda
+representado por estado observable mientras la operación está pendiente, de modo que una
+recreación de Activity puede reconstruir el host y reconectar el callback sin presentar una segunda
+operación. Si la pantalla desaparece definitivamente, la operación pendiente se cancela.
+
 ### 3. Opciones de configuración
 
 La configuración local de auto-lock admite exactamente estos valores:
