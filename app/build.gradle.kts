@@ -88,6 +88,7 @@ android {
                 create("pixel2Api30") {
                     device = "Pixel 2"
                     apiLevel = 30
+                    // Full AOSP is required for locksettings and the real DEVICE_CREDENTIAL system UI.
                     systemImageSource = "aosp"
                     require64Bit = true
                 }

@@ -87,8 +87,8 @@ jobs:
             **/build/reports/lint-results-*
             build/reports/kover/**
 
-  instrumented-smoke:
-    name: instrumented-smoke
+  instrumented-tests:
+    name: instrumented-tests
     needs: version-guard
     if: ${{ always() && inputs.run-instrumented-tests && (!inputs.run-version-check || needs.version-guard.result == 'success') }}
     runs-on: ubuntu-latest
@@ -109,7 +109,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run API 30 instrumented smoke suite
+      - name: Run API 30 instrumented test suite
         run: >-
           ./gradlew --no-daemon :app:pixel2Api30DebugAndroidTest
           -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
@@ -128,11 +128,11 @@ jobs:
             printf '%s\n' 'No managed device was available after the failed Gradle task.' > app/build/ci-artifacts/screenshot-unavailable.txt
           fi
 
-      - name: Upload instrumented smoke failure evidence
+      - name: Upload instrumented test failure evidence
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: instrumented-smoke-failure-${{ github.run_attempt }}
+          name: instrumented-tests-failure-${{ github.run_attempt }}
           if-no-files-found: warn
           retention-days: 14
           path: |
