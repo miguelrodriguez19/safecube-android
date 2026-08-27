@@ -8,6 +8,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultIn
 import com.miguelrodriguez19.safecube.core.vault.domain.model.initialize.VaultInitializeResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultInitializeUseCase
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.action.CreateVaultUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.event.CreateVaultUiEvent
@@ -99,7 +100,7 @@ class CreateVaultViewModel @Inject constructor(
                 when (val result = vaultInitializeUseCase(passphrase)) {
                     is VaultInitializeResult.Initialized -> {
                         result.recoveryKey.fill(0)
-                        vaultSessionManager.lock()
+                        vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry)
                         mutableUiState.update { current ->
                             current.copy(
                                 passphrase = "",
@@ -110,7 +111,7 @@ class CreateVaultViewModel @Inject constructor(
                     }
 
                     is VaultInitializeResult.AlreadyInitialized -> {
-                        vaultSessionManager.lock()
+                        vaultSessionManager.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry)
                         mutableUiState.update { current ->
                             current.copy(
                                 passphrase = "",

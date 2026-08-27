@@ -4,6 +4,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.miguelrodriguez19.safecube.core.vault.domain.model.AutoLockTimeout
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.AutoLockTimeoutRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -58,7 +59,7 @@ internal class VaultAutoLockCoordinator @Inject constructor(
     override fun lockNow() {
         clearBackgroundTracking()
         if (vaultSessionManager.isUnlocked()) {
-            vaultSessionManager.lock()
+            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
         }
     }
 
@@ -84,7 +85,7 @@ internal class VaultAutoLockCoordinator @Inject constructor(
 
         clearBackgroundTracking()
         if (vaultSessionManager.isUnlocked()) {
-            vaultSessionManager.lock()
+            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
         }
     }
 

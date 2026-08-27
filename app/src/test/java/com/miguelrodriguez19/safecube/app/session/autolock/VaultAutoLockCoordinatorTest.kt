@@ -6,6 +6,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.AutoLockTimeoutRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.junit.Assert.assertEquals
@@ -23,6 +24,7 @@ class VaultAutoLockCoordinatorTest {
         target.onProcessBackground()
 
         assertEquals(1, session.lockCalls)
+        assertEquals(QuickUnlockPromptMode.ManualOnly, session.lastPromptMode)
         assertTrue(session.isLocked())
         assertTrue(scheduler.tasks.isEmpty())
     }
@@ -63,6 +65,7 @@ class VaultAutoLockCoordinatorTest {
         scheduler.runNext()
 
         assertEquals(1, session.lockCalls)
+        assertEquals(QuickUnlockPromptMode.ManualOnly, session.lastPromptMode)
     }
 
     @Test
@@ -103,6 +106,7 @@ class VaultAutoLockCoordinatorTest {
         target.onProcessForeground()
 
         assertEquals(1, session.lockCalls)
+        assertEquals(QuickUnlockPromptMode.ManualOnly, session.lastPromptMode)
     }
 
     @Test
@@ -158,6 +162,7 @@ class VaultAutoLockCoordinatorTest {
         scheduler.runAll()
 
         assertEquals(1, session.lockCalls)
+        assertEquals(QuickUnlockPromptMode.ManualOnly, session.lastPromptMode)
         assertTrue(scheduler.tasks.single().cancelled)
     }
 
@@ -239,8 +244,19 @@ private class FakeVaultSessionManager : VaultSessionManager {
     private val mutableVaultState = MutableStateFlow<VaultState>(VaultState.Unlocked)
     var lockCalls = 0
         private set
+    var lastPromptMode: QuickUnlockPromptMode? = null
+        private set
 
     override val vaultState: StateFlow<VaultState> = mutableVaultState
+
+    override fun quickUnlockPromptMode(): QuickUnlockPromptMode =
+        lastPromptMode ?: QuickUnlockPromptMode.AutomaticOnUnlockEntry
+
+    override fun requestQuickUnlockEnrollmentAfterPassphrase(): Boolean = false
+
+    override fun consumeQuickUnlockEnrollmentAfterPassphrase(): Boolean = false
+
+    override fun clearPendingQuickUnlockEnrollment() = Unit
 
     override suspend fun refreshVaultState() = Unit
 
@@ -257,7 +273,12 @@ private class FakeVaultSessionManager : VaultSessionManager {
     }
 
     override fun lock() {
+        lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry)
+    }
+
+    override fun lock(promptMode: QuickUnlockPromptMode) {
         lockCalls++
+        lastPromptMode = promptMode
         mutableVaultState.value = VaultState.Locked
     }
 
