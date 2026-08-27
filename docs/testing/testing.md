@@ -63,7 +63,7 @@ The Gradle action restores its own Gradle User Home cache; workflows must not ad
 Project-wide task output caching is enabled with `org.gradle.caching=true`. Cacheable Android,
 Kotlin, Java and test tasks may therefore reuse outputs restored by `setup-gradle`, but every gate
 must remain correct and pass from an empty cache. Android SDK and managed-device state are not
-cached by the repository; the instrumented smoke test must continue to start a clean device.
+cached by the repository; the instrumented test suite must continue to start a clean device.
 
 Run the CI gate locally or in a pull request:
 
@@ -149,11 +149,11 @@ independent status checks:
 ```text
 Pull Request Quality / quality / version-guard
 Pull Request Quality / quality / verify
-Pull Request Quality / quality / instrumented-smoke
+Pull Request Quality / quality / instrumented-tests
 ```
 
 `version-guard` compares the current `version.properties` with the base version and requires a
-strictly greater SemVer `VERSION_NAME` and `VERSION_CODE`. `verify` and `instrumented-smoke` start
+strictly greater SemVer `VERSION_NAME` and `VERSION_CODE`. `verify` and `instrumented-tests` start
 only after that guard passes. The `verify` job runs `./gradlew --no-daemon ciVerify` on Ubuntu with
 Temurin JDK 21. The caller and reusable workflow declare only `contents: read`, do not consume
 repository secrets, and are safe for pull requests from forks. Newer executions cancel obsolete
@@ -163,13 +163,13 @@ Test XML/HTML, Android Lint and Kover coverage reports are uploaded with `if: al
 when a gate fails. The unsigned release APK built by `ciVerify` is deliberately excluded from CI
 artifacts because it is not publicable.
 
-The separate `instrumented-smoke` job has a 30-minute timeout and runs the complete app
+The separate `instrumented-tests` job has a 30-minute timeout and runs the complete app
 instrumented suite on a clean Gradle Managed Device named `pixel2Api30` (Pixel 2, API 30, `aosp`,
 64-bit). Besides `MainActivitySmokeTest`, this includes
 `QuickUnlockDeviceCredentialTest`, which provisions a test device credential and drives the real
 single system prompt. It verifies authenticated-Cipher use, cancellation, enrolment preservation on
-lock, cleanup on logout/account change, Activity recreation and a remote cold process that never
-starts Unlocked. It explicitly enables KVM and uses SwiftShader because GitHub Actions runners do
+lock, cleanup on logout/account change, Activity recreation and a newly created remote process that
+starts Locked. It explicitly enables KVM and uses SwiftShader because GitHub Actions runners do
 not offer hardware rendering. `testOptions.animationsDisabled` keeps animations disabled. On
 failure, CI retains managed-device test results, the available logcat output and a screenshot when
 the failed device remains available to `adb`.
@@ -184,7 +184,7 @@ Configure a branch ruleset or branch protection rule targeting `main`, and make 
 3. Require status checks before merging, add the exact checks
    `Pull Request Quality / quality / version-guard`,
    `Pull Request Quality / quality / verify`,
-   `Pull Request Quality / quality / instrumented-smoke`,
+   `Pull Request Quality / quality / instrumented-tests`,
    `Dependency Review / dependency-review`, `CodeQL / Analyze (java-kotlin)` and
    `Secret scan / gitleaks`, and require the branch to be up to date before merging.
 4. Require all review conversations to be resolved.
