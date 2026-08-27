@@ -18,8 +18,11 @@ internal class LocalVaultDataCleanerImpl @Inject constructor(
     private val pendingVaultInitializationRepository: PendingVaultInitializationRepository,
     private val secureItemRepository: SecureItemRepository,
     private val quickUnlockManager: QuickUnlockManager,
+    private val pendingQuickUnlockEnrollmentStore: PendingQuickUnlockEnrollmentStore =
+        PendingQuickUnlockEnrollmentStore(),
 ) : LocalVaultDataCleaner {
     override suspend fun clear(): LocalVaultCleanupResult {
+        pendingQuickUnlockEnrollmentStore.clear()
         vaultInMemoryKekStore.clear()
         vaultKeyMaterialLocalRepository.clear()
         val quickUnlockCleared = quickUnlockManager.clearAllEnrollments() == QuickUnlockCleanupResult.Cleared

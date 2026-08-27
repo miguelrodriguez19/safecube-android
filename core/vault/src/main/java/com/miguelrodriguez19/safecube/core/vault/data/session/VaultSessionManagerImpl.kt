@@ -12,6 +12,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalReadResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCompletionResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCleanupResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentResult
@@ -38,17 +39,23 @@ internal class VaultSessionManagerImpl @Inject constructor(
     private val vaultInMemoryKekStore: VaultInMemoryKekStore,
     private val quickUnlockManager: QuickUnlockManager,
     private val accountSessionValidator: Optional<QuickUnlockAccountSessionValidator>,
+    private val pendingQuickUnlockEnrollmentStore: PendingQuickUnlockEnrollmentStore =
+        PendingQuickUnlockEnrollmentStore(),
 ) : VaultSessionManager {
     private val state = MutableStateFlow(initialVaultState())
     private val quickUnlockOperationAccounts = mutableMapOf<String, UUID>()
+    private var promptMode = QuickUnlockPromptMode.AutomaticOnUnlockEntry
 
     override val vaultState: StateFlow<VaultState> = state.asStateFlow()
+
+    override fun quickUnlockPromptMode(): QuickUnlockPromptMode = promptMode
 
     override fun isUnlocked(): Boolean {
         return state.value == VaultState.Unlocked
     }
 
     override suspend fun refreshVaultState() {
+        promptMode = QuickUnlockPromptMode.AutomaticOnUnlockEntry
         clearInMemoryKek()
         state.value = VaultState.InitialLoading
         val localReadResult = readLocalKeyMaterial()
@@ -203,7 +210,39 @@ internal class VaultSessionManagerImpl @Inject constructor(
     }
 
     @Synchronized
+    override fun requestQuickUnlockEnrollmentAfterPassphrase(): Boolean {
+        val accountId = activeAccountId() ?: return false
+        if (state.value != VaultState.Unlocked || !hasValidAccountSession(accountId)) return false
+        pendingQuickUnlockEnrollmentStore.request(accountId)
+        return true
+    }
+
+    @Synchronized
+    override fun consumeQuickUnlockEnrollmentAfterPassphrase(): Boolean {
+        val accountId = activeAccountId() ?: run {
+            pendingQuickUnlockEnrollmentStore.clear()
+            return false
+        }
+        if (!hasValidAccountSession(accountId)) {
+            pendingQuickUnlockEnrollmentStore.clear()
+            return false
+        }
+        return pendingQuickUnlockEnrollmentStore.consume(accountId)
+    }
+
+    @Synchronized
+    override fun clearPendingQuickUnlockEnrollment() {
+        pendingQuickUnlockEnrollmentStore.clear()
+    }
+
+    @Synchronized
     override fun lock() {
+        lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry)
+    }
+
+    @Synchronized
+    override fun lock(promptMode: QuickUnlockPromptMode) {
+        this.promptMode = promptMode
         quickUnlockOperationAccounts.keys.toList().forEach(quickUnlockManager::cancelUnlock)
         quickUnlockOperationAccounts.clear()
         clearInMemoryKek()

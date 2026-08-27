@@ -21,6 +21,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlocker
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -83,6 +84,19 @@ class VaultSessionManagerImplTest {
             verify(exactly = 1) { vaultKeyMaterialLocalRepository.save(remoteKeyMaterial) }
             verify(exactly = 1) { vaultInMemoryKekStore.clear() }
         }
+
+    @Test
+    fun `refreshVaultState_whenLocalSaveFails_thenStateIsCorrupted`() = runBlocking {
+        val remoteKeyMaterial = createVaultKeyMaterial()
+        coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns
+                VaultKeyMaterialRemoteResult.Success(remoteKeyMaterial)
+        every { vaultKeyMaterialLocalRepository.save(remoteKeyMaterial) } throws
+                IllegalStateException("local storage unavailable")
+
+        target.refreshVaultState()
+
+        assertEquals(VaultState.CorruptedLocalKeyMaterial, target.vaultState.value)
+    }
 
     @Test
     fun `refreshVaultState_whenRemoteVaultNotInitialized_thenClearsLocalAndKekAndStateIsNotInitialized`() =
@@ -191,6 +205,21 @@ class VaultSessionManagerImplTest {
             target.vaultState.value,
         )
     }
+
+    @Test
+    fun `refreshVaultState_whenRemoteVaultIsAlreadyInitialized_thenStaysInTerminalState`() =
+        runBlocking {
+            val remoteError = VaultKeyMaterialRemoteError.VaultAlreadyInitialized
+            coEvery { vaultKeyMaterialRemoteRepository.getKeyMaterial() } returns
+                    VaultKeyMaterialRemoteResult.Error(remoteError)
+
+            target.refreshVaultState()
+
+            assertEquals(
+                VaultState.TerminalRemoteFailure(remoteError.failure),
+                target.vaultState.value,
+            )
+        }
 
     @Test
     fun `unlockWithPassphrase_whenSuccess_thenStoresKekAndStateIsUnlocked`() {
@@ -416,6 +445,43 @@ class VaultSessionManagerImplTest {
             QuickUnlockStoreResult.Saved,
             target.markQuickUnlockOfferSeen(),
         )
+    }
+
+    @Test
+    fun `pending enrollment requested by active account is consumed once after passphrase unlock`() {
+        val accountId = UUID.randomUUID()
+        every { vaultKeyMaterialLocalRepository.read() } returns localMaterialFor(accountId)
+        every { accountSessionValidator.isValid(accountId) } returns true
+        unlockTarget()
+
+        assertTrue(target.requestQuickUnlockEnrollmentAfterPassphrase())
+        assertTrue(target.consumeQuickUnlockEnrollmentAfterPassphrase())
+        assertFalse(target.consumeQuickUnlockEnrollmentAfterPassphrase())
+    }
+
+    @Test
+    fun `pending enrollment requested by one account is discarded when active account changes`() {
+        val requestedAccountId = UUID.randomUUID()
+        val activeAccountId = UUID.randomUUID()
+        every { vaultKeyMaterialLocalRepository.read() } returnsMany listOf(
+            localMaterialFor(requestedAccountId),
+            localMaterialFor(activeAccountId),
+        )
+        every { accountSessionValidator.isValid(requestedAccountId) } returns true
+        every { accountSessionValidator.isValid(activeAccountId) } returns true
+        unlockTarget()
+
+        assertTrue(target.requestQuickUnlockEnrollmentAfterPassphrase())
+        assertFalse(target.consumeQuickUnlockEnrollmentAfterPassphrase())
+        assertFalse(target.consumeQuickUnlockEnrollmentAfterPassphrase())
+    }
+
+    @Test
+    fun `lock records manual prompt mode without changing vault state contract`() {
+        target.lock(QuickUnlockPromptMode.ManualOnly)
+
+        assertEquals(QuickUnlockPromptMode.ManualOnly, target.quickUnlockPromptMode())
+        assertEquals(VaultState.Locked, target.vaultState.value)
     }
 
     @Test

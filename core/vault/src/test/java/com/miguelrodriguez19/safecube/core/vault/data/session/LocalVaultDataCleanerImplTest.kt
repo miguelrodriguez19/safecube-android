@@ -14,7 +14,9 @@ import io.mockk.justRun
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
+import java.util.UUID
 
 class LocalVaultDataCleanerImplTest {
     private val vaultInMemoryKekStore = mockk<VaultInMemoryKekStore>()
@@ -23,6 +25,7 @@ class LocalVaultDataCleanerImplTest {
         mockk<PendingVaultInitializationRepository>()
     private val secureItemRepository = mockk<SecureItemRepository>()
     private val quickUnlockManager = mockk<QuickUnlockManager>()
+    private val pendingQuickUnlockEnrollmentStore = PendingQuickUnlockEnrollmentStore()
 
     private val target = LocalVaultDataCleanerImpl(
         vaultInMemoryKekStore = vaultInMemoryKekStore,
@@ -30,11 +33,14 @@ class LocalVaultDataCleanerImplTest {
         pendingVaultInitializationRepository = pendingVaultInitializationRepository,
         secureItemRepository = secureItemRepository,
         quickUnlockManager = quickUnlockManager,
+        pendingQuickUnlockEnrollmentStore = pendingQuickUnlockEnrollmentStore,
     )
 
 
     @Test
     fun `clear removes keys before transactional vault data`() = runBlocking {
+        val accountId = UUID.randomUUID()
+        pendingQuickUnlockEnrollmentStore.request(accountId)
         justRun { vaultInMemoryKekStore.clear() }
         justRun { vaultKeyMaterialLocalRepository.clear() }
         every { pendingVaultInitializationRepository.clear() } returns true
@@ -44,6 +50,7 @@ class LocalVaultDataCleanerImplTest {
         val result = target.clear()
 
         assertEquals(LocalVaultCleanupResult.Success, result)
+        assertFalse(pendingQuickUnlockEnrollmentStore.consume(accountId))
         coVerifyOrder {
             vaultInMemoryKekStore.clear()
             vaultKeyMaterialLocalRepository.clear()

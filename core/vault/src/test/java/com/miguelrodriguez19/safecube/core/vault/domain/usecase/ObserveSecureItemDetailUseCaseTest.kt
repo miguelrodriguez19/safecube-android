@@ -12,6 +12,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCrypto
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemDecryptionResult
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDetailUseCase
 import io.mockk.confirmVerified
 import io.mockk.every
@@ -34,11 +35,16 @@ class ObserveSecureItemDetailUseCaseTest {
     private val vaultState = MutableStateFlow<VaultState>(VaultState.Locked)
     private val vaultSessionManager = object : VaultSessionManager {
         override val vaultState = this@ObserveSecureItemDetailUseCaseTest.vaultState
+        override fun quickUnlockPromptMode() = QuickUnlockPromptMode.AutomaticOnUnlockEntry
+        override fun requestQuickUnlockEnrollmentAfterPassphrase() = false
+        override fun consumeQuickUnlockEnrollmentAfterPassphrase() = false
+        override fun clearPendingQuickUnlockEnrollment() = Unit
         override fun isUnlocked(): Boolean = error("Not required in test")
         override suspend fun refreshVaultState() = error("Not required in test")
         override fun unlockWithPassphrase(passphrase: String) = error("Not required in test")
         override fun unlockWithRecoveryKey(recoveryKey: ByteArray) = error("Not required in test")
         override fun lock() = error("Not required in test")
+        override fun lock(promptMode: QuickUnlockPromptMode) = error("Not required in test")
     }
 
     private val target = ObserveSecureItemDetailUseCase(

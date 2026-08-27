@@ -11,8 +11,16 @@ import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockP
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockStoreResult
 import kotlinx.coroutines.flow.StateFlow
 
+enum class QuickUnlockPromptMode {
+    AutomaticOnUnlockEntry,
+    ManualOnly,
+}
+
 interface VaultSessionManager {
     val vaultState: StateFlow<VaultState>
+
+    /** Process-local presentation policy for the next visit to Unlock. */
+    fun quickUnlockPromptMode(): QuickUnlockPromptMode
 
     suspend fun refreshVaultState()
 
@@ -44,5 +52,14 @@ interface VaultSessionManager {
     fun clearQuickUnlockEnrollment(): QuickUnlockCleanupResult =
         QuickUnlockCleanupResult.AccountUnavailable
 
+    fun requestQuickUnlockEnrollmentAfterPassphrase(): Boolean
+
+    fun consumeQuickUnlockEnrollmentAfterPassphrase(): Boolean
+
+    fun clearPendingQuickUnlockEnrollment()
+
+    /** Compatibility entry point; production callers should provide the prompt mode explicitly. */
     fun lock()
+
+    fun lock(promptMode: QuickUnlockPromptMode)
 }
