@@ -35,6 +35,9 @@ import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.qui
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.state.UnlockVaultUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.viewmodel.UnlockVaultViewModel
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 @Composable
 fun UnlockVaultScreen(
@@ -50,16 +53,30 @@ fun UnlockVaultScreen(
         viewModel.events.collect { event ->
             when (event) {
                 UnlockVaultUiEvent.NavigateToApp -> onApp()
-                is UnlockVaultUiEvent.LaunchQuickUnlockPrompt -> {
-                    if (activity == null || cipherProvider == null) {
+                is UnlockVaultUiEvent.LaunchQuickUnlockPrompt -> Unit
+            }
+        }
+    }
+
+    LaunchedEffect(viewModel, activity, cipherProvider) {
+        if (activity == null) return@LaunchedEffect
+        activity.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.uiState
+                .map { state -> state.pendingQuickUnlockPrompt to state.quickUnlockPromptPresented }
+                .distinctUntilChanged()
+                .collectLatest { (request, promptPresented) ->
+                    if (request == null) return@collectLatest
+                    if (cipherProvider == null) {
                         viewModel.onAction(
-                            UnlockVaultUiAction.QuickUnlockPromptCancelled(event.request.operationId),
+                            UnlockVaultUiAction.QuickUnlockPromptCancelled(request.operationId),
                         )
                     } else {
                         launchQuickUnlockPrompt(
                             activity = activity,
                             cipherProvider = cipherProvider,
-                            request = event.request,
+                            request = request,
+                            presentPrompt = !promptPresented,
+                            onPresented = viewModel::onQuickUnlockPromptPresented,
                             onSucceeded = { operationId ->
                                 viewModel.onAction(
                                     UnlockVaultUiAction.QuickUnlockPromptSucceeded(operationId),
@@ -73,7 +90,6 @@ fun UnlockVaultScreen(
                         )
                     }
                 }
-            }
         }
     }
 

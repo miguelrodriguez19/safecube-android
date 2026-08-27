@@ -8,9 +8,9 @@ import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockC
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentPreparationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentResult
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.AutoLockTimeoutRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveVaultDraftSummariesUseCase
-import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.PendingQuickUnlockEnrollment
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptOperation
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptRequest
 import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.event.SettingsUiEvent
@@ -64,20 +64,26 @@ class SettingsViewModel @Inject constructor(
         when (val result = vaultSessionManager.prepareQuickUnlockEnrollment(consentGranted = true)) {
             is QuickUnlockEnrollmentPreparationResult.Ready -> {
                 pendingEnrollmentOperationId = result.operationId
-                mutableQuickUnlockUiState.update { it.copy(errorMessageRes = null) }
-                eventsChannel.trySend(
-                    SettingsUiEvent.LaunchQuickUnlockPrompt(
-                        QuickUnlockPromptRequest(
-                            operationId = result.operationId,
-                            operation = QuickUnlockPromptOperation.Enrollment,
-                        ),
-                    ),
+                val request = QuickUnlockPromptRequest(
+                    operationId = result.operationId,
+                    operation = QuickUnlockPromptOperation.Enrollment,
                 )
+                mutableQuickUnlockUiState.update {
+                    it.copy(
+                        errorMessageRes = null,
+                        pendingPrompt = request,
+                        promptPresented = false,
+                    )
+                }
+                eventsChannel.trySend(SettingsUiEvent.LaunchQuickUnlockPrompt(request))
             }
 
             QuickUnlockEnrollmentPreparationResult.RequiresPassphrase -> {
-                PendingQuickUnlockEnrollment.request()
-                vaultSessionManager.lock()
+                if (vaultSessionManager.requestQuickUnlockEnrollmentAfterPassphrase()) {
+                    vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
+                } else {
+                    setQuickUnlockError()
+                }
             }
 
             else -> setQuickUnlockError()
@@ -94,6 +100,9 @@ class SettingsViewModel @Inject constructor(
     fun onQuickUnlockPromptSucceeded(operationId: String) {
         if (pendingEnrollmentOperationId != operationId) return
         pendingEnrollmentOperationId = null
+        mutableQuickUnlockUiState.update {
+            it.copy(pendingPrompt = null, promptPresented = false)
+        }
         when (vaultSessionManager.finishQuickUnlockEnrollment(operationId)) {
             QuickUnlockEnrollmentResult.Enrolled -> refreshQuickUnlockState()
             else -> setQuickUnlockError()
@@ -103,8 +112,16 @@ class SettingsViewModel @Inject constructor(
     fun onQuickUnlockPromptCancelled(operationId: String) {
         if (pendingEnrollmentOperationId != operationId) return
         pendingEnrollmentOperationId = null
+        mutableQuickUnlockUiState.update {
+            it.copy(pendingPrompt = null, promptPresented = false)
+        }
         vaultSessionManager.cancelQuickUnlock(operationId)
         refreshQuickUnlockState()
+    }
+
+    fun onQuickUnlockPromptPresented(operationId: String) {
+        if (pendingEnrollmentOperationId != operationId) return
+        mutableQuickUnlockUiState.update { current -> current.copy(promptPresented = true) }
     }
 
     private fun refreshQuickUnlockState() {
@@ -117,5 +134,12 @@ class SettingsViewModel @Inject constructor(
         mutableQuickUnlockUiState.update {
             it.copy(errorMessageRes = UiR.string.quick_unlock_error)
         }
+    }
+
+    override fun onCleared() {
+        pendingEnrollmentOperationId?.let(vaultSessionManager::cancelQuickUnlock)
+        vaultSessionManager.clearPendingQuickUnlockEnrollment()
+        eventsChannel.close()
+        super.onCleared()
     }
 }

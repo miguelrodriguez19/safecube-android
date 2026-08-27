@@ -8,7 +8,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockE
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
-import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.PendingQuickUnlockEnrollment
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptOperation
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptRequest
 import com.miguelrodriguez19.safecube.feature.vault.presentation.state.VaultUiOperationState
@@ -23,7 +23,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -46,11 +45,8 @@ class UnlockVaultViewModelTest {
         target = UnlockVaultViewModel(vaultSessionManager)
 
         every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.AccountUnavailable
-    }
-
-    @After
-    fun tearDown() {
-        PendingQuickUnlockEnrollment.clear()
+        every { vaultSessionManager.quickUnlockPromptMode() } returns QuickUnlockPromptMode.AutomaticOnUnlockEntry
+        every { vaultSessionManager.consumeQuickUnlockEnrollmentAfterPassphrase() } returns false
     }
 
     @Test
@@ -168,6 +164,41 @@ class UnlockVaultViewModelTest {
         }
 
     @Test
+    fun `screen entry enrolled after manual lock exposes button without automatic prompt`() = runTest {
+        every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.Enrolled
+        every { vaultSessionManager.quickUnlockPromptMode() } returns QuickUnlockPromptMode.ManualOnly
+
+        target.onAction(UnlockVaultUiAction.ScreenEntered)
+
+        assertTrue(target.uiState.value.hasQuickUnlockEnrollment)
+        assertFalse(target.uiState.value.canRetryQuickUnlock)
+        verify(exactly = 0) { vaultSessionManager.prepareQuickUnlock() }
+    }
+
+    @Test
+    fun `automatic prompt remains observable across repeated screen entry without preparing twice`() =
+        runTest {
+            every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.Enrolled
+            every { vaultSessionManager.prepareQuickUnlock() } returns
+                    QuickUnlockPreparationResult.Ready("reconnectable-operation")
+
+            target.onAction(UnlockVaultUiAction.ScreenEntered)
+            val pendingPrompt = target.uiState.value.pendingQuickUnlockPrompt
+
+            target.onAction(UnlockVaultUiAction.ScreenEntered)
+
+            assertEquals(
+                QuickUnlockPromptRequest(
+                    "reconnectable-operation",
+                    QuickUnlockPromptOperation.Unlock,
+                ),
+                pendingPrompt,
+            )
+            assertEquals(pendingPrompt, target.uiState.value.pendingQuickUnlockPrompt)
+            verify(exactly = 1) { vaultSessionManager.prepareQuickUnlock() }
+        }
+
+    @Test
     fun `screen entry without quick unlock enrollment does not expose manual quick unlock`() =
         runTest {
 
@@ -192,6 +223,19 @@ class UnlockVaultViewModelTest {
             event.await(),
         )
         verify(exactly = 1) { vaultSessionManager.prepareQuickUnlock() }
+    }
+
+    @Test
+    fun `presented quick unlock prompt is retained for activity recreation`() = runTest {
+        every { vaultSessionManager.prepareQuickUnlock() } returns
+                QuickUnlockPreparationResult.Ready("reconnectable-operation")
+
+        target.onAction(UnlockVaultUiAction.RetryQuickUnlock)
+        target.onQuickUnlockPromptPresented("reconnectable-operation")
+
+        assertTrue(target.uiState.value.quickUnlockPromptPresented)
+        target.onQuickUnlockPromptPresented("stale-operation")
+        assertTrue(target.uiState.value.quickUnlockPromptPresented)
     }
 
     @Test
@@ -300,7 +344,7 @@ class UnlockVaultViewModelTest {
     @Test
     fun `pending settings enrollment is consumed by the next passphrase unlock`() = runTest {
         val passphrase = sensitiveValue()
-        PendingQuickUnlockEnrollment.request()
+        every { vaultSessionManager.consumeQuickUnlockEnrollmentAfterPassphrase() } returns true
         every { vaultSessionManager.unlockWithPassphrase(passphrase) } returns null
         every { vaultSessionManager.isUnlocked() } returns true
         every { vaultSessionManager.prepareQuickUnlockEnrollment(true) } returns

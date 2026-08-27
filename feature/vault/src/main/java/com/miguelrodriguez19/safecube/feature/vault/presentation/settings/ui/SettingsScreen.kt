@@ -32,6 +32,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.vault.domain.model.AutoLockTimeout
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState
@@ -42,6 +44,9 @@ import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigati
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation.NavigationBar
 import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.event.SettingsUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.viewmodel.SettingsViewModel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 @Composable
 fun SettingsScreen(
@@ -65,20 +70,33 @@ fun SettingsScreen(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                is SettingsUiEvent.LaunchQuickUnlockPrompt -> {
-                    if (activity == null || cipherProvider == null) {
-                        viewModel.onQuickUnlockPromptCancelled(event.request.operationId)
+                is SettingsUiEvent.LaunchQuickUnlockPrompt -> Unit
+            }
+        }
+    }
+
+    LaunchedEffect(viewModel, activity, cipherProvider) {
+        if (activity == null) return@LaunchedEffect
+        activity.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.quickUnlockUiState
+                .map { state -> state.pendingPrompt to state.promptPresented }
+                .distinctUntilChanged()
+                .collectLatest { (request, promptPresented) ->
+                    if (request == null) return@collectLatest
+                    if (cipherProvider == null) {
+                        viewModel.onQuickUnlockPromptCancelled(request.operationId)
                     } else {
                         launchQuickUnlockPrompt(
                             activity = activity,
                             cipherProvider = cipherProvider,
-                            request = event.request,
+                            request = request,
+                            presentPrompt = !promptPresented,
+                            onPresented = viewModel::onQuickUnlockPromptPresented,
                             onSucceeded = viewModel::onQuickUnlockPromptSucceeded,
                             onCancelledOrError = viewModel::onQuickUnlockPromptCancelled,
                         )
                     }
                 }
-            }
         }
     }
 

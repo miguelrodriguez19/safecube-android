@@ -39,6 +39,8 @@ fun launchQuickUnlockPrompt(
     activity: FragmentActivity,
     cipherProvider: QuickUnlockPromptCipherProvider,
     request: QuickUnlockPromptRequest,
+    presentPrompt: Boolean = true,
+    onPresented: (String) -> Unit = {},
     onSucceeded: (String) -> Unit,
     onCancelledOrError: (String) -> Unit,
 ) {
@@ -84,7 +86,12 @@ fun launchQuickUnlockPrompt(
                     onCancelledOrError(request.operationId)
                 }
             },
-        ).authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+        ).also { prompt ->
+            if (presentPrompt) {
+                onPresented(request.operationId)
+                prompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+            }
+        }
     } catch (_: Throwable) {
         onCancelledOrError(request.operationId)
     }

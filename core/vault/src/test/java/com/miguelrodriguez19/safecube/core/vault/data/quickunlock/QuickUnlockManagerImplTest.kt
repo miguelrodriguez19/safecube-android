@@ -29,7 +29,9 @@ class QuickUnlockManagerImplTest {
     private val keyStore = mockk<QuickUnlockKeyStore>()
     private val keyMaterialAccess = mockk<QuickUnlockKeyMaterialAccess>()
     private val envelopeCodec = QuickUnlockEnvelopeCodec()
-    private val target = QuickUnlockManagerImpl(store, keyStore, keyMaterialAccess, envelopeCodec)
+
+    private lateinit var target: QuickUnlockManagerImpl
+
     private val secureRandom = SecureRandom()
     private val accountId = UUID.randomUUID()
     private val envelope = validEnvelope()
@@ -39,6 +41,8 @@ class QuickUnlockManagerImplTest {
     @Before
     fun setUp() {
         replacedKek = null
+        target = QuickUnlockManagerImpl(store, keyStore, keyMaterialAccess, envelopeCodec)
+
         every { store.readEnvelope(any()) } returns QuickUnlockStoredEnvelope.Present(envelope)
         every { store.hasSeenOffer(any()) } returns true
         every { store.markOfferSeen(any()) } returns true

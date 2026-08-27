@@ -20,13 +20,15 @@ import org.junit.Test
 class AndroidKeystoreQuickUnlockAdapterTest {
     private val platform = mockk<QuickUnlockAndroidKeyStorePlatform>()
     private val envelopeCodec = QuickUnlockEnvelopeCodec()
-    private val target = AndroidKeystoreQuickUnlockAdapter(platform, envelopeCodec)
+    private lateinit var target: AndroidKeystoreQuickUnlockAdapter
     private val accountId = UUID.randomUUID()
     private val key = generateKey()
     private val secureRandom = SecureRandom()
 
     @Before
     fun setUp() {
+        target = AndroidKeystoreQuickUnlockAdapter(platform, envelopeCodec)
+
         every { platform.isSupported() } returns true
         every { platform.hasAlias(any()) } returns false
         every { platform.createKey(any()) } returns key

@@ -10,14 +10,15 @@ import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockE
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.AutoLockTimeoutRepository
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveVaultDraftSummariesUseCase
-import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.PendingQuickUnlockEnrollment
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptOperation
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptRequest
 import com.miguelrodriguez19.safecube.feature.vault.presentation.settings.event.SettingsUiEvent
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,12 +50,6 @@ class SettingsViewModelTest {
 
     @Before
     fun setUp() {
-        target = SettingsViewModel(
-            observeVaultDraftSummariesUseCase = observeVaultDraftSummariesUseCase,
-            autoLockTimeoutRepository = autoLockTimeoutRepository,
-            vaultSessionManager = vaultSessionManager,
-        )
-
         kotlinx.coroutines.Dispatchers.setMain(dispatcher)
         every { observeVaultDraftSummariesUseCase() } returns summaries
         every { autoLockTimeoutRepository.timeout } returns autoLockTimeout
@@ -62,12 +57,18 @@ class SettingsViewModelTest {
             autoLockTimeout.value = firstArg()
         }
         every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.Available
+        every { vaultSessionManager.requestQuickUnlockEnrollmentAfterPassphrase() } returns true
+
+        target = SettingsViewModel(
+            observeVaultDraftSummariesUseCase = observeVaultDraftSummariesUseCase,
+            autoLockTimeoutRepository = autoLockTimeoutRepository,
+            vaultSessionManager = vaultSessionManager,
+        )
     }
 
     @After
     fun tearDown() {
         kotlinx.coroutines.Dispatchers.resetMain()
-        PendingQuickUnlockEnrollment.clear()
     }
 
     @Test
@@ -93,10 +94,7 @@ class SettingsViewModelTest {
                     QuickUnlockEnrollmentPreparationResult.Ready("settings-enrollment")
             every { vaultSessionManager.finishQuickUnlockEnrollment("settings-enrollment") } returns
                     QuickUnlockEnrollmentResult.Enrolled
-            every { vaultSessionManager.quickUnlockOfferState() } returnsMany listOf(
-                QuickUnlockOfferState.Available,
-                QuickUnlockOfferState.Enrolled,
-            )
+            every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.Enrolled
             val event = async { target.events.first() }
 
             target.enableQuickUnlock()
@@ -118,10 +116,7 @@ class SettingsViewModelTest {
     @Test
     fun `disable quick unlock clears enrollment and refreshes status`() = runTest {
         every { vaultSessionManager.clearQuickUnlockEnrollment() } returns QuickUnlockCleanupResult.Cleared
-        every { vaultSessionManager.quickUnlockOfferState() } returnsMany listOf(
-            QuickUnlockOfferState.Enrolled,
-            QuickUnlockOfferState.Seen,
-        )
+        every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.Seen
         target.disableQuickUnlock()
 
         io.mockk.verify(exactly = 1) { vaultSessionManager.clearQuickUnlockEnrollment() }
@@ -132,11 +127,24 @@ class SettingsViewModelTest {
     fun `enable requiring passphrase stores process local intent and locks vault`() = runTest {
         every { vaultSessionManager.prepareQuickUnlockEnrollment(true) } returns
                 QuickUnlockEnrollmentPreparationResult.RequiresPassphrase
-        every { vaultSessionManager.lock() } returns Unit
+        every { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) } returns Unit
         target.enableQuickUnlock()
 
-        io.mockk.verify(exactly = 1) { vaultSessionManager.lock() }
-        assertTrue(PendingQuickUnlockEnrollment.consume())
+        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 1) { vaultSessionManager.requestQuickUnlockEnrollmentAfterPassphrase() }
+    }
+
+    @Test
+    fun `presented enrollment prompt is retained for activity recreation`() = runTest {
+        every { vaultSessionManager.prepareQuickUnlockEnrollment(true) } returns
+                QuickUnlockEnrollmentPreparationResult.Ready("settings-enrollment")
+
+        target.enableQuickUnlock()
+        target.onQuickUnlockPromptPresented("settings-enrollment")
+
+        assertTrue(target.quickUnlockUiState.value.promptPresented)
+        target.onQuickUnlockPromptPresented("stale-operation")
+        assertTrue(target.quickUnlockUiState.value.promptPresented)
     }
 
     private fun draftSummary() = VaultItemDraftSummary(

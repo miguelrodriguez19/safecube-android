@@ -34,6 +34,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockE
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import dagger.hilt.android.EntryPointAccessors
 import java.security.KeyStore
 import java.security.SecureRandom
@@ -87,8 +88,12 @@ class QuickUnlockDeviceCredentialTest {
         val fixture = createUnlockedFixture()
         enrollWithDeviceCredential(pin)
 
-        entryPoint.vaultSessionManager().lock()
+        entryPoint.vaultSessionManager().lock(QuickUnlockPromptMode.ManualOnly)
         assertEquals(VaultState.Locked, entryPoint.vaultSessionManager().vaultState.value)
+        assertEquals(
+            QuickUnlockPromptMode.ManualOnly,
+            entryPoint.vaultSessionManager().quickUnlockPromptMode(),
+        )
         assertEquals(QuickUnlockOfferState.Enrolled, entryPoint.vaultSessionManager().quickUnlockOfferState())
 
         val operationId = prepareQuickUnlock()
@@ -116,7 +121,7 @@ class QuickUnlockDeviceCredentialTest {
         val pin = provisionDeviceCredential()
         val fixture = createUnlockedFixture()
         enrollWithDeviceCredential(pin)
-        entryPoint.vaultSessionManager().lock()
+        entryPoint.vaultSessionManager().lock(QuickUnlockPromptMode.ManualOnly)
 
         val operationId = prepareQuickUnlock()
         val callbackReached = cancelSystemPrompt(operationId)
@@ -133,7 +138,7 @@ class QuickUnlockDeviceCredentialTest {
         val fixture = createUnlockedFixture()
         enrollWithDeviceCredential(pin)
 
-        entryPoint.vaultSessionManager().lock()
+        entryPoint.vaultSessionManager().lock(QuickUnlockPromptMode.ManualOnly)
 
         assertEquals(QuickUnlockOfferState.Enrolled, entryPoint.vaultSessionManager().quickUnlockOfferState())
         assertTrue(quickUnlockAliases().isNotEmpty())
@@ -177,7 +182,7 @@ class QuickUnlockDeviceCredentialTest {
     }
 
     @Test
-    fun activityRecreationKeepsLiveSessionButRemoteColdProcessNeverStartsUnlocked() {
+    fun activityRecreationKeepsLiveSessionAndRemoteProcessStartsLocked() {
         val fixture = createUnlockedFixture()
 
         composeRule.activityRule.scenario.recreate()
