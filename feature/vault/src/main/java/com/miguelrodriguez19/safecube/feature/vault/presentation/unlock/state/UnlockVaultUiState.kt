@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.feature.vault.presentation.state.VaultUiOp
 import com.miguelrodriguez19.safecube.feature.vault.presentation.state.isLoading
 import com.miguelrodriguez19.safecube.feature.vault.presentation.state.isRetryable
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptRequest
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
 
 data class UnlockVaultUiState(
     val passphrase: String = "",
@@ -15,6 +16,7 @@ data class UnlockVaultUiState(
     val canRetryQuickUnlock: Boolean = false,
     val pendingQuickUnlockPrompt: QuickUnlockPromptRequest? = null,
     val quickUnlockPromptPresented: Boolean = false,
+    val lockReason: VaultLockReason? = null,
 ) {
     val isLoading: Boolean
         get() = operationState.isLoading

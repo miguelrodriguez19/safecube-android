@@ -40,6 +40,7 @@ class UnlockVaultViewModel @Inject constructor(
     val events: Flow<UnlockVaultUiEvent> = eventsChannel.receiveAsFlow()
 
     private var quickUnlockAvailabilityChecked = false
+    private var lockReasonChecked = false
     private var pendingPrompt: QuickUnlockPromptRequest? = null
     private var navigationEmitted = false
 
@@ -52,6 +53,7 @@ class UnlockVaultViewModel @Inject constructor(
             UnlockVaultUiAction.RetryQuickUnlock -> prepareQuickUnlock()
             UnlockVaultUiAction.EnableQuickUnlock -> prepareQuickUnlockEnrollment()
             UnlockVaultUiAction.DeclineQuickUnlock -> declineQuickUnlockOffer()
+            UnlockVaultUiAction.DismissLockNotice -> dismissLockNotice()
             is UnlockVaultUiAction.QuickUnlockPromptSucceeded -> finishPrompt(action.operationId)
             is UnlockVaultUiAction.QuickUnlockPromptCancelled -> cancelPrompt(action.operationId)
         }
@@ -84,6 +86,7 @@ class UnlockVaultViewModel @Inject constructor(
     }
 
     private fun checkQuickUnlockAvailability() {
+        readPendingLockReason()
         if (quickUnlockAvailabilityChecked) return
         quickUnlockAvailabilityChecked = true
         if (vaultSessionManager.quickUnlockOfferState() == QuickUnlockOfferState.Enrolled) {
@@ -96,6 +99,17 @@ class UnlockVaultViewModel @Inject constructor(
                 prepareQuickUnlock()
             }
         }
+    }
+
+    private fun readPendingLockReason() {
+        if (lockReasonChecked) return
+        lockReasonChecked = true
+        val lockReason = vaultSessionManager.consumeLockReason() ?: return
+        mutableUiState.update { current -> current.copy(lockReason = lockReason) }
+    }
+
+    private fun dismissLockNotice() {
+        mutableUiState.update { current -> current.copy(lockReason = null) }
     }
 
     private fun submit() {

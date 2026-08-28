@@ -276,6 +276,10 @@ modifica su identidad criptográfica.
    esa limpieza no evita el lock y queda como riesgo residual explícito. La sesión autenticada,
    `kekEncRecovery`, items, drafts y checkpoints se conservan. Confirmar el candidato o conservar
    la base no elimina el enrolamiento.
+10. Unlock presenta una explicación sanitizada de un solo uso cuando el lock procede de un tercer
+    wrapper o de una reconciliación indeterminada. Ambos casos usan mensajes distintos, preservan la
+    sesión autenticada y preceden cualquier oferta de quick unlock. La causa no se persiste ni se
+    muestra en locks ordinarios.
 
 Los detalles de orden de persistencia, reconciliación y limpieza se formalizan en
 [ADR-0002-PASSPHRASE-REWRAP](../../architecture/adr/ADR-0002-PASSPHRASE-REWRAP.md), ACCEPTED por
@@ -285,14 +289,16 @@ el owner humano.
 clientes con la misma versión producen un único ganador; una passphrase actual incorrecta no envía
 el PUT; una respuesta perdida no se declara éxito sin GET /vault/keys; un tercer wrapper o
 resultado indeterminado bloquea, invalida quick unlock best-effort y exige desbloqueo manual sin
-borrar items.
+borrar items; al llegar a Unlock se explica el bloqueo sin afirmar que la sesión de cuenta se haya
+cerrado ni exponer material sensible.
 
 **Estrategia de test:** tests unitarios de KDF/unwrap/rewrap, tests de contrato del request y
 tests de integración para confirmación, respuesta perdida y lectura posterior; comparar que no
 cambian los campos de items y drafts. La cobertura M132 debe incluir revisión obsoleta secuencial,
 carrera determinista de dos clientes, conflicto `412`, resultado incierto, reconciliación con
 candidato/base/tercer wrapper y fallo de reconciliación, además de conservar o invalidar el
-enrolamiento quick unlock según el resultado.
+enrolamiento quick unlock según el resultado. También debe comprobar el consumo único de la causa,
+los mensajes distintos y la ausencia de aviso en un lock ordinario.
 
 ### SEC-PRIVACY-001 — Superficies sensibles y estado transitorio
 

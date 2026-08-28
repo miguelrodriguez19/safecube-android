@@ -8,6 +8,7 @@ sealed interface UnlockVaultUiAction {
     data object RetryQuickUnlock : UnlockVaultUiAction
     data object EnableQuickUnlock : UnlockVaultUiAction
     data object DeclineQuickUnlock : UnlockVaultUiAction
+    data object DismissLockNotice : UnlockVaultUiAction
     data class QuickUnlockPromptSucceeded(val operationId: String) : UnlockVaultUiAction
     data class QuickUnlockPromptCancelled(val operationId: String) : UnlockVaultUiAction
 }

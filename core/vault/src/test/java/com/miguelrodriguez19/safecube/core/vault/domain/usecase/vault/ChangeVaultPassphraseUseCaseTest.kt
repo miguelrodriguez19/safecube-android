@@ -20,6 +20,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultKekProvider
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -71,7 +72,7 @@ class ChangeVaultPassphraseUseCaseTest {
     @Before
     fun setUp() {
         every { vaultSessionManager.isUnlocked() } returns true
-        every { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) } just Runs
+        every { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any()) } just Runs
         every { vaultSessionManager.clearQuickUnlockEnrollment() } returns QuickUnlockCleanupResult.Cleared
         every { vaultKekProvider.snapshot() } answers { activeKek.copyOf() }
         every { localRepository.read() } returns VaultKeyMaterialLocalReadResult.Present(baseMaterial)
@@ -117,7 +118,7 @@ class ChangeVaultPassphraseUseCaseTest {
         }
         verify(exactly = 0) { localRepository.clearMasterWrappedKek() }
         verify(exactly = 0) { vaultSessionManager.clearQuickUnlockEnrollment() }
-        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any()) }
     }
 
     @Test
@@ -159,7 +160,7 @@ class ChangeVaultPassphraseUseCaseTest {
         )
         coVerify(exactly = 0) { remoteRepository.updateMasterWrappedKek(any(), any()) }
         verify(exactly = 1) { localRepository.clearMasterWrappedKek() }
-        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any()) }
     }
 
     @Test
@@ -181,7 +182,7 @@ class ChangeVaultPassphraseUseCaseTest {
         verify(exactly = 0) { localRepository.save(any()) }
         coVerify(exactly = 0) { remoteRepository.updateMasterWrappedKek(any(), any()) }
         verify(exactly = 1) { vaultSessionManager.clearQuickUnlockEnrollment() }
-        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any()) }
     }
 
     @Test
@@ -264,7 +265,7 @@ class ChangeVaultPassphraseUseCaseTest {
         assertEquals(1, updatedWrappers.size)
         assertArrayEquals(newMasterWrapper, updatedWrappers.single())
         verify(exactly = 0) { vaultSessionManager.clearQuickUnlockEnrollment() }
-        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any()) }
     }
 
     @Test
@@ -291,7 +292,7 @@ class ChangeVaultPassphraseUseCaseTest {
         assertTrue(updatedWrappers.isEmpty())
         verify(exactly = 0) { localRepository.clearMasterWrappedKek() }
         verify(exactly = 0) { vaultSessionManager.clearQuickUnlockEnrollment() }
-        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any()) }
     }
 
     @Test
@@ -319,10 +320,18 @@ class ChangeVaultPassphraseUseCaseTest {
         assertArrayEquals(thirdMasterWrapper, updatedWrappers.single())
         verify(exactly = 0) { localRepository.save(any()) }
         verify(exactly = 1) { vaultSessionManager.clearQuickUnlockEnrollment() }
-        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 1) {
+            vaultSessionManager.lock(
+                QuickUnlockPromptMode.ManualOnly,
+                VaultLockReason.RemotePassphraseChanged,
+            )
+        }
         verifyOrder {
             vaultSessionManager.clearQuickUnlockEnrollment()
-            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
+            vaultSessionManager.lock(
+                QuickUnlockPromptMode.ManualOnly,
+                VaultLockReason.RemotePassphraseChanged,
+            )
         }
         verify(exactly = 0) { localRepository.clearMasterWrappedKek() }
     }
@@ -350,10 +359,18 @@ class ChangeVaultPassphraseUseCaseTest {
             result,
         )
         verify(exactly = 1) { vaultSessionManager.clearQuickUnlockEnrollment() }
-        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 1) {
+            vaultSessionManager.lock(
+                QuickUnlockPromptMode.ManualOnly,
+                VaultLockReason.RemotePassphraseChanged,
+            )
+        }
         verifyOrder {
             vaultSessionManager.clearQuickUnlockEnrollment()
-            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
+            vaultSessionManager.lock(
+                QuickUnlockPromptMode.ManualOnly,
+                VaultLockReason.RemotePassphraseChanged,
+            )
         }
     }
 
@@ -404,7 +421,7 @@ class ChangeVaultPassphraseUseCaseTest {
             result,
         )
         verify(exactly = 0) { vaultSessionManager.clearQuickUnlockEnrollment() }
-        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 0) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any()) }
     }
 
     @Test
@@ -429,10 +446,10 @@ class ChangeVaultPassphraseUseCaseTest {
             result,
         )
         verify(exactly = 1) { vaultSessionManager.clearQuickUnlockEnrollment() }
-        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any()) }
         verifyOrder {
             vaultSessionManager.clearQuickUnlockEnrollment()
-            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
+            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any())
         }
     }
 
@@ -459,10 +476,18 @@ class ChangeVaultPassphraseUseCaseTest {
         )
         verify(exactly = 1) { localRepository.clearMasterWrappedKek() }
         verify(exactly = 1) { vaultSessionManager.clearQuickUnlockEnrollment() }
-        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 1) {
+            vaultSessionManager.lock(
+                QuickUnlockPromptMode.ManualOnly,
+                VaultLockReason.PassphraseChangeReconciliationRequired,
+            )
+        }
         verifyOrder {
             vaultSessionManager.clearQuickUnlockEnrollment()
-            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
+            vaultSessionManager.lock(
+                QuickUnlockPromptMode.ManualOnly,
+                VaultLockReason.PassphraseChangeReconciliationRequired,
+            )
         }
     }
 
@@ -529,10 +554,10 @@ class ChangeVaultPassphraseUseCaseTest {
         )
         verify(exactly = 1) { localRepository.clearMasterWrappedKek() }
         verify(exactly = 1) { vaultSessionManager.clearQuickUnlockEnrollment() }
-        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any()) }
         verifyOrder {
             vaultSessionManager.clearQuickUnlockEnrollment()
-            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
+            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any())
         }
     }
 
@@ -765,7 +790,7 @@ class ChangeVaultPassphraseUseCaseTest {
         }
         verify(exactly = incompatibleVersions.size) { localRepository.clearMasterWrappedKek() }
         verify(exactly = incompatibleVersions.size) {
-            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
+            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any())
         }
     }
 
@@ -792,7 +817,7 @@ class ChangeVaultPassphraseUseCaseTest {
             result,
         )
         verify(exactly = 1) { localRepository.clearMasterWrappedKek() }
-        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly) }
+        verify(exactly = 1) { vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly, any()) }
     }
 
     @Test
@@ -851,13 +876,13 @@ class ChangeVaultPassphraseUseCaseTest {
         if (valueA == ChangeVaultPassphraseResult.Success) {
             verify(exactly = 0) { clientA.session.clearQuickUnlockEnrollment() }
             verify(exactly = 1) { clientB.session.clearQuickUnlockEnrollment() }
-            verify(exactly = 0) { clientA.session.lock(QuickUnlockPromptMode.ManualOnly) }
-            verify(exactly = 1) { clientB.session.lock(QuickUnlockPromptMode.ManualOnly) }
+            verify(exactly = 0) { clientA.session.lock(QuickUnlockPromptMode.ManualOnly, any()) }
+            verify(exactly = 1) { clientB.session.lock(QuickUnlockPromptMode.ManualOnly, any()) }
         } else {
             verify(exactly = 1) { clientA.session.clearQuickUnlockEnrollment() }
             verify(exactly = 0) { clientB.session.clearQuickUnlockEnrollment() }
-            verify(exactly = 1) { clientA.session.lock(QuickUnlockPromptMode.ManualOnly) }
-            verify(exactly = 0) { clientB.session.lock(QuickUnlockPromptMode.ManualOnly) }
+            verify(exactly = 1) { clientA.session.lock(QuickUnlockPromptMode.ManualOnly, any()) }
+            verify(exactly = 0) { clientB.session.lock(QuickUnlockPromptMode.ManualOnly, any()) }
         }
     }
 
@@ -959,7 +984,7 @@ class ChangeVaultPassphraseUseCaseTest {
 
         every { session.isUnlocked() } returns true
         every { session.clearQuickUnlockEnrollment() } returns QuickUnlockCleanupResult.Cleared
-        every { session.lock(QuickUnlockPromptMode.ManualOnly) } just Runs
+        every { session.lock(QuickUnlockPromptMode.ManualOnly, any()) } just Runs
         every { kekProvider.snapshot() } answers { activeKek.copyOf() }
         every { local.read() } returns VaultKeyMaterialLocalReadResult.Present(baseMaterial)
         every { local.save(any()) } just Runs
