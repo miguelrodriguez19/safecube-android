@@ -13,4 +13,6 @@ interface SessionManager {
     fun onLoginSuccess(tokens: AuthTokens)
 
     fun forceLogout(reason: SessionTerminationReason = SessionTerminationReason.ManualLogout)
+
+    fun acknowledgeTermination(reason: SessionTerminationReason)
 }

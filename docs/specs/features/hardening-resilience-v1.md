@@ -95,15 +95,21 @@ La sesión autenticada y la sesión desbloqueada del vault son estados independi
    limpieza de datos locales
    sigue [SPEC-VAULT-SYNC-V2](../../architecture/vault-sync-versioning-v2.md)
    y no debe convertir un fallo remoto de logout en una sesión parcialmente autenticada.
-3. Un fallo de transporte, timeout, 408, 429 o 5xx durante refresh conserva la sesión y el vault en
+3. Después de completar el cierre seguro y establecer Login como raíz, el cliente muestra una vez
+   un diálogo modal con una explicación localizada y sanitizada de la causa: sesión caducada,
+   credenciales de renovación rechazadas o fallo de integridad local. El reconocimiento consume
+   solo el motivo process-local; no retrasa la limpieza, no se persiste y no aplica al logout
+   manual, auto-lock ni `Lock now`.
+4. Un fallo de transporte, timeout, 408, 429 o 5xx durante refresh conserva la sesión y el vault en
    el estado que aún sea seguro mantener. Se expone RetryableError o contenido local con una
    indicación retryable y no se navega automáticamente a Login.
-4. Un segundo 401 tras el refresh único se considera expiración definitiva y sigue el flujo de
+5. Un segundo 401 tras el refresh único se considera expiración definitiva y sigue el flujo de
    cierre seguro.
 
 **Criterios observables:** varias respuestas 401 concurrentes producen un único refresh; un refresh
 transitorio conserva la sesión; un refresh definitivamente rechazado elimina tokens y KEK, limpia
-plaintext y navega a Login; no se crean identidades nuevas.
+plaintext, navega a Login y presenta un único diálogo explicativo; el reconocimiento no permite
+volver a una ruta protegida y no se crean identidades nuevas.
 
 **Estrategia de test:** tests unitarios de concurrencia y clasificación en core:auth/core:network,
 tests de integración con respuestas 401 y refresh transitorio/definitivo, y test instrumentado que

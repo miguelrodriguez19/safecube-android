@@ -10,6 +10,7 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 @Singleton
 class SessionManagerImpl @Inject constructor(
@@ -34,6 +35,16 @@ class SessionManagerImpl @Inject constructor(
     override fun forceLogout(reason: SessionTerminationReason) {
         tokenStorage.clear()
         mutableSessionState.value = SessionState.LoggedOut(reason)
+    }
+
+    override fun acknowledgeTermination(reason: SessionTerminationReason) {
+        mutableSessionState.update { currentState ->
+            if (currentState == SessionState.LoggedOut(reason)) {
+                SessionState.LoggedOut()
+            } else {
+                currentState
+            }
+        }
     }
 
     override fun getAccessToken(): String? = tokenStorage.getAccessToken()
