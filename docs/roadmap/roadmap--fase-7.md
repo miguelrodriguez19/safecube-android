@@ -1506,6 +1506,8 @@ existe una señal de conflicto que permita al cliente invalidar el estado obsole
   respuesta perdida.
 - Reconciliar el estado remoto antes de declarar éxito o bloquear de forma segura cuando el estado
   quede indeterminado.
+- Explicar en Unlock, mediante un aviso de un solo uso, si el bloqueo se debe a un cambio remoto
+  confirmado o a una reconciliación indeterminada, conservando la sesión autenticada.
 - Garantizar que solo cambia `kekEncMaster` y que `kekEncRecovery`, items, drafts y checkpoints
   permanecen byte-for-byte idénticos.
 - Añadir tests de dos clientes con la misma versión base, ganador único, cliente perdedor y
@@ -1543,6 +1545,8 @@ produciendo una política de último escritor gana.
 - [ ] Un cliente con caché obsoleta no puede sobrescribir silenciosamente el cambio aceptado.
 - [ ] Conflicto, respuesta perdida y reconciliación incierta terminan en un estado seguro y
   explicable.
+- [ ] Unlock muestra una explicación sanitizada y distinta para cambio remoto confirmado o
+  reconciliación indeterminada; el aviso no aparece en locks ordinarios ni fuerza logout.
 - [ ] `kekEncRecovery`, items, drafts y checkpoints permanecen sin cambios.
 - [ ] Existen tests deterministas de concurrencia, conflicto y respuesta perdida.
 - [ ] `ciVerify`, trazabilidad y agent report están actualizados.

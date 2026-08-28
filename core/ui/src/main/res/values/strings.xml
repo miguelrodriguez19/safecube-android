@@ -2,6 +2,7 @@
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
+    <string name="action_understood">Got it</string>
     <string name="generic_error">Something went wrong</string>
     <string name="cancel">Cancel</string>
     <string name="logout_with_drafts_title">Discard local changes?</string>
@@ -22,6 +23,10 @@
     <string name="vault_unlock_description">Enter your passphrase to open your secure data.</string>
     <string name="vault_unlock_loading">Unlocking vault…</string>
     <string name="vault_unlock_action">Unlock vault</string>
+    <string name="vault_lock_remote_passphrase_changed_title">The passphrase changed on another device</string>
+    <string name="vault_lock_remote_passphrase_changed_message">For your security, we locked your vault because its passphrase changed on another device. Your account session is still active. Unlock it with the current passphrase or your recovery key.</string>
+    <string name="vault_lock_passphrase_reconciliation_title">We couldn’t confirm the passphrase change</string>
+    <string name="vault_lock_passphrase_reconciliation_message">We locked your vault because we couldn’t confirm which passphrase currently protects it. Your account session is still active. Check your connection, then unlock it with the current passphrase or your recovery key.</string>
     <string name="quick_unlock_offer_title">Enable quick unlock?</string>
     <string name="quick_unlock_offer_description">Use strong biometrics or your device PIN, pattern, or password to unlock this vault. This is not a SafeCube PIN.</string>
     <string name="quick_unlock_enable">Enable</string>

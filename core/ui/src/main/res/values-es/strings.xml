@@ -2,6 +2,7 @@
     <string name="action_save">Guardar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_delete">Eliminar</string>
+    <string name="action_understood">Entendido</string>
     <string name="generic_error">Algo salió mal</string>
     <string name="cancel">Cancelar</string>
     <string name="logout_with_drafts_title">¿Descartar cambios locales?</string>
@@ -22,6 +23,10 @@
     <string name="vault_unlock_description">Introduce la passphrase para abrir tus datos seguros.</string>
     <string name="vault_unlock_loading">Desbloqueando bóveda…</string>
     <string name="vault_unlock_action">Desbloquear bóveda</string>
+    <string name="vault_lock_remote_passphrase_changed_title">La passphrase ha cambiado en otro dispositivo</string>
+    <string name="vault_lock_remote_passphrase_changed_message">Por seguridad, hemos bloqueado tu bóveda porque la passphrase se ha cambiado en otro dispositivo. Tu sesión de cuenta sigue activa. Desbloquéala con la passphrase vigente o con tu recovery key.</string>
+    <string name="vault_lock_passphrase_reconciliation_title">No se ha podido confirmar el cambio de passphrase</string>
+    <string name="vault_lock_passphrase_reconciliation_message">Hemos bloqueado tu bóveda porque no se ha podido confirmar qué passphrase la protege actualmente. Tu sesión de cuenta sigue activa. Comprueba tu conexión y desbloquéala con la passphrase vigente o con tu recovery key.</string>
     <string name="quick_unlock_offer_title">¿Activar desbloqueo rápido?</string>
     <string name="quick_unlock_offer_description">Usa biometría fuerte o el PIN, patrón o contraseña del dispositivo para desbloquear esta bóveda. No es un PIN de SafeCube.</string>
     <string name="quick_unlock_enable">Activar</string>

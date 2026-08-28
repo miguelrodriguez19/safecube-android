@@ -223,6 +223,11 @@ la decisión de rewrap de la misma KEK.
    residual y no evita el lock ni autoriza éxito. La sesión autenticada se conserva. Un resultado
    que confirma `wrapperCandidato` o conserva `wrapperBase` no elimina ni invalida el enrolamiento
    quick unlock.
+9. Al entrar en Unlock tras un tercer wrapper, el cliente presenta una explicación sanitizada y de
+   un solo uso antes de ofrecer quick unlock. La explicación distingue un cambio remoto confirmado
+   de una reconciliación indeterminada, aclara que solo se ha bloqueado el vault y que la sesión
+   autenticada continúa activa. Esta causa es process-local: no contiene secretos, no se persiste y
+   no aparece en auto-lock, `Lock now` ni en un desbloqueo ordinario.
 
 ## Justificación
 
