@@ -52,12 +52,12 @@
             "description": "OK",
             "headers": {
               "Cache-Control": {
-                "description": "Responses containing vault key material must not be cached.",
+                "description": "Responses containing vault key material must not be cached or transformed by intermediaries.",
                 "required": true,
                 "style": "simple",
                 "schema": {
                   "type": "string",
-                  "example": "no-store"
+                  "example": "no-store, no-transform"
                 }
               },
               "ETag": {
@@ -604,12 +604,12 @@
             "description": "OK",
             "headers": {
               "Cache-Control": {
-                "description": "Responses containing vault key material must not be cached.",
+                "description": "Responses containing vault key material must not be cached or transformed by intermediaries.",
                 "required": true,
                 "style": "simple",
                 "schema": {
                   "type": "string",
-                  "example": "no-store"
+                  "example": "no-store, no-transform"
                 }
               },
               "ETag": {
