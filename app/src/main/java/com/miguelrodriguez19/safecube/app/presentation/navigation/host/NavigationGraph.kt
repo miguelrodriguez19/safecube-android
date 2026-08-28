@@ -28,7 +28,6 @@ internal fun navigationEntryProvider(
     popBackStack: () -> Unit,
     onLogout: () -> Unit,
     onLockNow: () -> Unit,
-    showSessionExpiredMessage: Boolean,
 ): (NavKey) -> NavEntry<NavKey> = entryProvider {
     entry<Routes.Splash> {
         SplashGateScreen()
@@ -43,7 +42,6 @@ internal fun navigationEntryProvider(
         LoginScreen(
             onSignup = { addRoute(Routes.Signup) },
             onLoginSuccess = { setRoot(Routes.PostLoginGate) },
-            showSessionExpiredMessage = showSessionExpiredMessage,
         )
     }
     entry<Routes.Signup> {

@@ -124,7 +124,11 @@
     <string name="created_account">Crear cuenta</string>
     <string name="start_your_journey">Comienza tu viaje hacia una bóveda segura</string>
     <string name="access_your_vault">Accede a tu bóveda</string>
-    <string name="session_expired_message">Tu sesión ha caducado. Inicia sesión de nuevo.</string>
+    <string name="session_terminated_title">Se ha cerrado tu sesión</string>
+    <string name="session_expired_message">Tu sesión ha caducado y, para proteger tu cuenta, se ha cerrado. Inicia sesión de nuevo para continuar.</string>
+    <string name="session_refresh_rejected_message">No se ha podido renovar tu sesión y, para proteger tu cuenta, se ha cerrado. Inicia sesión de nuevo para continuar.</string>
+    <string name="session_local_integrity_message">Hemos detectado un problema con los datos seguros locales. Se ha cerrado tu sesión por seguridad. Inicia sesión de nuevo para continuar.</string>
+    <string name="session_sign_in_again">Iniciar sesión de nuevo</string>
     <string name="logging_in">Iniciando sesión…</string>
     <string name="login">Iniciar sesión</string>
     <string name="go_to_signup">Ir al registro</string>

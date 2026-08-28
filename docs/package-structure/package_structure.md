@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 28-08-2026 01:32:29
+Updated: 28-08-2026 02:19:50
 
 ```
 safecube-android/
@@ -48,6 +48,7 @@ safecube-android/
 │   │   │   │   │   │   │   ├── NavigationGates.kt
 │   │   │   │   │   │   │   └── NavigationGatesEntryPoint.kt
 │   │   │   │   │   │   ├── host/
+│   │   │   │   │   │   │   ├── ForcedLogoutNoticeDialog.kt
 │   │   │   │   │   │   │   ├── NavigationBackPolicy.kt
 │   │   │   │   │   │   │   ├── NavigationDependencies.kt
 │   │   │   │   │   │   │   ├── NavigationGraph.kt

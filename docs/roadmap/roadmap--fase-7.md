@@ -410,7 +410,8 @@ transitoria.
 - Zeroizar KEK, borrar tokens y ejecutar limpieza local según `SPEC-VAULT-SYNC-V2`.
 - Garantizar logout local aunque falle el logout remoto o la limpieza de Room.
 - Vaciar el back stack protegido y establecer Login como raíz cuando expire la sesión.
-- Mostrar un mensaje no sensible indicando que la sesión expiró.
+- Mostrar, después del cierre seguro, un diálogo modal no sensible y de un solo uso que explique
+  sesión caducada, renovación rechazada o fallo de integridad local.
 - Añadir tests de concurrencia, refresh definitivo/transitorio, limpieza fallida y navegación.
 
 ### Out of Scope (if applies)
@@ -439,7 +440,8 @@ el token nuevo. Un refresh rechazado termina la sesión; un fallo transitorio no
 - [ ] Refresh 400/401/403 elimina sesión y contenido local conforme a la spec.
 - [ ] Un timeout o 5xx de refresh conserva la sesión y queda clasificado como retryable.
 - [ ] Tras expiración no puede volverse a una ruta protegida con Back.
-- [ ] La UI no muestra bodies, tokens ni detalles internos.
+- [ ] La UI muestra una sola vez el motivo sanitizado del cierre forzado y no muestra bodies,
+  tokens ni detalles internos.
 - [ ] Tests y `ciVerify` pasan.
 - [ ] Trazabilidad y agent report están actualizados.
 

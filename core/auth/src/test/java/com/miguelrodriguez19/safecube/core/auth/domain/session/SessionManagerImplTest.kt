@@ -109,6 +109,43 @@ class SessionManagerImplTest {
     }
 
     @Test
+    fun `acknowledgeTermination when reason matches then consumes forced logout notice`() {
+        every { tokenStorage.getAccessToken() } returns "access-token"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { tokenStorage.clear() } just Runs
+        createTarget()
+        target.forceLogout(SessionTerminationReason.SessionExpired)
+
+        target.acknowledgeTermination(SessionTerminationReason.SessionExpired)
+
+        assertEquals(SessionState.LoggedOut(), target.sessionState.value)
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { tokenStorage.clear() }
+        confirmVerified(tokenStorage)
+    }
+
+    @Test
+    fun `acknowledgeTermination when reason is stale then preserves current notice`() {
+        every { tokenStorage.getAccessToken() } returns "access-token"
+        every { tokenStorage.getRefreshToken() } returns "refresh-token"
+        every { tokenStorage.clear() } just Runs
+        createTarget()
+        target.forceLogout(SessionTerminationReason.RefreshCredentialsRejected)
+
+        target.acknowledgeTermination(SessionTerminationReason.SessionExpired)
+
+        assertEquals(
+            SessionState.LoggedOut(SessionTerminationReason.RefreshCredentialsRejected),
+            target.sessionState.value,
+        )
+        verify(exactly = 1) { tokenStorage.getAccessToken() }
+        verify(exactly = 1) { tokenStorage.getRefreshToken() }
+        verify(exactly = 1) { tokenStorage.clear() }
+        confirmVerified(tokenStorage)
+    }
+
+    @Test
     fun `getAccessToken when session manager delegates then returns token storage access token`() {
         every { tokenStorage.getAccessToken() } returnsMany listOf(null, "access-token")
         every { tokenStorage.getRefreshToken() } returns null

@@ -18,8 +18,9 @@ class NavigationSessionCoordinatorTest {
         )
 
         assertEquals(Routes.Login, destination)
-        assertTrue(
-            shouldShowSessionExpiredMessage(
+        assertEquals(
+            ForcedLogoutNotice.SessionExpired,
+            resolveForcedLogoutNotice(
                 SessionState.LoggedOut(SessionTerminationReason.SessionExpired),
             ),
         )
@@ -33,7 +34,31 @@ class NavigationSessionCoordinatorTest {
             Routes.Welcome,
             resolveSessionRedirectTarget(state, Routes.Settings),
         )
-        assertFalse(shouldShowSessionExpiredMessage(state))
+        assertEquals(null, resolveForcedLogoutNotice(state))
+    }
+
+    @Test
+    fun `forced logout reasons resolve a specific notice`() {
+        assertEquals(
+            ForcedLogoutNotice.RefreshCredentialsRejected,
+            resolveForcedLogoutNotice(
+                SessionState.LoggedOut(SessionTerminationReason.RefreshCredentialsRejected),
+            ),
+        )
+        assertEquals(
+            ForcedLogoutNotice.LocalIntegrityFailure,
+            resolveForcedLogoutNotice(
+                SessionState.LoggedOut(SessionTerminationReason.LocalIntegrityFailure),
+            ),
+        )
+        assertEquals(
+            null,
+            resolveForcedLogoutNotice(SessionState.LoggedOut()),
+        )
+        assertEquals(
+            null,
+            resolveForcedLogoutNotice(SessionState.LoggedInVaultLocked),
+        )
     }
 
     @Test

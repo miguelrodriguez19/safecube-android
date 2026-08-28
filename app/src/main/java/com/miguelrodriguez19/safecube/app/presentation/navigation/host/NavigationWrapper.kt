@@ -13,6 +13,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.miguelrodriguez19.safecube.app.presentation.navigation.route.Routes
 import com.miguelrodriguez19.safecube.app.presentation.ui.SplashGateScreen
+import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionState
 import com.miguelrodriguez19.safecube.core.auth.domain.model.SessionTerminationReason
 import kotlinx.coroutines.launch
 
@@ -25,6 +26,8 @@ fun NavigationWrapper() {
     val sessionState by dependencies.sessionManager.sessionState.collectAsState()
     val vaultState by dependencies.vaultSessionManager.vaultState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+    val currentRoute = backStack.lastOrNull() as? Routes
+    val forcedLogoutNotice = resolveForcedLogoutNotice(sessionState)
 
     val setRoot: (Routes) -> Unit = setRoot@{ route ->
         if (backStack.size == 1 && backStack.lastOrNull() == route) return@setRoot
@@ -82,19 +85,19 @@ fun NavigationWrapper() {
     ObserveSessionRedirect(
         sessionState = sessionState,
         vaultState = vaultState,
-        currentRoute = backStack.lastOrNull() as? Routes,
+        currentRoute = currentRoute,
         setRoot = setRoot,
     )
     ObserveVaultRedirect(
         vaultState = vaultState,
-        currentRoute = backStack.lastOrNull() as? Routes,
+        currentRoute = currentRoute,
         setRoot = setRoot,
     )
 
     if (shouldGuardRestoredNavigation(
             sessionState = sessionState,
             vaultState = vaultState,
-            currentRoute = backStack.lastOrNull() as? Routes,
+            currentRoute = currentRoute,
         )
     ) {
         SplashGateScreen()
@@ -124,8 +127,19 @@ fun NavigationWrapper() {
                     dependencies.vaultAutoLockController.lockNow()
                     setRoot(Routes.UnlockVault)
                 },
-                showSessionExpiredMessage = shouldShowSessionExpiredMessage(sessionState),
             )
+        )
+    }
+
+    if (currentRoute == Routes.Login && forcedLogoutNotice != null) {
+        ForcedLogoutNoticeDialog(
+            notice = forcedLogoutNotice,
+            onAcknowledged = {
+                val reason = (sessionState as? SessionState.LoggedOut)?.reason
+                if (reason != null) {
+                    dependencies.sessionManager.acknowledgeTermination(reason)
+                }
+            },
         )
     }
 }
