@@ -223,6 +223,15 @@ Resultado:
 
 Definir primero un contrato de telemetría seguro y elegir después el backend:
 
+Gate de entrada obligatorio:
+
+* Eliminar `HttpLoggingInterceptor.Level.BODY` de debug y cualquier volcado manual de tráfico.
+* Verificar que debug, release y benchmark no registran headers, bodies, tokens ni payloads.
+* Sustituir la señal perdida por eventos estructurados y redactados de observabilidad.
+* Añadir un quality gate que impida volver a introducir logging HTTP raw en cualquier variante.
+
+Solo después de cerrar ese gate se integra la plataforma de observabilidad:
+
 * Crashes y ANR
 * Tiempo de arranque, frames lentos y operaciones críticas
 * Fallos clasificados de auth, refresh, sync, storage y crypto
@@ -250,8 +259,9 @@ despliegues, actualizaciones, backups, retención y alertas.
 
 Resultado:
 
-> Los fallos de producción pueden detectarse y diagnosticarse sin comprometer secretos ni convertir
-> la telemetría en una dependencia del producto.
+> SafeCube deja de depender de logs HTTP de desarrollo: ninguna build registra tráfico raw y los
+> fallos de producción se diagnostican mediante observabilidad estructurada, redactada y
+> verificable, sin convertirla en una dependencia del producto.
 
 ---
 

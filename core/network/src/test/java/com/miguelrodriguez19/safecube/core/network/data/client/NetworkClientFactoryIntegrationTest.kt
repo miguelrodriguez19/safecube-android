@@ -8,6 +8,10 @@ import java.time.Instant
 import kotlinx.serialization.Serializable
 import okhttp3.Authenticator
 import okhttp3.Interceptor
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
@@ -36,14 +40,58 @@ class NetworkClientFactoryIntegrationTest {
     }
 
     @Test
-    fun `createOkHttpClient when debug and release configs are used then never adds logging`() {
+    fun `createOkHttpClient when no debug logger is provided then adds no logging`() {
         val config = NetworkConfig(baseUrl = server.url("/").toString())
 
-        val debugClient = NetworkClientFactory.createOkHttpClient(config)
-        val releaseClient = NetworkClientFactory.createOkHttpClient(config)
+        val client = NetworkClientFactory.createOkHttpClient(config)
 
-        assertFalse(debugClient.hasHttpLoggingInterceptor())
-        assertFalse(releaseClient.hasHttpLoggingInterceptor())
+        assertFalse(client.hasHttpLoggingInterceptor())
+    }
+
+    @Test
+    fun `createDebugHttpLoggingInterceptor when enabled then logs full request and response`() {
+        val messages = mutableListOf<String>()
+        val secretToken = "synthetic-access-token"
+        val secretRequest = "synthetic-request-body"
+        val secretResponse = "synthetic-response-body"
+        val logger = NetworkClientFactory.createDebugHttpLoggingInterceptor(
+            enabled = true,
+            logger = messages::add,
+        )
+        val client = NetworkClientFactory.createOkHttpClient(
+            config = NetworkConfig(baseUrl = server.url("/").toString()),
+            httpLoggingInterceptor = logger,
+        )
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "text/plain")
+                .setBody(secretResponse),
+        )
+        val request = Request.Builder()
+            .url(server.url("/safecube/vault/keys/master"))
+            .header("Authorization", "Bearer $secretToken")
+            .put(secretRequest.toRequestBody("text/plain".toMediaType()))
+            .build()
+
+        client.newCall(request).execute().close()
+
+        assertTrue(client.hasHttpLoggingInterceptor())
+        assertEquals(HttpLoggingInterceptor.Level.BODY, logger.loggingLevel())
+        val output = messages.joinToString(separator = "\n")
+        assertTrue(output.contains(secretToken))
+        assertTrue(output.contains(secretRequest))
+        assertTrue(output.contains(secretResponse))
+    }
+
+    @Test
+    fun `createDebugHttpLoggingInterceptor when disabled then returns no logger`() {
+        val logger = NetworkClientFactory.createDebugHttpLoggingInterceptor(
+            enabled = false,
+            logger = { throw AssertionError("Release logger must not run") },
+        )
+
+        assertEquals(null, logger)
     }
 
     @Test
@@ -159,6 +207,9 @@ private fun okhttp3.OkHttpClient.hasHttpLoggingInterceptor(): Boolean =
     (interceptors + networkInterceptors).any {
         it.javaClass.name == "okhttp3.logging.HttpLoggingInterceptor"
     }
+
+private fun Interceptor?.loggingLevel(): HttpLoggingInterceptor.Level? =
+    (this as? HttpLoggingInterceptor)?.level
 
 private interface PingApi {
     @GET("ping")

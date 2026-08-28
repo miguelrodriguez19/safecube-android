@@ -13,6 +13,7 @@ import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
@@ -43,6 +44,7 @@ object NetworkClientFactory {
         config: NetworkConfig,
         authInterceptor: Interceptor? = null,
         authenticator: Authenticator? = null,
+        httpLoggingInterceptor: Interceptor? = null,
     ): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(config.connectTimeoutSeconds, TimeUnit.SECONDS)
@@ -50,9 +52,26 @@ object NetworkClientFactory {
             .writeTimeout(config.writeTimeoutSeconds, TimeUnit.SECONDS)
 
         authInterceptor?.let(builder::addInterceptor)
+        httpLoggingInterceptor?.let(builder::addInterceptor)
         authenticator?.let(builder::authenticator)
 
         return builder.build()
+    }
+
+    /**
+     * Creates temporary full HTTP diagnostics for local debug builds.
+     *
+     * Phase 9 removes this logger and replaces it with redacted structured observability.
+     */
+    fun createDebugHttpLoggingInterceptor(
+        enabled: Boolean,
+        logger: (String) -> Unit,
+    ): Interceptor? = if (enabled) {
+        HttpLoggingInterceptor(logger).apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+    } else {
+        null
     }
 
     /**

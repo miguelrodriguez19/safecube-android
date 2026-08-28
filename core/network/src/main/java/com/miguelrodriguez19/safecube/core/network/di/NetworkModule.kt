@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.core.network.di
 
+import android.util.Log
 import com.miguelrodriguez19.safecube.core.network.BuildConfig
 import com.miguelrodriguez19.safecube.core.network.data.auth.AuthInterceptor
 import com.miguelrodriguez19.safecube.core.network.data.auth.TokenRefreshAuthenticator
@@ -52,6 +53,7 @@ object NetworkModule {
         config = config,
         authInterceptor = authInterceptor,
         authenticator = tokenRefreshAuthenticator,
+        httpLoggingInterceptor = provideDebugHttpLoggingInterceptor(),
     )
 
     /**
@@ -79,6 +81,7 @@ object NetworkModule {
         config: NetworkConfig,
     ): OkHttpClient = NetworkClientFactory.createOkHttpClient(
         config = config,
+        httpLoggingInterceptor = provideDebugHttpLoggingInterceptor(),
     )
 
     /**
@@ -133,4 +136,12 @@ object NetworkModule {
     fun provideRefreshAuthControllerApi(
         @RefreshRetrofit refreshRetrofit: Retrofit,
     ): AuthControllerApi = refreshRetrofit.create(AuthControllerApi::class.java)
+
+    private fun provideDebugHttpLoggingInterceptor() =
+        NetworkClientFactory.createDebugHttpLoggingInterceptor(
+            enabled = BuildConfig.DEBUG,
+            logger = { message -> Log.d(HTTP_LOG_TAG, message) },
+        )
+
+    private const val HTTP_LOG_TAG = "SafeCubeHttp"
 }

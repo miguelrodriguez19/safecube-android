@@ -7,13 +7,15 @@
 | ID                 | `ADR-0003-SENSITIVE-DATA-SURFACES`                                       |
 | Estado             | `ACCEPTED`                                                               |
 | Fecha              | `2026-08-12`                                                             |
+| Última revisión    | `2026-08-28`                                                             |
 | Owner              | Security owner humano                                                    |
 | Reemplaza          | `N/A`                                                                    |
 | Specs relacionadas | `SPEC-HARDENING-V1`, `SPEC-PRODUCT-V1`, `SPEC-CRYPTO-V1`, `SPEC-STORAGE` |
-| Tasks relacionadas | `SCDK-M112` (dependencia: `SCDK-M109`)                                   |
+| Tasks relacionadas | `SCDK-M112`, `SCDK-M128`, transición obligatoria de Fase 9               |
 
-El owner humano aceptó este ADR el 2026-08-12. Esta es la decisión normativa para las
-implementaciones de exposición y persistencia de datos sensibles.
+El owner humano aceptó este ADR el 2026-08-12 y aprobó su transición de logging el 2026-08-28.
+Esta es la decisión normativa para las implementaciones de exposición y persistencia de datos
+sensibles.
 
 ## Contexto
 
@@ -115,19 +117,20 @@ Se adopta la Opción C. La siguiente política es normativa.
 
 ### 3. Logging y diagnósticos
 
-1. Ningún build type instala logging HTTP de headers o bodies. En particular, no se permite
-   `HttpLoggingInterceptor.Level.BODY`, `HEADERS` ni equivalente propio en debug, release o tests.
-2. Queda prohibido registrar, directa o indirectamente, headers, bodies, tokens, passphrases,
-   recovery keys, `MASTER_KEY`, KEK, DEK, plaintext, payloads, `displayHint` o IDs de items.
-   También se prohíben URLs completas con parámetros, objetos serializados y mensajes de excepción
-   que puedan contener esos datos.
-3. El logging permitido se limita a eventos estructurados y no sensibles: código fijo de evento,
-   categoría coarse de resultado, código HTTP sin body y duración agrupada. No incluye account IDs,
-   item IDs, valores de campos ni datos de usuario.
-4. Los errores que lleguen a UI se mapean a mensajes de recursos o códigos de estado; no se
-   presentan excepciones crudas ni respuestas del backend.
-5. La regla aplica a `Log`, `println`, interceptores, serializers, ViewModels, tests y cualquier
-   logger de terceros. Los tests usan fixtures sintéticos que no representan secretos reales.
+1. Release, benchmark y cualquier build distribuible no instalan logging HTTP de headers o bodies.
+2. Hasta completar la Fase 9, las builds locales `debug` mantienen un
+   `HttpLoggingInterceptor.Level.BODY` para diagnóstico de desarrollo. Puede mostrar request,
+   response, headers y bodies completos; su salida no se adjunta a CI, tests, screenshots, agent
+   reports, tickets ni otros artefactos compartidos.
+3. La excepción se limita al cliente HTTP central de `core:network`, está condicionada por
+   `BuildConfig.DEBUG` y no autoriza logs sensibles adicionales en ViewModels, storage, crypto o UI.
+4. Los errores que lleguen a UI se siguen mapeando a recursos o códigos de estado; no se presentan
+   excepciones crudas ni respuestas del backend.
+5. La Fase 9 elimina el logging HTTP raw antes de integrar observabilidad, lo sustituye por eventos
+   estructurados y redactados, y añade gates que impiden reintroducir `BODY`, `HEADERS` o volcados
+   manuales de request/response en cualquier build.
+6. Después de completar la Fase 9, ningún build type registra headers, bodies, tokens, passphrases,
+   recovery keys, material criptográfico, plaintext, payloads, IDs o URLs sensibles.
 
 ### 4. Clipboard
 
@@ -221,10 +224,11 @@ inicialización de vault que aún no ha alcanzado un estado terminal.
 ## Justificación
 
 La denegación de backup y la protección de toda la Activity reducen las superficies de plataforma
-que una feature individual podría olvidar. Retirar logging HTTP de todos los build types elimina
-la vía más directa de exposición de credenciales y payloads. El bloqueo de clipboard y saved state
-evita copias persistentes o restaurables, mientras que la única excepción cifrada conserva la
-capacidad funcional de reconciliar una inicialización sin almacenar plaintext.
+que una feature individual podría olvidar. Durante el desarrollo previo a Fase 9, el logging HTTP
+debug mantiene visibilidad operacional para corregir contratos todavía inestables; release sigue
+cerrado. La Fase 9 retira esa superficie antes de introducir observabilidad. El bloqueo de clipboard
+y saved state evita copias persistentes o restaurables, mientras que la única excepción cifrada
+conserva la capacidad funcional de reconciliar una inicialización sin almacenar plaintext.
 
 La excepción está limitada a un estado operacional concreto, excluida de backup y con borrado
 verificable. De esta forma no se convierte en un almacén general de secretos ni en un segundo
@@ -235,6 +239,7 @@ protocolo de vault.
 ### Positivas
 
 - La política se aplica de forma uniforme a debug, release, recents, navegación y almacenamiento.
+- Release permanece libre de logging HTTP y debug conserva capacidad de diagnóstico hasta Fase 9.
 - Una nueva pantalla hereda protección de Activity sin tener que recordar un opt-out.
 - Los fallos durante bootstrap pueden recuperarse sin regenerar material ni persistir plaintext.
 - R8 conserva solo contratos concretos y revisables.
@@ -247,6 +252,8 @@ protocolo de vault.
   confirme el cleanup.
 - La recuperación del registro transitorio es solo para el mismo contexto de dispositivo/cuenta;
   no es un mecanismo de transferencia entre dispositivos.
+- Hasta Fase 9, logcat de una build debug puede contener tráfico sensible y debe tratarse como un
+  artefacto local efímero que no se comparte.
 
 ## Riesgos y mitigaciones
 
@@ -254,7 +261,8 @@ protocolo de vault.
 |------------------------------------------------------|---------|--------------------------------------------------------------------------------|------------------------------------------------------------|
 | Una variante reintroduce backup o device transfer    | Alto    | `allowBackup=false` más exclusiones explícitas y manifest merge tests          | Inspección de manifest efectivo por build type             |
 | Una ventana omite `FLAG_SECURE`                      | Alto    | Flag en Activity raíz, sin opt-out y tests de todas las rutas                  | Test instrumentado de screenshots/recents                  |
-| Un logger imprime un objeto sensible                 | Alto    | Sin logger HTTP, allowlist estructurada y fixtures sintéticos                  | Captura de logs en debug/release con búsqueda de patrones  |
+| El log HTTP debug se comparte o persiste             | Alto    | Solo build local debug; no CI/reportes; retirada obligatoria en Fase 9          | Auditoría de variantes y artefactos compartidos            |
+| La Fase 9 deja logging raw junto a observabilidad    | Alto    | Gate previo de eliminación y test de no regresión en todas las variantes        | Fallo del quality gate de observabilidad                   |
 | La recovery key reaparece en saved state             | Alto    | Rutas sin secreto, handoff de proceso no serializable y tests de process death | Bundle/SavedState inspection sin valores sensibles         |
 | El registro transitorio queda tras terminar el flujo | Alto    | Borrado transaccional, lectura de ausencia y bloqueo ante fallo                | Tests de confirmación, logout, discard y remoto divergente |
 | R8 se relaja con un keep global                      | Medio   | Revisión de reglas por clase y test estático de patrones prohibidos            | Release shrink verification                                |
@@ -271,13 +279,14 @@ secretos desde rutas no aprobadas. Items, drafts y checkpoints permanecen en Roo
 `SPEC-STORAGE`, pero no se exportan mediante backup.
 
 El registro transitorio no sustituye el almacenamiento canónico de items ni el material remoto. Un
-rollback de runtime debe conservar el envelope cifrado y no reactivar logging de bodies o backup
-por defecto.
+rollback de runtime debe conservar el envelope cifrado y nunca activar logging HTTP fuera de una
+build local debug anterior al cierre de Fase 9.
 
 ## Seguridad y privacidad
 
-- No se escriben secretos, payloads, IDs de items ni datos de usuario en logs, reportes, analytics,
-  Bundle, rutas o saved state.
+- Release, analytics, observabilidad, reportes, Bundle, rutas y saved state no contienen secretos,
+  payloads, IDs de items ni datos de usuario. La excepción temporal se limita al logcat local de
+  builds debug anteriores al cierre de Fase 9.
 - La recovery key aparece solo durante el flujo explícito de guardado y en una Activity protegida;
   nunca se copia automáticamente ni se persiste en claro.
 - El registro permitido es ciphertext autenticado, ligado a dispositivo/cuenta y excluido de
@@ -291,8 +300,8 @@ por defecto.
   transfer, `fullBackupContent` excluye el dominio raíz y ninguna variante añade includes.
 - Instrumentación: todas las rutas y estados de la Activity conservan `FLAG_SECURE`; recents y
   captura de pantalla no contienen contenido.
-- Logging: debug, release y tests no instalan logging de headers/bodies; fixtures sintéticos no
-  dejan en logs tokens, passphrases, recovery keys, payloads, `displayHint` ni IDs de items.
+- Logging transitorio: debug instala `BODY`; release y benchmark no instalan logger HTTP. La Fase 9
+  elimina el interceptor y añade tests que prohíben raw headers/bodies en todas las variantes.
 - Clipboard: no existe acción de copy ni llamada de escritura con datos sensibles.
 - UI/state: password y passphrase usan visual transformation; Bundle, rutas,
   `SavedStateHandle` y `rememberSaveable` no contienen secretos después de recreación o process

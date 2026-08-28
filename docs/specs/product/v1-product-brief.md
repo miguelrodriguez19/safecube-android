@@ -8,7 +8,7 @@
 | Estado             | `APPROVED`                                                    |
 | Owner              | Product/Maintainer                                            |
 | Fecha              | `2026-07-29`                                                  |
-| Última revisión    | `2026-08-10`                                                  |
+| Última revisión    | `2026-08-28`                                                  |
 | Reemplaza          | `N/A`                                                         |
 | Dependencias       | `SPEC-CRYPTO-V1`, `SPEC-VAULT-SYNC-V2`, `SPEC-RELEASE-POLICY`, `SPEC-HARDENING-V1`, `ADR-0001` |
 | Tasks relacionadas | `SCDK-M91`, `SCDK-M109`, `SCDK-M110`, `SCDK-M131`            |
@@ -66,7 +66,9 @@ La beta abierta debe cubrir:
 - Separar login de unlock del vault.
 - Tratar biometría y credencial segura del dispositivo como métodos locales alternativos de unlock,
   nunca como sustitutos del login de cuenta ni de la passphrase de recuperación.
-- No exponer secretos en logs, telemetry, screenshots o errores.
+- No exponer secretos en release, telemetry, observabilidad, screenshots o errores. Hasta cerrar
+  la Fase 9, las builds locales `debug` conservan logging HTTP completo como herramienta temporal
+  de desarrollo; la Fase 9 lo elimina y lo sustituye por observabilidad redactada.
 - Contratos versionados y decisiones técnicas registradas.
 - Cada release pública debe ser reproducible y trazable.
 

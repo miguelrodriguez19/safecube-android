@@ -40,8 +40,12 @@ repository, stop and ask the human owner. Do not invent product behavior.
 - Do not change crypto, OpenAPI, storage schemas, sync semantics or security behavior without an
   applicable `ACCEPTED` ADR or an explicit task that creates one.
 - Do not broaden a task because an adjacent improvement is attractive; create a follow-up task.
-- Do not expose passphrases, recovery keys, KEK/DEK material, tokens, payload contents or sensitive
-  request/response data in logs, tests, screenshots or agent reports.
+- Until Phase 9 is completed, full HTTP request/response logging is an explicit local-development
+  exception for `debug` builds. Never install it in release/benchmark builds or attach its output
+  to tests, screenshots, agent reports or CI artifacts. Outside that bounded exception, do not
+  expose passphrases, recovery keys, KEK/DEK material, tokens, payload contents or sensitive data.
+- Phase 9 must remove the debug HTTP logger, replace diagnostics with redacted structured
+  observability and add regression gates that prevent raw HTTP logging from returning.
 - Do not run destructive commands such as `git reset --hard`, broad deletion or history rewrites.
 - Do not commit unless the task explicitly requests a commit.
 - Do not create tags, releases, external messages or infrastructure resources unless the task
