@@ -8,7 +8,7 @@
 | Estado             | APPROVED                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Owner              | Maintainer / Security owner humano                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Fecha              | 2026-08-07                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Última revisión    | 2026-08-27                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Última revisión    | 2026-08-28                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Reemplaza          | N/A                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Dependencias       | [SPEC-PRODUCT-V1](../product/v1-product-brief.md), [SPEC-AUTH-CONTRACT](../../architecture/openapi-auth-contract-integration.md), [SPEC-OPENAPI-AUTH](../../architecture/openapi-auth-contract-integration.md), [SPEC-CRYPTO-V1](../../architecture/crypto-v1.md), [SPEC-SECURE-ITEM-PAYLOAD-V1](../../architecture/secure-item-payload-v1.md), [SPEC-VAULT-SYNC-V2](../../architecture/vault-sync-versioning-v2.md), [SPEC-OPENAPI-VAULT-KEY-MATERIAL](../../architecture/openapi-vault-key-material-contract-integration.md), [SPEC-OPENAPI-VAULT-ITEMS](../../architecture/openapi-vault-items-contract-integration.md), [SPEC-STORAGE](../../architecture/storage_decision.md) |
 | Tasks relacionadas | SCDK-M109–SCDK-M132                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -297,8 +297,11 @@ de plataforma o diagnósticos:
   y reglas explícitas;
 - aplicar protección de screenshots y recents a toda la Activity mediante el mecanismo de
   plataforma decidido en ADR-0003-SENSITIVE-DATA-SURFACES;
-- prohibir en todos los build types logs de headers, cuerpos HTTP, tokens, passphrases, recovery
-  keys, MASTER_KEY, KEK, DEK, plaintext, payloads, displayHint e IDs de items;
+- prohibir en release, benchmark, CI y artefactos compartidos logs de headers, cuerpos HTTP,
+  tokens, passphrases, recovery keys, MASTER_KEY, KEK, DEK, plaintext, payloads, displayHint e IDs
+  de items;
+- mantener temporalmente logging HTTP completo en builds locales `debug` hasta que la Fase 9 lo
+  retire y lo sustituya por observabilidad estructurada y redactada;
 - no escribir programáticamente passwords, passphrases ni recovery keys al clipboard en v1;
 - aplicar visual transformation a passwords y passphrases;
 - no colocar secretos en Bundle, rutas serializables, SavedStateHandle ni rememberSaveable;
@@ -314,13 +317,14 @@ reglas R8 se cierran en
 ACCEPTED por el owner humano.
 
 **Criterios observables:** el manifest/release efectivo excluye backup y transferencia; screenshots
-y recents no muestran contenido; los logs de cualquier build no contienen datos prohibidos; la
-recovery key no aparece en estado restaurable ni clipboard; el registro transitorio se borra en
-cada evento de finalización definido.
+y recents no muestran contenido; release y benchmark no instalan logging HTTP; debug mantiene
+logging completo hasta el gate de retirada de Fase 9; la recovery key no aparece en estado
+restaurable ni clipboard; el registro transitorio se borra en cada evento de finalización definido.
 
 **Estrategia de test:** inspección estática de manifest, recursos y configuración R8; tests
-instrumentados de screenshot/recents y saved state; tests de logging con fixtures sintéticos no
-sensibles; tests de ciclo de vida y borrado del registro cifrado.
+instrumentados de screenshot/recents y saved state; tests que demuestran logging `BODY` en debug y
+ausencia del interceptor en release; tests de ciclo de vida y borrado del registro cifrado. La
+Fase 9 invierte el contrato debug y añade un gate que prohíbe definitivamente el logging HTTP raw.
 
 ## Requisitos no funcionales
 
@@ -497,8 +501,9 @@ esta spec añade las consecuencias de lifecycle y error.
 La sesión autenticada no concede acceso al plaintext: después de process death, auto-lock o
 limpieza terminal de sesión siempre es necesario ejecutar un nuevo unlock mediante passphrase o,
 si existe un enrolamiento local válido, mediante biometría fuerte o credencial segura del
-dispositivo. Ningún log, error de UI, reporte de agente, test fixture o captura puede contener
-secretos, payloads ni identificadores sensibles.
+dispositivo. Ningún log de release, error de UI, reporte de agente, test fixture compartido o
+captura puede contener secretos, payloads ni identificadores sensibles. El logging HTTP completo
+de debug es una excepción local y temporal que termina obligatoriamente en la Fase 9.
 
 ## Observabilidad
 
@@ -511,7 +516,7 @@ secretos, payloads ni identificadores sensibles.
 - Conteo acotado de intentos, versión de app/build y resultado de una reconciliación sin material
   de datos.
 
-### Prohibido
+### Prohibido en observabilidad y builds distribuibles
 
 - Tokens, headers de autorización, cookies, passphrases, recovery keys, MASTER_KEY, KEK, DEK.
 - Plaintext, payloads cifrados o descifrados, displayHint, IDs de items, cuerpos HTTP, URLs con
@@ -520,6 +525,20 @@ secretos, payloads ni identificadores sensibles.
 La instrumentación de observabilidad no puede bloquear una operación ni cambiar su clasificación.
 Telemetría y crash reporting quedan fuera de esta spec y se regirán por el contrato específico de
 la Fase 9.
+
+### Transición obligatoria de Fase 9
+
+La observabilidad no coexistirá con el logging HTTP raw. Antes de integrar un exporter, SDK o
+collector, la Fase 9 debe:
+
+1. eliminar el interceptor `BODY` de debug y cualquier logger equivalente;
+2. sustituir la señal de diagnóstico por eventos estructurados, redactados y sin headers/bodies;
+3. verificar debug, release y benchmark mediante tests estáticos y de runtime;
+4. impedir por quality gate que vuelvan a introducirse `BODY`, `HEADERS` o volcados manuales de
+   requests/responses;
+5. documentar sampling, consentimiento, retención, borrado y respuesta operacional.
+
+Una vez completado ese gate, ninguna build vuelve a registrar tráfico HTTP raw.
 
 ## Compatibilidad, migraciones y rollout
 

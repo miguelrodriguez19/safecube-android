@@ -282,7 +282,8 @@ BODY en debug y transporta la recovery key mediante `rememberSaveable`.
 - Decidir `android:allowBackup="false"` y exclusión explícita de cloud backup y device transfer.
 - Aplicar protección de screenshots y recents mediante `FLAG_SECURE` a toda la Activity.
 - Prohibir logs de headers, cuerpos HTTP, tokens, passphrases, recovery keys, payloads,
-  `displayHint` e IDs de items en todos los build types.
+  `displayHint` e IDs de items en release/benchmark. La decisión de 2026-08-28 mantiene debug hasta
+  el gate de retirada definitiva de Fase 9.
 - Prohibir escrituras programáticas de secretos al clipboard durante v1.
 - Exigir visual transformation para passwords y passphrases.
 - Prohibir secretos en `Bundle`, rutas serializables, `SavedStateHandle` o `rememberSaveable`.
@@ -1244,6 +1245,11 @@ caracteres ocultos sin cambiar su valor de dominio.
 
 # SCDK-M128. Eliminar logging sensible y validar la configuración R8
 
+> Nota normativa de 2026-08-28: el owner mantiene temporalmente logging HTTP `BODY` solo en builds
+> locales debug hasta la Fase 9. El resultado histórico de M128 sigue vigente para release,
+> benchmark, errores mostrables y R8. La Fase 9 debe retirar definitivamente el logger debug y
+> sustituirlo por observabilidad estructurada y redactada antes de integrar telemetría.
+
 ## Main Story (How, I Want, To)
 
 Como security owner, quiero que ninguna build registre tráfico sensible y que la minificación
@@ -1258,9 +1264,9 @@ mantiene una configuración casi de plantilla y no existe auditoría funcional d
 
 ### In Scope
 
-- Eliminar logging de bodies y headers HTTP en todos los build types.
-- Preferir no instalar `HttpLoggingInterceptor`; cualquier metadata de debug futura queda fuera de
-  alcance hasta disponer de un logger redactado.
+- Eliminar logging de bodies y headers HTTP en release y benchmark. La decisión posterior del
+  owner conserva debug hasta la Fase 9.
+- Mantener el interceptor exclusivamente en debug hasta Fase 9; release y benchmark no lo instalan.
 - Eliminar cuerpos HTTP y mensajes crudos de excepciones de errores persistentes o mostrables.
 - Añadir tests que inspeccionen clientes debug y release.
 - Auditar `proguard-rules.pro` y eliminar comentarios/reglas de plantilla no aplicables.
@@ -1289,13 +1295,15 @@ mantiene una configuración casi de plantilla y no existe auditoría funcional d
 
 ### API Contract and Expected Behavior (if applies)
 
-Clientes debug y release realizan las mismas llamadas, pero ninguno registra request/response
-bodies ni headers.
+Clientes debug y release realizan las mismas llamadas. Release no registra tráfico; por decisión
+posterior del owner, debug conserva temporalmente request/response completos hasta la Fase 9.
 
 ### Acceptance Criteria (ACs)
 
-- [x] Ningún cliente usa logging BODY o HEADERS; se eliminó el interceptor de `NetworkClientFactory` y del cliente OpenAPI generado.
-- [x] Tests confirman que debug tampoco expone tráfico mediante `NetworkClientFactoryIntegrationTest`; el postprocesado OpenAPI rechaza logging generado.
+- [x] Release y benchmark no usan logging BODY o HEADERS; el cliente OpenAPI generado no incorpora
+  un logger autónomo.
+- [x] La excepción debug está centralizada en `NetworkClientFactory`, condicionada por
+  `BuildConfig.DEBUG` y asignada para retirada definitiva a la Fase 9.
 - [x] Los modelos mostrables no contienen bodies o mensajes crudos; los errores remotos conservan solo clasificación, código y campos de validación.
 - [x] Todas las reglas R8 adicionales tienen justificación concreta; solo se conserva el `-dontwarn` acotado requerido por anotaciones de Tink/Error Prone.
 - [x] El APK release y la variante benchmark minificadas compilan mediante `:app:assembleRelease` y `:app:assembleBenchmark`.

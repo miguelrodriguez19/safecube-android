@@ -124,3 +124,16 @@ Evidencia adicional:
 - `./gradlew :core:vault:testDebugUnitTest` pasa.
 
 La reproducción manual en dos dispositivos dev sigue siendo una validación operacional opcional.
+
+### Logging HTTP temporal de desarrollo — 2026-08-28
+
+Para diagnosticar la integración real de ETag/If-Match, el owner ha aprobado mantener logging HTTP
+completo en builds locales debug hasta la Fase 9. `core:network` instala el interceptor oficial de
+OkHttp en nivel `BODY` tanto en el cliente principal como en el de refresh cuando
+`BuildConfig.DEBUG` es verdadero. Release y benchmark no lo instalan.
+
+La normativa, ADR, roadmap y trazabilidad asignan a la Fase 9 un gate obligatorio previo a la
+observabilidad: eliminar el logger raw, sustituirlo por eventos estructurados redactados y prevenir
+su reintroducción mediante tests. `:core:network:testDebugUnitTest` valida la selección por variante
+y el comportamiento `BODY`; `:core:network:compileReleaseKotlin` y `verifyKover` pasan. `ciVerify`
+no se repite en esta corrección intermedia.
