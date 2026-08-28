@@ -8,10 +8,10 @@
 | Estado             | APPROVED                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Owner              | Maintainer / Security owner humano                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Fecha              | 2026-08-07                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Última revisión    | 2026-08-11                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Última revisión    | 2026-08-27                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Reemplaza          | N/A                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Dependencias       | [SPEC-PRODUCT-V1](../product/v1-product-brief.md), [SPEC-AUTH-CONTRACT](../../architecture/openapi-auth-contract-integration.md), [SPEC-OPENAPI-AUTH](../../architecture/openapi-auth-contract-integration.md), [SPEC-CRYPTO-V1](../../architecture/crypto-v1.md), [SPEC-SECURE-ITEM-PAYLOAD-V1](../../architecture/secure-item-payload-v1.md), [SPEC-VAULT-SYNC-V2](../../architecture/vault-sync-versioning-v2.md), [SPEC-OPENAPI-VAULT-KEY-MATERIAL](../../architecture/openapi-vault-key-material-contract-integration.md), [SPEC-OPENAPI-VAULT-ITEMS](../../architecture/openapi-vault-items-contract-integration.md), [SPEC-STORAGE](../../architecture/storage_decision.md) |
-| Tasks relacionadas | SCDK-M109–SCDK-M131                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Tasks relacionadas | SCDK-M109–SCDK-M132                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 La spec fue creada inicialmente en REVIEW y el owner humano la ha promovido a APPROVED. Es fuente
 normativa para las tareas posteriores; los ADRs relacionados siguen su propio ciclo de aprobación.
@@ -26,8 +26,9 @@ que deben respetar esos contratos cuando ocurren fallos, cambios de lifecycle o 
 plataforma.
 
 La spec no sustituye los contratos enlazados ni decide detalles técnicos que la Fase 7 ha reservado
-a los ADRs de SCDK-M110, SCDK-M111 y SCDK-M112. Esos ADRs deberán estar ACCEPTED antes de
-implementar sus decisiones concretas.
+a los ADRs de SCDK-M110, SCDK-M111, SCDK-M112 y SCDK-M132. Esos ADRs deberán estar ACCEPTED antes
+de implementar sus decisiones concretas; `ADR-0002-PASSPHRASE-REWRAP` y su addendum CAS de M132
+ya están ACCEPTED.
 
 ## Objetivos
 
@@ -243,20 +244,49 @@ modifica su identidad criptográfica.
    confirme exactamente el nuevo wrapper. Ante respuesta perdida, se reconcilia con GET /vault/keys;
    si el resultado no puede determinarse, se elimina el material maestro cacheado, se zeroiza la
    KEK, se bloquea el vault y se exige reconciliación online.
-5. Una passphrase actual incorrecta es un error terminal de validación local y no produce request
-   remoto. Las copias temporales de passphrases, MASTER_KEY y KEK se zeroizan best-effort.
+5. Una passphrase actual incorrecta es un error terminal de credencial y no produce el `PUT`; el
+   GET remoto fresco de preflight sí se realiza para no validar contra una caché obsoleta. Las
+   copias temporales de passphrases, MASTER_KEY y KEK se zeroizan best-effort.
+6. Cada cambio comienza con un `GET /vault/keys` remoto fresco. El cliente debe conservar como una
+   única versión `materialBase`, `wrapperBase` y un `ETag` fuerte, opaco, no vacío y entre comillas,
+   sin parsearlo, reconstruirlo ni normalizarlo. El `PUT /vault/keys/master` envía exactamente ese
+   valor en un único `If-Match` y solo el wrapper candidato en el body.
+7. El backend aplica una precondición CAS atómica: dos cambios basados en la misma versión producen
+   exactamente un ganador `200` y un perdedor `412 Precondition Failed`. El `412` es un conflicto
+   tipado que exige un GET de reconciliación y no permite reintentar el PUT a ciegas. Un `200`
+   devuelve un ETag nuevo que se valida como confirmación; las operaciones futuras obtienen su
+   propia precondición mediante otro GET y no reutilizan este ETag.
+8. Tras `412` o un resultado incierto se conservan `wrapperBase`, `wrapperCandidato` y `etagBase`
+   hasta reconciliar. Un remoto igual al candidato confirma; uno igual a la base no confirma ni
+   repite automáticamente; un tercer wrapper indica que otro dispositivo ganó y exige validar el
+   resto del material remoto, actualizar únicamente `kekEncMaster`, invalidar la autoridad local,
+   zeroizar la KEK y bloquear el vault. Si la reconciliación falla o devuelve material inválido, se
+   aplica el mismo fail-closed.
+9. En la ruta de tercer wrapper o reconciliación indeterminada, la interacción con
+   [ADR-0001-VAULT-AUTO-LOCK](../../architecture/adr/ADR-0001-VAULT-AUTO-LOCK.md) y `SCDK-M131`
+   exige invalidar best-effort el enrolamiento quick unlock local y dejar el desbloqueo en modo
+   `ManualOnly`, sin relanzar automáticamente el prompt. Si la limpieza local se completa, el
+   siguiente acceso exige la passphrase remota vigente o la recovery key; un fallo de storage en
+   esa limpieza no evita el lock y queda como riesgo residual explícito. La sesión autenticada,
+   `kekEncRecovery`, items, drafts y checkpoints se conservan. Confirmar el candidato o conservar
+   la base no elimina el enrolamiento.
 
 Los detalles de orden de persistencia, reconciliación y limpieza se formalizan en
 [ADR-0002-PASSPHRASE-REWRAP](../../architecture/adr/ADR-0002-PASSPHRASE-REWRAP.md), ACCEPTED por
 el owner humano.
 
-**Criterios observables:** un cambio exitoso conserva la KEK efectiva y todos los payloads; una
-passphrase actual incorrecta no llama al servidor; una respuesta perdida no se declara éxito sin
-GET /vault/keys; un resultado incierto bloquea y exige reconciliación sin borrar items.
+**Criterios observables:** un cambio exitoso conserva la KEK efectiva y todos los payloads; dos
+clientes con la misma versión producen un único ganador; una passphrase actual incorrecta no envía
+el PUT; una respuesta perdida no se declara éxito sin GET /vault/keys; un tercer wrapper o
+resultado indeterminado bloquea, invalida quick unlock best-effort y exige desbloqueo manual sin
+borrar items.
 
 **Estrategia de test:** tests unitarios de KDF/unwrap/rewrap, tests de contrato del request y
 tests de integración para confirmación, respuesta perdida y lectura posterior; comparar que no
-cambian los campos de items y drafts.
+cambian los campos de items y drafts. La cobertura M132 debe incluir revisión obsoleta secuencial,
+carrera determinista de dos clientes, conflicto `412`, resultado incierto, reconciliación con
+candidato/base/tercer wrapper y fallo de reconciliación, además de conservar o invalidar el
+enrolamiento quick unlock según el resultado.
 
 ### SEC-PRIVACY-001 — Superficies sensibles y estado transitorio
 

@@ -140,6 +140,17 @@ class ChangePassphraseViewModel @Inject constructor(
                 mutableEvents.emit(ChangePassphraseUiEvent.NavigateToUnlock)
             }
 
+            ChangeVaultPassphraseError.ConcurrentRemoteChange -> {
+                mutableUiState.update {
+                    ChangePassphraseUiState(
+                        operationState = ChangePassphraseUiOperationState.SessionRequired,
+                        errorMessageRes = UiR.string.change_passphrase_concurrent_remote_change,
+                    )
+                }
+                mutableEvents.emit(ChangePassphraseUiEvent.ClearFields)
+                mutableEvents.emit(ChangePassphraseUiEvent.NavigateToUnlock)
+            }
+
             is ChangeVaultPassphraseError.RemoteFailure -> handleRemoteFailure(error)
 
             ChangeVaultPassphraseError.RemoteChangeNotApplied -> {

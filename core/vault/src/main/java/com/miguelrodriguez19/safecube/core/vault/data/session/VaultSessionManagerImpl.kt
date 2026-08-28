@@ -83,6 +83,9 @@ internal class VaultSessionManagerImpl @Inject constructor(
                     }
 
                     VaultKeyMaterialRemoteError.Forbidden,
+                    VaultKeyMaterialRemoteError.MasterKeyRevisionConflict,
+                    VaultKeyMaterialRemoteError.PreconditionRequired,
+                    VaultKeyMaterialRemoteError.ContractViolation,
                     is VaultKeyMaterialRemoteError.HttpError,
                     is VaultKeyMaterialRemoteError.NetworkError,
                         -> {
