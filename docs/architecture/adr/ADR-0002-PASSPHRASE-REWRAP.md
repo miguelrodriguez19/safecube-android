@@ -6,14 +6,16 @@
 |--------------------|-------------------------------------------------------------------------------------------------------------------------|
 | ID                 | `ADR-0002-PASSPHRASE-REWRAP`                                                                                            |
 | Estado             | `ACCEPTED`                                                                                                              |
-| Fecha              | `2026-08-11`                                                                                                            |
+| Fecha              | `2026-08-27` (addendum CAS; decisión original: `2026-08-11`)                                                          |
 | Owner              | Security owner humano                                                                                                   |
 | Reemplaza          | `N/A`                                                                                                                   |
 | Specs relacionadas | `SPEC-HARDENING-V1`, `SPEC-CRYPTO-V1`, `SPEC-SECURE-ITEM-PAYLOAD-V1`, `SPEC-OPENAPI-VAULT-KEY-MATERIAL`, `SPEC-STORAGE` |
-| Tasks relacionadas | `SCDK-M111` (dependencia: `SCDK-M109`)                                                                                  |
+| ADRs relacionados   | `ADR-0001-VAULT-AUTO-LOCK` (quick unlock; M131)                                                                        |
+| Tasks relacionadas | `SCDK-M111`, `SCDK-M123`, `SCDK-M124`, `SCDK-M132`; backend `SCDK-B55` (dependencia histórica: `SCDK-M109`)           |
 
-El owner humano aceptó este ADR el 2026-08-11. Esta es la decisión normativa para las
-implementaciones del cambio de passphrase mediante rewrap.
+El owner humano aceptó este ADR el 2026-08-11. El addendum de concurrencia de `SCDK-M132`, basado
+en la entrega backend `SCDK-B55`, queda aceptado el 2026-08-27 y forma parte de la decisión
+normativa para las implementaciones del cambio de passphrase mediante rewrap.
 
 ## Contexto
 
@@ -161,6 +163,67 @@ Después de un cambio confirmado:
 - un desbloqueo posterior usa la nueva passphrase, y el desbloqueo por recovery conserva su
   semántica existente.
 
+### 7. Concurrencia optimista CAS con ETag e If-Match — addendum aceptado de SCDK-B55
+
+Para evitar la sobrescritura entre dispositivos, el cambio de passphrase debe usar la revisión
+remota que el cliente acaba de verificar. Esta sección es normativa para `SCDK-M132` y no reabre
+la decisión de rewrap de la misma KEK.
+
+1. Cada operación comienza con un `GET /vault/keys` fresco. La caché local no puede proporcionar
+   por sí sola la base de una nueva mutación. La respuesta debe contener material válido y un
+   `ETag` fuerte, no débil, no vacío y conservado literalmente con sus comillas. El `ETag` es
+   opaco: Android no lo parsea, reconstruye, normaliza ni sustituye por `*`.
+2. El cliente conserva conjuntamente, hasta terminar la operación, `materialBase`,
+   `wrapperBase = materialBase.kekEncMaster` y `etagBase = ETag` del mismo `GET`. La passphrase
+   actual se verifica contra `wrapperBase` remoto y la KEK desenvuelta se compara con la KEK
+   activa antes de construir `wrapperCandidato`.
+3. El `PUT /vault/keys/master` envía exactamente un header `If-Match` con el valor literal de
+   `etagBase` y el body ya definido, que contiene únicamente `newKekEncMaster`.
+   No son válidos un ETag débil, varios valores, una lista de valores, `*` o un ETag tomado de una
+   lectura antigua. El wrapper candidato no se persiste antes de la confirmación; si el GET fresco
+   demuestra que la caché estaba obsoleta y la credencial remota es válida, se sincroniza primero
+   el wrapper base autoritativo.
+4. Un `200` confirma la mutación únicamente si devuelve un ETag fuerte nuevo; el cliente captura
+   ese ETag como confirmación y persiste solo el nuevo `kekEncMaster`. Como cada operación futura
+   empieza con otro GET fresco, el ETag no se reutiliza ni se persiste como precondición futura.
+   Si dos clientes usan el mismo ETag base, la operación CAS atómica produce exactamente un
+   ganador (`200`) y un perdedor
+   (`412 Precondition Failed`). El perdedor recibe un resultado tipado de conflicto, no muestra
+   éxito y no repite el `PUT` a ciegas.
+5. Un `412`, un timeout, una conexión interrumpida o una respuesta ambigua exige un `GET` de
+   reconciliación. Hasta completarlo se conservan `wrapperBase`, `wrapperCandidato` y `etagBase`.
+   La reconciliación clasifica el resultado así:
+
+   - Si el wrapper remoto coincide exactamente con `wrapperCandidato`, se considera aplicado:
+     se actualiza únicamente `kekEncMaster` en la caché, se confirma la operación y se mantiene la
+     KEK y el vault desbloqueados.
+   - Si coincide exactamente con `wrapperBase`, no se aplicó: no se muestra éxito, no se repite
+     automáticamente el `PUT` y un nuevo intento explícito debe comenzar con otro `GET`.
+   - Si es un tercer wrapper, otro dispositivo ganó: tras verificar que el resto del material
+     remoto coincide byte-for-byte con la base, se actualiza únicamente `kekEncMaster`, se
+     invalida la autoridad de la KEK en memoria, se zeroizan la KEK y las claves derivadas mediante
+     lock, y el vault queda bloqueado. Se conserva la sesión autenticada,
+     `kekEncRecovery`, items, drafts y checkpoints; el siguiente acceso exige la passphrase vigente
+     o la recovery key.
+
+6. Si el `GET` de reconciliación falla o devuelve material inválido, el resultado permanece
+   indeterminado: se invalida la caché de `kekEncMaster`, se zeroiza la KEK y las claves derivadas
+   mediante lock, se bloquea el vault y se exige conexión para reconciliar. Nunca se eliminan
+   `kekEncRecovery`, items, drafts ni checkpoints.
+7. Un `400` por precondición malformada y un `428` por ausencia de `If-Match` son errores de
+   contrato y no se reintentan automáticamente. Un `404` durante el cambio no permite declarar
+   éxito. Los fallos transitorios y de transporte siguen la política de reconciliación de este ADR;
+   ninguno autoriza a reemitir el `PUT` sin un `GET` válido.
+8. Interacción con `ADR-0001-VAULT-AUTO-LOCK` y `SCDK-M131`: si la reconciliación identifica un
+   tercer wrapper o permanece indeterminada, el enrolamiento quick unlock local, exclusivo del
+   dispositivo y la cuenta, se invalida best-effort. El vault queda bloqueado y la política de
+   desbloqueo queda en `ManualOnly`, sin relanzar automáticamente el prompt del sistema. Si la
+   limpieza local se completa, el siguiente desbloqueo exige la passphrase remota vigente o la
+   recovery key; un fallo de almacenamiento durante esa limpieza queda registrado como riesgo
+   residual y no evita el lock ni autoriza éxito. La sesión autenticada se conserva. Un resultado
+   que confirma `wrapperCandidato` o conserva `wrapperBase` no elimina ni invalida el enrolamiento
+   quick unlock.
+
 ## Justificación
 
 El rewrap mantiene la cadena criptográfica definida por v1 y convierte el cambio de passphrase en
@@ -193,6 +256,7 @@ credenciales no demostrada sin destruir los datos cifrados.
 |------------------------------------------------------------------|---------|----------------------------------------------------------------------------|------------------------------------------------------------------|
 | La caché local se actualiza antes de la confirmación remota      | Alto    | Orden remoto primero y persistencia atómica posterior                      | Test de orden y caché inalterada ante rechazo                    |
 | La respuesta perdida se interpreta como fallo o éxito sin prueba | Alto    | `GET /vault/keys` y comparación exacta de wrappers                         | Tests de respuesta perdida, wrapper anterior, nuevo y divergente |
+| Dos clientes sobrescriben la misma revisión                      | Alto    | CAS atómico con ETag opaco e `If-Match` literal; `412` tipado              | Test determinista de dos clientes y carrera con un solo ganador  |
 | Se genera una KEK nueva durante el cambio                        | Alto    | Invariante de igualdad de KEK y tests de DEKs/payloads                     | Snapshot criptográfico antes/después sin registrar secretos      |
 | El material maestro incierto queda disponible                    | Alto    | Borrado del wrapper maestro cacheado, zeroize y lock                       | Test de estado Locked y ausencia de caché maestra                |
 | Un retry crea una mutación criptográfica distinta                | Medio   | Reintentar solo estados transitorios y no regenerar la operación candidata | Test de retry con misma operación y nonce                        |
@@ -232,6 +296,9 @@ confirmado como autoridad y nunca sobrescribirlo con una caché antigua sin reco
 - Error handling: 408, 429, 5xx, timeout y transporte son reintentables según su contexto;
   validación, protocolo, integridad y credencial incorrecta son terminales; nunca se reintenta una
   mutación con una identidad criptográfica nueva.
+- Concurrencia: dos clientes con el mismo ETag producen un único `200` y un `412`; se cubren
+  revisión obsoleta secuencial, carrera real, conflicto y reconciliación con candidato, base y
+  tercer wrapper, incluido el fallo de reconciliación.
 - Seguridad: ante resultado remoto indeterminado, caché maestra ausente, KEK zeroizada y vault
   bloqueado, sin borrar datos cifrados.
 
@@ -244,4 +311,7 @@ confirmado como autoridad y nunca sobrescribirlo con una caché antigua sin reco
 - Contrato de
   claves: [SPEC-OPENAPI-VAULT-KEY-MATERIAL](../openapi-vault-key-material-contract-integration.md).
 - Storage: [SPEC-STORAGE](../storage_decision.md).
-- Task: `SCDK-M111`; dependencia: `SCDK-M109`.
+- Lifecycle y quick unlock: [ADR-0001-VAULT-AUTO-LOCK](./ADR-0001-VAULT-AUTO-LOCK.md), implementado
+  en `SCDK-M131`.
+- Tasks: `SCDK-M111`, `SCDK-M123`, `SCDK-M124` y `SCDK-M132`; entrega backend relacionada:
+  `SCDK-B55`; dependencia histórica: `SCDK-M109`.

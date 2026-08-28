@@ -30,6 +30,18 @@ sealed interface VaultKeyMaterialRemoteError {
         override val failure: NetworkFailure = NetworkFailureClassifier.fromHttpStatus(403)
     }
 
+    data object MasterKeyRevisionConflict : VaultKeyMaterialRemoteError {
+        override val failure: NetworkFailure = NetworkFailureClassifier.fromHttpStatus(412)
+    }
+
+    data object PreconditionRequired : VaultKeyMaterialRemoteError {
+        override val failure: NetworkFailure = NetworkFailureClassifier.fromHttpStatus(428)
+    }
+
+    data object ContractViolation : VaultKeyMaterialRemoteError {
+        override val failure: NetworkFailure = NetworkFailureClassifier.malformedResponse()
+    }
+
     data class HttpError(
         override val failure: NetworkFailure,
     ) : VaultKeyMaterialRemoteError

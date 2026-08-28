@@ -102,6 +102,7 @@
     <string name="change_passphrase_retryable">No se ha podido confirmar el cambio. Comprueba tu conexión e inténtalo de nuevo.</string>
     <string name="change_passphrase_not_applied">El cambio no se ha aplicado. Comprueba tu conexión e inténtalo de nuevo.</string>
     <string name="change_passphrase_session_required">La sesión de tu bóveda ya no está disponible. Desbloquéala e inténtalo de nuevo.</string>
+    <string name="change_passphrase_concurrent_remote_change">La passphrase se ha cambiado en otro dispositivo. Desbloquea la bóveda con la passphrase vigente o tu clave de recuperación.</string>
     <string name="change_passphrase_uncertain">No se ha podido confirmar el resultado. Desbloquea la bóveda después de comprobar tu conexión.</string>
     <string name="email_is_required">El correo es obligatorio</string>
     <string name="password_is_required">La contraseña es obligatoria</string>

@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 27-08-2026 08:10:22
+Updated: 28-08-2026 11:18:23
 
 ```
 safecube-android/
@@ -525,6 +525,7 @@ safecube-android/
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/network/
 │   │   │       ├── contract/
+│   │   │       │   ├── VaultKeyMaterialOpenApiContractTest.kt
 │   │   │       │   └── VaultSyncOpenApiContractTest.kt
 │   │   │       ├── data/
 │   │   │       │   ├── auth/
@@ -599,263 +600,265 @@ safecube-android/
 │   │   │   │       └── strings.xml
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
-│   └── vault/
-│       ├── data/quickunlock/
-│       ├── src/
-│       │   ├── main/
-│       │   │   ├── java/com/miguelrodriguez19/safecube/core/vault/
-│       │   │   │   ├── data/
-│       │   │   │   │   ├── codec/
-│       │   │   │   │   │   ├── JsonSecureItemContentCodec.kt
-│       │   │   │   │   │   ├── NoteSecureItemContentJsonAdapter.kt
-│       │   │   │   │   │   ├── PasswordSecureItemContentJsonAdapter.kt
-│       │   │   │   │   │   └── SecureItemContentJsonAdapter.kt
-│       │   │   │   │   ├── crypto/
-│       │   │   │   │   │   ├── SecureItemCryptoContextProvider.kt
-│       │   │   │   │   │   ├── SecureItemPayloadAadFactory.kt
-│       │   │   │   │   │   ├── SecureItemPayloadEnvelopeIdentityReader.kt
-│       │   │   │   │   │   ├── SecureItemPayloadEnvelopeV1Codec.kt
-│       │   │   │   │   │   └── VaultItemCipher.kt
-│       │   │   │   │   ├── local/
-│       │   │   │   │   │   ├── AutoLockPreferences.kt
-│       │   │   │   │   │   ├── AutoLockTimeoutRepositoryImpl.kt
-│       │   │   │   │   │   ├── EncryptedVaultInitializationPrefs.kt
-│       │   │   │   │   │   ├── EncryptedVaultKeyMaterialPrefs.kt
-│       │   │   │   │   │   ├── PendingVaultInitializationCodec.kt
-│       │   │   │   │   │   ├── PendingVaultInitializationStore.kt
-│       │   │   │   │   │   └── VaultKeyMaterialCache.kt
-│       │   │   │   │   ├── quickunlock/
-│       │   │   │   │   │   ├── AndroidKeystoreQuickUnlockAdapter.kt
-│       │   │   │   │   │   ├── AndroidQuickUnlockKeyStorePlatformImpl.kt
-│       │   │   │   │   │   ├── QuickUnlockAliasFactory.kt
-│       │   │   │   │   │   ├── QuickUnlockAndroidKeyStorePlatform.kt
-│       │   │   │   │   │   ├── QuickUnlockEnvelopeCodec.kt
-│       │   │   │   │   │   ├── QuickUnlockKeyStore.kt
-│       │   │   │   │   │   ├── QuickUnlockManagerImpl.kt
-│       │   │   │   │   │   ├── QuickUnlockPreferences.kt
-│       │   │   │   │   │   └── QuickUnlockStore.kt
-│       │   │   │   │   ├── remote/
-│       │   │   │   │   │   ├── RemoteSecureItemDataSource.kt
-│       │   │   │   │   │   └── RemoteVaultKeyMaterialDataSource.kt
-│       │   │   │   │   └── session/
-│       │   │   │   │       ├── LocalVaultDataCleanerImpl.kt
-│       │   │   │   │       ├── PendingQuickUnlockEnrollmentStore.kt
-│       │   │   │   │       ├── QuickUnlockKeyMaterialAccess.kt
-│       │   │   │   │       ├── VaultInMemoryKekStore.kt
-│       │   │   │   │       └── VaultSessionManagerImpl.kt
-│       │   │   │   ├── di/
-│       │   │   │   │   └── VaultModule.kt
-│       │   │   │   ├── domain/
-│       │   │   │   │   ├── codec/
-│       │   │   │   │   │   ├── SecureItemContentCodec.kt
-│       │   │   │   │   │   ├── SecureItemContentDecodeError.kt
-│       │   │   │   │   │   └── SecureItemContentDecodeResult.kt
-│       │   │   │   │   ├── config/
-│       │   │   │   │   │   └── VaultCryptoDefaults.kt
-│       │   │   │   │   ├── model/
-│       │   │   │   │   │   ├── initialize/
-│       │   │   │   │   │   │   ├── PendingVaultInitialization.kt
-│       │   │   │   │   │   │   ├── PendingVaultInitializationStatus.kt
-│       │   │   │   │   │   │   ├── PendingVaultRecoveryKeyResult.kt
-│       │   │   │   │   │   │   ├── VaultInitializeError.kt
-│       │   │   │   │   │   │   └── VaultInitializeResult.kt
-│       │   │   │   │   │   ├── passphrase/
-│       │   │   │   │   │   │   ├── ChangeVaultPassphraseError.kt
-│       │   │   │   │   │   │   └── ChangeVaultPassphraseResult.kt
-│       │   │   │   │   │   ├── quickunlock/
-│       │   │   │   │   │   │   └── VaultUnlockProvenance.kt
-│       │   │   │   │   │   ├── remote/
-│       │   │   │   │   │   │   ├── request/
-│       │   │   │   │   │   │   │   ├── RemoteCreateSecureItemRequest.kt
-│       │   │   │   │   │   │   │   ├── RemoteDeleteSecureItemRequest.kt
-│       │   │   │   │   │   │   │   └── RemoteUpdateSecureItemRequest.kt
-│       │   │   │   │   │   │   ├── result/
-│       │   │   │   │   │   │   │   ├── RemoteCreateSecureItemResult.kt
-│       │   │   │   │   │   │   │   ├── RemoteDeleteSecureItemResult.kt
-│       │   │   │   │   │   │   │   ├── RemoteUpdateSecureItemResult.kt
-│       │   │   │   │   │   │   │   ├── SecureItemRemoteResult.kt
-│       │   │   │   │   │   │   │   └── VaultKeyMaterialRemoteResult.kt
-│       │   │   │   │   │   │   ├── RemoteListVaultItemsRequestParams.kt
-│       │   │   │   │   │   │   ├── RemoteSecureItem.kt
-│       │   │   │   │   │   │   ├── RemoteSecureItemChangesPage.kt
-│       │   │   │   │   │   │   └── RemoteSecureItemSummary.kt
-│       │   │   │   │   │   ├── secureitem/
-│       │   │   │   │   │   │   ├── crud/
-│       │   │   │   │   │   │   │   ├── ObserveSecureItemDetailResult.kt
-│       │   │   │   │   │   │   │   ├── ObserveSecureItemDraftDetailResult.kt
-│       │   │   │   │   │   │   │   ├── SecureItemCrudError.kt
-│       │   │   │   │   │   │   │   ├── SecureItemDetail.kt
-│       │   │   │   │   │   │   │   ├── SecureItemDraftDetail.kt
-│       │   │   │   │   │   │   │   ├── SecureItemMutationResult.kt
-│       │   │   │   │   │   │   │   ├── SecureNoteDraft.kt
-│       │   │   │   │   │   │   │   ├── SecurePasswordDraft.kt
-│       │   │   │   │   │   │   │   ├── VaultItemDraftSummary.kt
-│       │   │   │   │   │   │   │   └── VaultItemSummary.kt
-│       │   │   │   │   │   │   ├── itemcontent/
-│       │   │   │   │   │   │   │   ├── NoteSecureItemContent.kt
-│       │   │   │   │   │   │   │   ├── PasswordSecureItemContent.kt
-│       │   │   │   │   │   │   │   └── SecureItemContent.kt
-│       │   │   │   │   │   │   ├── EncodedSecureItemContent.kt
-│       │   │   │   │   │   │   ├── SecureItem.kt
-│       │   │   │   │   │   │   ├── SecureItemDraftSyncStatus.kt
-│       │   │   │   │   │   │   ├── SecureItemDraftType.kt
-│       │   │   │   │   │   │   ├── SecureItemSyncDraft.kt
-│       │   │   │   │   │   │   ├── SecureItemSyncState.kt
-│       │   │   │   │   │   │   └── SecureItemType.kt
-│       │   │   │   │   │   ├── sync/
-│       │   │   │   │   │   │   ├── draft/
-│       │   │   │   │   │   │   │   ├── DiscardSecureItemDraftResult.kt
-│       │   │   │   │   │   │   │   └── PrepareSecureItemDraftForSyncResult.kt
-│       │   │   │   │   │   │   ├── pull/
-│       │   │   │   │   │   │   │   ├── PullVaultDeltaApplyResults.kt
-│       │   │   │   │   │   │   │   ├── PullVaultDeltaError.kt
-│       │   │   │   │   │   │   │   └── PullVaultDeltaResult.kt
-│       │   │   │   │   │   │   ├── push/
-│       │   │   │   │   │   │   │   ├── PushLocalVaultChangesError.kt
-│       │   │   │   │   │   │   │   ├── PushLocalVaultChangesInternal.kt
-│       │   │   │   │   │   │   │   └── PushLocalVaultChangesResult.kt
-│       │   │   │   │   │   │   ├── VaultSyncError.kt
-│       │   │   │   │   │   │   └── VaultSyncResult.kt
-│       │   │   │   │   │   ├── unlock/
-│       │   │   │   │   │   │   ├── VaultUnlockError.kt
-│       │   │   │   │   │   │   └── VaultUnlockResult.kt
-│       │   │   │   │   │   ├── AutoLockTimeout.kt
-│       │   │   │   │   │   ├── UnlockedKeyring.kt
-│       │   │   │   │   │   ├── VaultKeyMaterial.kt
-│       │   │   │   │   │   └── VaultState.kt
-│       │   │   │   │   ├── quickunlock/
-│       │   │   │   │   │   ├── QuickUnlockAccountSessionValidator.kt
-│       │   │   │   │   │   └── QuickUnlockManager.kt
-│       │   │   │   │   ├── repository/
-│       │   │   │   │   │   ├── AutoLockTimeoutRepository.kt
-│       │   │   │   │   │   ├── PendingVaultInitializationRepository.kt
-│       │   │   │   │   │   ├── SecureItemDraftRepository.kt
-│       │   │   │   │   │   ├── SecureItemRemoteRepository.kt
-│       │   │   │   │   │   ├── SecureItemRepository.kt
-│       │   │   │   │   │   ├── VaultKeyMaterialLocalReadResult.kt
-│       │   │   │   │   │   ├── VaultKeyMaterialLocalRepository.kt
-│       │   │   │   │   │   └── VaultKeyMaterialRemoteRepository.kt
-│       │   │   │   │   ├── service/
-│       │   │   │   │   │   ├── EncryptedSecureItemPayload.kt
-│       │   │   │   │   │   ├── SecureItemCryptoError.kt
-│       │   │   │   │   │   ├── SecureItemCryptoService.kt
-│       │   │   │   │   │   ├── SecureItemDecryptionResult.kt
-│       │   │   │   │   │   ├── SecureItemEncryptionResult.kt
-│       │   │   │   │   │   └── SecureItemPayloadIdentityReader.kt
-│       │   │   │   │   ├── session/
-│       │   │   │   │   │   ├── LocalVaultDataCleaner.kt
-│       │   │   │   │   │   ├── VaultKekProvider.kt
-│       │   │   │   │   │   └── VaultSessionManager.kt
-│       │   │   │   │   └── usecase/
-│       │   │   │   │       ├── secureitem/
-│       │   │   │   │       │   ├── note/
-│       │   │   │   │       │   │   ├── CreateSecureNoteUseCase.kt
-│       │   │   │   │       │   │   ├── NoteDraftToContentMapper.kt
-│       │   │   │   │       │   │   └── UpdateSecureNoteUseCase.kt
-│       │   │   │   │       │   ├── password/
-│       │   │   │   │       │   │   ├── CreateSecurePasswordUseCase.kt
-│       │   │   │   │       │   │   ├── PasswordDraftToContentMapper.kt
-│       │   │   │   │       │   │   └── UpdateSecurePasswordUseCase.kt
-│       │   │   │   │       │   ├── CurrentInstantProvider.kt
-│       │   │   │   │       │   ├── ObserveSecureItemDetailUseCase.kt
-│       │   │   │   │       │   ├── ObserveSecureItemDraftDetailUseCase.kt
-│       │   │   │   │       │   ├── ObserveVaultDraftSummariesUseCase.kt
-│       │   │   │   │       │   ├── ObserveVaultItemSummariesUseCase.kt
-│       │   │   │   │       │   ├── SecureItemDraftMutationCoordinator.kt
-│       │   │   │   │       │   ├── SecureItemIdGenerator.kt
-│       │   │   │   │       │   ├── SecureItemMutationIdGenerator.kt
-│       │   │   │   │       │   └── SoftDeleteSecureItemUseCase.kt
-│       │   │   │   │       ├── sync/
-│       │   │   │   │       │   ├── draft/
-│       │   │   │   │       │   │   ├── DiscardSecureItemDraftUseCase.kt
-│       │   │   │   │       │   │   ├── PrepareSecureItemDraftForSyncUseCase.kt
-│       │   │   │   │       │   │   ├── SecureItemDraftPolicyMappings.kt
-│       │   │   │   │       │   │   └── SecureItemDraftSyncCoordinator.kt
-│       │   │   │   │       │   ├── pull/
-│       │   │   │   │       │   │   ├── PullVaultDeltaMappings.kt
-│       │   │   │   │       │   │   └── PullVaultDeltaUseCase.kt
-│       │   │   │   │       │   ├── push/
-│       │   │   │   │       │   │   ├── PushLocalVaultChangesMappings.kt
-│       │   │   │   │       │   │   └── PushLocalVaultChangesUseCase.kt
-│       │   │   │   │       │   ├── ObserveVaultDirtyStateUseCase.kt
-│       │   │   │   │       │   ├── ObserveVaultSyncingUseCase.kt
-│       │   │   │   │       │   ├── SyncVaultNowUseCase.kt
-│       │   │   │   │       │   ├── VaultSyncExecutionLock.kt
-│       │   │   │   │       │   └── VaultSyncUseCase.kt
-│       │   │   │   │       └── vault/
-│       │   │   │   │           ├── ChangeVaultPassphraseUseCase.kt
-│       │   │   │   │           ├── VaultInitializeUseCase.kt
-│       │   │   │   │           ├── VaultUnlocker.kt
-│       │   │   │   │           └── VaultUnlockUseCase.kt
-│       │   │   │   └── src/main/java/com/miguelrodriguez19/safecube/core/vault/domain/usecase/vault/
-│       │   │   └── AndroidManifest.xml
-│       │   └── test/java/com/miguelrodriguez19/safecube/core/vault/
-│       │       ├── data/
-│       │       │   ├── codec/
-│       │       │   │   ├── JsonSecureItemContentCodecTest.kt
-│       │       │   │   └── SecureItemContentJsonAdapterTest.kt
-│       │       │   ├── crypto/
-│       │       │   │   ├── SecureItemCryptoContextProviderTest.kt
-│       │       │   │   ├── SecureItemPayloadAadFactoryTest.kt
-│       │       │   │   ├── SecureItemPayloadEnvelopeV1CodecTest.kt
-│       │       │   │   └── VaultItemCipherTest.kt
-│       │       │   ├── local/
-│       │       │   │   ├── AutoLockTimeoutRepositoryImplTest.kt
-│       │       │   │   ├── PendingVaultInitializationCodecTest.kt
-│       │       │   │   ├── PendingVaultInitializationStoreTest.kt
-│       │       │   │   └── VaultKeyMaterialCacheTest.kt
-│       │       │   ├── quickunlock/
-│       │       │   │   ├── AndroidKeystoreQuickUnlockAdapterTest.kt
-│       │       │   │   ├── QuickUnlockAliasFactoryTest.kt
-│       │       │   │   ├── QuickUnlockEnvelopeCodecTest.kt
-│       │       │   │   ├── QuickUnlockManagerImplTest.kt
-│       │       │   │   └── QuickUnlockStoreTest.kt
-│       │       │   ├── remote/
-│       │       │   │   ├── RemoteSecureItemDataSourceIntegrationTest.kt
-│       │       │   │   ├── RemoteSecureItemDataSourceTest.kt
-│       │       │   │   ├── RemoteVaultKeyMaterialDataSourceIntegrationTest.kt
-│       │       │   │   └── RemoteVaultKeyMaterialDataSourceTest.kt
-│       │       │   └── session/
-│       │       │       ├── LocalVaultDataCleanerImplTest.kt
-│       │       │       ├── PendingQuickUnlockEnrollmentStoreTest.kt
-│       │       │       ├── VaultInMemoryKekStoreTest.kt
-│       │       │       └── VaultSessionManagerImplTest.kt
-│       │       ├── domain/
-│       │       │   ├── model/secureitem/
-│       │       │   │   ├── itemcontent/
-│       │       │   │   │   └── NoteSecureItemContentTest.kt
-│       │       │   │   ├── SecureItemContentTest.kt
-│       │       │   │   ├── SecureItemSyncDraftTest.kt
-│       │       │   │   └── SecureItemTest.kt
-│       │       │   ├── session/
-│       │       │   └── usecase/
-│       │       │       ├── draft/
-│       │       │       │   ├── DiscardSecureItemDraftUseCaseTest.kt
-│       │       │       │   ├── PrepareSecureItemDraftForSyncUseCaseTest.kt
-│       │       │       │   └── SecureItemDraftSyncCoordinatorTest.kt
-│       │       │       ├── note/
-│       │       │       │   └── NoteDraftToContentMapperTest.kt
-│       │       │       ├── password/
-│       │       │       │   └── PasswordDraftToContentMapperTest.kt
-│       │       │       ├── sync/pull/
-│       │       │       │   └── PullVaultDeltaMappingsTest.kt
-│       │       │       ├── vault/
-│       │       │       │   └── ChangeVaultPassphraseUseCaseTest.kt
-│       │       │       ├── ObserveSecureItemDetailUseCaseTest.kt
-│       │       │       ├── ObserveSecureItemDraftDetailUseCaseTest.kt
-│       │       │       ├── ObserveVaultDirtyStateUseCaseTest.kt
-│       │       │       ├── ObserveVaultDraftSummariesUseCaseTest.kt
-│       │       │       ├── PullVaultDeltaUseCaseTest.kt
-│       │       │       ├── PushLocalVaultChangesUseCaseTest.kt
-│       │       │       ├── SecureItemDraftMutationCoordinatorTest.kt
-│       │       │       ├── VaultInitializeRecoveryUseCaseTest.kt
-│       │       │       ├── VaultInitializeUseCaseTest.kt
-│       │       │       ├── VaultSyncExecutionLockTest.kt
-│       │       │       ├── VaultSyncUseCaseTest.kt
-│       │       │       └── VaultUnlockUseCaseTest.kt
-│       │       └── test/
-│       │           └── DraftFirstTestFixtures.kt
-│       └── build.gradle.kts
+│   ├── vault/
+│   │   ├── data/quickunlock/
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/vault/
+│   │   │   │   │   ├── data/
+│   │   │   │   │   │   ├── codec/
+│   │   │   │   │   │   │   ├── JsonSecureItemContentCodec.kt
+│   │   │   │   │   │   │   ├── NoteSecureItemContentJsonAdapter.kt
+│   │   │   │   │   │   │   ├── PasswordSecureItemContentJsonAdapter.kt
+│   │   │   │   │   │   │   └── SecureItemContentJsonAdapter.kt
+│   │   │   │   │   │   ├── crypto/
+│   │   │   │   │   │   │   ├── SecureItemCryptoContextProvider.kt
+│   │   │   │   │   │   │   ├── SecureItemPayloadAadFactory.kt
+│   │   │   │   │   │   │   ├── SecureItemPayloadEnvelopeIdentityReader.kt
+│   │   │   │   │   │   │   ├── SecureItemPayloadEnvelopeV1Codec.kt
+│   │   │   │   │   │   │   └── VaultItemCipher.kt
+│   │   │   │   │   │   ├── local/
+│   │   │   │   │   │   │   ├── AutoLockPreferences.kt
+│   │   │   │   │   │   │   ├── AutoLockTimeoutRepositoryImpl.kt
+│   │   │   │   │   │   │   ├── EncryptedVaultInitializationPrefs.kt
+│   │   │   │   │   │   │   ├── EncryptedVaultKeyMaterialPrefs.kt
+│   │   │   │   │   │   │   ├── PendingVaultInitializationCodec.kt
+│   │   │   │   │   │   │   ├── PendingVaultInitializationStore.kt
+│   │   │   │   │   │   │   └── VaultKeyMaterialCache.kt
+│   │   │   │   │   │   ├── quickunlock/
+│   │   │   │   │   │   │   ├── AndroidKeystoreQuickUnlockAdapter.kt
+│   │   │   │   │   │   │   ├── AndroidQuickUnlockKeyStorePlatformImpl.kt
+│   │   │   │   │   │   │   ├── QuickUnlockAliasFactory.kt
+│   │   │   │   │   │   │   ├── QuickUnlockAndroidKeyStorePlatform.kt
+│   │   │   │   │   │   │   ├── QuickUnlockEnvelopeCodec.kt
+│   │   │   │   │   │   │   ├── QuickUnlockKeyStore.kt
+│   │   │   │   │   │   │   ├── QuickUnlockManagerImpl.kt
+│   │   │   │   │   │   │   ├── QuickUnlockPreferences.kt
+│   │   │   │   │   │   │   └── QuickUnlockStore.kt
+│   │   │   │   │   │   ├── remote/
+│   │   │   │   │   │   │   ├── RemoteSecureItemDataSource.kt
+│   │   │   │   │   │   │   └── RemoteVaultKeyMaterialDataSource.kt
+│   │   │   │   │   │   └── session/
+│   │   │   │   │   │       ├── LocalVaultDataCleanerImpl.kt
+│   │   │   │   │   │       ├── PendingQuickUnlockEnrollmentStore.kt
+│   │   │   │   │   │       ├── QuickUnlockKeyMaterialAccess.kt
+│   │   │   │   │   │       ├── VaultInMemoryKekStore.kt
+│   │   │   │   │   │       └── VaultSessionManagerImpl.kt
+│   │   │   │   │   ├── di/
+│   │   │   │   │   │   └── VaultModule.kt
+│   │   │   │   │   ├── domain/
+│   │   │   │   │   │   ├── codec/
+│   │   │   │   │   │   │   ├── SecureItemContentCodec.kt
+│   │   │   │   │   │   │   ├── SecureItemContentDecodeError.kt
+│   │   │   │   │   │   │   └── SecureItemContentDecodeResult.kt
+│   │   │   │   │   │   ├── config/
+│   │   │   │   │   │   │   └── VaultCryptoDefaults.kt
+│   │   │   │   │   │   ├── model/
+│   │   │   │   │   │   │   ├── initialize/
+│   │   │   │   │   │   │   │   ├── PendingVaultInitialization.kt
+│   │   │   │   │   │   │   │   ├── PendingVaultInitializationStatus.kt
+│   │   │   │   │   │   │   │   ├── PendingVaultRecoveryKeyResult.kt
+│   │   │   │   │   │   │   │   ├── VaultInitializeError.kt
+│   │   │   │   │   │   │   │   └── VaultInitializeResult.kt
+│   │   │   │   │   │   │   ├── passphrase/
+│   │   │   │   │   │   │   │   ├── ChangeVaultPassphraseError.kt
+│   │   │   │   │   │   │   │   └── ChangeVaultPassphraseResult.kt
+│   │   │   │   │   │   │   ├── quickunlock/
+│   │   │   │   │   │   │   │   └── VaultUnlockProvenance.kt
+│   │   │   │   │   │   │   ├── remote/
+│   │   │   │   │   │   │   │   ├── request/
+│   │   │   │   │   │   │   │   │   ├── RemoteCreateSecureItemRequest.kt
+│   │   │   │   │   │   │   │   │   ├── RemoteDeleteSecureItemRequest.kt
+│   │   │   │   │   │   │   │   │   └── RemoteUpdateSecureItemRequest.kt
+│   │   │   │   │   │   │   │   ├── result/
+│   │   │   │   │   │   │   │   │   ├── RemoteCreateSecureItemResult.kt
+│   │   │   │   │   │   │   │   │   ├── RemoteDeleteSecureItemResult.kt
+│   │   │   │   │   │   │   │   │   ├── RemoteUpdateSecureItemResult.kt
+│   │   │   │   │   │   │   │   │   ├── SecureItemRemoteResult.kt
+│   │   │   │   │   │   │   │   │   └── VaultKeyMaterialRemoteResult.kt
+│   │   │   │   │   │   │   │   ├── MasterWrapperUpdateConfirmation.kt
+│   │   │   │   │   │   │   │   ├── RemoteListVaultItemsRequestParams.kt
+│   │   │   │   │   │   │   │   ├── RemoteSecureItem.kt
+│   │   │   │   │   │   │   │   ├── RemoteSecureItemChangesPage.kt
+│   │   │   │   │   │   │   │   ├── RemoteSecureItemSummary.kt
+│   │   │   │   │   │   │   │   └── VersionedVaultKeyMaterial.kt
+│   │   │   │   │   │   │   ├── secureitem/
+│   │   │   │   │   │   │   │   ├── crud/
+│   │   │   │   │   │   │   │   │   ├── ObserveSecureItemDetailResult.kt
+│   │   │   │   │   │   │   │   │   ├── ObserveSecureItemDraftDetailResult.kt
+│   │   │   │   │   │   │   │   │   ├── SecureItemCrudError.kt
+│   │   │   │   │   │   │   │   │   ├── SecureItemDetail.kt
+│   │   │   │   │   │   │   │   │   ├── SecureItemDraftDetail.kt
+│   │   │   │   │   │   │   │   │   ├── SecureItemMutationResult.kt
+│   │   │   │   │   │   │   │   │   ├── SecureNoteDraft.kt
+│   │   │   │   │   │   │   │   │   ├── SecurePasswordDraft.kt
+│   │   │   │   │   │   │   │   │   ├── VaultItemDraftSummary.kt
+│   │   │   │   │   │   │   │   │   └── VaultItemSummary.kt
+│   │   │   │   │   │   │   │   ├── itemcontent/
+│   │   │   │   │   │   │   │   │   ├── NoteSecureItemContent.kt
+│   │   │   │   │   │   │   │   │   ├── PasswordSecureItemContent.kt
+│   │   │   │   │   │   │   │   │   └── SecureItemContent.kt
+│   │   │   │   │   │   │   │   ├── EncodedSecureItemContent.kt
+│   │   │   │   │   │   │   │   ├── SecureItem.kt
+│   │   │   │   │   │   │   │   ├── SecureItemDraftSyncStatus.kt
+│   │   │   │   │   │   │   │   ├── SecureItemDraftType.kt
+│   │   │   │   │   │   │   │   ├── SecureItemSyncDraft.kt
+│   │   │   │   │   │   │   │   ├── SecureItemSyncState.kt
+│   │   │   │   │   │   │   │   └── SecureItemType.kt
+│   │   │   │   │   │   │   ├── sync/
+│   │   │   │   │   │   │   │   ├── draft/
+│   │   │   │   │   │   │   │   │   ├── DiscardSecureItemDraftResult.kt
+│   │   │   │   │   │   │   │   │   └── PrepareSecureItemDraftForSyncResult.kt
+│   │   │   │   │   │   │   │   ├── pull/
+│   │   │   │   │   │   │   │   │   ├── PullVaultDeltaApplyResults.kt
+│   │   │   │   │   │   │   │   │   ├── PullVaultDeltaError.kt
+│   │   │   │   │   │   │   │   │   └── PullVaultDeltaResult.kt
+│   │   │   │   │   │   │   │   ├── push/
+│   │   │   │   │   │   │   │   │   ├── PushLocalVaultChangesError.kt
+│   │   │   │   │   │   │   │   │   ├── PushLocalVaultChangesInternal.kt
+│   │   │   │   │   │   │   │   │   └── PushLocalVaultChangesResult.kt
+│   │   │   │   │   │   │   │   ├── VaultSyncError.kt
+│   │   │   │   │   │   │   │   └── VaultSyncResult.kt
+│   │   │   │   │   │   │   ├── unlock/
+│   │   │   │   │   │   │   │   ├── VaultUnlockError.kt
+│   │   │   │   │   │   │   │   └── VaultUnlockResult.kt
+│   │   │   │   │   │   │   ├── AutoLockTimeout.kt
+│   │   │   │   │   │   │   ├── UnlockedKeyring.kt
+│   │   │   │   │   │   │   ├── VaultKeyMaterial.kt
+│   │   │   │   │   │   │   └── VaultState.kt
+│   │   │   │   │   │   ├── quickunlock/
+│   │   │   │   │   │   │   ├── QuickUnlockAccountSessionValidator.kt
+│   │   │   │   │   │   │   └── QuickUnlockManager.kt
+│   │   │   │   │   │   ├── repository/
+│   │   │   │   │   │   │   ├── AutoLockTimeoutRepository.kt
+│   │   │   │   │   │   │   ├── PendingVaultInitializationRepository.kt
+│   │   │   │   │   │   │   ├── SecureItemDraftRepository.kt
+│   │   │   │   │   │   │   ├── SecureItemRemoteRepository.kt
+│   │   │   │   │   │   │   ├── SecureItemRepository.kt
+│   │   │   │   │   │   │   ├── VaultKeyMaterialLocalReadResult.kt
+│   │   │   │   │   │   │   ├── VaultKeyMaterialLocalRepository.kt
+│   │   │   │   │   │   │   └── VaultKeyMaterialRemoteRepository.kt
+│   │   │   │   │   │   ├── service/
+│   │   │   │   │   │   │   ├── EncryptedSecureItemPayload.kt
+│   │   │   │   │   │   │   ├── SecureItemCryptoError.kt
+│   │   │   │   │   │   │   ├── SecureItemCryptoService.kt
+│   │   │   │   │   │   │   ├── SecureItemDecryptionResult.kt
+│   │   │   │   │   │   │   ├── SecureItemEncryptionResult.kt
+│   │   │   │   │   │   │   └── SecureItemPayloadIdentityReader.kt
+│   │   │   │   │   │   ├── session/
+│   │   │   │   │   │   │   ├── LocalVaultDataCleaner.kt
+│   │   │   │   │   │   │   ├── VaultKekProvider.kt
+│   │   │   │   │   │   │   └── VaultSessionManager.kt
+│   │   │   │   │   │   └── usecase/
+│   │   │   │   │   │       ├── secureitem/
+│   │   │   │   │   │       │   ├── note/
+│   │   │   │   │   │       │   │   ├── CreateSecureNoteUseCase.kt
+│   │   │   │   │   │       │   │   ├── NoteDraftToContentMapper.kt
+│   │   │   │   │   │       │   │   └── UpdateSecureNoteUseCase.kt
+│   │   │   │   │   │       │   ├── password/
+│   │   │   │   │   │       │   │   ├── CreateSecurePasswordUseCase.kt
+│   │   │   │   │   │       │   │   ├── PasswordDraftToContentMapper.kt
+│   │   │   │   │   │       │   │   └── UpdateSecurePasswordUseCase.kt
+│   │   │   │   │   │       │   ├── CurrentInstantProvider.kt
+│   │   │   │   │   │       │   ├── ObserveSecureItemDetailUseCase.kt
+│   │   │   │   │   │       │   ├── ObserveSecureItemDraftDetailUseCase.kt
+│   │   │   │   │   │       │   ├── ObserveVaultDraftSummariesUseCase.kt
+│   │   │   │   │   │       │   ├── ObserveVaultItemSummariesUseCase.kt
+│   │   │   │   │   │       │   ├── SecureItemDraftMutationCoordinator.kt
+│   │   │   │   │   │       │   ├── SecureItemIdGenerator.kt
+│   │   │   │   │   │       │   ├── SecureItemMutationIdGenerator.kt
+│   │   │   │   │   │       │   └── SoftDeleteSecureItemUseCase.kt
+│   │   │   │   │   │       ├── sync/
+│   │   │   │   │   │       │   ├── draft/
+│   │   │   │   │   │       │   │   ├── DiscardSecureItemDraftUseCase.kt
+│   │   │   │   │   │       │   │   ├── PrepareSecureItemDraftForSyncUseCase.kt
+│   │   │   │   │   │       │   │   ├── SecureItemDraftPolicyMappings.kt
+│   │   │   │   │   │       │   │   └── SecureItemDraftSyncCoordinator.kt
+│   │   │   │   │   │       │   ├── pull/
+│   │   │   │   │   │       │   │   ├── PullVaultDeltaMappings.kt
+│   │   │   │   │   │       │   │   └── PullVaultDeltaUseCase.kt
+│   │   │   │   │   │       │   ├── push/
+│   │   │   │   │   │       │   │   ├── PushLocalVaultChangesMappings.kt
+│   │   │   │   │   │       │   │   └── PushLocalVaultChangesUseCase.kt
+│   │   │   │   │   │       │   ├── ObserveVaultDirtyStateUseCase.kt
+│   │   │   │   │   │       │   ├── ObserveVaultSyncingUseCase.kt
+│   │   │   │   │   │       │   ├── SyncVaultNowUseCase.kt
+│   │   │   │   │   │       │   ├── VaultSyncExecutionLock.kt
+│   │   │   │   │   │       │   └── VaultSyncUseCase.kt
+│   │   │   │   │   │       └── vault/
+│   │   │   │   │   │           ├── ChangeVaultPassphraseUseCase.kt
+│   │   │   │   │   │           ├── VaultInitializeUseCase.kt
+│   │   │   │   │   │           ├── VaultUnlocker.kt
+│   │   │   │   │   │           └── VaultUnlockUseCase.kt
+│   │   │   │   │   └── src/main/java/com/miguelrodriguez19/safecube/core/vault/domain/usecase/vault/
+│   │   │   │   └── AndroidManifest.xml
+│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/vault/
+│   │   │       ├── data/
+│   │   │       │   ├── codec/
+│   │   │       │   │   ├── JsonSecureItemContentCodecTest.kt
+│   │   │       │   │   └── SecureItemContentJsonAdapterTest.kt
+│   │   │       │   ├── crypto/
+│   │   │       │   │   ├── SecureItemCryptoContextProviderTest.kt
+│   │   │       │   │   ├── SecureItemPayloadAadFactoryTest.kt
+│   │   │       │   │   ├── SecureItemPayloadEnvelopeV1CodecTest.kt
+│   │   │       │   │   └── VaultItemCipherTest.kt
+│   │   │       │   ├── local/
+│   │   │       │   │   ├── AutoLockTimeoutRepositoryImplTest.kt
+│   │   │       │   │   ├── PendingVaultInitializationCodecTest.kt
+│   │   │       │   │   ├── PendingVaultInitializationStoreTest.kt
+│   │   │       │   │   └── VaultKeyMaterialCacheTest.kt
+│   │   │       │   ├── quickunlock/
+│   │   │       │   │   ├── AndroidKeystoreQuickUnlockAdapterTest.kt
+│   │   │       │   │   ├── QuickUnlockAliasFactoryTest.kt
+│   │   │       │   │   ├── QuickUnlockEnvelopeCodecTest.kt
+│   │   │       │   │   ├── QuickUnlockManagerImplTest.kt
+│   │   │       │   │   └── QuickUnlockStoreTest.kt
+│   │   │       │   ├── remote/
+│   │   │       │   │   ├── RemoteSecureItemDataSourceIntegrationTest.kt
+│   │   │       │   │   ├── RemoteSecureItemDataSourceTest.kt
+│   │   │       │   │   ├── RemoteVaultKeyMaterialDataSourceIntegrationTest.kt
+│   │   │       │   │   └── RemoteVaultKeyMaterialDataSourceTest.kt
+│   │   │       │   └── session/
+│   │   │       │       ├── LocalVaultDataCleanerImplTest.kt
+│   │   │       │       ├── PendingQuickUnlockEnrollmentStoreTest.kt
+│   │   │       │       ├── VaultInMemoryKekStoreTest.kt
+│   │   │       │       └── VaultSessionManagerImplTest.kt
+│   │   │       ├── domain/
+│   │   │       │   ├── model/secureitem/
+│   │   │       │   │   ├── itemcontent/
+│   │   │       │   │   │   └── NoteSecureItemContentTest.kt
+│   │   │       │   │   ├── SecureItemContentTest.kt
+│   │   │       │   │   ├── SecureItemSyncDraftTest.kt
+│   │   │       │   │   └── SecureItemTest.kt
+│   │   │       │   ├── session/
+│   │   │       │   └── usecase/
+│   │   │       │       ├── draft/
+│   │   │       │       │   ├── DiscardSecureItemDraftUseCaseTest.kt
+│   │   │       │       │   ├── PrepareSecureItemDraftForSyncUseCaseTest.kt
+│   │   │       │       │   └── SecureItemDraftSyncCoordinatorTest.kt
+│   │   │       │       ├── note/
+│   │   │       │       │   └── NoteDraftToContentMapperTest.kt
+│   │   │       │       ├── password/
+│   │   │       │       │   └── PasswordDraftToContentMapperTest.kt
+│   │   │       │       ├── sync/pull/
+│   │   │       │       │   └── PullVaultDeltaMappingsTest.kt
+│   │   │       │       ├── vault/
+│   │   │       │       │   └── ChangeVaultPassphraseUseCaseTest.kt
+│   │   │       │       ├── ObserveSecureItemDetailUseCaseTest.kt
+│   │   │       │       ├── ObserveSecureItemDraftDetailUseCaseTest.kt
+│   │   │       │       ├── ObserveVaultDirtyStateUseCaseTest.kt
+│   │   │       │       ├── ObserveVaultDraftSummariesUseCaseTest.kt
+│   │   │       │       ├── PullVaultDeltaUseCaseTest.kt
+│   │   │       │       ├── PushLocalVaultChangesUseCaseTest.kt
+│   │   │       │       ├── SecureItemDraftMutationCoordinatorTest.kt
+│   │   │       │       ├── VaultInitializeRecoveryUseCaseTest.kt
+│   │   │       │       ├── VaultInitializeUseCaseTest.kt
+│   │   │       │       ├── VaultSyncExecutionLockTest.kt
+│   │   │       │       ├── VaultSyncUseCaseTest.kt
+│   │   │       │       └── VaultUnlockUseCaseTest.kt
+│   │   │       └── test/
+│   │   │           └── DraftFirstTestFixtures.kt
+│   │   └── build.gradle.kts
 ├── docs/
 │   ├── architecture/
 │   │   ├── adr/
@@ -906,8 +909,8 @@ safecube-android/
 │   ├── specs/
 │   │   ├── features/
 │   │   │   └── hardening-resilience-v1.md
-│   │   └── product/
-│   │       └── v1-product-brief.md
+│   │   ├── product/
+│   │   │   └── v1-product-brief.md
 │   ├── testing/
 │   │   ├── testing.md
 │   │   └── TESTING_STANDARD.md

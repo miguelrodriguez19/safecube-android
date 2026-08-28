@@ -102,6 +102,7 @@
     <string name="change_passphrase_retryable">The change could not be confirmed. Check your connection and try again.</string>
     <string name="change_passphrase_not_applied">The change was not applied. Check your connection and try again.</string>
     <string name="change_passphrase_session_required">Your vault session is no longer available. Unlock the vault and try again.</string>
+    <string name="change_passphrase_concurrent_remote_change">Your passphrase was changed on another device. Unlock the vault with the latest passphrase or your recovery key.</string>
     <string name="change_passphrase_uncertain">The result could not be confirmed. Unlock the vault after checking your connection.</string>
 
     <string name="email_is_required">Email is required</string>

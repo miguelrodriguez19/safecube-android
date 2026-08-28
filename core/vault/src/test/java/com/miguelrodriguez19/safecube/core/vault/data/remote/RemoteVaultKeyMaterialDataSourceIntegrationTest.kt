@@ -4,8 +4,10 @@ import com.miguelrodriguez19.safecube.core.network.data.client.NetworkClientFact
 import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.generated.api.VaultKeyMaterialControllerApi
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultKeyMaterial
+import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.MasterWrapperUpdateConfirmation
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.remote.result.VaultKeyMaterialRemoteResult
+import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -16,7 +18,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.util.UUID
 
 class RemoteVaultKeyMaterialDataSourceIntegrationTest {
     private lateinit var server: MockWebServer
@@ -35,6 +36,93 @@ class RemoteVaultKeyMaterialDataSourceIntegrationTest {
     fun `getKeyMaterial when response is successful then returns parsed payload`() = runBlocking {
         val accountId = UUID.randomUUID()
 
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("ETag", "\"master-1\"")
+                .addHeader("Cache-Control", "no-store")
+                .setBody(
+                    """
+                    {
+                      "accountId":${accountId},
+                      "kekEncMaster":"AQID",
+                      "kekEncRecovery":"BAUG",
+                      "kdfAlgorithm":"argon2id",
+                      "kdfSalt":"BwgJ",
+                      "kdfMemoryKib":65536,
+                      "kdfIterations":3,
+                      "kdfParallelism":1,
+                      "kdfOutputLen":32,
+                      "cryptoVersion":"v1",
+                      "createdAt":"2026-03-09T12:10:45Z",
+                      "updatedAt":"2026-03-09T12:11:45Z"
+                    }
+                    """.trimIndent(),
+                ),
+        )
+        val dataSource = RemoteVaultKeyMaterialDataSource(
+            vaultKeyMaterialControllerApi = createVaultApi(server),
+        )
+
+        val result = dataSource.getVersionedKeyMaterial()
+
+        assertTrue(result is VaultKeyMaterialRemoteResult.Success)
+        val value = (result as VaultKeyMaterialRemoteResult.Success).value
+        assertEquals("\"master-1\"", value.etag)
+        assertEquals(accountId, value.material.accountId)
+        assertArrayEquals(byteArrayOf(1, 2, 3), value.material.kekEncMaster)
+        assertArrayEquals(byteArrayOf(4, 5, 6), value.material.kekEncRecovery)
+        assertEquals("argon2id", value.material.kdfAlgorithm)
+        assertEquals(65536, value.material.kdfMemoryKib)
+        assertEquals("v1", value.material.cryptoVersion)
+
+        val request = server.takeRequest()
+        assertEquals("/vault/keys", request.path)
+        assertEquals("GET", request.method)
+    }
+
+    @Test
+    fun `getVersionedKeyMaterial when successful response omits etag then returns contract violation`() = runBlocking {
+        val accountId = UUID.randomUUID()
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                    """
+                    {
+                      "accountId":${accountId},
+                      "kekEncMaster":"AQID",
+                      "kekEncRecovery":"BAUG",
+                      "kdfAlgorithm":"argon2id",
+                      "kdfSalt":"BwgJ",
+                      "kdfMemoryKib":65536,
+                      "kdfIterations":3,
+                      "kdfParallelism":1,
+                      "kdfOutputLen":32,
+                      "cryptoVersion":"v1",
+                      "createdAt":"2026-03-09T12:10:45Z",
+                      "updatedAt":"2026-03-09T12:11:45Z"
+                    }
+                    """.trimIndent(),
+                ),
+        )
+        val dataSource = RemoteVaultKeyMaterialDataSource(
+            vaultKeyMaterialControllerApi = createVaultApi(server),
+        )
+
+        val result = dataSource.getVersionedKeyMaterial()
+
+        assertEquals(
+            VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.ContractViolation),
+            result,
+        )
+    }
+
+    @Test
+    fun `getKeyMaterial when successful response omits etag then returns parsed payload`() = runBlocking {
+        val accountId = UUID.randomUUID()
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -69,9 +157,6 @@ class RemoteVaultKeyMaterialDataSourceIntegrationTest {
         assertEquals(accountId, value.accountId)
         assertArrayEquals(byteArrayOf(1, 2, 3), value.kekEncMaster)
         assertArrayEquals(byteArrayOf(4, 5, 6), value.kekEncRecovery)
-        assertEquals("argon2id", value.kdfAlgorithm)
-        assertEquals(65536, value.kdfMemoryKib)
-        assertEquals("v1", value.cryptoVersion)
 
         val request = server.takeRequest()
         assertEquals("/vault/keys", request.path)
@@ -152,6 +237,7 @@ class RemoteVaultKeyMaterialDataSourceIntegrationTest {
 
         val result = dataSource.updateMasterWrappedKek(
             newKekEncMaster = byteArrayOf(10, 11, 12),
+            ifMatch = "\"master-1\"",
         )
 
         assertEquals(
@@ -162,6 +248,75 @@ class RemoteVaultKeyMaterialDataSourceIntegrationTest {
         val request = server.takeRequest()
         assertEquals("/vault/keys/master", request.path)
         assertEquals("PUT", request.method)
+        assertEquals("\"master-1\"", request.getHeader("If-Match"))
+    }
+
+    @Test
+    fun `updateMasterWrappedKek when response is successful then returns etag confirmation and forwards if match`() = runBlocking {
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("ETag", "\"master-2\"")
+                .addHeader("Cache-Control", "no-store"),
+        )
+        val dataSource = RemoteVaultKeyMaterialDataSource(
+            vaultKeyMaterialControllerApi = createVaultApi(server),
+        )
+
+        val result = dataSource.updateMasterWrappedKek(
+            newKekEncMaster = byteArrayOf(10, 11, 12),
+            ifMatch = "\"opaque-etag-from-get\"",
+        )
+
+        assertEquals(
+            VaultKeyMaterialRemoteResult.Success(
+                MasterWrapperUpdateConfirmation(
+                    etag = "\"master-2\"",
+                ),
+            ),
+            result,
+        )
+        val request = server.takeRequest()
+        assertEquals("/vault/keys/master", request.path)
+        assertEquals("PUT", request.method)
+        assertEquals("\"opaque-etag-from-get\"", request.getHeader("If-Match"))
+    }
+
+    @Test
+    fun `updateMasterWrappedKek when status is 412 then maps to revision conflict`() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(412))
+        val dataSource = RemoteVaultKeyMaterialDataSource(
+            vaultKeyMaterialControllerApi = createVaultApi(server),
+        )
+
+        val result = dataSource.updateMasterWrappedKek(
+            newKekEncMaster = byteArrayOf(10, 11, 12),
+            ifMatch = "\"master-1\"",
+        )
+
+        assertEquals(
+            VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.MasterKeyRevisionConflict),
+            result,
+        )
+        assertEquals("\"master-1\"", server.takeRequest().getHeader("If-Match"))
+    }
+
+    @Test
+    fun `updateMasterWrappedKek when status is 428 then maps to precondition required`() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(428))
+        val dataSource = RemoteVaultKeyMaterialDataSource(
+            vaultKeyMaterialControllerApi = createVaultApi(server),
+        )
+
+        val result = dataSource.updateMasterWrappedKek(
+            newKekEncMaster = byteArrayOf(10, 11, 12),
+            ifMatch = "\"master-1\"",
+        )
+
+        assertEquals(
+            VaultKeyMaterialRemoteResult.Error(VaultKeyMaterialRemoteError.PreconditionRequired),
+            result,
+        )
     }
 
     @Test
