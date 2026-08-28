@@ -16,6 +16,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialLocalRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultKekProvider
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
 import java.nio.charset.StandardCharsets
@@ -383,7 +384,10 @@ class ChangeVaultPassphraseUseCase @Inject constructor(
     ): ChangeVaultPassphraseResult {
         runCatching { vaultSessionManager.clearQuickUnlockEnrollment() }
         runCatching {
-            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
+            vaultSessionManager.lock(
+                promptMode = QuickUnlockPromptMode.ManualOnly,
+                reason = VaultLockReason.RemotePassphraseChanged,
+            )
         }
         return ChangeVaultPassphraseResult.Error(error)
     }
@@ -392,7 +396,10 @@ class ChangeVaultPassphraseUseCase @Inject constructor(
         runCatching { vaultKeyMaterialLocalRepository.clearMasterWrappedKek() }
         runCatching { vaultSessionManager.clearQuickUnlockEnrollment() }
         runCatching {
-            vaultSessionManager.lock(QuickUnlockPromptMode.ManualOnly)
+            vaultSessionManager.lock(
+                promptMode = QuickUnlockPromptMode.ManualOnly,
+                reason = VaultLockReason.PassphraseChangeReconciliationRequired,
+            )
         }
         return ChangeVaultPassphraseResult.Error(
             ChangeVaultPassphraseError.ReconciliationRequired,

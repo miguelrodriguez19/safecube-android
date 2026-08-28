@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 28-08-2026 02:19:50
+Updated: 28-08-2026 02:52:10
 
 ```
 safecube-android/
@@ -749,6 +749,7 @@ safecube-android/
 │   │   │   │   │   │   ├── session/
 │   │   │   │   │   │   │   ├── LocalVaultDataCleaner.kt
 │   │   │   │   │   │   │   ├── VaultKekProvider.kt
+│   │   │   │   │   │   │   ├── VaultLockReason.kt
 │   │   │   │   │   │   │   └── VaultSessionManager.kt
 │   │   │   │   │   │   └── usecase/
 │   │   │   │   │   │       ├── secureitem/

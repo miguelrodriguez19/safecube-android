@@ -62,4 +62,9 @@ interface VaultSessionManager {
     fun lock()
 
     fun lock(promptMode: QuickUnlockPromptMode)
+
+    fun lock(promptMode: QuickUnlockPromptMode, reason: VaultLockReason)
+
+    /** Returns and clears the pending process-local explanation for the latest security lock. */
+    fun consumeLockReason(): VaultLockReason?
 }

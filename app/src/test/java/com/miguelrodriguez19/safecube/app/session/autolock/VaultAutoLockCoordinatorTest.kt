@@ -5,8 +5,9 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.AutoLockTimeout
 import com.miguelrodriguez19.safecube.core.vault.domain.model.VaultState
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.AutoLockTimeoutRepository
-import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.junit.Assert.assertEquals
@@ -281,6 +282,12 @@ private class FakeVaultSessionManager : VaultSessionManager {
         lastPromptMode = promptMode
         mutableVaultState.value = VaultState.Locked
     }
+
+    override fun lock(promptMode: QuickUnlockPromptMode, reason: VaultLockReason) {
+        lock(promptMode)
+    }
+
+    override fun consumeLockReason(): VaultLockReason? = null
 
     fun isLocked(): Boolean = mutableVaultState.value == VaultState.Locked
 }

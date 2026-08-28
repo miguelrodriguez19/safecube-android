@@ -10,8 +10,9 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureI
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
 import com.miguelrodriguez19.safecube.core.vault.domain.service.EncryptedSecureItemPayload
-import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -112,6 +113,7 @@ class FakeVaultSessionManager(
     initialState: VaultState = VaultState.Unlocked,
 ) : VaultSessionManager {
     private val mutableVaultState = MutableStateFlow(initialState)
+    private var pendingLockReason: VaultLockReason? = null
 
     override val vaultState: StateFlow<VaultState> = mutableVaultState
 
@@ -136,10 +138,21 @@ class FakeVaultSessionManager(
     override fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockError? = null
 
     override fun lock() {
+        pendingLockReason = null
         mutableVaultState.value = VaultState.Locked
     }
 
     override fun lock(promptMode: QuickUnlockPromptMode) {
+        pendingLockReason = null
         mutableVaultState.value = VaultState.Locked
+    }
+
+    override fun lock(promptMode: QuickUnlockPromptMode, reason: VaultLockReason) {
+        pendingLockReason = reason
+        mutableVaultState.value = VaultState.Locked
+    }
+
+    override fun consumeLockReason(): VaultLockReason? = pendingLockReason.also {
+        pendingLockReason = null
     }
 }
