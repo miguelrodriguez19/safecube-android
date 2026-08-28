@@ -73,11 +73,17 @@ internal fun shouldGuardRestoredNavigation(
     }
 }
 
-internal fun shouldShowSessionExpiredMessage(sessionState: SessionState): Boolean =
-    sessionState is SessionState.LoggedOut && sessionState.reason in setOf(
-        SessionTerminationReason.SessionExpired,
-        SessionTerminationReason.RefreshCredentialsRejected,
-    )
+internal fun resolveForcedLogoutNotice(sessionState: SessionState): ForcedLogoutNotice? =
+    when ((sessionState as? SessionState.LoggedOut)?.reason) {
+        SessionTerminationReason.SessionExpired -> ForcedLogoutNotice.SessionExpired
+        SessionTerminationReason.RefreshCredentialsRejected ->
+            ForcedLogoutNotice.RefreshCredentialsRejected
+
+        SessionTerminationReason.LocalIntegrityFailure -> ForcedLogoutNotice.LocalIntegrityFailure
+        null,
+        SessionTerminationReason.ManualLogout,
+            -> null
+    }
 
 private val PRE_AUTH_ROUTES = setOf(
     Routes.Splash,

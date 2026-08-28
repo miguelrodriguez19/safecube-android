@@ -32,7 +32,6 @@ import com.miguelrodriguez19.safecube.feature.auth.presentation.login.viewmodel.
 fun LoginScreen(
     onSignup: () -> Unit,
     onLoginSuccess: () -> Unit,
-    showSessionExpiredMessage: Boolean = false,
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -49,7 +48,6 @@ fun LoginScreen(
         uiState = uiState,
         onAction = viewModel::onAction,
         onSignup = onSignup,
-        showSessionExpiredMessage = showSessionExpiredMessage,
     )
 }
 
@@ -58,7 +56,6 @@ private fun LoginContent(
     uiState: LoginUiState,
     onAction: (LoginUiAction) -> Unit,
     onSignup: () -> Unit,
-    showSessionExpiredMessage: Boolean,
 ) {
     Scaffold(modifier = Modifier.testTag(AuthTestTags.LOGIN_SCREEN)) { paddingValues ->
         Column(
@@ -68,12 +65,6 @@ private fun LoginContent(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
         ) {
-            if (showSessionExpiredMessage) {
-                Text(
-                    text = stringResource(R.string.session_expired_message),
-                    modifier = Modifier.testTag(AuthTestTags.SESSION_EXPIRED_MESSAGE),
-                )
-            }
             Text(
                 text = stringResource(R.string.access_your_vault),
                 style = MaterialTheme.typography.headlineSmall,
