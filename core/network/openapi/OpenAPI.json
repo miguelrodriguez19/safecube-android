@@ -25,6 +25,18 @@
         "summary": "Update master-wrapped KEK",
         "description": "Updates the master-wrapped key material after passphrase change. Does not modify existing vault items.",
         "operationId": "updateMasterWrappedKek",
+        "parameters": [
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Exactly one strong ETag returned by GET /vault/keys.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "\"master-[1-9][0-9]*\""
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -37,7 +49,33 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "description": "Responses containing vault key material must not be cached or transformed by intermediaries.",
+                "required": true,
+                "style": "simple",
+                "schema": {
+                  "type": "string",
+                  "example": "no-store, no-transform"
+                }
+              },
+              "ETag": {
+                "description": "Strong server-owned incremented master key revision.",
+                "required": true,
+                "style": "simple",
+                "schema": {
+                  "type": "string",
+                  "example": "master-2"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "The If-Match revision is stale."
+          },
+          "428": {
+            "description": "If-Match is required."
           },
           "400": {
             "description": "Bad request",
@@ -564,6 +602,26 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "description": "Responses containing vault key material must not be cached or transformed by intermediaries.",
+                "required": true,
+                "style": "simple",
+                "schema": {
+                  "type": "string",
+                  "example": "no-store, no-transform"
+                }
+              },
+              "ETag": {
+                "description": "Strong server-owned master key revision.",
+                "required": true,
+                "style": "simple",
+                "schema": {
+                  "type": "string",
+                  "example": "master-1"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {

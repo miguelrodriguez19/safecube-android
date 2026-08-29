@@ -2,6 +2,7 @@
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
+    <string name="action_understood">Got it</string>
     <string name="generic_error">Something went wrong</string>
     <string name="cancel">Cancel</string>
     <string name="logout_with_drafts_title">Discard local changes?</string>
@@ -22,6 +23,10 @@
     <string name="vault_unlock_description">Enter your passphrase to open your secure data.</string>
     <string name="vault_unlock_loading">Unlocking vault…</string>
     <string name="vault_unlock_action">Unlock vault</string>
+    <string name="vault_lock_remote_passphrase_changed_title">The passphrase changed on another device</string>
+    <string name="vault_lock_remote_passphrase_changed_message">For your security, we locked your vault because its passphrase changed on another device. Your account session is still active. Unlock it with the current passphrase or your recovery key.</string>
+    <string name="vault_lock_passphrase_reconciliation_title">We couldn’t confirm the passphrase change</string>
+    <string name="vault_lock_passphrase_reconciliation_message">We locked your vault because we couldn’t confirm which passphrase currently protects it. Your account session is still active. Check your connection, then unlock it with the current passphrase or your recovery key.</string>
     <string name="quick_unlock_offer_title">Enable quick unlock?</string>
     <string name="quick_unlock_offer_description">Use strong biometrics or your device PIN, pattern, or password to unlock this vault. This is not a SafeCube PIN.</string>
     <string name="quick_unlock_enable">Enable</string>
@@ -102,6 +107,7 @@
     <string name="change_passphrase_retryable">The change could not be confirmed. Check your connection and try again.</string>
     <string name="change_passphrase_not_applied">The change was not applied. Check your connection and try again.</string>
     <string name="change_passphrase_session_required">Your vault session is no longer available. Unlock the vault and try again.</string>
+    <string name="change_passphrase_concurrent_remote_change">Your passphrase was changed on another device. Unlock the vault with the latest passphrase or your recovery key.</string>
     <string name="change_passphrase_uncertain">The result could not be confirmed. Unlock the vault after checking your connection.</string>
 
     <string name="email_is_required">Email is required</string>
@@ -124,7 +130,11 @@
     <string name="created_account">Create account</string>
     <string name="start_your_journey">Start your secure vault journey</string>
     <string name="access_your_vault">Access your vault</string>
-    <string name="session_expired_message">Your session expired. Please sign in again.</string>
+    <string name="session_terminated_title">You’ve been signed out</string>
+    <string name="session_expired_message">Your session expired, so we signed you out to keep your account secure. Sign in again to continue.</string>
+    <string name="session_refresh_rejected_message">We couldn’t renew your session, so we signed you out to keep your account secure. Sign in again to continue.</string>
+    <string name="session_local_integrity_message">We detected a problem with local secure data. Your session was closed for security. Sign in again to continue.</string>
+    <string name="session_sign_in_again">Sign in again</string>
     <string name="logging_in">Logging in…</string>
     <string name="login">Login</string>
     <string name="go_to_signup">Go to Signup</string>

@@ -9,8 +9,9 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.PullVaul
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLocalVaultChangesError
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.push.PushLocalVaultChangesResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.unlock.VaultUnlockError
-import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.VaultSyncExecutionLock
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.VaultSyncUseCase
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.sync.pull.PullVaultDeltaUseCase
@@ -45,6 +46,9 @@ class VaultSyncUseCaseTest {
         override fun unlockWithRecoveryKey(recoveryKey: ByteArray): VaultUnlockError? = error("Not required in test")
         override fun lock() = error("Not required in test")
         override fun lock(promptMode: QuickUnlockPromptMode) = error("Not required in test")
+        override fun lock(promptMode: QuickUnlockPromptMode, reason: VaultLockReason) =
+            error("Not required in test")
+        override fun consumeLockReason(): VaultLockReason? = null
     }
 
     private val pushLocalVaultChangesUseCase = mockk<PushLocalVaultChangesUseCase>()

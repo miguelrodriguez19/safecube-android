@@ -2,6 +2,7 @@
     <string name="action_save">Guardar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_delete">Eliminar</string>
+    <string name="action_understood">Entendido</string>
     <string name="generic_error">Algo salió mal</string>
     <string name="cancel">Cancelar</string>
     <string name="logout_with_drafts_title">¿Descartar cambios locales?</string>
@@ -22,6 +23,10 @@
     <string name="vault_unlock_description">Introduce la passphrase para abrir tus datos seguros.</string>
     <string name="vault_unlock_loading">Desbloqueando bóveda…</string>
     <string name="vault_unlock_action">Desbloquear bóveda</string>
+    <string name="vault_lock_remote_passphrase_changed_title">La passphrase ha cambiado en otro dispositivo</string>
+    <string name="vault_lock_remote_passphrase_changed_message">Por seguridad, hemos bloqueado tu bóveda porque la passphrase se ha cambiado en otro dispositivo. Tu sesión de cuenta sigue activa. Desbloquéala con la passphrase vigente o con tu recovery key.</string>
+    <string name="vault_lock_passphrase_reconciliation_title">No se ha podido confirmar el cambio de passphrase</string>
+    <string name="vault_lock_passphrase_reconciliation_message">Hemos bloqueado tu bóveda porque no se ha podido confirmar qué passphrase la protege actualmente. Tu sesión de cuenta sigue activa. Comprueba tu conexión y desbloquéala con la passphrase vigente o con tu recovery key.</string>
     <string name="quick_unlock_offer_title">¿Activar desbloqueo rápido?</string>
     <string name="quick_unlock_offer_description">Usa biometría fuerte o el PIN, patrón o contraseña del dispositivo para desbloquear esta bóveda. No es un PIN de SafeCube.</string>
     <string name="quick_unlock_enable">Activar</string>
@@ -102,6 +107,7 @@
     <string name="change_passphrase_retryable">No se ha podido confirmar el cambio. Comprueba tu conexión e inténtalo de nuevo.</string>
     <string name="change_passphrase_not_applied">El cambio no se ha aplicado. Comprueba tu conexión e inténtalo de nuevo.</string>
     <string name="change_passphrase_session_required">La sesión de tu bóveda ya no está disponible. Desbloquéala e inténtalo de nuevo.</string>
+    <string name="change_passphrase_concurrent_remote_change">La passphrase se ha cambiado en otro dispositivo. Desbloquea la bóveda con la passphrase vigente o tu clave de recuperación.</string>
     <string name="change_passphrase_uncertain">No se ha podido confirmar el resultado. Desbloquea la bóveda después de comprobar tu conexión.</string>
     <string name="email_is_required">El correo es obligatorio</string>
     <string name="password_is_required">La contraseña es obligatoria</string>
@@ -123,7 +129,11 @@
     <string name="created_account">Crear cuenta</string>
     <string name="start_your_journey">Comienza tu viaje hacia una bóveda segura</string>
     <string name="access_your_vault">Accede a tu bóveda</string>
-    <string name="session_expired_message">Tu sesión ha caducado. Inicia sesión de nuevo.</string>
+    <string name="session_terminated_title">Se ha cerrado tu sesión</string>
+    <string name="session_expired_message">Tu sesión ha caducado y, para proteger tu cuenta, se ha cerrado. Inicia sesión de nuevo para continuar.</string>
+    <string name="session_refresh_rejected_message">No se ha podido renovar tu sesión y, para proteger tu cuenta, se ha cerrado. Inicia sesión de nuevo para continuar.</string>
+    <string name="session_local_integrity_message">Hemos detectado un problema con los datos seguros locales. Se ha cerrado tu sesión por seguridad. Inicia sesión de nuevo para continuar.</string>
+    <string name="session_sign_in_again">Iniciar sesión de nuevo</string>
     <string name="logging_in">Iniciando sesión…</string>
     <string name="login">Iniciar sesión</string>
     <string name="go_to_signup">Ir al registro</string>

@@ -8,10 +8,10 @@
 | Estado             | APPROVED                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Owner              | Maintainer / Security owner humano                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Fecha              | 2026-08-07                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Última revisión    | 2026-08-11                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Última revisión    | 2026-08-28                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Reemplaza          | N/A                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Dependencias       | [SPEC-PRODUCT-V1](../product/v1-product-brief.md), [SPEC-AUTH-CONTRACT](../../architecture/openapi-auth-contract-integration.md), [SPEC-OPENAPI-AUTH](../../architecture/openapi-auth-contract-integration.md), [SPEC-CRYPTO-V1](../../architecture/crypto-v1.md), [SPEC-SECURE-ITEM-PAYLOAD-V1](../../architecture/secure-item-payload-v1.md), [SPEC-VAULT-SYNC-V2](../../architecture/vault-sync-versioning-v2.md), [SPEC-OPENAPI-VAULT-KEY-MATERIAL](../../architecture/openapi-vault-key-material-contract-integration.md), [SPEC-OPENAPI-VAULT-ITEMS](../../architecture/openapi-vault-items-contract-integration.md), [SPEC-STORAGE](../../architecture/storage_decision.md) |
-| Tasks relacionadas | SCDK-M109–SCDK-M131                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Tasks relacionadas | SCDK-M109–SCDK-M132                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 La spec fue creada inicialmente en REVIEW y el owner humano la ha promovido a APPROVED. Es fuente
 normativa para las tareas posteriores; los ADRs relacionados siguen su propio ciclo de aprobación.
@@ -26,8 +26,9 @@ que deben respetar esos contratos cuando ocurren fallos, cambios de lifecycle o 
 plataforma.
 
 La spec no sustituye los contratos enlazados ni decide detalles técnicos que la Fase 7 ha reservado
-a los ADRs de SCDK-M110, SCDK-M111 y SCDK-M112. Esos ADRs deberán estar ACCEPTED antes de
-implementar sus decisiones concretas.
+a los ADRs de SCDK-M110, SCDK-M111, SCDK-M112 y SCDK-M132. Esos ADRs deberán estar ACCEPTED antes
+de implementar sus decisiones concretas; `ADR-0002-PASSPHRASE-REWRAP` y su addendum CAS de M132
+ya están ACCEPTED.
 
 ## Objetivos
 
@@ -94,15 +95,21 @@ La sesión autenticada y la sesión desbloqueada del vault son estados independi
    limpieza de datos locales
    sigue [SPEC-VAULT-SYNC-V2](../../architecture/vault-sync-versioning-v2.md)
    y no debe convertir un fallo remoto de logout en una sesión parcialmente autenticada.
-3. Un fallo de transporte, timeout, 408, 429 o 5xx durante refresh conserva la sesión y el vault en
+3. Después de completar el cierre seguro y establecer Login como raíz, el cliente muestra una vez
+   un diálogo modal con una explicación localizada y sanitizada de la causa: sesión caducada,
+   credenciales de renovación rechazadas o fallo de integridad local. El reconocimiento consume
+   solo el motivo process-local; no retrasa la limpieza, no se persiste y no aplica al logout
+   manual, auto-lock ni `Lock now`.
+4. Un fallo de transporte, timeout, 408, 429 o 5xx durante refresh conserva la sesión y el vault en
    el estado que aún sea seguro mantener. Se expone RetryableError o contenido local con una
    indicación retryable y no se navega automáticamente a Login.
-4. Un segundo 401 tras el refresh único se considera expiración definitiva y sigue el flujo de
+5. Un segundo 401 tras el refresh único se considera expiración definitiva y sigue el flujo de
    cierre seguro.
 
 **Criterios observables:** varias respuestas 401 concurrentes producen un único refresh; un refresh
 transitorio conserva la sesión; un refresh definitivamente rechazado elimina tokens y KEK, limpia
-plaintext y navega a Login; no se crean identidades nuevas.
+plaintext, navega a Login y presenta un único diálogo explicativo; el reconocimiento no permite
+volver a una ruta protegida y no se crean identidades nuevas.
 
 **Estrategia de test:** tests unitarios de concurrencia y clasificación en core:auth/core:network,
 tests de integración con respuestas 401 y refresh transitorio/definitivo, y test instrumentado que
@@ -243,20 +250,55 @@ modifica su identidad criptográfica.
    confirme exactamente el nuevo wrapper. Ante respuesta perdida, se reconcilia con GET /vault/keys;
    si el resultado no puede determinarse, se elimina el material maestro cacheado, se zeroiza la
    KEK, se bloquea el vault y se exige reconciliación online.
-5. Una passphrase actual incorrecta es un error terminal de validación local y no produce request
-   remoto. Las copias temporales de passphrases, MASTER_KEY y KEK se zeroizan best-effort.
+5. Una passphrase actual incorrecta es un error terminal de credencial y no produce el `PUT`; el
+   GET remoto fresco de preflight sí se realiza para no validar contra una caché obsoleta. Las
+   copias temporales de passphrases, MASTER_KEY y KEK se zeroizan best-effort.
+6. Cada cambio comienza con un `GET /vault/keys` remoto fresco. El cliente debe conservar como una
+   única versión `materialBase`, `wrapperBase` y un `ETag` fuerte, opaco, no vacío y entre comillas,
+   sin parsearlo, reconstruirlo ni normalizarlo. El `PUT /vault/keys/master` envía exactamente ese
+   valor en un único `If-Match` y solo el wrapper candidato en el body.
+7. El backend aplica una precondición CAS atómica: dos cambios basados en la misma versión producen
+   exactamente un ganador `200` y un perdedor `412 Precondition Failed`. El `412` es un conflicto
+   tipado que exige un GET de reconciliación y no permite reintentar el PUT a ciegas. Un `200`
+   devuelve un ETag nuevo que se valida como confirmación; las operaciones futuras obtienen su
+   propia precondición mediante otro GET y no reutilizan este ETag.
+8. Tras `412` o un resultado incierto se conservan `wrapperBase`, `wrapperCandidato` y `etagBase`
+   hasta reconciliar. Un remoto igual al candidato confirma; uno igual a la base no confirma ni
+   repite automáticamente; un tercer wrapper indica que otro dispositivo ganó y exige validar el
+   resto del material remoto, actualizar únicamente `kekEncMaster`, invalidar la autoridad local,
+   zeroizar la KEK y bloquear el vault. Si la reconciliación falla o devuelve material inválido, se
+   aplica el mismo fail-closed.
+9. En la ruta de tercer wrapper o reconciliación indeterminada, la interacción con
+   [ADR-0001-VAULT-AUTO-LOCK](../../architecture/adr/ADR-0001-VAULT-AUTO-LOCK.md) y `SCDK-M131`
+   exige invalidar best-effort el enrolamiento quick unlock local y dejar el desbloqueo en modo
+   `ManualOnly`, sin relanzar automáticamente el prompt. Si la limpieza local se completa, el
+   siguiente acceso exige la passphrase remota vigente o la recovery key; un fallo de storage en
+   esa limpieza no evita el lock y queda como riesgo residual explícito. La sesión autenticada,
+   `kekEncRecovery`, items, drafts y checkpoints se conservan. Confirmar el candidato o conservar
+   la base no elimina el enrolamiento.
+10. Unlock presenta una explicación sanitizada de un solo uso cuando el lock procede de un tercer
+    wrapper o de una reconciliación indeterminada. Ambos casos usan mensajes distintos, preservan la
+    sesión autenticada y preceden cualquier oferta de quick unlock. La causa no se persiste ni se
+    muestra en locks ordinarios.
 
 Los detalles de orden de persistencia, reconciliación y limpieza se formalizan en
 [ADR-0002-PASSPHRASE-REWRAP](../../architecture/adr/ADR-0002-PASSPHRASE-REWRAP.md), ACCEPTED por
 el owner humano.
 
-**Criterios observables:** un cambio exitoso conserva la KEK efectiva y todos los payloads; una
-passphrase actual incorrecta no llama al servidor; una respuesta perdida no se declara éxito sin
-GET /vault/keys; un resultado incierto bloquea y exige reconciliación sin borrar items.
+**Criterios observables:** un cambio exitoso conserva la KEK efectiva y todos los payloads; dos
+clientes con la misma versión producen un único ganador; una passphrase actual incorrecta no envía
+el PUT; una respuesta perdida no se declara éxito sin GET /vault/keys; un tercer wrapper o
+resultado indeterminado bloquea, invalida quick unlock best-effort y exige desbloqueo manual sin
+borrar items; al llegar a Unlock se explica el bloqueo sin afirmar que la sesión de cuenta se haya
+cerrado ni exponer material sensible.
 
 **Estrategia de test:** tests unitarios de KDF/unwrap/rewrap, tests de contrato del request y
 tests de integración para confirmación, respuesta perdida y lectura posterior; comparar que no
-cambian los campos de items y drafts.
+cambian los campos de items y drafts. La cobertura M132 debe incluir revisión obsoleta secuencial,
+carrera determinista de dos clientes, conflicto `412`, resultado incierto, reconciliación con
+candidato/base/tercer wrapper y fallo de reconciliación, además de conservar o invalidar el
+enrolamiento quick unlock según el resultado. También debe comprobar el consumo único de la causa,
+los mensajes distintos y la ausencia de aviso en un lock ordinario.
 
 ### SEC-PRIVACY-001 — Superficies sensibles y estado transitorio
 
@@ -267,8 +309,11 @@ de plataforma o diagnósticos:
   y reglas explícitas;
 - aplicar protección de screenshots y recents a toda la Activity mediante el mecanismo de
   plataforma decidido en ADR-0003-SENSITIVE-DATA-SURFACES;
-- prohibir en todos los build types logs de headers, cuerpos HTTP, tokens, passphrases, recovery
-  keys, MASTER_KEY, KEK, DEK, plaintext, payloads, displayHint e IDs de items;
+- prohibir en release, benchmark, CI y artefactos compartidos logs de headers, cuerpos HTTP,
+  tokens, passphrases, recovery keys, MASTER_KEY, KEK, DEK, plaintext, payloads, displayHint e IDs
+  de items;
+- mantener temporalmente logging HTTP completo en builds locales `debug` hasta que la Fase 9 lo
+  retire y lo sustituya por observabilidad estructurada y redactada;
 - no escribir programáticamente passwords, passphrases ni recovery keys al clipboard en v1;
 - aplicar visual transformation a passwords y passphrases;
 - no colocar secretos en Bundle, rutas serializables, SavedStateHandle ni rememberSaveable;
@@ -284,13 +329,14 @@ reglas R8 se cierran en
 ACCEPTED por el owner humano.
 
 **Criterios observables:** el manifest/release efectivo excluye backup y transferencia; screenshots
-y recents no muestran contenido; los logs de cualquier build no contienen datos prohibidos; la
-recovery key no aparece en estado restaurable ni clipboard; el registro transitorio se borra en
-cada evento de finalización definido.
+y recents no muestran contenido; release y benchmark no instalan logging HTTP; debug mantiene
+logging completo hasta el gate de retirada de Fase 9; la recovery key no aparece en estado
+restaurable ni clipboard; el registro transitorio se borra en cada evento de finalización definido.
 
 **Estrategia de test:** inspección estática de manifest, recursos y configuración R8; tests
-instrumentados de screenshot/recents y saved state; tests de logging con fixtures sintéticos no
-sensibles; tests de ciclo de vida y borrado del registro cifrado.
+instrumentados de screenshot/recents y saved state; tests que demuestran logging `BODY` en debug y
+ausencia del interceptor en release; tests de ciclo de vida y borrado del registro cifrado. La
+Fase 9 invierte el contrato debug y añade un gate que prohíbe definitivamente el logging HTTP raw.
 
 ## Requisitos no funcionales
 
@@ -467,8 +513,9 @@ esta spec añade las consecuencias de lifecycle y error.
 La sesión autenticada no concede acceso al plaintext: después de process death, auto-lock o
 limpieza terminal de sesión siempre es necesario ejecutar un nuevo unlock mediante passphrase o,
 si existe un enrolamiento local válido, mediante biometría fuerte o credencial segura del
-dispositivo. Ningún log, error de UI, reporte de agente, test fixture o captura puede contener
-secretos, payloads ni identificadores sensibles.
+dispositivo. Ningún log de release, error de UI, reporte de agente, test fixture compartido o
+captura puede contener secretos, payloads ni identificadores sensibles. El logging HTTP completo
+de debug es una excepción local y temporal que termina obligatoriamente en la Fase 9.
 
 ## Observabilidad
 
@@ -481,7 +528,7 @@ secretos, payloads ni identificadores sensibles.
 - Conteo acotado de intentos, versión de app/build y resultado de una reconciliación sin material
   de datos.
 
-### Prohibido
+### Prohibido en observabilidad y builds distribuibles
 
 - Tokens, headers de autorización, cookies, passphrases, recovery keys, MASTER_KEY, KEK, DEK.
 - Plaintext, payloads cifrados o descifrados, displayHint, IDs de items, cuerpos HTTP, URLs con
@@ -490,6 +537,20 @@ secretos, payloads ni identificadores sensibles.
 La instrumentación de observabilidad no puede bloquear una operación ni cambiar su clasificación.
 Telemetría y crash reporting quedan fuera de esta spec y se regirán por el contrato específico de
 la Fase 9.
+
+### Transición obligatoria de Fase 9
+
+La observabilidad no coexistirá con el logging HTTP raw. Antes de integrar un exporter, SDK o
+collector, la Fase 9 debe:
+
+1. eliminar el interceptor `BODY` de debug y cualquier logger equivalente;
+2. sustituir la señal de diagnóstico por eventos estructurados, redactados y sin headers/bodies;
+3. verificar debug, release y benchmark mediante tests estáticos y de runtime;
+4. impedir por quality gate que vuelvan a introducirse `BODY`, `HEADERS` o volcados manuales de
+   requests/responses;
+5. documentar sampling, consentimiento, retención, borrado y respuesta operacional.
+
+Una vez completado ese gate, ninguna build vuelve a registrar tráfico HTTP raw.
 
 ## Compatibilidad, migraciones y rollout
 

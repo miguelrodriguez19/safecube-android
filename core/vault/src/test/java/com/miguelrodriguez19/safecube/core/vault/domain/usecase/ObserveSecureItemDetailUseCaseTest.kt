@@ -11,8 +11,9 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.SecureItemRep
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoError
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemCryptoService
 import com.miguelrodriguez19.safecube.core.vault.domain.service.SecureItemDecryptionResult
-import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.secureitem.ObserveSecureItemDetailUseCase
 import io.mockk.confirmVerified
 import io.mockk.every
@@ -45,6 +46,9 @@ class ObserveSecureItemDetailUseCaseTest {
         override fun unlockWithRecoveryKey(recoveryKey: ByteArray) = error("Not required in test")
         override fun lock() = error("Not required in test")
         override fun lock(promptMode: QuickUnlockPromptMode) = error("Not required in test")
+        override fun lock(promptMode: QuickUnlockPromptMode, reason: VaultLockReason) =
+            error("Not required in test")
+        override fun consumeLockReason(): VaultLockReason? = null
     }
 
     private val target = ObserveSecureItemDetailUseCase(

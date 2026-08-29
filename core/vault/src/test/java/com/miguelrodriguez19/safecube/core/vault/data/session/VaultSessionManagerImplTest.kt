@@ -22,6 +22,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.usecase.vault.VaultUnlocker
 import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -285,6 +286,36 @@ class VaultSessionManagerImplTest {
 
         assertEquals(VaultState.Locked, target.vaultState.value)
         verify(exactly = 1) { vaultInMemoryKekStore.clear() }
+    }
+
+    @Test
+    fun `lock with passphrase conflict reason exposes it exactly once`() {
+        target.lock(
+            QuickUnlockPromptMode.ManualOnly,
+            VaultLockReason.RemotePassphraseChanged,
+        )
+
+        assertEquals(VaultState.Locked, target.vaultState.value)
+        assertEquals(QuickUnlockPromptMode.ManualOnly, target.quickUnlockPromptMode())
+        assertEquals(
+            VaultLockReason.RemotePassphraseChanged,
+            target.consumeLockReason(),
+        )
+        assertNull(target.consumeLockReason())
+        verify(exactly = 1) { vaultInMemoryKekStore.clear() }
+    }
+
+    @Test
+    fun `ordinary lock clears a pending passphrase conflict reason`() {
+        target.lock(
+            QuickUnlockPromptMode.ManualOnly,
+            VaultLockReason.RemotePassphraseChanged,
+        )
+
+        target.lock(QuickUnlockPromptMode.AutomaticOnUnlockEntry)
+
+        assertNull(target.consumeLockReason())
+        assertEquals(QuickUnlockPromptMode.AutomaticOnUnlockEntry, target.quickUnlockPromptMode())
     }
 
     @Test

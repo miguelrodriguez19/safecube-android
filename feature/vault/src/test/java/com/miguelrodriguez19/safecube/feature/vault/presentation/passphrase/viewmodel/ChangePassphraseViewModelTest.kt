@@ -184,6 +184,35 @@ class ChangePassphraseViewModelTest {
     }
 
     @Test
+    fun `concurrent remote change clears fields navigates to unlock and never exposes success`() = runTest {
+        val target = target()
+        coEvery { changeVaultPassphraseUseCase(any(), any()) } returns
+            ChangeVaultPassphraseResult.Error(ChangeVaultPassphraseError.ConcurrentRemoteChange)
+        val events = async(start = CoroutineStart.UNDISPATCHED) {
+            target.events.take(2).toList()
+        }
+
+        target.onAction(validSubmit())
+
+        assertEquals(
+            ChangePassphraseUiOperationState.SessionRequired,
+            target.uiState.value.operationState,
+        )
+        assertEquals(
+            com.miguelrodriguez19.safecube.core.ui.R.string.change_passphrase_concurrent_remote_change,
+            target.uiState.value.errorMessageRes,
+        )
+        assertNull(target.uiState.value.successMessageRes)
+        assertEquals(
+            listOf(
+                ChangePassphraseUiEvent.ClearFields,
+                ChangePassphraseUiEvent.NavigateToUnlock,
+            ),
+            events.await(),
+        )
+    }
+
+    @Test
     fun `unauthorized remote result is exposed as session required`() = runTest {
         val target = target()
         coEvery { changeVaultPassphraseUseCase(any(), any()) } returns

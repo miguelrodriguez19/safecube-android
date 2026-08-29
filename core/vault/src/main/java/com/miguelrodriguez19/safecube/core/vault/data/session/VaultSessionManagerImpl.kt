@@ -13,6 +13,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMater
 import com.miguelrodriguez19.safecube.core.vault.domain.repository.VaultKeyMaterialRemoteRepository
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCompletionResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockCleanupResult
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockEnrollmentResult
@@ -45,6 +46,7 @@ internal class VaultSessionManagerImpl @Inject constructor(
     private val state = MutableStateFlow(initialVaultState())
     private val quickUnlockOperationAccounts = mutableMapOf<String, UUID>()
     private var promptMode = QuickUnlockPromptMode.AutomaticOnUnlockEntry
+    private var pendingLockReason: VaultLockReason? = null
 
     override val vaultState: StateFlow<VaultState> = state.asStateFlow()
 
@@ -56,6 +58,7 @@ internal class VaultSessionManagerImpl @Inject constructor(
 
     override suspend fun refreshVaultState() {
         promptMode = QuickUnlockPromptMode.AutomaticOnUnlockEntry
+        pendingLockReason = null
         clearInMemoryKek()
         state.value = VaultState.InitialLoading
         val localReadResult = readLocalKeyMaterial()
@@ -83,6 +86,9 @@ internal class VaultSessionManagerImpl @Inject constructor(
                     }
 
                     VaultKeyMaterialRemoteError.Forbidden,
+                    VaultKeyMaterialRemoteError.MasterKeyRevisionConflict,
+                    VaultKeyMaterialRemoteError.PreconditionRequired,
+                    VaultKeyMaterialRemoteError.ContractViolation,
                     is VaultKeyMaterialRemoteError.HttpError,
                     is VaultKeyMaterialRemoteError.NetworkError,
                         -> {
@@ -242,7 +248,25 @@ internal class VaultSessionManagerImpl @Inject constructor(
 
     @Synchronized
     override fun lock(promptMode: QuickUnlockPromptMode) {
+        lockInternal(promptMode = promptMode, reason = null)
+    }
+
+    @Synchronized
+    override fun lock(promptMode: QuickUnlockPromptMode, reason: VaultLockReason) {
+        lockInternal(promptMode = promptMode, reason = reason)
+    }
+
+    @Synchronized
+    override fun consumeLockReason(): VaultLockReason? = pendingLockReason.also {
+        pendingLockReason = null
+    }
+
+    private fun lockInternal(
+        promptMode: QuickUnlockPromptMode,
+        reason: VaultLockReason?,
+    ) {
         this.promptMode = promptMode
+        pendingLockReason = reason
         quickUnlockOperationAccounts.keys.toList().forEach(quickUnlockManager::cancelUnlock)
         quickUnlockOperationAccounts.clear()
         clearInMemoryKek()
@@ -254,6 +278,7 @@ internal class VaultSessionManagerImpl @Inject constructor(
         provenance: VaultUnlockProvenance,
     ): VaultUnlockError? = when (result) {
         is VaultUnlockResult.Unlocked -> {
+            pendingLockReason = null
             replaceInMemoryKek(result.keyring.kek, provenance)
             state.value = VaultState.Unlocked
             null

@@ -57,6 +57,11 @@ sealed interface ChangeVaultPassphraseError {
         override val requiresConnection: Boolean = true
     }
 
+    data object ConcurrentRemoteChange : ChangeVaultPassphraseError {
+        override val retryDecision: RetryDecision = RetryDecision.Terminal
+        override val requiresConnection: Boolean = false
+    }
+
     data object ReconciliationRequired : ChangeVaultPassphraseError {
         override val retryDecision: RetryDecision = RetryDecision.Retryable
         override val requiresConnection: Boolean = true

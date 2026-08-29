@@ -27,6 +27,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.ui.component.SecretOutlinedTextField
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.action.UnlockVaultUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.event.UnlockVaultUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.findFragmentActivity
@@ -115,7 +116,23 @@ private fun UnlockVaultContent(
     uiState: UnlockVaultUiState,
     onAction: (UnlockVaultUiAction) -> Unit,
 ) {
-    if (uiState.showQuickUnlockOffer) {
+    uiState.lockReason?.let { lockReason ->
+        AlertDialog(
+            onDismissRequest = { onAction(UnlockVaultUiAction.DismissLockNotice) },
+            title = {
+                Text(stringResource(lockReason.titleRes()))
+            },
+            text = {
+                Text(stringResource(lockReason.messageRes()))
+            },
+            confirmButton = {
+                TextButton(onClick = { onAction(UnlockVaultUiAction.DismissLockNotice) }) {
+                    Text(stringResource(UiR.string.action_understood))
+                }
+            },
+        )
+    }
+    if (uiState.lockReason == null && uiState.showQuickUnlockOffer) {
         AlertDialog(
             onDismissRequest = {},
             title = { Text(stringResource(UiR.string.quick_unlock_offer_title)) },
@@ -210,4 +227,20 @@ private fun UnlockVaultContent(
             }
         }
     }
+}
+
+private fun VaultLockReason.titleRes(): Int = when (this) {
+    VaultLockReason.RemotePassphraseChanged ->
+        UiR.string.vault_lock_remote_passphrase_changed_title
+
+    VaultLockReason.PassphraseChangeReconciliationRequired ->
+        UiR.string.vault_lock_passphrase_reconciliation_title
+}
+
+private fun VaultLockReason.messageRes(): Int = when (this) {
+    VaultLockReason.RemotePassphraseChanged ->
+        UiR.string.vault_lock_remote_passphrase_changed_message
+
+    VaultLockReason.PassphraseChangeReconciliationRequired ->
+        UiR.string.vault_lock_passphrase_reconciliation_message
 }

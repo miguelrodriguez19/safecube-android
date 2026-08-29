@@ -9,6 +9,7 @@ import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockO
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockPreparationResult
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptOperation
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.QuickUnlockPromptRequest
 import com.miguelrodriguez19.safecube.feature.vault.presentation.state.VaultUiOperationState
@@ -47,6 +48,7 @@ class UnlockVaultViewModelTest {
         every { vaultSessionManager.quickUnlockOfferState() } returns QuickUnlockOfferState.AccountUnavailable
         every { vaultSessionManager.quickUnlockPromptMode() } returns QuickUnlockPromptMode.AutomaticOnUnlockEntry
         every { vaultSessionManager.consumeQuickUnlockEnrollmentAfterPassphrase() } returns false
+        every { vaultSessionManager.consumeLockReason() } returns null
     }
 
     @Test
@@ -173,6 +175,40 @@ class UnlockVaultViewModelTest {
         assertTrue(target.uiState.value.hasQuickUnlockEnrollment)
         assertFalse(target.uiState.value.canRetryQuickUnlock)
         verify(exactly = 0) { vaultSessionManager.prepareQuickUnlock() }
+    }
+
+    @Test
+    fun `screen entry exposes remote passphrase lock notice once and dismisses it`() = runTest {
+        every { vaultSessionManager.consumeLockReason() } returns
+            VaultLockReason.RemotePassphraseChanged
+
+        target.onAction(UnlockVaultUiAction.ScreenEntered)
+        target.onAction(UnlockVaultUiAction.ScreenEntered)
+
+        assertEquals(
+            VaultLockReason.RemotePassphraseChanged,
+            target.uiState.value.lockReason,
+        )
+        verify(exactly = 1) { vaultSessionManager.consumeLockReason() }
+
+        target.onAction(UnlockVaultUiAction.DismissLockNotice)
+        target.onAction(UnlockVaultUiAction.ScreenEntered)
+
+        assertEquals(null, target.uiState.value.lockReason)
+        verify(exactly = 1) { vaultSessionManager.consumeLockReason() }
+    }
+
+    @Test
+    fun `screen entry exposes uncertain reconciliation with a distinct reason`() = runTest {
+        every { vaultSessionManager.consumeLockReason() } returns
+            VaultLockReason.PassphraseChangeReconciliationRequired
+
+        target.onAction(UnlockVaultUiAction.ScreenEntered)
+
+        assertEquals(
+            VaultLockReason.PassphraseChangeReconciliationRequired,
+            target.uiState.value.lockReason,
+        )
     }
 
     @Test
