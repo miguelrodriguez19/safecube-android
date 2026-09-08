@@ -1,11 +1,14 @@
 package com.miguelrodriguez19.safecube
 
+import android.app.Activity
+import android.app.Application
 import android.app.KeyguardManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
@@ -185,13 +188,47 @@ class QuickUnlockDeviceCredentialTest {
     fun activityRecreationKeepsLiveSessionAndRemoteProcessStartsLocked() {
         val fixture = createUnlockedFixture()
 
-        composeRule.activityRule.scenario.recreate()
+        recreateActivityAndWaitUntilResumed()
 
         assertTrue(entryPoint.vaultSessionManager().isUnlocked())
         val coldProcessSnapshot = startColdStartProbe()
         assertFalse(coldProcessSnapshot.isUnlocked)
         assertTrue(coldProcessSnapshot.vaultStateName.isNotBlank())
+        assertTrue(entryPoint.vaultSessionManager().isUnlocked())
         fixture.zeroize()
+    }
+
+    private fun recreateActivityAndWaitUntilResumed() {
+        val originalActivity = composeRule.activity
+        val recreatedActivityResumed = CountDownLatch(1)
+        val application = targetContext.applicationContext as Application
+        val lifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
+            override fun onActivityResumed(activity: Activity) {
+                if (activity is MainActivity && activity !== originalActivity) {
+                    recreatedActivityResumed.countDown()
+                }
+            }
+
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+            override fun onActivityStarted(activity: Activity) = Unit
+            override fun onActivityPaused(activity: Activity) = Unit
+            override fun onActivityStopped(activity: Activity) = Unit
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+            override fun onActivityDestroyed(activity: Activity) = Unit
+        }
+        application.registerActivityLifecycleCallbacks(lifecycleCallbacks)
+        try {
+            instrumentation.runOnMainSync(originalActivity::recreate)
+            assertTrue(
+                "Recreated MainActivity did not reach RESUMED",
+                recreatedActivityResumed.await(
+                    ACTIVITY_RECREATION_TIMEOUT_SECONDS,
+                    TimeUnit.SECONDS,
+                ),
+            )
+        } finally {
+            application.unregisterActivityLifecycleCallbacks(lifecycleCallbacks)
+        }
     }
 
     private fun createUnlockedFixture(): Fixture {
@@ -532,6 +569,7 @@ class QuickUnlockDeviceCredentialTest {
         const val PROMPT_TIMEOUT_SECONDS = 20L
         const val PROMPT_TIMEOUT_MILLIS = PROMPT_TIMEOUT_SECONDS * 1_000L
         const val PROBE_TIMEOUT_SECONDS = 10L
+        const val ACTIVITY_RECREATION_TIMEOUT_SECONDS = 10L
         const val SYSTEM_UI_PACKAGE = "com.android.systemui"
         const val QUICK_UNLOCK_ALIAS_PREFIX = "safecube.quick_unlock."
     }

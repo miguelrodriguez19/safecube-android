@@ -34,6 +34,25 @@ class PostLoginGateViewModelTest {
     private val accountSessionLifecycle = mockk<AccountSessionLifecycle>()
 
     @Test
+    fun `live unlocked vault skips destructive refresh and emits home navigation`() = runTest {
+        every { vaultInitializeUseCase.readPendingInitializationStatus() } returns
+            PendingVaultInitializationStatus.None
+        every { vaultSessionManager.isUnlocked() } returns true
+        every { vaultSessionManager.vaultState } returns MutableStateFlow(VaultState.Unlocked)
+        val target = PostLoginGateViewModel(
+            vaultSessionManager = vaultSessionManager,
+            vaultInitializeUseCase = vaultInitializeUseCase,
+            accountSessionLifecycle = accountSessionLifecycle,
+        )
+        val event = async { target.events.first() }
+
+        advanceUntilIdle()
+
+        assertEquals(PostLoginGateUiEvent.Home, event.await())
+        coVerify(exactly = 0) { vaultSessionManager.refreshVaultState() }
+    }
+
+    @Test
     fun `confirmed pending recovery key emits recovery navigation`() = runTest {
         every { vaultInitializeUseCase.readPendingInitializationStatus() } returns
             PendingVaultInitializationStatus.RemoteConfirmed
@@ -112,6 +131,7 @@ class PostLoginGateViewModelTest {
 
     private fun stubVaultRefresh(state: VaultState): MutableStateFlow<VaultState> {
         val vaultState = MutableStateFlow<VaultState>(VaultState.InitialLoading)
+        every { vaultSessionManager.isUnlocked() } returns false
         every { vaultSessionManager.vaultState } returns vaultState
         coEvery { vaultSessionManager.refreshVaultState() } coAnswers {
             vaultState.value = state

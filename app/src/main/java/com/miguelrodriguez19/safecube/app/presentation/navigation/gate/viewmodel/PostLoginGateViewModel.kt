@@ -59,7 +59,9 @@ class PostLoginGateViewModel @Inject constructor(
             try {
                 val pendingInitializationStatus =
                     vaultInitializeUseCase.readPendingInitializationStatus()
-                vaultSessionManager.refreshVaultState()
+                if (!vaultSessionManager.isUnlocked()) {
+                    vaultSessionManager.refreshVaultState()
+                }
                 val vaultState = vaultSessionManager.vaultState.value
                 val destination = resolveGateDestination(
                     vaultState = vaultState,
