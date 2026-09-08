@@ -174,6 +174,16 @@ not offer hardware rendering. `testOptions.animationsDisabled` keeps animations 
 failure, CI retains managed-device test results, the available logcat output and a screenshot when
 the failed device remains available to `adb`.
 
+The instrumented Gradle command has an internal 24-minute deadline inside the 30-minute job
+deadline. The runner's `timeout` command first sends `TERM` and allows a 60-second grace period
+before `KILL`; reaching the deadline exits the step with a failure status. This fail-fast boundary
+leaves a diagnostic window for the existing logcat/screenshot collection and artifact upload. The
+diagnostic and upload steps run after a failure or cancellation (`failure() || cancelled()`). The
+internal deadline is a CI containment policy, not a test-level timeout and does not change job
+permissions. If the outer job deadline itself is reached first, GitHub may still terminate the job
+before later steps can run, so the internal deadline remains the primary path for collecting
+evidence.
+
 ### Required protection for `main`
 
 Configure a branch ruleset or branch protection rule targeting `main`, and make it active with:
