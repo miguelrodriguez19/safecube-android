@@ -5,16 +5,17 @@
 | Campo              | Valor                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 |--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | ID                 | SPEC-HARDENING-V1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Estado             | APPROVED                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Estado             | VERIFIED                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Owner              | Maintainer / Security owner humano                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Fecha              | 2026-08-07                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Última revisión    | 2026-08-28                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Última revisión    | 2026-09-26                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Reemplaza          | N/A                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Dependencias       | [SPEC-PRODUCT-V1](../product/v1-product-brief.md), [SPEC-AUTH-CONTRACT](../../architecture/openapi-auth-contract-integration.md), [SPEC-OPENAPI-AUTH](../../architecture/openapi-auth-contract-integration.md), [SPEC-CRYPTO-V1](../../architecture/crypto-v1.md), [SPEC-SECURE-ITEM-PAYLOAD-V1](../../architecture/secure-item-payload-v1.md), [SPEC-VAULT-SYNC-V2](../../architecture/vault-sync-versioning-v2.md), [SPEC-OPENAPI-VAULT-KEY-MATERIAL](../../architecture/openapi-vault-key-material-contract-integration.md), [SPEC-OPENAPI-VAULT-ITEMS](../../architecture/openapi-vault-items-contract-integration.md), [SPEC-STORAGE](../../architecture/storage_decision.md) |
 | Tasks relacionadas | SCDK-M109–SCDK-M132                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
-La spec fue creada inicialmente en REVIEW y el owner humano la ha promovido a APPROVED. Es fuente
-normativa para las tareas posteriores; los ADRs relacionados siguen su propio ciclo de aprobación.
+La spec fue creada inicialmente en REVIEW, promovida por el owner humano a APPROVED y verificada
+mediante la matriz reproducible de SCDK-M130. Es fuente normativa para las tareas posteriores; los
+ADRs relacionados siguen su propio ciclo de aprobación.
 
 ## Problema y contexto
 
@@ -583,31 +584,31 @@ Una vez completado ese gate, ninguna build vuelve a registrar tráfico HTTP raw.
 
 ## Acceptance Criteria
 
-- [ ] AC-HARDENING-001: existe esta spec con ID SPEC-HARDENING-V1 y estado inicial REVIEW.
-- [ ] AC-HARDENING-002: el modelo observable contiene exactamente como mínimo Idle, InitialLoading,
+- [x] AC-HARDENING-001: existe esta spec con ID SPEC-HARDENING-V1 y estado inicial REVIEW.
+- [x] AC-HARDENING-002: el modelo observable contiene exactamente como mínimo Idle, InitialLoading,
   Content, Empty, Mutating, RetryableError y TerminalError, con transiciones y semántica de
   contenido local verificables.
-- [ ] AC-HARDENING-003: la matriz cubre auth, refresh, vault bootstrap, sync, storage y crypto;
+- [x] AC-HARDENING-003: la matriz cubre auth, refresh, vault bootstrap, sync, storage y crypto;
   clasifica transporte, timeout, 408, 429, 5xx, validación, protocolo, integridad y payload
   corrupto sin depender de cuerpos HTTP.
-- [ ] AC-HARDENING-004: un error de refresh o sync no oculta contenido local válido; los retries de
+- [x] AC-HARDENING-004: un error de refresh o sync no oculta contenido local válido; los retries de
   mutaciones conservan la identidad y no generan KEK, DEK, draft, mutationId o recovery key nuevos.
-- [ ] AC-HARDENING-005: payloads corruptos fallan en cerrado, conservan su blob cifrado y no se
+- [x] AC-HARDENING-005: payloads corruptos fallan en cerrado, conservan su blob cifrado y no se
   eliminan automáticamente.
-- [ ] AC-HARDENING-006: expiración terminal, auto-lock y process death eliminan la KEK en memoria,
+- [x] AC-HARDENING-006: expiración terminal, auto-lock y process death eliminan la KEK en memoria,
   limpian plaintext y obligan a pasar por Login o Unlock según corresponda.
-- [ ] AC-HARDENING-006A: el quick unlock del MVP usa una clave no exportable de Android Keystore,
+- [x] AC-HARDENING-006A: el quick unlock del MVP usa una clave no exportable de Android Keystore,
   acepta biometría fuerte o credencial segura del dispositivo como alternativas, conserva la
   passphrase como fallback, no define PIN propio y nunca restaura Unlocked tras process death.
-- [ ] AC-HARDENING-007: el cambio de passphrase se define como rewrap de la misma KEK, sin
+- [x] AC-HARDENING-007: el cambio de passphrase se define como rewrap de la misma KEK, sin
   modificar DEKs, payloads, revisiones, drafts o identidades de items.
-- [ ] AC-HARDENING-008: backups, screenshots, recents, logs, clipboard y estado transitorio tienen
+- [x] AC-HARDENING-008: backups, screenshots, recents, logs, clipboard y estado transitorio tienen
   controles observables y no contienen secretos.
-- [ ] AC-HARDENING-009: process death, cold start y restauración de navegación están definidos sin
+- [x] AC-HARDENING-009: process death, cold start y restauración de navegación están definidos sin
   restaurar plaintext ni abrir el vault sin unlock.
 - [x] AC-HARDENING-010: las rutas y opciones placeholder fuera de v1 no son alcanzables en la
   superficie pública de la release.
-- [ ] AC-HARDENING-011: todos los requisitos tienen criterios observables, estrategia de test,
+- [x] AC-HARDENING-011: todos los requisitos tienen criterios observables, estrategia de test,
   trazabilidad y enlaces a los contratos canónicos sin duplicarlos.
 - [x] AC-HARDENING-012: el owner humano ha revisado y promovido esta spec a APPROVED; ningún agente
   puede marcar por sí solo este criterio.

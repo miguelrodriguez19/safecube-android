@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 26-09-2026 11:15:11
+Updated: 26-09-2026 12:21:40
 
 ```
 safecube-android/
@@ -25,6 +25,8 @@ safecube-android/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
 │   │   │   ├── test/
 │   │   │   ├── MainActivitySmokeTest.kt
+│   │   │   ├── Phase7ResilienceInstrumentedTest.kt
+│   │   │   ├── Phase7ResilienceUiStateTest.kt
 │   │   │   └── QuickUnlockDeviceCredentialTest.kt
 │   │   ├── debug/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/testsupport/
@@ -113,8 +115,7 @@ safecube-android/
 │   │       │   │       ├── NavigationBackPolicyTest.kt
 │   │       │   │       └── NavigationSessionCoordinatorTest.kt
 │   │       │   ├── security/
-│   │       │   │   ├── SensitiveSourcePolicyTest.kt
-│   │       │   │   └── V1ScopePolicyTest.kt
+│   │       │   │   └── SensitiveSourcePolicyTest.kt
 │   │       │   ├── session/
 │   │       │   │   ├── autolock/
 │   │       │   │   │   └── VaultAutoLockCoordinatorTest.kt
@@ -238,9 +239,8 @@ safecube-android/
 │   │   │   │   │   │       ├── lookups.tab_i
 │   │   │   │   │   │       └── lookups.tab_i.len
 │   │   │   │   │   └── last-build.bin
-│   │   │   │   ├── classpath-snapshot/
-│   │   │   │   │   └── shrunk-classpath-snapshot.bin
-│   │   │   │   └── local-state/
+│   │   │   │   └── classpath-snapshot/
+│   │   │   │       └── shrunk-classpath-snapshot.bin
 │   │   │   └── compileTestKotlin/
 │   │   │       ├── cacheable/
 │   │   │       │   ├── caches-jvm/
@@ -917,6 +917,7 @@ safecube-android/
 │   │   ├── product/
 │   │   │   └── v1-product-brief.md
 │   ├── testing/
+│   │   ├── phase-7-resilience-matrix.md
 │   │   ├── testing.md
 │   │   └── TESTING_STANDARD.md
 │   └── README.md
@@ -983,6 +984,8 @@ safecube-android/
 │   │   └── build.gradle.kts
 │   └── vault/
 │       ├── src/
+│       │   ├── debug/java/com/miguelrodriguez19/safecube/feature/vault/testsupport/
+│       │   │   └── Phase7ResilienceUiFixtures.kt
 │       │   ├── main/
 │       │   │   ├── java/com/miguelrodriguez19/safecube/feature/vault/presentation/
 │       │   │   │   ├── create/

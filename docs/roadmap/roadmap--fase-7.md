@@ -1608,11 +1608,11 @@ aprobadas.
 
 ### Acceptance Criteria (ACs)
 
-- [ ] Cada requisito de `SPEC-HARDENING-V1` tiene test o evidencia manual justificada.
-- [ ] Los escenarios instrumentados pasan en el managed device API 30.
-- [ ] `ciVerify` y `releaseVerify` pasan.
-- [ ] El workflow de PR ejecuta la suite ampliada sin secrets.
-- [ ] Registry y trazabilidad contienen paths y resultados exactos.
-- [ ] No quedan gaps ocultos; cualquier exclusión tiene follow-up explícito.
-- [ ] `SPEC-HARDENING-V1` está en estado `VERIFIED`.
-- [ ] El agent report final declara Fase 7 `DONE`, `PARTIAL` o `BLOCKED` con evidencia.
+- [x] Cada requisito de `SPEC-HARDENING-V1` tiene test o evidencia manual justificada.
+- [x] Los 16 escenarios instrumentados pasan en el managed device API 30.
+- [x] `ciVerify` y `releaseVerify` pasan.
+- [x] El workflow de PR ejecuta la suite ampliada sin secrets mediante la tarea canónica completa.
+- [x] Registry y trazabilidad contienen paths y resultados exactos.
+- [x] No quedan gaps ocultos; cada exclusión está registrada en la matriz con follow-up explícito.
+- [x] `SPEC-HARDENING-V1` está en estado `VERIFIED`.
+- [x] El agent report final declara Fase 7 `DONE` con evidencia.
