@@ -54,12 +54,15 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.FixMethodOrder
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.runners.MethodSorters
 
 @LargeTest
 @RunWith(AndroidJUnit4::class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class QuickUnlockDeviceCredentialTest {
     private val composeRule = createAndroidComposeRule<MainActivity>()
 
@@ -120,7 +123,7 @@ class QuickUnlockDeviceCredentialTest {
     }
 
     @Test
-    fun cancelledDeviceCredentialPromptKeepsVaultLocked() {
+    fun zCancelledDeviceCredentialPromptKeepsVaultLocked() {
         val pin = provisionDeviceCredential()
         val fixture = createUnlockedFixture()
         enrollWithDeviceCredential(pin)
@@ -352,7 +355,9 @@ class QuickUnlockDeviceCredentialTest {
         try {
             waitForSystemCredentialPrompt()
             instrumentation.runOnMainSync(prompt::cancelAuthentication)
-            return callbackLatch.await(PROMPT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            val callbackReached = callbackLatch.await(PROMPT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            waitForSystemCredentialPromptDismissed()
+            return callbackReached
         } finally {
             instrumentation.runOnMainSync(prompt::cancelAuthentication)
         }
@@ -420,6 +425,17 @@ class QuickUnlockDeviceCredentialTest {
         check(appeared) {
             "System credential prompt did not appear within ${PROMPT_TIMEOUT_SECONDS}s; " +
                 "foreground package=${device.currentPackageName ?: "unknown"}"
+        }
+    }
+
+    private fun waitForSystemCredentialPromptDismissed() {
+        val promptTitle = targetContext.getString(R.string.app_name)
+        val dismissed = device.wait(
+            Until.gone(By.pkg(SYSTEM_UI_PACKAGE).text(promptTitle)),
+            PROMPT_TIMEOUT_MILLIS,
+        )
+        check(dismissed) {
+            "System credential prompt remained visible after cancellation"
         }
     }
 

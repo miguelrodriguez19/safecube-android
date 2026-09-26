@@ -70,7 +70,7 @@ fun VaultScreen(
         }
     }
 
-    VaultContent(
+    VaultHomeContent(
         uiState = uiState,
         onCreatePassword = onCreatePassword,
         onCreateNote = onCreateNote,
@@ -86,7 +86,7 @@ fun VaultScreen(
 }
 
 @Composable
-private fun VaultContent(
+internal fun VaultHomeContent(
     uiState: VaultHomeUiState,
     onCreatePassword: () -> Unit,
     onCreateNote: () -> Unit,

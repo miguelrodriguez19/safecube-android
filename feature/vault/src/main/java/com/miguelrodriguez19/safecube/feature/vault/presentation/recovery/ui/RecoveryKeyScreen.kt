@@ -49,7 +49,7 @@ fun RecoveryKeyScreen(
 }
 
 @Composable
-private fun RecoveryKeyContent(
+internal fun RecoveryKeyContent(
     uiState: RecoveryKeyUiState,
     onAction: (RecoveryKeyUiAction) -> Unit,
 ) {
