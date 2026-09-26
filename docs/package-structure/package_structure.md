@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 26-09-2026 12:21:40
+Updated: 26-09-2026 12:39:14
 
 ```
 safecube-android/
@@ -898,6 +898,7 @@ safecube-android/
 │   │   ├── roadmap--fase-5.md
 │   │   ├── roadmap--fase-6.md
 │   │   ├── roadmap--fase-7.md
+│   │   ├── roadmap--fase-8.md
 │   │   └── roadmap--high-level.md
 │   ├── sdd/
 │   │   ├── agent-report-template.md
@@ -1052,7 +1053,6 @@ safecube-android/
 │       │   │   │   │       │   └── SecureItemEditorState.kt
 │       │   │   │   │       └── ui/
 │       │   │   │   │           └── SecureItemEditorScaffold.kt
-│       │   │   │   ├── folders/ui/
 │       │   │   │   ├── home/
 │       │   │   │   │   ├── state/
 │       │   │   │   │   │   └── VaultHomeUiState.kt
