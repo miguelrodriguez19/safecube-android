@@ -2,7 +2,6 @@ package com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigat
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -20,7 +19,6 @@ enum class AppTab(
     val icon: ImageVector
 ) {
     Vault(R.string.vault_label, Icons.Default.Home),
-    VaultFolders(R.string.folders_label, Icons.Default.Folder),
     Settings(R.string.settings_label, Icons.Default.Settings),
 }
 
@@ -28,7 +26,6 @@ enum class AppTab(
 fun NavigationBar(
     selectedTab: AppTab,
     onVault: () -> Unit,
-    onVaultFolders: () -> Unit,
     onSettings: () -> Unit,
 ) {
     NavigationBar {
@@ -37,12 +34,6 @@ fun NavigationBar(
             onClick = onVault,
             icon = { Icon(Vault.icon, "Vault") },
             label = { Text(stringResource(Vault.labelRes)) },
-        )
-        NavigationBarItem(
-            selected = selectedTab == VaultFolders,
-            onClick = onVaultFolders,
-            icon = { Icon(VaultFolders.icon, "Vault Folders") },
-            label = { Text(stringResource(VaultFolders.labelRes)) },
         )
         NavigationBarItem(
             selected = selectedTab == Settings,

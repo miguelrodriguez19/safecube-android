@@ -34,17 +34,12 @@ internal fun rememberVaultBackPressHandler(activity: Activity?): () -> Unit {
 internal fun handleBackNavigation(
     currentRoute: Routes?,
     moveToVaultFromAppSection: () -> Unit,
-    moveToSettingsFromProfile: () -> Unit,
     onVaultBackPressed: () -> Unit,
     popBackStack: () -> Unit,
 ) {
     when (currentRoute) {
-        Routes.VaultFolders,
         Routes.Settings,
-        Routes.App,
         -> moveToVaultFromAppSection()
-
-        Routes.Profile -> moveToSettingsFromProfile()
 
         Routes.Vault -> onVaultBackPressed()
 

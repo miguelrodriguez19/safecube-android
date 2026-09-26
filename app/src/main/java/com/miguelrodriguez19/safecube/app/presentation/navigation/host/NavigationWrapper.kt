@@ -55,15 +55,6 @@ fun NavigationWrapper() {
         }
     }
 
-    val moveToSettingsFromProfile: () -> Unit = {
-        while (backStack.isNotEmpty() && backStack.lastOrNull() != Routes.Settings) {
-            backStack.removeLastOrNull()
-        }
-        if (backStack.lastOrNull() != Routes.Settings) {
-            backStack.add(Routes.Settings)
-        }
-    }
-
     val popBackStack: () -> Unit = {
         backStack.removeLastOrNull()
     }
@@ -112,7 +103,6 @@ fun NavigationWrapper() {
                 handleBackNavigation(
                     currentRoute = backStack.lastOrNull() as? Routes,
                     moveToVaultFromAppSection = moveToVaultFromAppSection,
-                    moveToSettingsFromProfile = moveToSettingsFromProfile,
                     onVaultBackPressed = onVaultBackPressed,
                     popBackStack = popBackStack,
                 )

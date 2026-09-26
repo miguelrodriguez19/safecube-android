@@ -56,7 +56,6 @@ fun VaultScreen(
     onCreateNote: () -> Unit,
     onEditPassword: (UUID) -> Unit,
     onEditNote: (UUID) -> Unit,
-    onVaultFolders: () -> Unit,
     onSettings: () -> Unit,
     viewModel: VaultHomeViewModel = hiltViewModel(),
 ) {
@@ -78,7 +77,6 @@ fun VaultScreen(
         onEditPassword = onEditPassword,
         onEditNote = onEditNote,
         onVault = onVault,
-        onVaultFolders = onVaultFolders,
         onSettings = onSettings,
         onSyncNow = {
             Toast.makeText(context, syncingMessage, Toast.LENGTH_SHORT).show()
@@ -95,7 +93,6 @@ private fun VaultContent(
     onEditPassword: (UUID) -> Unit,
     onEditNote: (UUID) -> Unit,
     onVault: () -> Unit,
-    onVaultFolders: () -> Unit,
     onSettings: () -> Unit,
     onSyncNow: () -> Unit,
 ) {
@@ -130,7 +127,6 @@ private fun VaultContent(
             NavigationBar(
                 selectedTab = AppTab.Vault,
                 onVault = onVault,
-                onVaultFolders = onVaultFolders,
                 onSettings = onSettings,
             )
         },

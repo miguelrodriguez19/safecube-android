@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 08-09-2026 12:08:25
+Updated: 26-09-2026 11:15:11
 
 ```
 safecube-android/
@@ -19,7 +19,7 @@ safecube-android/
 │   └── dependabot.yml
 ├── .run/
 │   ├── run-folder-tree.run.xml
-│   └── verifyCoverage.run.xml
+│   └── verifyKover.run.xml
 ├── app/
 │   ├── src/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
@@ -110,9 +110,11 @@ safecube-android/
 │   │       │   │   │   │   └── PostLoginGateViewModelTest.kt
 │   │       │   │   │   └── NavigationGatesTest.kt
 │   │       │   │   └── host/
+│   │       │   │       ├── NavigationBackPolicyTest.kt
 │   │       │   │       └── NavigationSessionCoordinatorTest.kt
 │   │       │   ├── security/
-│   │       │   │   └── SensitiveSourcePolicyTest.kt
+│   │       │   │   ├── SensitiveSourcePolicyTest.kt
+│   │       │   │   └── V1ScopePolicyTest.kt
 │   │       │   ├── session/
 │   │       │   │   ├── autolock/
 │   │       │   │   │   └── VaultAutoLockCoordinatorTest.kt
@@ -236,8 +238,9 @@ safecube-android/
 │   │   │   │   │   │       ├── lookups.tab_i
 │   │   │   │   │   │       └── lookups.tab_i.len
 │   │   │   │   │   └── last-build.bin
-│   │   │   │   └── classpath-snapshot/
-│   │   │   │       └── shrunk-classpath-snapshot.bin
+│   │   │   │   ├── classpath-snapshot/
+│   │   │   │   │   └── shrunk-classpath-snapshot.bin
+│   │   │   │   └── local-state/
 │   │   │   └── compileTestKotlin/
 │   │   │       ├── cacheable/
 │   │   │       │   ├── caches-jvm/
@@ -1047,7 +1050,6 @@ safecube-android/
 │       │   │   │   │       └── ui/
 │       │   │   │   │           └── SecureItemEditorScaffold.kt
 │       │   │   │   ├── folders/ui/
-│       │   │   │   │   └── VaultFoldersScreen.kt
 │       │   │   │   ├── home/
 │       │   │   │   │   ├── state/
 │       │   │   │   │   │   └── VaultHomeUiState.kt

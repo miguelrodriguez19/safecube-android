@@ -105,8 +105,6 @@ dependencies {
     implementation(project(":core:vault"))
     implementation(project(":feature:auth"))
     implementation(project(":feature:vault"))
-    implementation(project(":feature:profile"))
-
     // Core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)

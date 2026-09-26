@@ -1,6 +1,5 @@
 package com.miguelrodriguez19.safecube.app.presentation.navigation.host
 
-import androidx.compose.material3.Text
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -10,9 +9,7 @@ import com.miguelrodriguez19.safecube.app.presentation.ui.SplashGateScreen
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.ui.LoginScreen
 import com.miguelrodriguez19.safecube.feature.auth.presentation.signup.ui.SignupScreen
 import com.miguelrodriguez19.safecube.feature.auth.presentation.welcome.ui.WelcomeScreen
-import com.miguelrodriguez19.safecube.feature.profile.presentation.profile.ui.ProfileScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.create.ui.CreateVaultScreen
-import com.miguelrodriguez19.safecube.feature.vault.presentation.folders.ui.VaultFoldersScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.ui.VaultScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.editor.note.ui.NoteEditorScreen
 import com.miguelrodriguez19.safecube.feature.vault.presentation.editor.password.ui.PasswordEditorScreen
@@ -61,7 +58,6 @@ internal fun navigationEntryProvider(
             onEditNote = { logicalItemId ->
                 addRoute(Routes.EditNote(logicalItemId.toString()))
             },
-            onVaultFolders = { addRoute(Routes.VaultFolders) },
             onSettings = { addRoute(Routes.Settings) },
         )
     }
@@ -91,19 +87,10 @@ internal fun navigationEntryProvider(
             onUnlockVault = { setRoot(Routes.UnlockVault) },
         )
     }
-    entry<Routes.VaultFolders> {
-        VaultFoldersScreen(
-            onVault = { addRoute(Routes.Vault) },
-            onVaultFolders = {},
-            onSettings = { addRoute(Routes.Settings) },
-        )
-    }
     entry<Routes.Settings> {
         SettingsScreen(
             onVault = { addRoute(Routes.Vault) },
-            onVaultFolders = { addRoute(Routes.VaultFolders) },
             onSettings = {},
-            onProfile = { addRoute(Routes.Profile) },
             onLogout = onLogout,
             onLockNow = onLockNow,
             onChangePassphrase = { addRoute(Routes.ChangePassphrase) },
@@ -114,9 +101,6 @@ internal fun navigationEntryProvider(
             onBack = popBackStack,
             onUnlockVault = { setRoot(Routes.UnlockVault) },
         )
-    }
-    entry<Routes.Profile> {
-        ProfileScreen(onBackToSettings = { addRoute(Routes.Settings) })
     }
     entry<Routes.CreateVault> {
         CreateVaultScreen(
@@ -146,5 +130,4 @@ internal fun navigationEntryProvider(
             onHome = { setRoot(Routes.Vault) },
         )
     }
-    entry<Routes.Error> { Text("Error") }
 }
