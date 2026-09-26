@@ -1361,13 +1361,18 @@ funcional. No expone rutas de features aplazadas.
 
 ### Acceptance Criteria (ACs)
 
-- [ ] No existe acceso visible a Folders o Profile.
-- [ ] `feature:profile` se elimina si no conserva responsabilidades.
-- [ ] Settings no contiene contenido dummy.
-- [ ] No quedan rutas placeholder o sin comportamiento.
-- [ ] Inglés y español conservan paridad.
-- [ ] Tests, lint y `ciVerify` pasan.
-- [ ] Trazabilidad y agent report están actualizados.
+- [x] No existe acceso visible a Folders o Profile.
+- [x] `feature:profile` se conserva por decisión explícita del owner, pero queda desacoplado de
+  `app`, sin ruta ni acceso en la superficie v1.
+- [x] Settings no contiene contenido dummy.
+- [x] No quedan rutas placeholder o sin comportamiento en la aplicación v1.
+- [x] Inglés y español conservan paridad.
+- [x] Tests, lint y `ciVerify` pasan.
+- [x] Trazabilidad y agent report están actualizados.
+
+Decisión del owner de 2026-09-26: mantener `feature:profile` como módulo aplazado. Su presencia en
+el repositorio no lo convierte en una capacidad v1: `app` no depende del módulo, no existe ruta
+serializable ni entrada de navegación y `V1ScopePolicyTest` protege ese desacoplamiento.
 
 ---
 

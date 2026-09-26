@@ -159,7 +159,7 @@ class NavigationSessionCoordinatorTest {
             shouldGuardRestoredNavigation(
                 sessionState = SessionState.LoggedInVaultLocked,
                 vaultState = VaultState.Locked,
-                currentRoute = Routes.App,
+                currentRoute = Routes.CreatePassword,
             ),
         )
     }

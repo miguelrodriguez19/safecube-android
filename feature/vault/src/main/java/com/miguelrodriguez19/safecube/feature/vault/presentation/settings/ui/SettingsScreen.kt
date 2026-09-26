@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -51,9 +50,7 @@ import kotlinx.coroutines.flow.map
 @Composable
 fun SettingsScreen(
     onVault: () -> Unit,
-    onVaultFolders: () -> Unit,
     onSettings: () -> Unit,
-    onProfile: () -> Unit,
     onLogout: () -> Unit,
     onLockNow: () -> Unit,
     onChangePassphrase: () -> Unit,
@@ -144,7 +141,6 @@ fun SettingsScreen(
             NavigationBar(
                 selectedTab = AppTab.Settings,
                 onVault = onVault,
-                onVaultFolders = onVaultFolders,
                 onSettings = onSettings,
             )
         },
@@ -216,9 +212,6 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(UiR.string.settings_change_passphrase))
-            }
-            Button(onClick = onProfile, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(UiR.string.settings_open_profile))
             }
             OutlinedButton(
                 onClick = {

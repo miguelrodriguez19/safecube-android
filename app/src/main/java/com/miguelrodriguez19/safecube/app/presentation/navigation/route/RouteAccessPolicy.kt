@@ -18,7 +18,6 @@ internal val Routes.access: RouteAccess
         Routes.Welcome,
         Routes.Login,
         Routes.Signup,
-        Routes.Error,
             -> RouteAccess.Public
 
         Routes.CreateVault,

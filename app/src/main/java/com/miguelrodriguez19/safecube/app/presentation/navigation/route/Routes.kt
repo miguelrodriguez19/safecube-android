@@ -17,9 +17,6 @@ sealed class Routes : NavKey {
     data object Signup : Routes()
 
     @Serializable
-    data object App : Routes()
-
-    @Serializable
     data object Vault : Routes()
 
     @Serializable
@@ -39,16 +36,10 @@ sealed class Routes : NavKey {
     ) : Routes()
 
     @Serializable
-    data object VaultFolders : Routes()
-
-    @Serializable
     data object Settings : Routes()
 
     @Serializable
     data object ChangePassphrase : Routes()
-
-    @Serializable
-    data object Profile : Routes()
 
     @Serializable
     data object CreateVault : Routes()
@@ -62,6 +53,4 @@ sealed class Routes : NavKey {
     @Serializable
     data object PostLoginGate : Routes()
 
-    @Serializable
-    data object Error : Routes()
 }

@@ -22,10 +22,7 @@ class MainActivity : FragmentActivity() {
         setAppContent()
     }
 
-    private fun shouldKeepSplashOnScreen(): Boolean {
-        // TODO: check if is first time in app. Send to welcome, if not send to login
-        return false
-    }
+    private fun shouldKeepSplashOnScreen(): Boolean = false
 
     private fun setAppContent() {
         setContent {

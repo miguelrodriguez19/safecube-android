@@ -605,7 +605,7 @@ Una vez completado ese gate, ninguna build vuelve a registrar tráfico HTTP raw.
   controles observables y no contienen secretos.
 - [ ] AC-HARDENING-009: process death, cold start y restauración de navegación están definidos sin
   restaurar plaintext ni abrir el vault sin unlock.
-- [ ] AC-HARDENING-010: las rutas y opciones placeholder fuera de v1 no son alcanzables en la
+- [x] AC-HARDENING-010: las rutas y opciones placeholder fuera de v1 no son alcanzables en la
   superficie pública de la release.
 - [ ] AC-HARDENING-011: todos los requisitos tienen criterios observables, estrategia de test,
   trazabilidad y enlaces a los contratos canónicos sin duplicarlos.
@@ -625,7 +625,7 @@ Una vez completado ese gate, ninguna build vuelve a registrar tráfico HTTP raw.
 | SEC-CRYPTO-002     | SCDK-M111, SCDK-M123, SCDK-M124           | core:vault, feature:vault                                | [ADR-0002](../../architecture/adr/ADR-0002-PASSPHRASE-REWRAP.md) ACCEPTED; rewrap, invariantes de items y resultado incierto |
 | SEC-PRIVACY-001    | SCDK-M112, SCDK-M124, SCDK-M126–SCDK-M128 | app, core:auth, core:storage, core:vault, features       | [ADR-0003](../../architecture/adr/ADR-0003-SENSITIVE-DATA-SURFACES.md) ACCEPTED; manifest, R8, logs, screenshots, saved state y clipboard            |
 | NFR-LIFECYCLE-001  | SCDK-M125, SCDK-M131                       | app, core:vault, feature:vault                           | Process death, cold start y rutas seguras                           |
-| FR-SCOPE-001       | SCDK-M129                                 | app, feature:vault, feature:profile, settings.gradle.kts | Inventario de rutas, navegación y auditoría de placeholders         |
+| FR-SCOPE-001       | SCDK-M129                                 | app, feature:vault, core:ui; feature:profile queda desacoplado de app | `V1ScopePolicyTest`, `NavigationBackPolicyTest`, `MainActivitySmokeTest` y auditoría de rutas/textos activos |
 
 Código/runtime es N/A para SCDK-M109: esta tarea solo crea el contrato normativo. La evidencia de
 esta revisión se registra
