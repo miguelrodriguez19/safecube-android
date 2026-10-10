@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 26-09-2026 12:39:14
+Updated: 13-10-2026 09:45:13
 
 ```
 safecube-android/
@@ -914,7 +914,8 @@ safecube-android/
 │   │   └── secret-scanning.md
 │   ├── specs/
 │   │   ├── features/
-│   │   │   └── hardening-resilience-v1.md
+│   │   │   ├── hardening-resilience-v1.md
+│   │   │   └── ui-brand-motion-v1.md
 │   │   ├── product/
 │   │   │   └── v1-product-brief.md
 │   ├── testing/
