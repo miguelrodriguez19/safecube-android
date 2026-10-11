@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" role="img" aria-labelledby="title desc">
+  <title id="title">Login — Light</title>
+  <desc id="desc">Account authentication form. Representative state: Idle.</desc>
+  <style>
+      @font-face { font-family: Manrope; src: url('../assets/type/manrope/Manrope-Regular.ttf'); font-weight: 400; }
+      @font-face { font-family: Manrope; src: url('../assets/type/manrope/Manrope-Medium.ttf'); font-weight: 500; }
+      @font-face { font-family: Manrope; src: url('../assets/type/manrope/Manrope-SemiBold.ttf'); font-weight: 600; }
+      @font-face { font-family: Manrope; src: url('../assets/type/manrope/Manrope-Bold.ttf'); font-weight: 700; }
+      text { font-family: Manrope, sans-serif; }
+    </style>
+  <rect x="0" y="0" width="390" height="844" rx="0" fill="#F5FAF9" stroke="none" stroke-width="0"/>
+  <text x="24" y="28" font-size="12" fill="#171D1D" font-weight="700" text-anchor="start">9:41</text><line x1="326" y1="20" x2="340" y2="20" stroke="#171D1D" stroke-width="2" stroke-linecap="round"/><line x1="346" y1="18" x2="346" y2="23" stroke="#171D1D" stroke-width="2" stroke-linecap="round"/><rect x="354" y="16" width="18" height="9" rx="2" fill="none" stroke="#171D1D" stroke-width="1.5"/><rect x="356" y="18" width="13" height="5" rx="1" fill="#171D1D" stroke="none" stroke-width="0"/>
+  <text x="32" y="96" font-size="28" fill="#171D1D" font-weight="700" text-anchor="start">Welcome back</text><text x="32" y="124" font-size="14" fill="#3F4948" font-weight="400" text-anchor="start">Log in to continue to your vault.</text><text x="40" y="184" font-size="12" fill="#3F4948" font-weight="600" text-anchor="start">Email</text><rect x="32" y="194" width="326" height="58" rx="14" fill="none" stroke="#6F7978" stroke-width="1.5"/><text x="48" y="231" font-size="15" fill="#171D1D" font-weight="500" text-anchor="start">person@example.com</text><text x="40" y="288" font-size="12" fill="#3F4948" font-weight="600" text-anchor="start">Account password</text><rect x="32" y="298" width="326" height="58" rx="14" fill="none" stroke="#6F7978" stroke-width="1.5"/><text x="48" y="335" font-size="15" fill="#171D1D" font-weight="500" text-anchor="start">••••••••••</text><text x="330" y="335" font-size="12" fill="#006A6A" font-weight="700" text-anchor="end">Show</text><rect x="32" y="420" width="326" height="52" rx="16" fill="#006A6A" stroke="none" stroke-width="0"/><text x="195.0" y="453" font-size="15" fill="#FFFFFF" font-weight="700" text-anchor="middle">Log in</text><text x="195.0" y="502" font-size="13" fill="#006A6A" font-weight="600" text-anchor="middle">New to SafeCube? Create account</text>
+  <text x="24" y="824" font-size="10" fill="#3F4948" font-weight="600" text-anchor="start">Light · Idle</text>
+</svg>

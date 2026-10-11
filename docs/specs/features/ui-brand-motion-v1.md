@@ -8,7 +8,7 @@
 | Estado             | `APPROVED`                                                                                                                                                                                                                                                                                                     |
 | Owner              | `maintainer/product-design`                                                                                                                                                                                                                                                                                    |
 | Fecha              | `2026-09-26`                                                                                                                                                                                                                                                                                                   |
-| Última revisión    | `2026-10-10`                                                                                                                                                                                                                                                                                                   |
+| Última revisión    | `2026-10-11`                                                                                                                                                                                                                                                                                                   |
 | Reemplaza          | `N/A`                                                                                                                                                                                                                                                                                                          |
 | Dependencias       | [SPEC-PRODUCT-V1](../product/v1-product-brief.md), [SPEC-HARDENING-V1](./hardening-resilience-v1.md), [ADR-0001](../../architecture/adr/ADR-0001-VAULT-AUTO-LOCK.md), [ADR-0002](../../architecture/adr/ADR-0002-PASSPHRASE-REWRAP.md), [ADR-0003](../../architecture/adr/ADR-0003-SENSITIVE-DATA-SURFACES.md) |
 | Tasks relacionadas | `SCDK-M134`–`SCDK-M147`                                                                                                                                                                                                                                                                                        |
@@ -78,8 +78,9 @@ normativas existentes.
   de estado o resultado. Deben respetar la escala de animación del sistema; con escala `0`, el
   resultado, contenido, foco y acciones deben ser equivalentes e inmediatos.
 - `NFR-UI-002` — Adaptación: todas las superficies deben funcionar en Android API 30–36, ventanas
-  compactas y medias y portrait, y font scale hasta 200 %, sin asumir dimensiones o proporciones
-  fijas ni ocultar acciones críticas. Landscape se desactivará, no permitiremos rotar las pantallas.
+  compactas y medias, portrait y landscape, y font scale hasta 200 %, sin asumir dimensiones o
+  proporciones fijas ni ocultar acciones críticas. La rotación debe preservar estado, foco y acceso
+  a las acciones; no se bloqueará la orientación de las pantallas.
 - `NFR-UI-003` — Accesibilidad: contraste aplicable, targets táctiles mínimos de 48dp o área
   equivalente, roles, labels, headings, state descriptions, orden de foco y feedback accesible son
   gates bloqueantes. Login, Unlock, creación de un item, retry manual de sync y Settings deben poder
