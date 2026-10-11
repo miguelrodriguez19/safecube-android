@@ -194,8 +194,9 @@ Ownership funcional de las celdas:
 - Deben existir componentes canónicos para acciones, campos normales/secretos, navegación, cards,
   banners, loading, vacío, offline, draft, conflicto, éxito, error retryable/terminal y diálogos.
 
-La arquitectura concreta se resolverá en el ADR de SCDK-M136 y solo será implementable tras quedar
-`ACCEPTED`.
+La arquitectura concreta se define en
+[`ADR-0004-DESIGN-SYSTEM-APPEARANCE`](../../architecture/adr/ADR-0004-DESIGN-SYSTEM-APPEARANCE.md),
+creado por SCDK-M136. Solo será implementable tras quedar `ACCEPTED`.
 
 ## Feedback, errores y navegación visual
 
@@ -333,7 +334,9 @@ funcionales.
 - Código/runtime de SCDK-M134: `N/A`; es una tarea normativa.
 - Tests de SCDK-M134: validación estática de inventario, matrices, IDs, enlaces, referencias
   obligatorias y ausencia de decisiones abiertas.
-- ADRs: `ADR-0001`, `ADR-0002`, `ADR-0003`; ADR de design system pendiente de SCDK-M136.
+- ADRs: `ADR-0001`, `ADR-0002`, `ADR-0003` y
+  [`ADR-0004-DESIGN-SYSTEM-APPEARANCE`](../../architecture/adr/ADR-0004-DESIGN-SYSTEM-APPEARANCE.md)
+  (`ACCEPTED`, SCDK-M136).
 - Tasks: `SCDK-M134`–`SCDK-M147`.
 - Evidencia de SCDK-M134: [agent report](../../sdd/agent-reports/SCDK-M134.md).
 - Evidencia final de fase: `docs/testing/phase-8-ui-matrix.md`, propiedad de `SCDK-M147`.
