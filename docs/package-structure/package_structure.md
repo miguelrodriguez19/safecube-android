@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 13-10-2026 09:45:13
+Updated: 13-10-2026 09:45:41
 
 ```
 safecube-android/
@@ -882,6 +882,45 @@ safecube-android/
 │   │   ├── secure-item-payload-v1.md
 │   │   ├── storage_decision.md
 │   │   └── vault-sync-versioning-v2.md
+│   ├── design/
+│   │   ├── assets/
+│   │   │   ├── logo/
+│   │   │   │   ├── adaptive-background.svg
+│   │   │   │   ├── adaptive-foreground.svg
+│   │   │   │   ├── in-app-mark.svg
+│   │   │   │   ├── inverted.svg
+│   │   │   │   ├── master.svg
+│   │   │   │   ├── monochrome-themed.svg
+│   │   │   │   ├── monochrome.svg
+│   │   │   │   ├── primary.svg
+│   │   │   │   ├── README.md
+│   │   │   │   ├── round-preview.svg
+│   │   │   │   ├── splash-dark.svg
+│   │   │   │   └── splash-light.svg
+│   │   │   └── type/manrope/
+│   │   │       ├── Manrope-Bold.ttf
+│   │   │       ├── Manrope-Medium.ttf
+│   │   │       ├── Manrope-Regular.ttf
+│   │   │       ├── Manrope-SemiBold.ttf
+│   │   │       ├── OFL.txt
+│   │   │       ├── README.md
+│   │   │       └── README.upstream.txt
+│   │   ├── mockups/
+│   │   │   ├── generate_mockups.py
+│   │   │   ├── index.html
+│   │   │   ├── login-dark.svg
+│   │   │   ├── login-light.svg
+│   │   │   ├── README.md
+│   │   │   ├── unlock-dark.svg
+│   │   │   ├── unlock-light.svg
+│   │   │   ├── vault-dark.svg
+│   │   │   ├── vault-light.svg
+│   │   │   ├── welcome-dark.svg
+│   │   │   └── welcome-light.svg
+│   │   ├── tools/
+│   │   │   ├── verify-brand-palette.py
+│   │   │   └── verify-logo-geometry.py
+│   │   └── brand-guide-v1.md
 │   ├── package-structure/
 │   │   └── package_structure.md
 │   ├── release/
@@ -1158,6 +1197,7 @@ safecube-android/
 │   └── verify-release-sbom.sh
 ├── tests/fixtures/gitleaks/
 │   └── allowed-synthetic-secret.txt
+├── .gitattributes
 ├── .gitignore
 ├── .gitleaks.toml
 ├── .gitleaksignore
