@@ -357,7 +357,7 @@ por lo que debe quedar fijada, aislada y ser reemplazable sin reescribir las pan
 - Prohibir datos reales o material sensible en referencias, reports y diffs.
 - Crear un conjunto inicial de previews para validar la infraestructura, no el rediseño final.
 - Añadir tests semánticos Compose para roles, labels, estados enabled/disabled y acciones.
-- Crear una tarea canónica `verifyPhase8Screenshots` o nombre equivalente documentado.
+- Crear una tarea canónica y neutral `verifyVisualRegression`, documentada como contrato estable frente al motor de screenshots reemplazable.
 - Integrar la validación en CI sin regenerar ni aceptar referencias automáticamente.
 - Documentar el flujo explícito de actualización y revisión humana de un golden.
 - Garantizar que las referencias no dependan de reloj, locale, red, animación o fuentes externas.
@@ -985,7 +985,7 @@ si la fase está DONE, PARTIAL o BLOCKED.
 - Validar opt-in de Material You en una API soportada y estado deshabilitado en API 30.
 - Validar EN/ES, font scale hasta 200 % y motion scale `0` según la matriz, sin crear el producto
   cartesiano completo cuando no aporte evidencia.
-- Ejecutar tests Compose, `verifyPhase8Screenshots`, lint y tests de módulos afectados.
+- Ejecutar tests Compose, `verifyVisualRegression`, lint y tests de módulos afectados.
 - Ejecutar `./gradlew ciVerify`, `./gradlew releaseVerify` y la suite instrumentada canónica.
 - Verificar que los reportes y artefactos no contienen datos sensibles.
 - Actualizar spec registry y matriz de trazabilidad con paths y comandos exactos.

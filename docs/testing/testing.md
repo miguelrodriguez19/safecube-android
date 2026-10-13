@@ -47,6 +47,7 @@ tasks instead of maintaining a second list of checks.
 The public project-specific task surface is intentionally limited to:
 
 - `ciVerify` and `releaseVerify` for normal quality gates;
+- `verifyVisualRegression` for the read-only visual-regression gate required by `SPEC-UI-V1`;
 - `validateVersionBump` and `verifyReleaseSigningConfiguration` for release operations.
 
 `verifyReleaseSecurityManifest` and `postProcessOpenApiGeneratedModels` are internal build
@@ -73,9 +74,12 @@ Run the CI gate locally or in a pull request:
 
 Gradle configuration validates `version.properties` before any task runs. `ciVerify` then runs all
 debug unit tests, generates the Kover HTML/XML reports, enforces coverage thresholds, runs debug
-lint, executes `VaultSyncOpenApiContractTest`, and assembles `:app:assembleRelease` without
-requiring release-signing secrets. It does not publish an artifact and it does not verify the
-production keystore.
+lint, validates the approved Compose screenshot references, executes
+`VaultSyncOpenApiContractTest`, and assembles `:app:assembleRelease` without requiring
+release-signing secrets. It does not publish an artifact, update visual references or verify the
+production keystore. See the
+[visual regression testing guide](./visual-regression-testing.md) for exact paths and review
+workflow.
 
 Run the release-code gate before publishing:
 
@@ -159,9 +163,9 @@ Temurin JDK 21. The caller and reusable workflow declare only `contents: read`, 
 repository secrets, and are safe for pull requests from forks. Newer executions cancel obsolete
 runs for the same pull request.
 
-Test XML/HTML, Android Lint and Kover coverage reports are uploaded with `if: always()`, including
-when a gate fails. The unsigned release APK built by `ciVerify` is deliberately excluded from CI
-artifacts because it is not publicable.
+Test XML/HTML, Android Lint, screenshot difference and Kover coverage reports are uploaded with
+`if: always()`, including when a gate fails. The unsigned release APK built by `ciVerify` is
+deliberately excluded from CI artifacts because it is not publicable.
 
 The separate `instrumented-tests` job has a 30-minute timeout and runs the complete app
 instrumented suite on a clean Gradle Managed Device named `pixel2Api30` (Pixel 2, API 30, `aosp`,

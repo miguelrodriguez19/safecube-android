@@ -30,6 +30,7 @@ cyclonedx = "3.3.0"
 bouncycastle = "1.83"
 mockk = "1.14.9"
 robolectric = "4.16.1"
+screenshot = "0.0.1-alpha16"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
@@ -81,6 +82,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+screenshot-validation-api = { module = "com.android.tools.screenshot:screenshot-validation-api", version.ref = "screenshot" }
 
 
 [plugins]
@@ -93,3 +95,4 @@ cyclonedx-bom = { id = "org.cyclonedx.bom", version.ref = "cyclonedx" }
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "googleKsp" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 openapi-generator = { id = "org.openapi.generator", version.ref = "openapi" }
+screenshot = { id = "com.android.compose.screenshot", version.ref = "screenshot" }
