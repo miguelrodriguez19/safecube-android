@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.hilt.android)
+    alias(libs.plugins.screenshot)
 }
 
 val appVersion = AppVersionParser.fromFile(rootProject.file("version.properties"))
@@ -78,6 +79,7 @@ android {
     buildFeatures {
         compose = true
     }
+    experimentalProperties["android.experimental.enableScreenshotTest"] = true
     testOptions {
         animationsDisabled = true
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
@@ -143,6 +145,9 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    screenshotTestImplementation(libs.screenshot.validation.api)
+    screenshotTestImplementation(libs.androidx.compose.ui.tooling)
 
     // Debug
     debugImplementation(libs.androidx.compose.ui.tooling)

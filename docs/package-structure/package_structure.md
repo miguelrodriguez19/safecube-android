@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 13-10-2026 09:46:01
+Updated: 14-10-2026 12:31:37
 
 ```
 safecube-android/
@@ -24,12 +24,16 @@ safecube-android/
 │   ├── src/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
 │   │   │   ├── test/
+│   │   │   ├── ComposeVisualRegressionCanarySemanticsTest.kt
 │   │   │   ├── MainActivitySmokeTest.kt
 │   │   │   ├── Phase7ResilienceInstrumentedTest.kt
 │   │   │   ├── Phase7ResilienceUiStateTest.kt
 │   │   │   └── QuickUnlockDeviceCredentialTest.kt
 │   │   ├── debug/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/testsupport/
+│   │   │   │   ├── visual/
+│   │   │   │   │   ├── VisualRegressionCanaryFixtures.kt
+│   │   │   │   │   └── VisualRegressionCanarySurface.kt
 │   │   │   │   ├── QuickUnlockColdStartProbeService.kt
 │   │   │   │   └── QuickUnlockInstrumentationEntryPoint.kt
 │   │   │   └── AndroidManifest.xml
@@ -104,6 +108,17 @@ safecube-android/
 │   │   │   │       ├── backup_rules.xml
 │   │   │   │       └── data_extraction_rules.xml
 │   │   │   └── AndroidManifest.xml
+│   │   ├── screenshotTest/java/com/miguelrodriguez19/safecube/visual/
+│   │   │   ├── SafeCubeMultiPreviews.kt
+│   │   │   └── VisualRegressionCanaryScreenshotTest.kt
+│   │   ├── screenshotTestDebug/reference/com/miguelrodriguez19/safecube/visual/VisualRegressionCanaryScreenshotTestKt/
+│   │   │   ├── visualRegressionCanaryConfigurationPreview_Compact font 200 percent_497c67d2_0.png
+│   │   │   ├── visualRegressionCanaryConfigurationPreview_Compact portrait_47aeb6cc_0.png
+│   │   │   ├── visualRegressionCanaryConfigurationPreview_Medium landscape_06576601_0.png
+│   │   │   ├── visualRegressionCanaryLocalePreview_English_303af5b9_0.png
+│   │   │   ├── visualRegressionCanaryLocalePreview_Spanish_b477a27d_0.png
+│   │   │   ├── visualRegressionCanaryThemePreview_Dark_92b21510_0.png
+│   │   │   └── visualRegressionCanaryThemePreview_Light_59d2644a_0.png
 │   │   └── test/java/com/miguelrodriguez19/safecube/
 │   │       ├── app/
 │   │       │   ├── presentation/navigation/
@@ -961,7 +976,8 @@ safecube-android/
 │   ├── testing/
 │   │   ├── phase-7-resilience-matrix.md
 │   │   ├── testing.md
-│   │   └── TESTING_STANDARD.md
+│   │   ├── TESTING_STANDARD.md
+│   │   └── visual-regression-testing.md
 │   └── README.md
 ├── feature/
 │   ├── auth/

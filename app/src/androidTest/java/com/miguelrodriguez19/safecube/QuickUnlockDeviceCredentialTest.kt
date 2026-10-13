@@ -351,15 +351,21 @@ class QuickUnlockDeviceCredentialTest {
                 callbackLatch.countDown()
             },
         )
+        var cancellationRequested = false
 
         try {
             waitForSystemCredentialPrompt()
+            cancellationRequested = true
             instrumentation.runOnMainSync(prompt::cancelAuthentication)
             val callbackReached = callbackLatch.await(PROMPT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             waitForSystemCredentialPromptDismissed()
+            device.waitForIdle(PROMPT_TIMEOUT_MILLIS)
+            instrumentation.waitForIdleSync()
             return callbackReached
         } finally {
-            instrumentation.runOnMainSync(prompt::cancelAuthentication)
+            if (!cancellationRequested) {
+                instrumentation.runOnMainSync(prompt::cancelAuthentication)
+            }
         }
     }
 

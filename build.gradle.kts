@@ -13,6 +13,7 @@ plugins {
     alias(libs.plugins.google.devtools.ksp) apply false
     alias(libs.plugins.hilt.android) apply false
     alias(libs.plugins.openapi.generator) apply false
+    alias(libs.plugins.screenshot) apply false
     alias(libs.plugins.kotlinx.kover)
     alias(libs.plugins.cyclonedx.bom)
 }
@@ -141,15 +142,33 @@ tasks.register("verifyKover") {
     )
 }
 
+// Stable project entry point. The delegated task belongs to an experimental, version-pinned
+// screenshot adapter and may change when SafeCube migrates to AGP-native test suites.
+tasks.register("verifyVisualRegression") {
+    group = "verification"
+    description = "Validates visual references through the pinned experimental screenshot adapter."
+    dependsOn(":app:validateDebugScreenshotTest")
+    doLast {
+        val forbiddenUpdateTask = Regex("\\bupdate[A-Za-z0-9]*ScreenshotTest\\b")
+        val offenders = fileTree(".github/workflows") {
+            include("*.yml", "*.yaml")
+        }.filter { workflow -> forbiddenUpdateTask.containsMatchIn(workflow.readText()) }
+
+        check(offenders.isEmpty()) {
+            "CI workflows must never invoke screenshot update tasks: " +
+                    offenders.joinToString { it.relativeTo(rootDir).path }
+        }
+    }
+}
+
 tasks.register("ciVerify") {
     group = "verification"
     description = "Runs the canonical CI quality gates without release secrets."
     dependsOn(
         androidModules.map { "$it:testDebugUnitTest" },
         androidModules.map { "$it:lintDebug" },
-        "koverHtmlReport",
-        "koverXmlReport",
-        "koverVerify",
+        "verifyKover",
+        "verifyVisualRegression",
         ":app:assembleRelease",
     )
 }
