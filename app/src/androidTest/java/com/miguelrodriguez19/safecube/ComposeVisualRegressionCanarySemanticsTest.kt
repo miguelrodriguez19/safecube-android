@@ -12,11 +12,13 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.miguelrodriguez19.safecube.app.presentation.theme.SafecubeandroidTheme
 import com.miguelrodriguez19.safecube.app.testsupport.visual.VisualRegressionCanaryAction
 import com.miguelrodriguez19.safecube.app.testsupport.visual.VisualRegressionCanaryFixtures
 import com.miguelrodriguez19.safecube.app.testsupport.visual.VisualRegressionCanarySurface
 import com.miguelrodriguez19.safecube.core.ui.R
+import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceMode
+import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceSettings
+import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -41,7 +43,12 @@ class ComposeVisualRegressionCanarySemanticsTest {
         val buttonRole = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)
 
         composeRule.setContent {
-            SafecubeandroidTheme(dynamicColor = false) {
+            SafeCubeTheme(
+                appearance = AppearanceSettings(
+                    mode = AppearanceMode.Light,
+                    dynamicColorEnabled = false,
+                ),
+            ) {
                 VisualRegressionCanarySurface(
                     fixture = VisualRegressionCanaryFixtures.infrastructure,
                     onAction = actions::add,

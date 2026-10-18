@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="ic_safecube_in_app" type="drawable">@drawable/ic_safecube_mark</item>
+</resources>

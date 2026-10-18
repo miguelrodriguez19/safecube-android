@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 14-10-2026 12:31:37
+Updated: 19-10-2026 12:17:03
 
 ```
 safecube-android/
@@ -24,21 +24,28 @@ safecube-android/
 │   ├── src/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
 │   │   │   ├── test/
+│   │   │   ├── AppearanceThemeInstrumentedTest.kt
 │   │   │   ├── ComposeVisualRegressionCanarySemanticsTest.kt
 │   │   │   ├── MainActivitySmokeTest.kt
-│   │   │   ├── Phase7ResilienceInstrumentedTest.kt
-│   │   │   ├── Phase7ResilienceUiStateTest.kt
-│   │   │   └── QuickUnlockDeviceCredentialTest.kt
+│   │   │   ├── QuickUnlockDeviceCredentialTest.kt
+│   │   │   ├── ResilienceInstrumentedTest.kt
+│   │   │   └── ResilienceUiStateTest.kt
 │   │   ├── debug/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/testsupport/
 │   │   │   │   ├── visual/
 │   │   │   │   │   ├── VisualRegressionCanaryFixtures.kt
-│   │   │   │   │   └── VisualRegressionCanarySurface.kt
+│   │   │   │   │   ├── VisualRegressionCanarySurface.kt
+│   │   │   │   │   └── VisualTokenCatalog.kt
 │   │   │   │   ├── QuickUnlockColdStartProbeService.kt
 │   │   │   │   └── QuickUnlockInstrumentationEntryPoint.kt
 │   │   │   └── AndroidManifest.xml
 │   │   ├── main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/
+│   │   │   │   ├── appearance/
+│   │   │   │   │   ├── AppAppearanceRepository.kt
+│   │   │   │   │   ├── AppearanceBootstrapViewModel.kt
+│   │   │   │   │   ├── AppearanceModule.kt
+│   │   │   │   │   └── AppearanceSettingsCodec.kt
 │   │   │   │   ├── entrypoint/
 │   │   │   │   │   ├── MainActivity.kt
 │   │   │   │   │   └── SafeCubeApp.kt
@@ -65,9 +72,6 @@ safecube-android/
 │   │   │   │   │   │       ├── RouteAccessPolicy.kt
 │   │   │   │   │   │       └── Routes.kt
 │   │   │   │   │   ├── theme/
-│   │   │   │   │   │   ├── Color.kt
-│   │   │   │   │   │   ├── Theme.kt
-│   │   │   │   │   │   └── Type.kt
 │   │   │   │   │   └── ui/
 │   │   │   │   │       └── SplashGateScreen.kt
 │   │   │   │   └── session/
@@ -83,27 +87,31 @@ safecube-android/
 │   │   │   ├── res/
 │   │   │   │   ├── drawable/
 │   │   │   │   │   ├── ic_launcher_background.xml
-│   │   │   │   │   └── ic_launcher_foreground.xml
+│   │   │   │   │   ├── ic_launcher_foreground.xml
+│   │   │   │   │   ├── ic_launcher_monochrome.xml
+│   │   │   │   │   └── ic_safecube_mark.xml
 │   │   │   │   ├── mipmap-anydpi/
+│   │   │   │   ├── mipmap-anydpi-v26/
+│   │   │   │   │   ├── ic_launcher.xml
+│   │   │   │   │   └── ic_launcher_round.xml
+│   │   │   │   ├── mipmap-anydpi-v33/
 │   │   │   │   │   ├── ic_launcher.xml
 │   │   │   │   │   └── ic_launcher_round.xml
 │   │   │   │   ├── mipmap-hdpi/
-│   │   │   │   │   ├── ic_launcher.webp
-│   │   │   │   │   └── ic_launcher_round.webp
 │   │   │   │   ├── mipmap-mdpi/
-│   │   │   │   │   ├── ic_launcher.webp
-│   │   │   │   │   └── ic_launcher_round.webp
 │   │   │   │   ├── mipmap-xhdpi/
-│   │   │   │   │   ├── ic_launcher.webp
-│   │   │   │   │   └── ic_launcher_round.webp
 │   │   │   │   ├── mipmap-xxhdpi/
-│   │   │   │   │   ├── ic_launcher.webp
-│   │   │   │   │   └── ic_launcher_round.webp
 │   │   │   │   ├── mipmap-xxxhdpi/
-│   │   │   │   │   ├── ic_launcher.webp
-│   │   │   │   │   └── ic_launcher_round.webp
 │   │   │   │   ├── values/
-│   │   │   │   │   └── strings.xml
+│   │   │   │   │   ├── bools.xml
+│   │   │   │   │   ├── colors.xml
+│   │   │   │   │   ├── drawables.xml
+│   │   │   │   │   ├── strings.xml
+│   │   │   │   │   └── styles.xml
+│   │   │   │   ├── values-night/
+│   │   │   │   │   ├── bools.xml
+│   │   │   │   │   ├── colors.xml
+│   │   │   │   │   └── styles.xml
 │   │   │   │   └── xml/
 │   │   │   │       ├── backup_rules.xml
 │   │   │   │       └── data_extraction_rules.xml
@@ -118,9 +126,15 @@ safecube-android/
 │   │   │   ├── visualRegressionCanaryLocalePreview_English_303af5b9_0.png
 │   │   │   ├── visualRegressionCanaryLocalePreview_Spanish_b477a27d_0.png
 │   │   │   ├── visualRegressionCanaryThemePreview_Dark_92b21510_0.png
-│   │   │   └── visualRegressionCanaryThemePreview_Light_59d2644a_0.png
+│   │   │   ├── visualRegressionCanaryThemePreview_Light_59d2644a_0.png
+│   │   │   ├── visualTokenCatalogDarkPreview_Dark tokens_293a429e_0.png
+│   │   │   └── visualTokenCatalogLightPreview_Light tokens_ff2cccbf_0.png
 │   │   └── test/java/com/miguelrodriguez19/safecube/
 │   │       ├── app/
+│   │       │   ├── appearance/
+│   │       │   │   ├── AppAppearanceRepositoryTest.kt
+│   │       │   │   ├── AppearanceBootstrapViewModelTest.kt
+│   │       │   │   └── AppearanceSettingsCodecTest.kt
 │   │       │   ├── presentation/navigation/
 │   │       │   │   ├── gate/
 │   │       │   │   │   ├── viewmodel/
@@ -604,20 +618,36 @@ safecube-android/
 │   │   │       └── resources/
 │   │   └── build.gradle.kts
 │   ├── ui/
-│   │   ├── src/main/
-│   │   │   ├── java/com/miguelrodriguez19/safecube/core/ui/
-│   │   │   │   ├── component/
-│   │   │   │   │   └── SecretOutlinedTextField.kt
-│   │   │   │   ├── components/
-│   │   │   │   │   └── .gitkeep
-│   │   │   │   └── theme/
-│   │   │   │       └── .gitkeep
-│   │   │   ├── res/
-│   │   │   │   ├── values/
-│   │   │   │   │   └── strings.xml
-│   │   │   │   └── values-es/
-│   │   │   │       └── strings.xml
-│   │   │   └── AndroidManifest.xml
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/ui/
+│   │   │   │   │   ├── component/
+│   │   │   │   │   │   └── SecretOutlinedTextField.kt
+│   │   │   │   │   ├── components/
+│   │   │   │   │   │   └── .gitkeep
+│   │   │   │   │   └── theme/
+│   │   │   │   │       ├── Appearance.kt
+│   │   │   │   │       ├── Color.kt
+│   │   │   │   │       ├── SafeCubeIcons.kt
+│   │   │   │   │       ├── SafeCubeTheme.kt
+│   │   │   │   │       ├── Tokens.kt
+│   │   │   │   │       └── Typography.kt
+│   │   │   │   ├── res/
+│   │   │   │   │   ├── font/
+│   │   │   │   │   │   ├── manrope_bold.ttf
+│   │   │   │   │   │   ├── manrope_medium.ttf
+│   │   │   │   │   │   ├── manrope_regular.ttf
+│   │   │   │   │   │   └── manrope_semibold.ttf
+│   │   │   │   │   ├── raw/
+│   │   │   │   │   │   └── manrope_ofl.txt
+│   │   │   │   │   ├── values/
+│   │   │   │   │   │   └── strings.xml
+│   │   │   │   │   └── values-es/
+│   │   │   │   │       └── strings.xml
+│   │   │   │   └── AndroidManifest.xml
+│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/ui/theme/
+│   │   │       ├── SafeCubeThemeTest.kt
+│   │   │       └── SafeCubeTokensTest.kt
 │   │   └── build.gradle.kts
 │   ├── vault/
 │   │   ├── data/quickunlock/
@@ -1173,6 +1203,11 @@ safecube-android/
 │       │   │   │       │   └── UnlockVaultScreen.kt
 │       │   │   │       └── viewmodel/
 │       │   │   │           └── UnlockVaultViewModel.kt
+│       │   │   ├── res/
+│       │   │   │   ├── values/
+│       │   │   │   │   └── strings.xml
+│       │   │   │   └── values-es/
+│       │   │   │       └── strings.xml
 │       │   │   └── AndroidManifest.xml
 │       │   └── test/java/com/miguelrodriguez19/safecube/feature/vault/
 │       │       ├── presentation/

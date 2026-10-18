@@ -4,8 +4,6 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -13,7 +11,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.dp
+import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeIconSize
+import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeIcons
 import kotlinx.coroutines.isActive
 
 @Composable
@@ -48,10 +47,10 @@ internal fun SyncIconButton(
         enabled = enabled,
     ) {
         Icon(
-            imageVector = Icons.Default.Sync,
+            imageVector = SafeCubeIcons.Sync,
             contentDescription = contentDescription,
             modifier = Modifier
-                .size(24.dp)
+                .size(SafeCubeIconSize.Default)
                 .graphicsLayer {
                     rotationZ = rotation.value
                 },

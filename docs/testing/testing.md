@@ -167,7 +167,7 @@ Test XML/HTML, Android Lint, screenshot difference and Kover coverage reports ar
 `if: always()`, including when a gate fails. The unsigned release APK built by `ciVerify` is
 deliberately excluded from CI artifacts because it is not publicable.
 
-The separate `instrumented-tests` job has a 30-minute timeout and runs the complete app
+The separate `instrumented-tests` job has a 35-minute timeout and runs the complete app
 instrumented suite on a clean Gradle Managed Device named `pixel2Api30` (Pixel 2, API 30, `aosp`,
 64-bit). Besides `MainActivitySmokeTest`, this includes
 `QuickUnlockDeviceCredentialTest`, which provisions a test device credential and drives the real
@@ -178,8 +178,16 @@ not offer hardware rendering. `testOptions.animationsDisabled` keeps animations 
 failure, CI retains managed-device test results, the available logcat output and a screenshot when
 the failed device remains available to `adb`.
 
-The instrumented Gradle command has an internal 24-minute deadline inside the 30-minute job
-deadline. The runner's `timeout` command first sends `TERM` and allows a 60-second grace period
+After the complete API 30 suite, the same job runs only
+`AppearanceThemeInstrumentedTest` on `pixel2Api31` (Pixel 2, API 31, `aosp`, 64-bit). This targeted
+Android 12 execution verifies that an explicit dynamic-color preference uses the platform scheme;
+the API 30 execution of the same class verifies deterministic fallback to the SafeCube palette.
+Both executions also assert that root content is absent during appearance bootstrap and that its
+first composed frame already uses the resolved theme.
+
+The complete API 30 command has an internal 24-minute deadline and the targeted API 31 command a
+6-minute deadline inside the 35-minute job deadline. The runner's `timeout` command first sends
+`TERM` and allows a 60-second grace period
 before `KILL`; reaching the deadline exits the step with a failure status. This fail-fast boundary
 leaves a diagnostic window for the existing logcat/screenshot collection and artifact upload. The
 diagnostic and upload steps run after a failure or cancellation (`failure() || cancelled()`). The

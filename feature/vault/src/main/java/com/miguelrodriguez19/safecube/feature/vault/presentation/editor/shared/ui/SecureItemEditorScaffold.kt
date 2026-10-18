@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,9 +20,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
-import androidx.compose.ui.res.stringResource
+import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeIcons
+import com.miguelrodriguez19.safecube.feature.vault.R as FeatureR
 import com.miguelrodriguez19.safecube.feature.vault.presentation.editor.shared.state.SecureItemEditorState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.sync.SyncIconButton
 
@@ -76,8 +76,8 @@ internal fun SecureItemEditorScaffold(
                             enabled = !isSaving,
                         ) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
+                                imageVector = SafeCubeIcons.Back,
+                                contentDescription = stringResource(FeatureR.string.editor_navigate_back),
                             )
                         }
                         Text(

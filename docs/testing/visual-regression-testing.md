@@ -121,7 +121,7 @@ On mismatch, the plugin fails the Gradle task and writes an inspectable report t
 - A report, diff or reference containing content that should be secret is a security failure under
   `ADR-0003`, not an acceptable baseline.
 
-## Initial coverage
+## Coverage after SCDK-M138
 
 The infrastructure canary deliberately validates the pipeline rather than the final redesign:
 
@@ -130,11 +130,13 @@ The infrastructure canary deliberately validates the pipeline rather than the fi
 | Theme | light and dark, compact portrait, English |
 | Locale | English and Spanish, compact portrait |
 | Configuration | compact portrait, medium landscape and compact portrait at 200% font scale |
+| Tokens | approved light and dark roles, bundled Manrope hierarchy, spacing, shapes, elevation and motion |
 
 The shared state includes synthetic auth, vault, password/note items, synced/draft/conflict, sync
 in progress and a retryable offline error. The semantic test verifies button roles, accessible
 labels, enabled/disabled states, state descriptions and dispatched actions against the same state.
-M138–M147 will add product surfaces without changing the update/verify contract.
+M138 adds two deterministic token references and migrates the original seven references to
+`SafeCubeTheme`; M139–M147 will add product surfaces without changing the update/verify contract.
 
 ## Upstream documentation
 

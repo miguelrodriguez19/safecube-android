@@ -11,9 +11,11 @@ not depend on an external document, account, font, or network resource.
 - Geometry: 37 ordered SVG path `d` attributes.
 - Source viewBox: `0 0 1024.000000 1024.000000` (numerically equivalent to `0 0 1024 1024`).
 - Every mark-bearing export preserves the master path `d` sequence exactly.
-- The source wrapper transform `translate(0.000000,1024.000000) scale(0.100000,-0.100000)` is retained.
-  Canvas/viewBox changes and wrapper transforms are the only permitted adaptation; path geometry is
-  not edited.
+- Non-launcher exports retain the source wrapper transform
+  `translate(0.000000,1024.000000) scale(0.100000,-0.100000)`.
+- Launcher-specific exports use the centered safe-zone transform
+  `translate(-278.000000,1285.000000) scale(0.125000,-0.125000)`. Canvas/viewBox changes and
+  wrapper transforms are the only permitted adaptation; path geometry is not edited.
 
 ## Exports
 
@@ -32,7 +34,9 @@ not depend on an external document, account, font, or network resource.
 
 The adaptive foreground and background are separate concept exports so M138 can map them to
 Android adaptive-icon resources without reinterpreting the logo. The documented adaptive safe zone
-is a 66% diameter centered region. The round file is a review preview, not an Android resource.
+is a 66% diameter centered region. The launcher transform fills that region without cropping and is
+shared by the adaptive foreground, themed monochrome source and round preview. The round file is a
+review preview, not an Android resource.
 
 ## Clearspace and minimum size
 
@@ -53,5 +57,5 @@ python3 docs/design/tools/verify-logo-geometry.py
 ```
 
 The verifier uses only the Python standard library. It checks the master checksum, path count and
-ordered path geometry, expected viewBoxes, expected fill colours, and the intentional path-free
-adaptive background.
+ordered path geometry, expected viewBoxes, expected fill colours, launcher transforms, production
+Android vector parity, and the intentional path-free adaptive background.
