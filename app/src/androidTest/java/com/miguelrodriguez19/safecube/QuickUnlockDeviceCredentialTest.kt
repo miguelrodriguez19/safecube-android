@@ -61,6 +61,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 
 @LargeTest
+@DeviceCredentialIsolation
 @RunWith(AndroidJUnit4::class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class QuickUnlockDeviceCredentialTest {

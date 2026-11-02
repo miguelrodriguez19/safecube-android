@@ -19,9 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
 import com.miguelrodriguez19.safecube.core.ui.R
 import com.miguelrodriguez19.safecube.core.ui.component.SecretOutlinedTextField
+import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeSpacing
 
 enum class VisualRegressionCanaryAction {
     SubmitAuth,
@@ -42,8 +42,8 @@ fun VisualRegressionCanarySurface(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(SafeCubeSpacing.Large),
+            verticalArrangement = Arrangement.spacedBy(SafeCubeSpacing.Medium),
         ) {
             Text(
                 text = stringResource(R.string.vault_label),
@@ -122,8 +122,8 @@ private fun VisualItemCard(item: ItemVisualFixture) {
             .semantics { stateDescription = stateLabel },
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(SafeCubeSpacing.Medium),
+            verticalArrangement = Arrangement.spacedBy(SafeCubeSpacing.ExtraSmall),
         ) {
             Text(
                 text = item.title,

@@ -1,6 +1,8 @@
 import com.miguelrodriguez19.safecube.buildlogic.AppVersionComparator
 import com.miguelrodriguez19.safecube.buildlogic.AppVersionParser
+import com.miguelrodriguez19.safecube.buildlogic.GenerateLogoVectorDrawablesTask
 import com.miguelrodriguez19.safecube.buildlogic.ReleaseSigningConfig
+import com.miguelrodriguez19.safecube.buildlogic.VerifyLogoGeometryTask
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 import org.cyclonedx.model.Component
 import org.cyclonedx.model.ExternalReference
@@ -131,6 +133,33 @@ tasks.register("verifyReleaseSigningConfiguration") {
     }
 }
 
+val logoAssetDirectory = layout.projectDirectory.dir("docs/design/assets/logo")
+val logoDrawableDirectory = layout.projectDirectory.dir("app/src/main/res/drawable")
+
+tasks.register<GenerateLogoVectorDrawablesTask>("generateLogoVectorDrawables") {
+    group = "verification"
+    description = "Generates launcher VectorDrawables from the versioned SVG logo assets."
+    foregroundSvg.set(logoAssetDirectory.file("adaptive-foreground.svg"))
+    monochromeSvg.set(logoAssetDirectory.file("monochrome-themed.svg"))
+    foregroundVector.set(logoDrawableDirectory.file("ic_launcher_foreground.xml"))
+    monochromeVector.set(logoDrawableDirectory.file("ic_launcher_monochrome.xml"))
+}
+
+tasks.register<VerifyLogoGeometryTask>("verifyLogoGeometry") {
+    group = "verification"
+    description = "Verifies SVG logo geometry and generated Android VectorDrawables."
+    mustRunAfter("generateLogoVectorDrawables")
+    assetFiles.from(
+        logoAssetDirectory.file("master.svg"),
+        logoAssetDirectory.file("adaptive-foreground.svg"),
+        logoAssetDirectory.file("adaptive-background.svg"),
+        logoAssetDirectory.file("monochrome-themed.svg"),
+        logoAssetDirectory.file("round-preview.svg"),
+        logoDrawableDirectory.file("ic_launcher_foreground.xml"),
+        logoDrawableDirectory.file("ic_launcher_monochrome.xml"),
+    )
+}
+
 tasks.register("verifyKover") {
     group = "verification"
     description = "Development quality runner. "
@@ -168,6 +197,7 @@ tasks.register("ciVerify") {
         androidModules.map { "$it:testDebugUnitTest" },
         androidModules.map { "$it:lintDebug" },
         "verifyKover",
+        "verifyLogoGeometry",
         "verifyVisualRegression",
         ":app:assembleRelease",
     )

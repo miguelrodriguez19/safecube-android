@@ -167,19 +167,34 @@ Test XML/HTML, Android Lint, screenshot difference and Kover coverage reports ar
 `if: always()`, including when a gate fails. The unsigned release APK built by `ciVerify` is
 deliberately excluded from CI artifacts because it is not publicable.
 
-The separate `instrumented-tests` job has a 30-minute timeout and runs the complete app
-instrumented suite on a clean Gradle Managed Device named `pixel2Api30` (Pixel 2, API 30, `aosp`,
-64-bit). Besides `MainActivitySmokeTest`, this includes
-`QuickUnlockDeviceCredentialTest`, which provisions a test device credential and drives the real
+The separate `instrumented-tests` job has a 35-minute timeout and partitions the complete app
+instrumented suite using the runtime class annotation `DeviceCredentialIsolation`. Tests without
+that annotation run on `pixel2Api30`; annotated tests run on a separate clean managed device named
+`pixel2Api30Credential`. Both are Pixel 2, API 30, `aosp`, 64-bit. Inclusion and exclusion filters
+are complementary, so new tests are discovered automatically without a class allowlist.
+`QuickUnlockDeviceCredentialTest` is annotated: it provisions a test device credential and drives the real
 single system prompt. It verifies authenticated-Cipher use, cancellation, enrolment preservation on
 lock, cleanup on logout/account change, Activity recreation and a newly created remote process that
 starts Locked. It explicitly enables KVM and uses SwiftShader because GitHub Actions runners do
 not offer hardware rendering. `testOptions.animationsDisabled` keeps animations disabled. On
 failure, CI retains managed-device test results, the available logcat output and a screenshot when
-the failed device remains available to `adb`.
+the failed device remains available to `adb`. Changing or clearing the system credential can leave
+API 30 Keystore invalidation pending after a test finishes. Orchestrator's `clearPackageData` only
+isolates app data; it does not reset system Keystore. Dedicated devices keep the general suite
+independent of class names and ordering. Future tests that mutate device credentials must carry
+`DeviceCredentialIsolation` too.
 
-The instrumented Gradle command has an internal 24-minute deadline inside the 30-minute job
-deadline. The runner's `timeout` command first sends `TERM` and allows a 60-second grace period
+After the complete API 30 suite, the same job runs only
+`AppearanceThemeInstrumentedTest` on `pixel2Api31` (Pixel 2, API 31, `aosp`, 64-bit). This targeted
+Android 12 execution verifies that an explicit dynamic-color preference uses the platform scheme;
+the API 30 execution of the same class verifies deterministic fallback to the SafeCube palette.
+Both executions also assert that root content is absent during appearance bootstrap and that its
+first composed frame already uses the resolved theme.
+
+The general API 30 command has an internal 18-minute deadline, the device-credential command an
+8-minute deadline, and the targeted API 31 command a 6-minute deadline inside the 35-minute job
+deadline. The runner's `timeout` command first sends
+`TERM` and allows a 60-second grace period
 before `KILL`; reaching the deadline exits the step with a failure status. This fail-fast boundary
 leaves a diagnostic window for the existing logcat/screenshot collection and artifact upload. The
 diagnostic and upload steps run after a failure or cancellation (`failure() || cancelled()`). The
@@ -313,10 +328,14 @@ Run the SafeCube smoke suite on a connected API 30 emulator:
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-Run the same complete suite through the managed API 30 device used by CI:
+Run the complete suite in the two isolated API 30 devices used by CI:
 
 ```bash
 ./gradlew :app:pixel2Api30DebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.notAnnotation=com.miguelrodriguez19.safecube.DeviceCredentialIsolation \
+  -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+./gradlew :app:pixel2Api30CredentialDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.annotation=com.miguelrodriguez19.safecube.DeviceCredentialIsolation \
   -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
 ```
 

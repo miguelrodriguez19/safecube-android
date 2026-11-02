@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="safecube_launcher_background">#006A6A</color>
+    <color name="safecube_splash_background">#0E1515</color>
+    <color name="safecube_splash_mark">#FFFFFF</color>
+    <color name="safecube_status_bar">#0E1515</color>
+    <color name="safecube_navigation_bar">#0E1515</color>
+</resources>

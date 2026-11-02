@@ -94,6 +94,19 @@ android {
                     systemImageSource = "aosp"
                     require64Bit = true
                 }
+                create("pixel2Api31") {
+                    device = "Pixel 2"
+                    apiLevel = 31
+                    systemImageSource = "aosp"
+                    require64Bit = true
+                }
+                create("pixel2Api30Credential") {
+                    device = "Pixel 2"
+                    apiLevel = 30
+                    // Credential changes mutate system Keystore state outside app-data isolation.
+                    systemImageSource = "aosp"
+                    require64Bit = true
+                }
             }
         }
     }
@@ -110,6 +123,7 @@ dependencies {
     // Core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.process)

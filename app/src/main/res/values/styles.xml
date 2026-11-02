@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SafeCube.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/safecube_splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_safecube_mark</item>
+        <item name="postSplashScreenTheme">@style/Theme.SafeCube</item>
+    </style>
+
+    <style name="Theme.SafeCube" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/safecube_splash_background</item>
+        <item name="android:statusBarColor">@color/safecube_status_bar</item>
+        <item name="android:navigationBarColor">@color/safecube_navigation_bar</item>
+        <item name="android:windowLightStatusBar">@bool/safecube_window_light_status_bar</item>
+        <item name="android:windowLightNavigationBar">@bool/safecube_window_light_navigation_bar</item>
+    </style>
+</resources>
