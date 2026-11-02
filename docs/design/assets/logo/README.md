@@ -14,7 +14,7 @@ not depend on an external document, account, font, or network resource.
 - Non-launcher exports retain the source wrapper transform
   `translate(0.000000,1024.000000) scale(0.100000,-0.100000)`.
 - Launcher-specific exports use the centered safe-zone transform
-  `translate(-278.000000,1285.000000) scale(0.125000,-0.125000)`. Canvas/viewBox changes and
+  `translate(-120.000000,1100.000000) scale(0.120000,-0.120000)`. Canvas/viewBox changes and
   wrapper transforms are the only permitted adaptation; path geometry is not edited.
 
 ## Exports

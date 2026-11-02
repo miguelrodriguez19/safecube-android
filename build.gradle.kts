@@ -148,6 +148,7 @@ tasks.register<GenerateLogoVectorDrawablesTask>("generateLogoVectorDrawables") {
 tasks.register<VerifyLogoGeometryTask>("verifyLogoGeometry") {
     group = "verification"
     description = "Verifies SVG logo geometry and generated Android VectorDrawables."
+    mustRunAfter("generateLogoVectorDrawables")
     assetFiles.from(
         logoAssetDirectory.file("master.svg"),
         logoAssetDirectory.file("adaptive-foreground.svg"),
