@@ -30,13 +30,13 @@ without a class allowlist or secrets.
 
 | Scenario | Exact automated evidence |
 | --- | --- |
-| Session expiration and clean back stack | `app/src/androidTest/java/com/miguelrodriguez19/safecube/Phase7ResilienceInstrumentedTest.kt` → `terminalSessionExpirationReplacesProtectedStackAndBackCannotRestoreIt` |
+| Session expiration and clean back stack | `../../app/src/androidTest/java/com/miguelrodriguez19/safecube/ResilienceInstrumentedTest.kt` → `terminalSessionExpirationReplacesProtectedStackAndBackCannotRestoreIt` |
 | Auto-lock on background and later unlock | Same file → `immediateAutoLockOnBackgroundRequiresASecondUnlockOnForeground` |
 | Lock now | Same file → `lockNowLocksVaultWithoutEndingAccountSession` |
 | Process death / cold start Locked | `app/src/androidTest/java/com/miguelrodriguez19/safecube/QuickUnlockDeviceCredentialTest.kt` → `activityRecreationKeepsLiveSessionAndRemoteProcessStartsLocked` |
-| Pending recovery key | `app/src/androidTest/java/com/miguelrodriguez19/safecube/Phase7ResilienceUiStateTest.kt` → `pendingRecoveryKeyRemainsVisibleUntilExplicitConfirmation` |
+| Pending recovery key | `../../app/src/androidTest/java/com/miguelrodriguez19/safecube/ResilienceUiStateTest.kt` → `pendingRecoveryKeyRemainsVisibleUntilExplicitConfirmation` |
 | `FLAG_SECURE` | `app/src/androidTest/java/com/miguelrodriguez19/safecube/MainActivitySmokeTest.kt` → `activeWindowRejectsScreenshotsAndRecentsThumbnails` |
-| Vault Home retains content after retryable error | `Phase7ResilienceUiStateTest.kt` → `retryableVaultHomeErrorKeepsLocalContentAndOffersRetry` |
+| Vault Home retains content after retryable error | `ResilienceUiStateTest.kt` → `retryableVaultHomeErrorKeepsLocalContentAndOffersRetry` |
 | Lost HTTP response and reconciliation | `core/vault/src/test/java/com/miguelrodriguez19/safecube/core/vault/domain/usecase/vault/VaultInitializeUseCaseTest.kt` and `ChangeVaultPassphraseUseCaseTest.kt`; remote adapters remain MockWebServer JVM tests. |
 
 ## Pull-request integration

@@ -53,9 +53,14 @@ review preview, not an Android resource.
 Run from the repository root:
 
 ```text
-python3 docs/design/tools/verify-logo-geometry.py
+./gradlew verifyLogoGeometry
 ```
 
-The verifier uses only the Python standard library. It checks the master checksum, path count and
-ordered path geometry, expected viewBoxes, expected fill colours, launcher transforms, production
-Android vector parity, and the intentional path-free adaptive background.
+The verifier uses the Gradle/JVM toolchain. It checks the master path count and ordered path
+geometry, expected viewBoxes, expected fill colours, shared launcher transforms, generated Android
+VectorDrawable parity, and the intentional path-free adaptive background. After changing a launcher
+SVG transform or colour, regenerate the production vectors with:
+
+```text
+./gradlew generateLogoVectorDrawables
+```

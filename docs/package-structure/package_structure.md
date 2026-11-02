@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 19-10-2026 12:17:03
+Updated: 02-11-2026 12:58:36
 
 ```
 safecube-android/
@@ -169,8 +169,13 @@ safecube-android/
 │   │   │   │   │   ├── AppVersionComparator$ParsedSemVer.class
 │   │   │   │   │   ├── AppVersionComparator.class
 │   │   │   │   │   ├── AppVersionParser.class
+│   │   │   │   │   ├── GenerateLogoVectorDrawablesTask.class
+│   │   │   │   │   ├── LogoAssetContract$SvgAsset.class
+│   │   │   │   │   ├── LogoAssetContract$Transform.class
+│   │   │   │   │   ├── LogoAssetContract.class
 │   │   │   │   │   ├── ReleaseSigningConfig.class
-│   │   │   │   │   └── ReleaseSigningCredentials.class
+│   │   │   │   │   ├── ReleaseSigningCredentials.class
+│   │   │   │   │   └── VerifyLogoGeometryTask.class
 │   │   │   │   └── META-INF/
 │   │   │   │       └── buildSrc.kotlin_module
 │   │   │   └── test/
@@ -243,7 +248,21 @@ safecube-android/
 │   │   │   │   │   │   │   ├── source-to-classes.tab.len
 │   │   │   │   │   │   │   ├── source-to-classes.tab.values.at
 │   │   │   │   │   │   │   ├── source-to-classes.tab_i
-│   │   │   │   │   │   │   └── source-to-classes.tab_i.len
+│   │   │   │   │   │   │   ├── source-to-classes.tab_i.len
+│   │   │   │   │   │   │   ├── subtypes.tab
+│   │   │   │   │   │   │   ├── subtypes.tab.keystream
+│   │   │   │   │   │   │   ├── subtypes.tab.keystream.len
+│   │   │   │   │   │   │   ├── subtypes.tab.len
+│   │   │   │   │   │   │   ├── subtypes.tab.values.at
+│   │   │   │   │   │   │   ├── subtypes.tab_i
+│   │   │   │   │   │   │   ├── subtypes.tab_i.len
+│   │   │   │   │   │   │   ├── supertypes.tab
+│   │   │   │   │   │   │   ├── supertypes.tab.keystream
+│   │   │   │   │   │   │   ├── supertypes.tab.keystream.len
+│   │   │   │   │   │   │   ├── supertypes.tab.len
+│   │   │   │   │   │   │   ├── supertypes.tab.values.at
+│   │   │   │   │   │   │   ├── supertypes.tab_i
+│   │   │   │   │   │   │   └── supertypes.tab_i.len
 │   │   │   │   │   │   └── lookups/
 │   │   │   │   │   │       ├── counters.tab
 │   │   │   │   │   │       ├── file-to-id.tab
@@ -268,8 +287,9 @@ safecube-android/
 │   │   │   │   │   │       ├── lookups.tab_i
 │   │   │   │   │   │       └── lookups.tab_i.len
 │   │   │   │   │   └── last-build.bin
-│   │   │   │   └── classpath-snapshot/
-│   │   │   │       └── shrunk-classpath-snapshot.bin
+│   │   │   │   ├── classpath-snapshot/
+│   │   │   │   │   └── shrunk-classpath-snapshot.bin
+│   │   │   │   └── local-state/
 │   │   │   └── compileTestKotlin/
 │   │   │       ├── cacheable/
 │   │   │       │   ├── caches-jvm/
@@ -374,6 +394,7 @@ safecube-android/
 │   ├── src/
 │   │   ├── main/kotlin/com/miguelrodriguez19/safecube/buildlogic/
 │   │   │   ├── AppVersion.kt
+│   │   │   ├── LogoVectorGenerator.kt
 │   │   │   └── ReleaseSigningConfig.kt
 │   │   └── test/kotlin/com/miguelrodriguez19/safecube/buildlogic/
 │   │       ├── AppVersionTest.kt
@@ -964,8 +985,7 @@ safecube-android/
 │   │   │   ├── welcome-dark.svg
 │   │   │   └── welcome-light.svg
 │   │   ├── tools/
-│   │   │   ├── verify-brand-palette.py
-│   │   │   └── verify-logo-geometry.py
+│   │   │   └── verify-brand-palette.py
 │   │   └── brand-guide-v1.md
 │   ├── package-structure/
 │   │   └── package_structure.md

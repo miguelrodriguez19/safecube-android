@@ -31,7 +31,7 @@ import org.junit.runner.RunWith
 
 @LargeTest
 @RunWith(AndroidJUnit4::class)
-class Phase7ResilienceUiStateTest {
+class ResilienceUiStateTest {
     @get:Rule
     val composeRule = createComposeRule()
 

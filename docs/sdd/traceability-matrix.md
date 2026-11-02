@@ -48,7 +48,7 @@ La evidencia adicional de `SCDK-M121` incluye la resolución de mutation gateway
 ### Evidencia transversal de cierre SCDK-M130 — 2026-09-26
 
 - Matriz canónica: `docs/testing/phase-7-resilience-matrix.md`.
-- Instrumentación añadida: `app/src/androidTest/java/com/miguelrodriguez19/safecube/Phase7ResilienceInstrumentedTest.kt` y `app/src/androidTest/java/com/miguelrodriguez19/safecube/Phase7ResilienceUiStateTest.kt`.
+- Instrumentación añadida: `../../app/src/androidTest/java/com/miguelrodriguez19/safecube/ResilienceInstrumentedTest.kt` y `../../app/src/androidTest/java/com/miguelrodriguez19/safecube/ResilienceUiStateTest.kt`.
 - Evidencia reutilizada: `MainActivitySmokeTest.activeWindowRejectsScreenshotsAndRecentsThumbnails` y `QuickUnlockDeviceCredentialTest.activityRecreationKeepsLiveSessionAndRemoteProcessStartsLocked`.
 - Suite canónica: `./gradlew --no-daemon :app:pixel2Api30DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect` → `PASS`, 16/16 tests, 1m55s.
 - Gates: `./gradlew ciVerify` → `PASS`, 746 tareas, 14s; `./gradlew releaseVerify` → `PASS`, 883 tareas, 4s.
