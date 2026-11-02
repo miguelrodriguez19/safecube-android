@@ -61,7 +61,8 @@ object NetworkClientFactory {
     /**
      * Creates temporary full HTTP diagnostics for local debug builds.
      *
-     * Phase 9 removes this logger and replaces it with redacted structured observability.
+     * Must be replaced with redacted structured observability before production diagnostics ship.
+     * The temporary local-debug exception is defined in ADR-0003-SENSITIVE-DATA-SURFACES.
      */
     fun createDebugHttpLoggingInterceptor(
         enabled: Boolean,

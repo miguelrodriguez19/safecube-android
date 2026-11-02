@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 02-11-2026 12:58:36
+Updated: 02-11-2026 01:18:46
 
 ```
 safecube-android/
@@ -1093,7 +1093,7 @@ safecube-android/
 │   └── vault/
 │       ├── src/
 │       │   ├── debug/java/com/miguelrodriguez19/safecube/feature/vault/testsupport/
-│       │   │   └── Phase7ResilienceUiFixtures.kt
+│       │   │   └── ResilienceUiFixtures.kt
 │       │   ├── main/
 │       │   │   ├── java/com/miguelrodriguez19/safecube/feature/vault/presentation/
 │       │   │   │   ├── create/

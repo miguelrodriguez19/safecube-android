@@ -18,11 +18,11 @@ import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.pull.PullVaul
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeContentState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultHomeUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.home.state.VaultItemSummaryUiModel
-import com.miguelrodriguez19.safecube.feature.vault.testsupport.Phase7VaultHomeContent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.recovery.action.RecoveryKeyUiAction
 import com.miguelrodriguez19.safecube.feature.vault.presentation.recovery.state.RecoveryKeyUiState
-import com.miguelrodriguez19.safecube.feature.vault.testsupport.Phase7RecoveryKeyContent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.state.VaultUiOperationState
+import com.miguelrodriguez19.safecube.feature.vault.testsupport.ResilienceRecoveryKeyContent
+import com.miguelrodriguez19.safecube.feature.vault.testsupport.ResilienceVaultHomeContent
 import java.time.Instant
 import java.util.UUID
 import org.junit.Rule
@@ -42,7 +42,7 @@ class ResilienceUiStateTest {
 
         composeRule.setContent {
             SafeCubeTheme(appearance = AppearanceSettings(dynamicColorEnabled = false)) {
-                Phase7RecoveryKeyContent(
+                ResilienceRecoveryKeyContent(
                     uiState = RecoveryKeyUiState(
                         recoveryKey = recoveryKey,
                         operationState = VaultUiOperationState.Success,
@@ -69,7 +69,7 @@ class ResilienceUiStateTest {
 
         composeRule.setContent {
             SafeCubeTheme(appearance = AppearanceSettings(dynamicColorEnabled = false)) {
-                Phase7VaultHomeContent(
+                ResilienceVaultHomeContent(
                     uiState = VaultHomeUiState(
                         items = listOf(
                             VaultItemSummaryUiModel(

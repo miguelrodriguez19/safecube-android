@@ -193,6 +193,6 @@ class ResilienceInstrumentedTest {
         const val KEY_LENGTH_BYTES = 32
         const val SALT_LENGTH_BYTES = 16
         const val UI_TIMEOUT_MILLIS = 10_000L
-        const val PROTECTED_PLAINTEXT_SENTINEL = "phase-7-protected-content"
+        const val PROTECTED_PLAINTEXT_SENTINEL = "resilience-protected-content"
     }
 }

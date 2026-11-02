@@ -10,7 +10,7 @@ import java.util.UUID
 
 /** Debug-only rendering bridge for instrumented resilience assertions. */
 @Composable
-fun Phase7VaultHomeContent(
+fun ResilienceVaultHomeContent(
     uiState: VaultHomeUiState,
     onCreatePassword: () -> Unit,
     onCreateNote: () -> Unit,
@@ -34,7 +34,7 @@ fun Phase7VaultHomeContent(
 
 /** Debug-only rendering bridge for the pending-recovery state. */
 @Composable
-fun Phase7RecoveryKeyContent(
+fun ResilienceRecoveryKeyContent(
     uiState: RecoveryKeyUiState,
     onAction: (RecoveryKeyUiAction) -> Unit,
 ) {
