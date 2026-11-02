@@ -7,9 +7,11 @@ This is the executable evidence index for `SPEC-HARDENING-V1` and the Phase 7 cl
 matrix, visual-regression testing and production observability remain outside Phase 7.
 
 The canonical gates remain defined in root Gradle tasks and `docs/testing/testing.md`. This matrix
-does not create a second gate list. The pull-request workflow runs the complete `app` instrumented
-source set through `:app:pixel2Api30DebugAndroidTest`, so every test added below is discovered
-without a class allowlist or secrets.
+does not create a second gate list. The pull-request workflow partitions the complete `app`
+instrumented source set with complementary `DeviceCredentialIsolation` annotation filters across
+`:app:pixel2Api30DebugAndroidTest` and `:app:pixel2Api30CredentialDebugAndroidTest`. Every test added
+below is discovered without a class allowlist or secrets; credential-changing tests use a dedicated
+device so system Keystore cleanup cannot stall the remaining suite.
 
 ## Requirement evidence
 

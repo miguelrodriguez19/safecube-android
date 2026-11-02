@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 02-11-2026 01:59:05
+Updated: 02-11-2026 04:05:55
 
 ```
 safecube-android/
@@ -26,6 +26,7 @@ safecube-android/
 │   │   │   ├── test/
 │   │   │   ├── AppearanceThemeInstrumentedTest.kt
 │   │   │   ├── ComposeVisualRegressionCanarySemanticsTest.kt
+│   │   │   ├── DeviceCredentialIsolation.kt
 │   │   │   ├── MainActivitySmokeTest.kt
 │   │   │   ├── QuickUnlockDeviceCredentialTest.kt
 │   │   │   ├── ResilienceInstrumentedTest.kt

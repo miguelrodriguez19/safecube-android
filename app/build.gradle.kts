@@ -100,6 +100,13 @@ android {
                     systemImageSource = "aosp"
                     require64Bit = true
                 }
+                create("pixel2Api30Credential") {
+                    device = "Pixel 2"
+                    apiLevel = 30
+                    // Credential changes mutate system Keystore state outside app-data isolation.
+                    systemImageSource = "aosp"
+                    require64Bit = true
+                }
             }
         }
     }

@@ -13,6 +13,13 @@ La evidencia adicional de `SCDK-M121` incluye la resolución de mutation gateway
 `SecureItemType` mediante factory y multibinding Hilt, junto con
 `SecureItemEditorMutationCoordinatorTest` y `SecureItemEditorMutationGatewayFactoryTest`.
 
+Corrección de instrumentación de `SCDK-M138` (2026-11-02): la anotación runtime
+`DeviceCredentialIsolation` separa los tests que mutan la credencial del sistema del grupo general.
+El workflow ejecuta filtros complementarios sobre `pixel2Api30` y `pixel2Api30Credential`, evitando
+que el resto de la suite dependa de la invalidación de Keystore posterior a `locksettings clear`.
+Comandos de reproducción y alcance en [testing.md](../testing/testing.md). Validación local ARM64:
+grupo general `PASS` 13/13 (52s), grupo credencial `PASS` 5/5 (59s). Confirmación CI x86_64 pendiente.
+
 Corrección de CI de `SCDK-M138` (2026-11-02): los SVG de launcher y preview round comparten
 `translate(-120,1100) scale(0.12,-0.12)`, conservando la composición de los VectorDrawable de
 producción. `generateLogoVectorDrawables verifyLogoGeometry --offline` pasa; la verificación
