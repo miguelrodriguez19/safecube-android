@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shell_visual_vault_title">Bóveda</string>
+    <string name="shell_visual_vault_description">Shell sintético de la bóveda</string>
+    <string name="shell_visual_vault_action">Crear ítem sintético</string>
+    <string name="shell_visual_sync_action">Sincronizar bóveda</string>
+    <string name="shell_visual_item_title">Inicio de sesión de ejemplo</string>
+    <string name="shell_visual_item_supporting">Ítem sintético listo para revisar.</string>
+    <string name="shell_visual_item_state">Sincronizado ahora</string>
+    <string name="shell_visual_settings_title">Ajustes</string>
+    <string name="shell_visual_settings_description">Shell sintético de ajustes</string>
+    <string name="shell_visual_settings_action">Revisar preferencias sintéticas</string>
+    <string name="shell_visual_settings_card_title">Apariencia</string>
+    <string name="shell_visual_settings_card_supporting">Tema del sistema con colores de marca.</string>
+</resources>

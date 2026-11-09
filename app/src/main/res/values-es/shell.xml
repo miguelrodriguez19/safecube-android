@@ -1,0 +1,4 @@
+<resources>
+    <string name="shell_loading_session">Cargando sesión...</string>
+    <string name="shell_back_exit_notice">Pulsa de nuevo para cerrar</string>
+</resources>

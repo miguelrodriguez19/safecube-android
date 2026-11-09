@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 09-11-2026 12:38:00
+Updated: 09-11-2026 04:14:55
 
 ```
 safecube-android/
@@ -35,13 +35,16 @@ safecube-android/
 │   │   │   ├── MainActivitySmokeTest.kt
 │   │   │   ├── QuickUnlockDeviceCredentialTest.kt
 │   │   │   ├── ResilienceInstrumentedTest.kt
-│   │   │   └── ResilienceUiStateTest.kt
+│   │   │   ├── ResilienceUiStateTest.kt
+│   │   │   ├── SafeCubeShellSemanticsTest.kt
+│   │   │   └── ShellSystemBarsTest.kt
 │   │   ├── debug/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/testsupport/
 │   │   │   │   ├── visual/
 │   │   │   │   │   ├── DesignSystemCatalog.kt
 │   │   │   │   │   ├── DesignSystemCatalogPreviews.kt
 │   │   │   │   │   ├── SafeCubeMultiPreviews.kt
+│   │   │   │   │   ├── ShellVisualFixtures.kt
 │   │   │   │   │   ├── VisualRegressionCanaryFixtures.kt
 │   │   │   │   │   ├── VisualRegressionCanaryPreviews.kt
 │   │   │   │   │   ├── VisualRegressionCanarySurface.kt
@@ -50,9 +53,11 @@ safecube-android/
 │   │   │   │   └── QuickUnlockInstrumentationEntryPoint.kt
 │   │   │   ├── res/
 │   │   │   │   ├── values/
-│   │   │   │   │   └── design_system_catalog.xml
+│   │   │   │   │   ├── design_system_catalog.xml
+│   │   │   │   │   └── shell_visual_fixtures.xml
 │   │   │   │   └── values-es/
-│   │   │   │       └── design_system_catalog.xml
+│   │   │   │       ├── design_system_catalog.xml
+│   │   │   │       └── shell_visual_fixtures.xml
 │   │   │   └── AndroidManifest.xml
 │   │   ├── main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/
@@ -78,10 +83,13 @@ safecube-android/
 │   │   │   │   │   │   ├── host/
 │   │   │   │   │   │   │   ├── ForcedLogoutNoticeDialog.kt
 │   │   │   │   │   │   │   ├── NavigationBackPolicy.kt
+│   │   │   │   │   │   │   ├── NavigationController.kt
 │   │   │   │   │   │   │   ├── NavigationDependencies.kt
 │   │   │   │   │   │   │   ├── NavigationGraph.kt
 │   │   │   │   │   │   │   ├── NavigationSessionCoordinator.kt
 │   │   │   │   │   │   │   ├── NavigationWrapper.kt
+│   │   │   │   │   │   │   ├── SafeCubeNavigationHost.kt
+│   │   │   │   │   │   │   ├── VaultExitBackPolicy.kt
 │   │   │   │   │   │   │   └── VaultNavigationCoordinator.kt
 │   │   │   │   │   │   └── route/
 │   │   │   │   │   │       ├── RouteAccessPolicy.kt
@@ -114,8 +122,11 @@ safecube-android/
 │   │   │   │   │   ├── bools.xml
 │   │   │   │   │   ├── colors.xml
 │   │   │   │   │   ├── drawables.xml
+│   │   │   │   │   ├── shell.xml
 │   │   │   │   │   ├── strings.xml
 │   │   │   │   │   └── styles.xml
+│   │   │   │   ├── values-es/
+│   │   │   │   │   └── shell.xml
 │   │   │   │   ├── values-night/
 │   │   │   │   │   ├── bools.xml
 │   │   │   │   │   ├── colors.xml
@@ -126,6 +137,7 @@ safecube-android/
 │   │   │   └── AndroidManifest.xml
 │   │   ├── screenshotTest/java/com/miguelrodriguez19/safecube/visual/
 │   │   │   ├── DesignSystemCatalogScreenshotTest.kt
+│   │   │   ├── ShellScreenshotTest.kt
 │   │   │   └── VisualRegressionCanaryScreenshotTest.kt
 │   │   ├── screenshotTestDebug/reference/com/miguelrodriguez19/safecube/
 │   │   │   ├── visual/
@@ -152,6 +164,13 @@ safecube-android/
 │   │   │   │   │   ├── designSystemCatalogNavigationLandscapePreview_Navigation medium landscape_ed29a39a_0.png
 │   │   │   │   │   ├── designSystemCatalogNavigationPreview_Dark English_7b10707e_0.png
 │   │   │   │   │   └── designSystemCatalogNavigationPreview_Light English_73c2f133_0.png
+│   │   │   │   ├── ShellScreenshotTestKt/
+│   │   │   │   │   ├── shellSettingsLandscapeLightSpanishPreview_Shell settings landscape light Spanish_3eee61d9_0.png
+│   │   │   │   │   ├── shellSettingsSelectedDarkSpanishPreview_Settings selected dark Spanish_fade5553_0.png
+│   │   │   │   │   ├── shellSplashDarkEnglishPreview_Splash dark English_760548e9_0.png
+│   │   │   │   │   ├── shellSplashLightEnglishPreview_Splash light English_9c668469_0.png
+│   │   │   │   │   ├── shellVaultFontScale200DarkSpanishPreview_Shell vault 200 percent dark Spanish_56855144_0.png
+│   │   │   │   │   └── shellVaultSelectedLightEnglishPreview_Vault selected light English_a1061180_0.png
 │   │   │   │   ├── VisualRegressionCanaryScreenshotTestKt/
 │   │   │   │   │   ├── visualRegressionCanaryConfigurationPreview_Compact portrait_47aeb6cc_0.png
 │   │   │   │   │   ├── visualTokenCatalogDarkPreview_Dark tokens_293a429e_0.png
@@ -169,7 +188,10 @@ safecube-android/
 │   │       │   │   │   └── NavigationGatesTest.kt
 │   │       │   │   └── host/
 │   │       │   │       ├── NavigationBackPolicyTest.kt
-│   │       │   │       └── NavigationSessionCoordinatorTest.kt
+│   │       │   │       ├── NavigationControllerTest.kt
+│   │       │   │       ├── NavigationMotionPolicyTest.kt
+│   │       │   │       ├── NavigationSessionCoordinatorTest.kt
+│   │       │   │       └── VaultExitBackPolicyTest.kt
 │   │       │   ├── security/
 │   │       │   │   └── SensitiveSourcePolicyTest.kt
 │   │       │   ├── session/
@@ -671,6 +693,7 @@ safecube-android/
 │   │   │   │   │   ├── component/
 │   │   │   │   │   │   ├── SafeCubeButton.kt
 │   │   │   │   │   │   ├── SafeCubeFeedback.kt
+│   │   │   │   │   │   ├── SafeCubeScaffold.kt
 │   │   │   │   │   │   ├── SafeCubeStructure.kt
 │   │   │   │   │   │   ├── SafeCubeTextField.kt
 │   │   │   │   │   │   └── SecretOutlinedTextField.kt
@@ -1024,7 +1047,8 @@ safecube-android/
 │   │   ├── tools/
 │   │   │   └── verify-brand-palette.py
 │   │   ├── brand-guide-v1.md
-│   │   └── component-catalog-v1.md
+│   │   ├── component-catalog-v1.md
+│   │   └── shell-navigation-motion-v1.md
 │   ├── package-structure/
 │   │   └── package_structure.md
 │   ├── release/

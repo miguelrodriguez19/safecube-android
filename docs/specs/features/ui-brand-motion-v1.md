@@ -8,7 +8,7 @@
 | Estado             | `APPROVED`                                                                                                                                                                                                                                                                                                     |
 | Owner              | `maintainer/product-design`                                                                                                                                                                                                                                                                                    |
 | Fecha              | `2026-09-26`                                                                                                                                                                                                                                                                                                   |
-| Última revisión    | `2026-10-11`                                                                                                                                                                                                                                                                                                   |
+| Última revisión    | `2026-11-09`                                                                                                                                                                                                                                                                                                   |
 | Reemplaza          | `N/A`                                                                                                                                                                                                                                                                                                          |
 | Dependencias       | [SPEC-PRODUCT-V1](../product/v1-product-brief.md), [SPEC-HARDENING-V1](./hardening-resilience-v1.md), [ADR-0001](../../architecture/adr/ADR-0001-VAULT-AUTO-LOCK.md), [ADR-0002](../../architecture/adr/ADR-0002-PASSPHRASE-REWRAP.md), [ADR-0003](../../architecture/adr/ADR-0003-SENSITIVE-DATA-SURFACES.md) |
 | Tasks relacionadas | `SCDK-M134`–`SCDK-M147`                                                                                                                                                                                                                                                                                        |
@@ -135,7 +135,7 @@ tramita una spec/task o ADR separado. Una preferencia estética no autoriza un c
 | `UI-SETTINGS`          | `Routes.Settings`         | Apariencia, auto-lock, quick unlock, change passphrase, Lock now y logout.                         | `SCDK-M145`               |
 | `UI-QUICK-UNLOCK`      | Superficie sin ruta       | Oferta, prompt de sistema, cancelación, error, invalidación y fallback a passphrase.               | `SCDK-M142` / `SCDK-M145` |
 | `UI-GLOBAL-DIALOGS`    | Superficies sin ruta      | Forced logout, causa de lock/cambio remoto, reconciliación indeterminada y selección de auto-lock. | `SCDK-M142` / `SCDK-M145` |
-| `UI-GLOBAL-FEEDBACK`   | Superficie transversal    | Back/exit y feedback de sync; información relevante no puede depender solo de Toast.               | `SCDK-M140` / `SCDK-M143` |
+| `UI-GLOBAL-FEEDBACK`   | Superficie transversal    | Back/exit mediante Toast corto sin acciones; feedback funcional de sync no depende solo de Toast. | `SCDK-M140` / `SCDK-M143` |
 
 `Splash` es una transición del sistema, no una pantalla de producto. Quick unlock, diálogos y
 feedback global son superficies verificables sin ruta propia y no amplían el grafo de navegación.
@@ -207,6 +207,14 @@ creado por SCDK-M136. Solo será implementable tras quedar `ACCEPTED`.
 - Errores y avisos serán sanitizados, accionables y no dependerán exclusivamente de color, Toast o
   duración temporal. Los errores terminales no ofrecerán una acción que repita una operación no
   autorizada.
+- Excepción acotada aprobada por el owner el 2026-11-09 (`SCDK-M140`): el aviso informativo de
+  doble Back para salir de Bóveda será un `Toast.LENGTH_SHORT`, localizado y sin acciones. La
+  segunda pulsación confirma mientras el Toast está visible, respetando la duración que Android
+  aplique, incluidas extensiones de accesibilidad. Una pulsación inmediata también confirma durante
+  la entrega pendiente; si el sistema suprime el Toast, ese período queda limitado a la duración
+  corta recomendada por accesibilidad. La confirmación no se restaura y se limpia al salir de
+  Bóveda, perder acceso o pausar la app. Se aplica tanto a Bóveda raíz como a una entrada con
+  historial. Esta excepción no se extiende a errores, sync ni advertencias de seguridad.
 - Draft y conflicto usarán texto, icono y `stateDescription`; no se inferirán solo por color.
 - Bóveda y Ajustes conservarán sus destinos, selección, back stack y políticas de acceso. No se
   reintroducirán Folders, Profile ni rutas placeholder.

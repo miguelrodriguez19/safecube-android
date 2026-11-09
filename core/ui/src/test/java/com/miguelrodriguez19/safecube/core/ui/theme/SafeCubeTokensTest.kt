@@ -91,6 +91,14 @@ class SafeCubeTokensTest {
     }
 
     @Test
+    fun motionAliasesUseTheApprovedDurations() {
+        assertEquals(SafeCubeMotion.Standard, SafeCubeMotion.Enter)
+        assertEquals(SafeCubeMotion.Short, SafeCubeMotion.Exit)
+        assertEquals(SafeCubeMotion.Short, SafeCubeMotion.StateChange)
+        assertEquals(SafeCubeMotion.Short, SafeCubeMotion.Feedback)
+    }
+
+    @Test
     fun shapesExposeTheApprovedScaleIncludingFull() {
         assertEquals(SafeCubeShape.ExtraSmall, SafeCubeShapes.extraSmall)
         assertEquals(SafeCubeShape.Small, SafeCubeShapes.small)
