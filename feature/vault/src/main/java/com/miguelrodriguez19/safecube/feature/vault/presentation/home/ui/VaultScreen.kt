@@ -7,16 +7,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -30,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeScaffold
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeTopAppBar
 import com.miguelrodriguez19.safecube.core.vault.domain.model.sync.VaultSyncResult
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemDraftType
 import com.miguelrodriguez19.safecube.core.vault.domain.model.secureitem.SecureItemType
@@ -96,45 +94,34 @@ internal fun VaultHomeContent(
     onSettings: () -> Unit,
     onSyncNow: () -> Unit,
 ) {
-    Scaffold(
+    SafeCubeScaffold(
         topBar = {
-            Surface(
-                shadowElevation = 2.dp,
-                modifier = Modifier.statusBarsPadding(),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = stringResource(UiR.string.vault_label),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    )
+            SafeCubeTopAppBar(
+                title = stringResource(UiR.string.vault_label),
+                actions = {
                     SyncIconButton(
                         isSyncing = uiState.isSyncing,
                         enabled = !uiState.isSyncing,
                         onClick = onSyncNow,
                         contentDescription = stringResource(UiR.string.sync_now_action),
                     )
-                }
-            }
+                },
+            )
         },
         bottomBar = {
             NavigationBar(
                 selectedTab = AppTab.Vault,
-                onVault = onVault,
-                onSettings = onSettings,
+                onTabSelected = { tab ->
+                    when (tab) {
+                        AppTab.Vault -> onVault()
+                        AppTab.Settings -> onSettings()
+                    }
+                },
             )
         },
-    ) { paddingValues ->
+    ) {
         Column(
             modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {

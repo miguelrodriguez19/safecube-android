@@ -1,13 +1,24 @@
 package com.miguelrodriguez19.safecube.app.entrypoint
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import com.miguelrodriguez19.safecube.app.appearance.AppearanceBootstrapState
@@ -53,7 +64,29 @@ internal fun AppearanceRoot(
     when (state) {
         AppearanceBootstrapState.Loading -> Unit
         is AppearanceBootstrapState.Ready -> {
-            SafeCubeTheme(appearance = state.settings, content = content)
+            SafeCubeTheme(appearance = state.settings) {
+                val activity = LocalContext.current.findActivity()
+                val darkIcons = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+                SideEffect {
+                    activity?.window?.let { window ->
+                        WindowCompat.getInsetsController(window, window.decorView).apply {
+                            isAppearanceLightStatusBars = darkIcons
+                            isAppearanceLightNavigationBars = darkIcons
+                        }
+                    }
+                }
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
+                    content = content,
+                )
+            }
         }
     }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

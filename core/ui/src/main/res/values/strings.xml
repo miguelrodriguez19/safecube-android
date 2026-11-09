@@ -177,4 +177,19 @@
         <item quantity="other">%1$d conflicts</item>
     </plurals>
 
+    <string name="design_system_show_secret">Show secret</string>
+    <string name="design_system_hide_secret">Hide secret</string>
+    <string name="design_system_secret_visible">Visible</string>
+    <string name="design_system_secret_hidden">Hidden</string>
+    <string name="design_system_loading">Loading</string>
+    <string name="design_system_error">Error</string>
+
+    <string name="design_system_feedback_variant_info">Info</string>
+    <string name="design_system_feedback_variant_warning">Warning</string>
+    <string name="design_system_feedback_variant_error">Error</string>
+    <string name="design_system_feedback_variant_offline">Offline</string>
+    <string name="design_system_feedback_variant_draft">Draft</string>
+    <string name="design_system_feedback_variant_conflict">Conflict</string>
+    <string name="design_system_feedback_variant_success">Success</string>
+    <string name="design_system_feedback_retry">Retry</string>
 </resources>

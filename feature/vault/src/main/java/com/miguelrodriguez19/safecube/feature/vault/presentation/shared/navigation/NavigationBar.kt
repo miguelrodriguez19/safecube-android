@@ -1,53 +1,53 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation
 
 import androidx.annotation.StringRes
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.miguelrodriguez19.safecube.core.ui.R
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeBottomNavigation
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeNavigationItem
 import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeIcons
-import com.miguelrodriguez19.safecube.feature.vault.presentation.shared.navigation.AppTab.*
 
 enum class AppTab(
+    val id: String,
     @param:StringRes val labelRes: Int,
-    val icon: ImageVector
+    val icon: ImageVector,
 ) {
-    Vault(R.string.vault_label, SafeCubeIcons.Vault),
-    Settings(R.string.settings_label, SafeCubeIcons.Settings),
+    Vault(
+        id = "vault",
+        labelRes = R.string.vault_label,
+        icon = SafeCubeIcons.Vault,
+    ),
+    Settings(
+        id = "settings",
+        labelRes = R.string.settings_label,
+        icon = SafeCubeIcons.Settings,
+    ),
 }
 
 @Composable
 fun NavigationBar(
     selectedTab: AppTab,
-    onVault: () -> Unit,
-    onSettings: () -> Unit,
+    onTabSelected: (AppTab) -> Unit,
+    tabs: List<AppTab> = AppTab.entries,
 ) {
-    NavigationBar {
-        NavigationBarItem(
-            selected = selectedTab == Vault,
-            onClick = onVault,
-            icon = {
-                Icon(
-                    imageVector = Vault.icon,
-                    contentDescription = stringResource(Vault.labelRes),
-                )
-            },
-            label = { Text(stringResource(Vault.labelRes)) },
-        )
-        NavigationBarItem(
-            selected = selectedTab == Settings,
-            onClick = onSettings,
-            icon = {
-                Icon(
-                    imageVector = Settings.icon,
-                    contentDescription = stringResource(Settings.labelRes),
-                )
-            },
-            label = { Text(stringResource(Settings.labelRes)) },
-        )
-    }
+    require(tabs.isNotEmpty()) { "NavigationBar requires at least one tab" }
+    require(selectedTab in tabs) { "selectedTab must be included in tabs" }
+
+    SafeCubeBottomNavigation(
+        items = tabs.map { tab ->
+            SafeCubeNavigationItem(
+                id = tab.id,
+                label = stringResource(tab.labelRes),
+                icon = tab.icon,
+            )
+        },
+        selectedItemId = selectedTab.id,
+        onItemClick = { selectedId ->
+            tabs.firstOrNull { it.id == selectedId }
+                ?.takeUnless { it == selectedTab }
+                ?.let(onTabSelected)
+        },
+    )
 }
