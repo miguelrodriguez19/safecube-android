@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
@@ -14,8 +13,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,6 +31,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeScaffold
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeTopAppBar
 import com.miguelrodriguez19.safecube.core.vault.domain.model.AutoLockTimeout
 import com.miguelrodriguez19.safecube.core.vault.domain.quickunlock.QuickUnlockOfferState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.findFragmentActivity
@@ -124,31 +123,24 @@ fun SettingsScreen(
         )
     }
 
-    Scaffold(
+    SafeCubeScaffold(
         topBar = {
-            Surface(
-                shadowElevation = 2.dp,
-                modifier = Modifier.statusBarsPadding(),
-            ) {
-                Text(
-                    text = stringResource(UiR.string.settings_label),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                )
-            }
+            SafeCubeTopAppBar(title = stringResource(UiR.string.settings_label))
         },
         bottomBar = {
             NavigationBar(
                 selectedTab = AppTab.Settings,
-                onVault = onVault,
-                onSettings = onSettings,
+                onTabSelected = { tab ->
+                    when (tab) {
+                        AppTab.Vault -> onVault()
+                        AppTab.Settings -> onSettings()
+                    }
+                },
             )
         },
-    ) { paddingValues ->
+    ) {
         Column(
             modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),

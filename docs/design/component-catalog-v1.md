@@ -13,6 +13,11 @@ own business validation, navigation, operation outcomes and lifecycle cleanup of
 Components never access repositories, ViewModels, network, storage or feature types. Callers
 resolve functional messages from localized resources. All built-in labels have EN/ES parity.
 
+Localized text is grouped in one `strings.xml` per module, source set and language: English in
+`values` and Spanish in `values-es`. Production and debug catalog resources remain separate.
+Keep existing resource names when reorganizing files; grouping by component family does not
+require separate XML files. Locale parity checks inspect resource keys rather than filenames.
+
 Use `SafeCubeTheme` once at the root. Components consume its Material color roles and the
 SafeCube spacing, shapes, typography and elevation tokens, including when dynamic color is on.
 No component defines a feature-specific palette or domain state machine.
@@ -27,6 +32,7 @@ No component defines a feature-specific palette or domain state machine.
 | `SecretOutlinedTextField` | Masked by default; optional explicit reveal; focused, disabled, error | Localized show/hide action and visibility state; hidden plaintext absent from semantics |
 | `SafeCubeTopAppBar` | Title, optional navigation action, action slot | Heading title; named navigation/action controls |
 | `SafeCubeBottomNavigation` | Selected/unselected, focused, pressed, disabled entries | Tab role, labels, selection and callback; no destination resolution |
+| `SafeCubeScaffold` (M140) | Top/bottom bars, snackbar and content slots | Single-owner safe insets and 16dp content margins; state and navigation remain with callers |
 | `SafeCubeCard`, `SafeCubeItemRow` | Static or actionable; enabled/disabled; interaction feedback; optional row status | Static content has no click action; actionable content has 48dp target; row status is textual and announced |
 | `SafeCubeBanner` | Info, warning, error, offline, draft, conflict, success; optional enabled/loading action | Text and icon plus localized state description, polite live region, contextual action |
 | `SafeCubeConfirmationDialog` | Normal/destructive, confirming/loading | Heading, confirm/dismiss callbacks; loading blocks duplicate confirmation and dismissal |
@@ -118,11 +124,15 @@ Semantic tests under `app/src/androidTest` exercise the same APIs as an external
 
 `DesignSystemContractTest` guards resource parity and forbidden imports. The exact executed
 commands and M139 evidence are recorded in the
-[agent report](../sdd/agent-reports/SCDK-M139.md). The complete current visual baseline is 25
+[agent report](../sdd/agent-reports/SCDK-M139.md). The component/infrastructure visual baseline is 25
 references: 22 component goldens,
 one existing Compact portrait canary, and the two existing token snapshots. The canary keeps the
 `visualRegressionCanaryConfigurationPreview` function and its existing `Compact portrait` Preview
 settings; the token snapshots remain unchanged.
+
+M140 adds six targeted shell references using the scaffold and the same primitives, for 31 total.
+Its composition, inset and motion contracts are documented in
+[shell, navigation and motion v1](shell-navigation-motion-v1.md).
 
 M140 owns shell adoption; M141–M145 own screen redesigns. This catalog adds neither production
 destinations nor new domain messages, and does not mark the whole UI spec verified.

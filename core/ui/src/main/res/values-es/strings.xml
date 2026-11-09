@@ -178,4 +178,20 @@
         <item quantity="many">%1$d conflictos</item>
         <item quantity="other">%1$d conflictos</item>
     </plurals>
+
+    <string name="design_system_show_secret">Mostrar secreto</string>
+    <string name="design_system_hide_secret">Ocultar secreto</string>
+    <string name="design_system_secret_visible">Visible</string>
+    <string name="design_system_secret_hidden">Oculto</string>
+    <string name="design_system_loading">Cargando</string>
+    <string name="design_system_error">Error</string>
+
+    <string name="design_system_feedback_variant_info">Información</string>
+    <string name="design_system_feedback_variant_warning">Advertencia</string>
+    <string name="design_system_feedback_variant_error">Error</string>
+    <string name="design_system_feedback_variant_offline">Sin conexión</string>
+    <string name="design_system_feedback_variant_draft">Borrador</string>
+    <string name="design_system_feedback_variant_conflict">Conflicto</string>
+    <string name="design_system_feedback_variant_success">Éxito</string>
+    <string name="design_system_feedback_retry">Reintentar</string>
 </resources>

@@ -51,6 +51,11 @@ object SafeCubeMotion {
     val Standard: Duration = 250.milliseconds
     val Long: Duration = 350.milliseconds
 
+    val Enter: Duration = Standard
+    val Exit: Duration = Short
+    val StateChange: Duration = Short
+    val Feedback: Duration = Short
+
     val EnterEasing: Easing = FastOutSlowInEasing
     val ExitEasing: Easing = FastOutLinearInEasing
     val EmphasizedEasing: Easing = FastOutSlowInEasing

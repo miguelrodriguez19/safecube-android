@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.w3c.dom.Element
 
 class DesignSystemContractTest {
     private val repositoryRoot = generateSequence(File(requireNotNull(System.getProperty("user.dir")))) {
@@ -16,29 +17,24 @@ class DesignSystemContractTest {
     @Test
     fun `component resources preserve English Spanish keys and format arguments`() {
         assertLocaleParity(module.resolve("src/main/res"))
+        assertLocaleParity(repositoryRoot.resolve("app/src/main/res"))
         assertLocaleParity(repositoryRoot.resolve("app/src/debug/res"))
+        assertLocaleParity(repositoryRoot.resolve("feature/vault/src/main/res"))
     }
 
     private fun assertLocaleParity(resources: File) {
-        val englishFiles = resources.resolve("values").listFiles().orEmpty()
-            .filter { it.name.startsWith("design_system_") && it.extension == "xml" }
-        assertTrue("Design system resources must be present", englishFiles.isNotEmpty())
-
-        englishFiles.forEach { englishFile ->
-            val spanishFile = resources.resolve("values-es/${englishFile.name}")
-            assertTrue("Missing Spanish resource file ${englishFile.name}", spanishFile.isFile)
-            val english = strings(englishFile)
-            val spanish = strings(spanishFile)
-            assertEquals("Locale keys in ${englishFile.name}", english.keys, spanish.keys)
-            english.forEach { (name, value) ->
-                assertTrue("Empty English resource $name", value.isNotBlank())
-                assertTrue("Empty Spanish resource $name", spanish.getValue(name).isNotBlank())
-                assertEquals(
-                    "Format arguments for $name",
-                    FORMAT_ARGUMENT.findAll(value).map { it.value }.sorted().toList(),
-                    FORMAT_ARGUMENT.findAll(spanish.getValue(name)).map { it.value }.sorted().toList(),
-                )
-            }
+        val english = strings(resources.resolve("values"))
+        val spanish = strings(resources.resolve("values-es"))
+        assertTrue("Localized resources must be present in $resources", english.isNotEmpty())
+        assertEquals("Locale keys in $resources", english.keys, spanish.keys)
+        english.forEach { (name, value) ->
+            assertTrue("Empty English resource $name", value.isNotBlank())
+            assertTrue("Empty Spanish resource $name", spanish.getValue(name).isNotBlank())
+            assertEquals(
+                "Format arguments for $name",
+                FORMAT_ARGUMENT.findAll(value).map { it.value }.sorted().toList(),
+                FORMAT_ARGUMENT.findAll(spanish.getValue(name)).map { it.value }.sorted().toList(),
+            )
         }
     }
 
@@ -57,17 +53,19 @@ class DesignSystemContractTest {
         assertFalse("core:ui must not depend on app or features", Regex(":(app|feature:)").containsMatchIn(buildFile))
     }
 
-    private fun strings(file: File): Map<String, String> {
+    private fun strings(directory: File): Map<String, String> {
         val factory = DocumentBuilderFactory.newInstance().apply {
             setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
         }
-        val nodes = factory.newDocumentBuilder().parse(file).getElementsByTagName("string")
-        return (0 until nodes.length).mapNotNull { index ->
-            val element = nodes.item(index) as org.w3c.dom.Element
-            if (element.getAttribute("translatable") == "false") {
-                null
-            } else {
-                element.getAttribute("name") to element.textContent
+        return directory.listFiles().orEmpty().filter { it.extension == "xml" }.flatMap { file ->
+            val nodes = factory.newDocumentBuilder().parse(file).getElementsByTagName("string")
+            (0 until nodes.length).mapNotNull { index ->
+                val element = nodes.item(index) as Element
+                if (element.getAttribute("translatable") == "false") {
+                    null
+                } else {
+                    element.getAttribute("name") to element.textContent
+                }
             }
         }.toMap()
     }

@@ -145,9 +145,9 @@ The shared historical state used synthetic auth, vault, password/note items, syn
 sync in progress and a retryable offline error. The semantic canary verified roles, labels,
 enabled/disabled states, state descriptions and dispatched actions against the same state.
 
-## Current M139 component and regression coverage
+## M139 component and infrastructure coverage
 
-The current baseline is unambiguously **25 references**:
+The component/infrastructure subset contains **25 references**:
 
 | Target | References | Risk covered |
 |---|---:|---|
@@ -179,8 +179,8 @@ The [component catalog](../design/component-catalog-v1.md) extends the existing 
 `core:ui` APIs directly, with explicit light/dark, EN/ES, API 36, dimensions and font scales.
 There are 37 debug-only IDE previews, but only 22 component goldens: 16 family baselines, one
 explicit Fields Spanish Light case and five targeted adaptation/state cases. Together with the
-one existing Compact portrait canary and two unchanged token snapshots, the current reference
-baseline is 25. Secret previews use empty values or inert masking glyphs; reveal is tested through
+one existing Compact portrait canary and two unchanged token snapshots, this reference
+subset is 25. Secret previews use empty values or inert masking glyphs; reveal is tested through
 semantic interaction, not exposed PNGs. Static references verify resting visual states; transient
 press and real input focus are verified through instrumented interactions rather than assumed from
 effect-driven preview rendering.
@@ -193,6 +193,27 @@ API 30 partition described in [testing.md](testing.md), excluding `DeviceCredent
 No new story-specific Gradle verification task is introduced. Local update, human review and
 read-only verification use the same commands as M137. Exact results and remaining review are
 recorded in [the M139 report](../sdd/agent-reports/SCDK-M139.md).
+
+## Shell coverage after SCDK-M140
+
+The [shell contract](../design/shell-navigation-motion-v1.md) adds exactly six selected references
+to the existing 25, for **31 total**. Broad development previews remain in debug and do not
+automatically become golden tests.
+
+| Target | Configuration | Distinct visual risk |
+|---|---|---|
+| Session splash | Light EN, compact | Static brand mark, themed surface and accessible progress |
+| Session splash | Dark EN, compact | Dark surface/brand contrast |
+| Vault-selected shell | Light EN, compact | App-bar actions, content margins and selected Vault tab |
+| Settings-selected shell | Dark ES, compact | Localized labels and selected Settings tab |
+| Settings shell | Light ES, medium landscape | Horizontal layout and action placement |
+| Vault shell | Dark ES, compact, 200% font | Reflow, heading/action access and tab labels |
+
+All six pin API 36 and disable dynamic color. Shell fixtures contain only synthetic labels.
+Motion scales, back operations and removal of outgoing protected content are tested semantically
+and instrumentally, rather than represented by additional transient PNGs. Updates remain explicit
+local operations with visual inspection; CI only validates. Execution evidence belongs to the
+[M140 report](../sdd/agent-reports/SCDK-M140.md).
 
 ## Upstream documentation
 
