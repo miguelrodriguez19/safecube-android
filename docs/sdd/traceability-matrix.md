@@ -85,6 +85,14 @@ Verificación tras eliminar reloj y fallback: `ciVerify` PASS (787 tests JVM, li
 y release sin firma); clase `SafeCubeShellSemanticsTest` en API 30 PASS (11/11, sin fallos/errores/skips),
 incluidas las regresiones de Back, motion reducido y retirada inmediata de contenido protegido.
 
+Mantenibilidad de recursos — 2026-11-09: por preferencia del owner se consolidan los 15 XML de
+textos en ocho `strings.xml`, uno por módulo/source set/idioma, manteniendo producción y fixtures
+debug separados. Se conservan claves, valores, atributos y plurales. `DesignSystemContractTest`
+comprueba paridad EN/ES y argumentos de formato por recursos, sin depender de nombres de archivo.
+Comparación estructurada PASS: 504 entradas antes/después, sin altas, bajas ni valores/atributos
+modificados. Tests de `core:ui` y procesamiento de recursos debug/release PASS; `ciVerify` PASS
+(787 tests JVM, lint, Kover, 31 referencias visuales y release sin firma).
+
 La adopción se limita al shell y splash. Las pantallas conservan sus owners M141–M145; M146/M147
 mantienen auditoría y verificación agregada. No se cambia la política de acceso ni se declara
 verificada toda la spec por esta tarea.

@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 09-11-2026 04:26:21
+Updated: 09-11-2026 04:33:02
 
 ```
 safecube-android/
@@ -53,11 +53,9 @@ safecube-android/
 │   │   │   │   └── QuickUnlockInstrumentationEntryPoint.kt
 │   │   │   ├── res/
 │   │   │   │   ├── values/
-│   │   │   │   │   ├── design_system_catalog.xml
-│   │   │   │   │   └── shell_visual_fixtures.xml
+│   │   │   │   │   └── strings.xml
 │   │   │   │   └── values-es/
-│   │   │   │       ├── design_system_catalog.xml
-│   │   │   │       └── shell_visual_fixtures.xml
+│   │   │   │       └── strings.xml
 │   │   │   └── AndroidManifest.xml
 │   │   ├── main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/
@@ -122,11 +120,10 @@ safecube-android/
 │   │   │   │   │   ├── bools.xml
 │   │   │   │   │   ├── colors.xml
 │   │   │   │   │   ├── drawables.xml
-│   │   │   │   │   ├── shell.xml
 │   │   │   │   │   ├── strings.xml
 │   │   │   │   │   └── styles.xml
 │   │   │   │   ├── values-es/
-│   │   │   │   │   └── shell.xml
+│   │   │   │   │   └── strings.xml
 │   │   │   │   ├── values-night/
 │   │   │   │   │   ├── bools.xml
 │   │   │   │   │   ├── colors.xml
@@ -541,62 +538,6 @@ safecube-android/
 │   │   │               └── SaltGeneratorTest.kt
 │   │   └── build.gradle.kts
 │   ├── network/
-│   │   ├── build/
-│   │   │   ├── generated/
-│   │   │   │   ├── openapi/
-│   │   │   │   │   ├── src/main/kotlin/com/miguelrodriguez19/safecube/core/network/generated/
-│   │   │   │   │   │   ├── api/
-│   │   │   │   │   │   │   ├── AuthControllerApi.kt
-│   │   │   │   │   │   │   ├── UserProfileControllerApi.kt
-│   │   │   │   │   │   │   ├── VaultControllerApi.kt
-│   │   │   │   │   │   │   └── VaultKeyMaterialControllerApi.kt
-│   │   │   │   │   │   ├── auth/
-│   │   │   │   │   │   ├── infrastructure/
-│   │   │   │   │   │   │   ├── AtomicBooleanAdapter.kt
-│   │   │   │   │   │   │   ├── AtomicIntegerAdapter.kt
-│   │   │   │   │   │   │   ├── AtomicLongAdapter.kt
-│   │   │   │   │   │   │   ├── BigDecimalAdapter.kt
-│   │   │   │   │   │   │   ├── BigIntegerAdapter.kt
-│   │   │   │   │   │   │   ├── CollectionFormats.kt
-│   │   │   │   │   │   │   ├── LocalDateAdapter.kt
-│   │   │   │   │   │   │   ├── LocalDateTimeAdapter.kt
-│   │   │   │   │   │   │   ├── OffsetDateTimeAdapter.kt
-│   │   │   │   │   │   │   ├── ResponseExt.kt
-│   │   │   │   │   │   │   ├── Serializer.kt
-│   │   │   │   │   │   │   ├── StringBuilderAdapter.kt
-│   │   │   │   │   │   │   ├── URIAdapter.kt
-│   │   │   │   │   │   │   ├── URLAdapter.kt
-│   │   │   │   │   │   │   └── UUIDAdapter.kt
-│   │   │   │   │   │   └── model/
-│   │   │   │   │   │       ├── AuthenticateAccountRequest.kt
-│   │   │   │   │   │       ├── AuthTokensResponse.kt
-│   │   │   │   │   │       ├── CreateSecureItemRequest.kt
-│   │   │   │   │   │       ├── CreateSecureItemResult.kt
-│   │   │   │   │   │       ├── CreateUserProfileRequest.kt
-│   │   │   │   │   │       ├── DeleteSecureItemResult.kt
-│   │   │   │   │   │       ├── ErrorResponse.kt
-│   │   │   │   │   │       ├── InitVaultKeyMaterialRequest.kt
-│   │   │   │   │   │       ├── ListSecureItemChangesResponse.kt
-│   │   │   │   │   │       ├── ListSecureItemsResponse.kt
-│   │   │   │   │   │       ├── RefreshTokenRequest.kt
-│   │   │   │   │   │       ├── RegisterAccountRequest.kt
-│   │   │   │   │   │       ├── RegisterAccountResult.kt
-│   │   │   │   │   │       ├── SecureItemChangeResponse.kt
-│   │   │   │   │   │       ├── SecureItemResponse.kt
-│   │   │   │   │   │       ├── SecureItemSummaryResponse.kt
-│   │   │   │   │   │       ├── UpdateMasterWrappedKekRequest.kt
-│   │   │   │   │   │       ├── UpdateSecureItemRequest.kt
-│   │   │   │   │   │       ├── UpdateSecureItemResult.kt
-│   │   │   │   │   │       ├── UpdateUserProfileRequest.kt
-│   │   │   │   │   │       ├── UserProfileResponse.kt
-│   │   │   │   │   │       └── VaultKeyMaterialResponse.kt
-│   │   │   │   │   ├── .openapi-generator-ignore
-│   │   │   │   │   ├── build.gradle
-│   │   │   │   │   ├── gradlew
-│   │   │   │   │   ├── gradlew.bat
-│   │   │   │   │   ├── proguard-rules.pro
-│   │   │   │   │   ├── README.md
-│   │   │   │   │   └── settings.gradle
 │   │   ├── openapi/
 │   │   │   └── OpenAPI.json
 │   │   ├── src/
@@ -715,12 +656,8 @@ safecube-android/
 │   │   │   │   │   ├── raw/
 │   │   │   │   │   │   └── manrope_ofl.txt
 │   │   │   │   │   ├── values/
-│   │   │   │   │   │   ├── design_system_actions.xml
-│   │   │   │   │   │   ├── design_system_feedback.xml
 │   │   │   │   │   │   └── strings.xml
 │   │   │   │   │   └── values-es/
-│   │   │   │   │       ├── design_system_actions.xml
-│   │   │   │   │       ├── design_system_feedback.xml
 │   │   │   │   │       └── strings.xml
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/ui/

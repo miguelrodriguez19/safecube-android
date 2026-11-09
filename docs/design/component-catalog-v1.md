@@ -13,6 +13,11 @@ own business validation, navigation, operation outcomes and lifecycle cleanup of
 Components never access repositories, ViewModels, network, storage or feature types. Callers
 resolve functional messages from localized resources. All built-in labels have EN/ES parity.
 
+Localized text is grouped in one `strings.xml` per module, source set and language: English in
+`values` and Spanish in `values-es`. Production and debug catalog resources remain separate.
+Keep existing resource names when reorganizing files; grouping by component family does not
+require separate XML files. Locale parity checks inspect resource keys rather than filenames.
+
 Use `SafeCubeTheme` once at the root. Components consume its Material color roles and the
 SafeCube spacing, shapes, typography and elevation tokens, including when dynamic color is on.
 No component defines a feature-specific palette or domain state machine.
