@@ -73,12 +73,17 @@ cada AC: [agent report M140](agent-reports/SCDK-M140.md).
 Corrección del owner — 2026-11-09: Back en Bóveda raíz se intercepta también sin entrada previa
 (Navigation3 desactiva su handler en ese caso). La confirmación usa Toast corto nativo sin acciones;
 su visibilidad delimita la segunda pulsación y el estado se limpia al abandonar Bóveda o pausar.
-La excepción informativa queda registrada en `SPEC-UI-V1`; `VaultExitBackPolicyTest` cubre entrega
-pendiente, expiración, accesibilidad y callbacks obsoletos. `SafeCubeShellSemanticsTest` ejercita el
-dispatcher real con raíz única y tras volver desde Ajustes.
-Verificación posterior a la corrección: `ciVerify` PASS (789 tests JVM, lint, Kover, 31 goldens y
+La excepción informativa queda registrada en `SPEC-UI-V1`; por decisión posterior del owner se
+elimina el fallback temporal: solo `onToastShown()`/`onToastHidden()` habilitan/limpian la confirmación.
+`VaultExitBackPolicyTest` cubre entrega pendiente o suprimida, visibilidad, reset y callbacks
+obsoletos. `SafeCubeShellSemanticsTest` ejercita el dispatcher real con raíz única y tras volver
+desde Ajustes.
+Verificación previa a retirar el fallback: `ciVerify` PASS (789 tests JVM, lint, Kover, 31 goldens y
 release sin firma); suite general API 30 PASS (46/46, sin fallos/errores/skips), incluidas ambas
 regresiones de Back. Las 31 referencias PNG conservan exactamente sus bytes.
+Verificación tras eliminar reloj y fallback: `ciVerify` PASS (787 tests JVM, lint, Kover, 31 goldens
+y release sin firma); clase `SafeCubeShellSemanticsTest` en API 30 PASS (11/11, sin fallos/errores/skips),
+incluidas las regresiones de Back, motion reducido y retirada inmediata de contenido protegido.
 
 La adopción se limita al shell y splash. Las pantallas conservan sus owners M141–M145; M146/M147
 mantienen auditoría y verificación agregada. No se cambia la política de acceso ni se declara

@@ -1,8 +1,6 @@
 package com.miguelrodriguez19.safecube.app.presentation.navigation.host
 
 import android.app.Activity
-import android.os.SystemClock
-import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -25,15 +23,7 @@ internal fun rememberVaultBackPressHandler(
     val lifecycleOwner = LocalLifecycleOwner.current
     val prompt = remember { ExitToast() }
     val policy = remember(context, activity, message, prompt) {
-        val accessibility = context.getSystemService(AccessibilityManager::class.java)
         VaultExitBackPolicy(
-            clock = SystemClock::elapsedRealtime,
-            timeoutMillis = {
-                (accessibility?.getRecommendedTimeoutMillis(
-                    SHORT_TOAST_MILLIS,
-                    AccessibilityManager.FLAG_CONTENT_TEXT,
-                ) ?: SHORT_TOAST_MILLIS).toLong()
-            },
             showPrompt = { onShown, onHidden ->
                 val toast = Toast.makeText(context, message, Toast.LENGTH_SHORT)
                 prompt.current = toast
@@ -41,7 +31,6 @@ internal fun rememberVaultBackPressHandler(
                     override fun onToastShown() {
                         if (prompt.current === toast) onShown()
                     }
-
                     override fun onToastHidden() {
                         if (prompt.current === toast) onHidden()
                     }
@@ -101,6 +90,3 @@ internal fun handleBackNavigation(
         else -> popBackStack()
     }
 }
-
-// AOSP short-toast base duration; visibility callbacks also cover system/animation extensions.
-private const val SHORT_TOAST_MILLIS = 2000

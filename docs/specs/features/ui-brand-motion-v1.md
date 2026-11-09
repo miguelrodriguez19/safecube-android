@@ -210,11 +210,12 @@ creado por SCDK-M136. Solo será implementable tras quedar `ACCEPTED`.
 - Excepción acotada aprobada por el owner el 2026-11-09 (`SCDK-M140`): el aviso informativo de
   doble Back para salir de Bóveda será un `Toast.LENGTH_SHORT`, localizado y sin acciones. La
   segunda pulsación confirma mientras el Toast está visible, respetando la duración que Android
-  aplique, incluidas extensiones de accesibilidad. Una pulsación inmediata también confirma durante
-  la entrega pendiente; si el sistema suprime el Toast, ese período queda limitado a la duración
-  corta recomendada por accesibilidad. La confirmación no se restaura y se limpia al salir de
-  Bóveda, perder acceso o pausar la app. Se aplica tanto a Bóveda raíz como a una entrada con
-  historial. Esta excepción no se extiende a errores, sync ni advertencias de seguridad.
+  aplique, incluidas extensiones de accesibilidad. Por decisión del owner, solo los callbacks
+  `onToastShown()` y `onToastHidden()` delimitan la confirmación, sin reloj ni duración estimada.
+  Antes de mostrarse o si Android suprime el Toast, Back vuelve a solicitar el aviso y no confirma
+  la salida. La confirmación no se restaura y se limpia al salir de Bóveda, perder acceso o pausar
+  la app. Se aplica tanto a Bóveda raíz como a una entrada con historial. Esta excepción no se
+  extiende a errores, sync ni advertencias de seguridad.
 - Draft y conflicto usarán texto, icono y `stateDescription`; no se inferirán solo por color.
 - Bóveda y Ajustes conservarán sus destinos, selección, back stack y políticas de acceso. No se
   reintroducirán Folders, Profile ni rutas placeholder.

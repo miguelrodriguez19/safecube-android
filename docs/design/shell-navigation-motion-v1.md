@@ -37,13 +37,13 @@ navigation or remove historical entries as an unrelated navigation change.
 
 Back from Vault first displays a localized native `Toast.LENGTH_SHORT` without actions. A second
 press confirms while the toast is visible; `Toast.Callback` visibility is authoritative, including
-system animation and accessibility extensions. An immediate second press also confirms while
-delivery is pending. If Android suppresses the toast and sends no callbacks, that pending window
-expires at the accessibility-recommended short duration (AOSP base: 2,000ms), with an exclusive
-deadline. Leaving Vault, losing access, pausing or disposing the host cancels the notice and clears
-the confirmation. This state is never saved or restored. This owner correction, approved on
-2026-11-09, replaces the former 1,500ms/snackbar behavior; it is a narrow SPEC-UI-V1 exception for
-the informational exit notice.
+system animation and accessibility extensions. Only `onToastShown()` enables confirmation and
+`onToastHidden()` clears it; there is no clock, estimated duration or fallback timeout. Before
+the toast is shown, or if Android suppresses it without callbacks, another Back requests the
+notice again without exiting. Leaving Vault, losing access, pausing or disposing the host cancels
+the notice and clears the confirmation. This state is never saved or restored. This owner
+correction, approved on 2026-11-09, replaces the former 1,500ms/snackbar behavior; it is a narrow
+SPEC-UI-V1 exception for the informational exit notice.
 
 Navigation3 only handles Back when a previous entry exists. The host additionally handles Back
 for a single Vault root, so a freshly unlocked stack and a stack returning from Settings invoke
