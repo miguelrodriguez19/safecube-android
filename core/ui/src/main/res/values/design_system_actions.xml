@@ -1,0 +1,8 @@
+<resources>
+    <string name="design_system_show_secret">Show secret</string>
+    <string name="design_system_hide_secret">Hide secret</string>
+    <string name="design_system_secret_visible">Visible</string>
+    <string name="design_system_secret_hidden">Hidden</string>
+    <string name="design_system_loading">Loading</string>
+    <string name="design_system_error">Error</string>
+</resources>

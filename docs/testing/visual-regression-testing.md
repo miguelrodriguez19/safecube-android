@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Task | `SCDK-M137` |
+| Task | `SCDK-M137`; documentation continuation `SCDK-M139` |
 | Spec | `SPEC-UI-V1` / `NFR-UI-005`, `SEC-UI-001` |
 | ADRs | `ADR-0003-SENSITIVE-DATA-SURFACES`, `ADR-0004-DESIGN-SYSTEM-APPEARANCE` |
 | Owner | `quality/android-ui` |
@@ -38,8 +38,10 @@ references without visual review.
 
 The implementation paths are:
 
-- previews and multi-preview annotations:
+- selected golden previews:
   `app/src/screenshotTest/java/com/miguelrodriguez19/safecube/visual/`;
+- development previews and multi-preview annotations:
+  `app/src/debug/java/com/miguelrodriguez19/safecube/app/testsupport/visual/`;
 - approved references: `app/src/screenshotTestDebug/reference/`;
 - deterministic fixtures and rendering surface:
   `app/src/debug/java/com/miguelrodriguez19/safecube/app/testsupport/visual/`;
@@ -106,6 +108,16 @@ On mismatch, the plugin fails the Gradle task and writes an inspectable report t
 `app/build/reports/screenshotTest/preview/debug/index.html`. CI uploads the complete
 `**/build/reports/screenshotTest/**` tree with the other quality reports.
 
+### IDE previews and golden policy
+
+IDE previews are review and design-development surfaces; they are not automatic golden
+references. Adding a golden requires a distinct visual risk, such as a new adaptation or a state
+whose layout/contrast/affordance is not represented by an existing reference. Do not add a
+Cartesian theme × locale × window × state matrix or duplicate references merely because an IDE
+preview exists. Design source may be maintained in an external design tool, but Figma is optional
+and no particular design tool is required. Goldens remain code-versioned repository artifacts and
+still require human visual review.
+
 ## Determinism and privacy rules
 
 - Every non-locale preview pins locale `en`; locale previews pin `en` or `es` explicitly.
@@ -121,22 +133,66 @@ On mismatch, the plugin fails the Gradle task and writes an inspectable report t
 - A report, diff or reference containing content that should be secret is a security failure under
   `ADR-0003`, not an acceptable baseline.
 
-## Coverage after SCDK-M138
+## Historical M137/M138 coverage
 
-The infrastructure canary deliberately validates the pipeline rather than the final redesign:
+The original infrastructure baseline is historical context, not the current count. M137 used
+seven canary references to exercise theme, locale, configuration and font-scale dimensions. M138
+added two deterministic token snapshots while retaining the seven-reference infrastructure
+coverage, for nine historical references in total. Those historical counts must not be combined
+with the current component baseline.
 
-| Multi-preview | Cases |
-|---|---|
-| Theme | light and dark, compact portrait, English |
-| Locale | English and Spanish, compact portrait |
-| Configuration | compact portrait, medium landscape and compact portrait at 200% font scale |
-| Tokens | approved light and dark roles, bundled Manrope hierarchy, spacing, shapes, elevation and motion |
+The shared historical state used synthetic auth, vault, password/note items, synced/draft/conflict,
+sync in progress and a retryable offline error. The semantic canary verified roles, labels,
+enabled/disabled states, state descriptions and dispatched actions against the same state.
 
-The shared state includes synthetic auth, vault, password/note items, synced/draft/conflict, sync
-in progress and a retryable offline error. The semantic test verifies button roles, accessible
-labels, enabled/disabled states, state descriptions and dispatched actions against the same state.
-M138 adds two deterministic token references and migrates the original seven references to
-`SafeCubeTheme`; M139–M147 will add product surfaces without changing the update/verify contract.
+## Current M139 component and regression coverage
+
+The current baseline is unambiguously **25 references**:
+
+| Target | References | Risk covered |
+|---|---:|---|
+| Eight component families × `EN` Light/Dark | 16 | Baseline component appearance and theme roles for Actions, Fields, Navigation, Feedback Status, Feedback Resolution, Feedback Availability, Feedback Recovery and Confirmation |
+| Explicit Fields Spanish Light | 1 | Locale-specific field labels/supporting text without duplicating the full locale matrix |
+| Fields 200% font scale, `EN` Light | 1 | Text reflow and preservation of field actions at large font scale |
+| Navigation landscape, Spanish Dark | 1 | Selection, labels and layout under medium-landscape width and localized text |
+| Feedback Availability landscape, Spanish Light | 1 | Long availability/status content and action placement in landscape |
+| Confirmation 200% font scale, Spanish Dark | 1 | Dialog reflow and destructive action access at large font scale |
+| Confirmation loading, `EN` Light | 1 | Visible loading progress, retained labels and disabled action appearance; blocked dismissal/duplicate confirmation are tested semantically |
+| Existing visual regression canary | 1 | Pipeline/configuration smoke coverage only; `visualRegressionCanaryConfigurationPreview` retains the existing Preview name `Compact portrait` and its settings |
+| Existing token snapshots | 2 | Approved light/dark token roles and typography/spacing/shape/elevation/motion rendering; unchanged |
+| **Total** | **25** | **22 component goldens + 1 canary + 2 token snapshots** |
+
+The component catalog therefore has 22 screenshot goldens: 16 family baselines, one explicit
+Fields Spanish Light case, and five existing targeted adaptation/state cases. Its debug-only IDE
+catalog has 37 previews (32 family previews plus those five targeted cases); IDE preview count is
+not golden count.
+
+The five targeted cases are intentionally selected safeguards rather than a Cartesian expansion.
+The canary is reduced to its existing Compact portrait case, and the two token snapshots are
+unchanged. The source and reference inventory must match the cases discovered by the read-only
+gate; stale references must be retired when their golden entry point is removed.
+
+## Component catalog after SCDK-M139
+
+The [component catalog](../design/component-catalog-v1.md) extends the existing adapter with
+`DesignSystemCatalogScreenshotTest` and debug-only rendering surfaces. It renders public
+`core:ui` APIs directly, with explicit light/dark, EN/ES, API 36, dimensions and font scales.
+There are 37 debug-only IDE previews, but only 22 component goldens: 16 family baselines, one
+explicit Fields Spanish Light case and five targeted adaptation/state cases. Together with the
+one existing Compact portrait canary and two unchanged token snapshots, the current reference
+baseline is 25. Secret previews use empty values or inert masking glyphs; reveal is tested through
+semantic interaction, not exposed PNGs. Static references verify resting visual states; transient
+press and real input focus are verified through instrumented interactions rather than assumed from
+effect-driven preview rendering.
+Components receive injected state and callbacks and do not resolve any production dependencies.
+
+`ComposeDesignSystemActionsTest`, `ComposeDesignSystemSecretTest`,
+`ComposeDesignSystemStructureTest` and `ComposeDesignSystemFeedbackTest` are part of the ordinary
+app instrumented suite. They do not mutate device credentials and therefore belong to the general
+API 30 partition described in [testing.md](testing.md), excluding `DeviceCredentialIsolation`.
+No new story-specific Gradle verification task is introduced. Local update, human review and
+read-only verification use the same commands as M137. Exact results and remaining review are
+recorded in [the M139 report](../sdd/agent-reports/SCDK-M139.md).
 
 ## Upstream documentation
 
