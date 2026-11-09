@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 02-11-2026 04:05:55
+Updated: 09-11-2026 12:38:00
 
 ```
 safecube-android/
@@ -25,7 +25,12 @@ safecube-android/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
 │   │   │   ├── test/
 │   │   │   ├── AppearanceThemeInstrumentedTest.kt
+│   │   │   ├── ComposeDesignSystemActionsTest.kt
+│   │   │   ├── ComposeDesignSystemFeedbackTest.kt
+│   │   │   ├── ComposeDesignSystemSecretTest.kt
+│   │   │   ├── ComposeDesignSystemStructureTest.kt
 │   │   │   ├── ComposeVisualRegressionCanarySemanticsTest.kt
+│   │   │   ├── DesignSystemTestInputMode.kt
 │   │   │   ├── DeviceCredentialIsolation.kt
 │   │   │   ├── MainActivitySmokeTest.kt
 │   │   │   ├── QuickUnlockDeviceCredentialTest.kt
@@ -34,11 +39,20 @@ safecube-android/
 │   │   ├── debug/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/testsupport/
 │   │   │   │   ├── visual/
+│   │   │   │   │   ├── DesignSystemCatalog.kt
+│   │   │   │   │   ├── DesignSystemCatalogPreviews.kt
+│   │   │   │   │   ├── SafeCubeMultiPreviews.kt
 │   │   │   │   │   ├── VisualRegressionCanaryFixtures.kt
+│   │   │   │   │   ├── VisualRegressionCanaryPreviews.kt
 │   │   │   │   │   ├── VisualRegressionCanarySurface.kt
 │   │   │   │   │   └── VisualTokenCatalog.kt
 │   │   │   │   ├── QuickUnlockColdStartProbeService.kt
 │   │   │   │   └── QuickUnlockInstrumentationEntryPoint.kt
+│   │   │   ├── res/
+│   │   │   │   ├── values/
+│   │   │   │   │   └── design_system_catalog.xml
+│   │   │   │   └── values-es/
+│   │   │   │       └── design_system_catalog.xml
 │   │   │   └── AndroidManifest.xml
 │   │   ├── main/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/
@@ -72,7 +86,6 @@ safecube-android/
 │   │   │   │   │   │   └── route/
 │   │   │   │   │   │       ├── RouteAccessPolicy.kt
 │   │   │   │   │   │       └── Routes.kt
-│   │   │   │   │   ├── theme/
 │   │   │   │   │   └── ui/
 │   │   │   │   │       └── SplashGateScreen.kt
 │   │   │   │   └── session/
@@ -91,18 +104,12 @@ safecube-android/
 │   │   │   │   │   ├── ic_launcher_foreground.xml
 │   │   │   │   │   ├── ic_launcher_monochrome.xml
 │   │   │   │   │   └── ic_safecube_mark.xml
-│   │   │   │   ├── mipmap-anydpi/
 │   │   │   │   ├── mipmap-anydpi-v26/
 │   │   │   │   │   ├── ic_launcher.xml
 │   │   │   │   │   └── ic_launcher_round.xml
 │   │   │   │   ├── mipmap-anydpi-v33/
 │   │   │   │   │   ├── ic_launcher.xml
 │   │   │   │   │   └── ic_launcher_round.xml
-│   │   │   │   ├── mipmap-hdpi/
-│   │   │   │   ├── mipmap-mdpi/
-│   │   │   │   ├── mipmap-xhdpi/
-│   │   │   │   ├── mipmap-xxhdpi/
-│   │   │   │   ├── mipmap-xxxhdpi/
 │   │   │   │   ├── values/
 │   │   │   │   │   ├── bools.xml
 │   │   │   │   │   ├── colors.xml
@@ -118,18 +125,37 @@ safecube-android/
 │   │   │   │       └── data_extraction_rules.xml
 │   │   │   └── AndroidManifest.xml
 │   │   ├── screenshotTest/java/com/miguelrodriguez19/safecube/visual/
-│   │   │   ├── SafeCubeMultiPreviews.kt
+│   │   │   ├── DesignSystemCatalogScreenshotTest.kt
 │   │   │   └── VisualRegressionCanaryScreenshotTest.kt
-│   │   ├── screenshotTestDebug/reference/com/miguelrodriguez19/safecube/visual/VisualRegressionCanaryScreenshotTestKt/
-│   │   │   ├── visualRegressionCanaryConfigurationPreview_Compact font 200 percent_497c67d2_0.png
-│   │   │   ├── visualRegressionCanaryConfigurationPreview_Compact portrait_47aeb6cc_0.png
-│   │   │   ├── visualRegressionCanaryConfigurationPreview_Medium landscape_06576601_0.png
-│   │   │   ├── visualRegressionCanaryLocalePreview_English_303af5b9_0.png
-│   │   │   ├── visualRegressionCanaryLocalePreview_Spanish_b477a27d_0.png
-│   │   │   ├── visualRegressionCanaryThemePreview_Dark_92b21510_0.png
-│   │   │   ├── visualRegressionCanaryThemePreview_Light_59d2644a_0.png
-│   │   │   ├── visualTokenCatalogDarkPreview_Dark tokens_293a429e_0.png
-│   │   │   └── visualTokenCatalogLightPreview_Light tokens_ff2cccbf_0.png
+│   │   ├── screenshotTestDebug/reference/com/miguelrodriguez19/safecube/
+│   │   │   ├── visual/
+│   │   │   │   ├── DesignSystemCatalogScreenshotTestKt/
+│   │   │   │   │   ├── designSystemCatalogActionsPreview_Dark English_7b10707e_0.png
+│   │   │   │   │   ├── designSystemCatalogActionsPreview_Light English_73c2f133_0.png
+│   │   │   │   │   ├── designSystemCatalogConfirmationFontScale200Preview_Confirmation compact 200 percent_cb45eb53_0.png
+│   │   │   │   │   ├── designSystemCatalogConfirmationLoadingPreview_Confirmation loading_d76a9c51_0.png
+│   │   │   │   │   ├── designSystemCatalogConfirmationPreview_Dark English_7b10707e_0.png
+│   │   │   │   │   ├── designSystemCatalogConfirmationPreview_Light English_73c2f133_0.png
+│   │   │   │   │   ├── designSystemCatalogFeedbackAvailabilityPreview_Dark English_7b10707e_0.png
+│   │   │   │   │   ├── designSystemCatalogFeedbackAvailabilityPreview_Light English_73c2f133_0.png
+│   │   │   │   │   ├── designSystemCatalogFeedbackLandscapePreview_Feedback medium landscape_5f6ff22d_0.png
+│   │   │   │   │   ├── designSystemCatalogFeedbackRecoveryPreview_Dark English_7b10707e_0.png
+│   │   │   │   │   ├── designSystemCatalogFeedbackRecoveryPreview_Light English_73c2f133_0.png
+│   │   │   │   │   ├── designSystemCatalogFeedbackResolutionPreview_Dark English_7b10707e_0.png
+│   │   │   │   │   ├── designSystemCatalogFeedbackResolutionPreview_Light English_73c2f133_0.png
+│   │   │   │   │   ├── designSystemCatalogFeedbackStatusPreview_Dark English_7b10707e_0.png
+│   │   │   │   │   ├── designSystemCatalogFeedbackStatusPreview_Light English_73c2f133_0.png
+│   │   │   │   │   ├── designSystemCatalogFieldsFontScale200Preview_Fields compact 200 percent_edc7788c_0.png
+│   │   │   │   │   ├── designSystemCatalogFieldsPreview_Dark English_7b10707e_0.png
+│   │   │   │   │   ├── designSystemCatalogFieldsPreview_Light English_73c2f133_0.png
+│   │   │   │   │   ├── designSystemCatalogFieldsSpanishPreview_Light Spanish_d259c1ae_0.png
+│   │   │   │   │   ├── designSystemCatalogNavigationLandscapePreview_Navigation medium landscape_ed29a39a_0.png
+│   │   │   │   │   ├── designSystemCatalogNavigationPreview_Dark English_7b10707e_0.png
+│   │   │   │   │   └── designSystemCatalogNavigationPreview_Light English_73c2f133_0.png
+│   │   │   │   ├── VisualRegressionCanaryScreenshotTestKt/
+│   │   │   │   │   ├── visualRegressionCanaryConfigurationPreview_Compact portrait_47aeb6cc_0.png
+│   │   │   │   │   ├── visualTokenCatalogDarkPreview_Dark tokens_293a429e_0.png
+│   │   │   │   │   └── visualTokenCatalogLightPreview_Light tokens_ff2cccbf_0.png
 │   │   └── test/java/com/miguelrodriguez19/safecube/
 │   │       ├── app/
 │   │       │   ├── appearance/
@@ -643,6 +669,10 @@ safecube-android/
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/core/ui/
 │   │   │   │   │   ├── component/
+│   │   │   │   │   │   ├── SafeCubeButton.kt
+│   │   │   │   │   │   ├── SafeCubeFeedback.kt
+│   │   │   │   │   │   ├── SafeCubeStructure.kt
+│   │   │   │   │   │   ├── SafeCubeTextField.kt
 │   │   │   │   │   │   └── SecretOutlinedTextField.kt
 │   │   │   │   │   ├── components/
 │   │   │   │   │   │   └── .gitkeep
@@ -662,13 +692,20 @@ safecube-android/
 │   │   │   │   │   ├── raw/
 │   │   │   │   │   │   └── manrope_ofl.txt
 │   │   │   │   │   ├── values/
+│   │   │   │   │   │   ├── design_system_actions.xml
+│   │   │   │   │   │   ├── design_system_feedback.xml
 │   │   │   │   │   │   └── strings.xml
 │   │   │   │   │   └── values-es/
+│   │   │   │   │       ├── design_system_actions.xml
+│   │   │   │   │       ├── design_system_feedback.xml
 │   │   │   │   │       └── strings.xml
 │   │   │   │   └── AndroidManifest.xml
-│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/ui/theme/
-│   │   │       ├── SafeCubeThemeTest.kt
-│   │   │       └── SafeCubeTokensTest.kt
+│   │   │   └── test/java/com/miguelrodriguez19/safecube/core/ui/
+│   │   │       ├── component/
+│   │   │       │   └── DesignSystemContractTest.kt
+│   │   │       └── theme/
+│   │   │           ├── SafeCubeThemeTest.kt
+│   │   │           └── SafeCubeTokensTest.kt
 │   │   └── build.gradle.kts
 │   ├── vault/
 │   │   ├── data/quickunlock/
@@ -986,7 +1023,8 @@ safecube-android/
 │   │   │   └── welcome-light.svg
 │   │   ├── tools/
 │   │   │   └── verify-brand-palette.py
-│   │   └── brand-guide-v1.md
+│   │   ├── brand-guide-v1.md
+│   │   └── component-catalog-v1.md
 │   ├── package-structure/
 │   │   └── package_structure.md
 │   ├── release/

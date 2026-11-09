@@ -59,6 +59,14 @@ class SensitiveSourcePolicyTest {
             .map { sourceFile -> sourceFile.relativeTo(repositoryRoot).invariantSeparatorsPath }
 
         assertEquals(listOf(SECRET_FIELD_COMPONENT), transformationOwners)
+
+        val secureFieldOwners = mainSourceFiles()
+            .filter { sourceFile -> SECURE_FIELD_CALL.containsMatchIn(sourceFile.readText()) }
+            .map { sourceFile -> sourceFile.relativeTo(repositoryRoot).invariantSeparatorsPath }
+
+        assertEquals("Secret editing must use the canonical secure implementation", listOf(SECRET_FIELD_COMPONENT), secureFieldOwners)
+        val secretComponent = repositoryRoot.resolve(SECRET_FIELD_COMPONENT).readText()
+        assertTrue("Reveal visibility must not be restored", "rememberSaveable" !in secretComponent)
     }
 
     private fun mainSourceFiles(): List<File> = repositoryRoot.walkTopDown()
@@ -73,6 +81,7 @@ class SensitiveSourcePolicyTest {
     private companion object {
         val EXCLUDED_DIRECTORIES = setOf(".git", ".gradle", ".idea", "build")
         val SECRET_FIELD_CALL = Regex("""\bSecretOutlinedTextField\s*\(""")
+        val SECURE_FIELD_CALL = Regex("""\b(?:BasicSecureTextField|OutlinedSecureTextField)\s*\(""")
         const val SECRET_FIELD_COMPONENT =
             "core/ui/src/main/java/com/miguelrodriguez19/safecube/core/ui/component/SecretOutlinedTextField.kt"
     }

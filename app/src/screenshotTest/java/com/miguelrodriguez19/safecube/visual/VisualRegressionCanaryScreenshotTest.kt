@@ -12,20 +12,14 @@ import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceSettings
 import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeTheme
 
 @PreviewTest
-@SafeCubeThemePreviews
-@Composable
-fun visualRegressionCanaryThemePreview() {
-    VisualRegressionCanaryPreviewContent()
-}
-@PreviewTest
-@SafeCubeLocalePreviews
-@Composable
-fun visualRegressionCanaryLocalePreview() {
-    VisualRegressionCanaryPreviewContent()
-}
-
-@PreviewTest
-@SafeCubeConfigurationPreviews
+@Preview(
+    name = "Compact portrait",
+    group = "Configuration",
+    widthDp = 360,
+    heightDp = 640,
+    locale = "en",
+    apiLevel = 36,
+)
 @Composable
 fun visualRegressionCanaryConfigurationPreview() {
     VisualRegressionCanaryPreviewContent()

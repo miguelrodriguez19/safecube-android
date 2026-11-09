@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.visual
+package com.miguelrodriguez19.safecube.app.testsupport.visual
 
 import android.content.res.Configuration
 import androidx.compose.ui.tooling.preview.Preview

@@ -143,15 +143,33 @@ Se adopta la Opción C. La siguiente política es normativa.
 
 ### 5. Campos sensibles y visualización
 
-1. Todos los campos de password y passphrase usan visual transformation desde su creación y
-   durante la edición. Ningún build type muestra esos valores por usar un componente de texto
-   genérico.
+1. Todos los campos de password y passphrase se crean enmascarados y conservan esa protección
+   durante la edición, salvo una acción explícita de reveal en el componente canónico según el
+   addendum SCDK-M139 siguiente. Ningún build type revela valores por usar un campo genérico.
 2. La recovery key puede mostrarse únicamente en el flujo explícito de guardado, dentro de la
    Activity protegida. Su presentación es temporal y no autoriza copy action, log, saved state,
    argumento de navegación ni persistencia en claro.
 3. Passphrases y recovery keys se limpian de las estructuras mutables de UI y de ViewModels cuando
    termina el flujo, se cancela, se bloquea el vault o la operación se descarta. El zeroizado de
    buffers es best-effort según `SPEC-CRYPTO-V1`.
+
+#### Addendum SCDK-M139 — reveal explícito (ACCEPTED, 2026-11-03)
+
+Decisión del owner aprobada durante la planificación de SCDK-M139, en coherencia con
+`SEC-UI-001` de [SPEC-UI-V1](../../specs/features/ui-brand-motion-v1.md):
+
+- El componente canónico puede ofrecer show/hide como capacidad opt-in. Sus consumidores
+  existentes conservan el enmascarado permanente por defecto hasta su adopción explícita.
+- Reveal requiere una acción del usuario con label y estado accesibles. Solo puede mostrar
+  contenido mientras el lifecycle del host esté `RESUMED`.
+- Al recibir `ON_PAUSE`, deshabilitarse o abandonar/recrear la composición, vuelve a ocultarse
+  inmediatamente. Volver a foreground no restaura reveal: requiere otra acción explícita.
+- La visibilidad es estado efímero no restaurable. Ocultar no borra el valor del campo ni bloquea
+  el vault; limpieza y auto-lock conservan sus owners y políticas existentes.
+- El contenido oculto no aparece en la semántica merged/unmerged ni en evidencia visual. La
+  edición, el label, el error y las acciones accesibles deben seguir siendo operables.
+- No habilita clipboard, saved state, logging ni persistencia de secretos. La recovery key
+  conserva su flujo de visualización específico; no se trata como un campo genérico.
 
 ### 6. Bundle, navegación y estado restaurable
 
