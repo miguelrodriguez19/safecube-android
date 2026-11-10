@@ -1,0 +1,20 @@
+<resources>
+    <string name="auth_brand_wordmark">SafeCube</string>
+    <string name="auth_welcome_title">Tu espacio privado, siempre a tu alcance</string>
+    <string name="auth_welcome_body">Protege contraseñas y notas con un cifrado bajo tu control.</string>
+    <string name="auth_welcome_reassurance">Cifrado antes de sincronizar · Tu bóveda es tuya</string>
+    <string name="auth_login_title">Qué gusto verte</string>
+    <string name="auth_login_subtitle">Usa la contraseña de tu cuenta. La bóveda se desbloquea después con su frase de contraseña.</string>
+    <string name="auth_signup_title">Crea tu cuenta</string>
+    <string name="auth_signup_subtitle">Crea una cuenta para reunir tus contraseñas y notas. La frase de contraseña de la bóveda se configura más adelante.</string>
+    <string name="auth_account_password_label">Contraseña de la cuenta</string>
+    <string name="auth_confirm_account_password_label">Confirma la contraseña de la cuenta</string>
+    <string name="auth_login_action">Iniciar sesión</string>
+    <string name="auth_signup_action">Crear cuenta</string>
+    <string name="auth_switch_to_signup">¿Nuevo en SafeCube? Crea una cuenta</string>
+    <string name="auth_switch_to_login">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="auth_retry_title">No se pudo continuar</string>
+    <string name="auth_retry_message">Comprueba tu conexión y vuelve a intentarlo.</string>
+    <string name="auth_terminal_error_title">No podemos continuar con esta solicitud</string>
+    <string name="auth_terminal_error_message">Revisa los datos de tu cuenta o contacta con soporte.</string>
+</resources>

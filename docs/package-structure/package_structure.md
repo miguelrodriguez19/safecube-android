@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 09-11-2026 04:33:02
+Updated: 10-11-2026 12:53:43
 
 ```
 safecube-android/
@@ -25,6 +25,8 @@ safecube-android/
 │   │   ├── androidTest/java/com/miguelrodriguez19/safecube/
 │   │   │   ├── test/
 │   │   │   ├── AppearanceThemeInstrumentedTest.kt
+│   │   │   ├── AuthEntryRestorationTest.kt
+│   │   │   ├── AuthEntrySemanticsTest.kt
 │   │   │   ├── ComposeDesignSystemActionsTest.kt
 │   │   │   ├── ComposeDesignSystemFeedbackTest.kt
 │   │   │   ├── ComposeDesignSystemSecretTest.kt
@@ -41,6 +43,7 @@ safecube-android/
 │   │   ├── debug/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/testsupport/
 │   │   │   │   ├── visual/
+│   │   │   │   │   ├── AuthVisualFixtures.kt
 │   │   │   │   │   ├── DesignSystemCatalog.kt
 │   │   │   │   │   ├── DesignSystemCatalogPreviews.kt
 │   │   │   │   │   ├── SafeCubeMultiPreviews.kt
@@ -108,8 +111,7 @@ safecube-android/
 │   │   │   │   ├── drawable/
 │   │   │   │   │   ├── ic_launcher_background.xml
 │   │   │   │   │   ├── ic_launcher_foreground.xml
-│   │   │   │   │   ├── ic_launcher_monochrome.xml
-│   │   │   │   │   └── ic_safecube_mark.xml
+│   │   │   │   │   └── ic_launcher_monochrome.xml
 │   │   │   │   ├── mipmap-anydpi-v26/
 │   │   │   │   │   ├── ic_launcher.xml
 │   │   │   │   │   └── ic_launcher_round.xml
@@ -133,11 +135,23 @@ safecube-android/
 │   │   │   │       └── data_extraction_rules.xml
 │   │   │   └── AndroidManifest.xml
 │   │   ├── screenshotTest/java/com/miguelrodriguez19/safecube/visual/
+│   │   │   ├── AuthScreenshotTest.kt
 │   │   │   ├── DesignSystemCatalogScreenshotTest.kt
 │   │   │   ├── ShellScreenshotTest.kt
 │   │   │   └── VisualRegressionCanaryScreenshotTest.kt
 │   │   ├── screenshotTestDebug/reference/com/miguelrodriguez19/safecube/
 │   │   │   ├── visual/
+│   │   │   │   ├── AuthScreenshotTestKt/
+│   │   │   │   │   ├── authLoginIdleLightEnglishPreview_Login idle light English_79477c3f_0.png
+│   │   │   │   │   ├── authLoginLoadingLightEnglishPreview_Login loading light English_bd3d2af4_0.png
+│   │   │   │   │   ├── authLoginMediumLandscapeDarkSpanishPreview_Login medium landscape dark Spanish_4fe9100f_0.png
+│   │   │   │   │   ├── authLoginRetryableDarkSpanishPreview_Login retryable dark Spanish_33b010da_0.png
+│   │   │   │   │   ├── authLoginTerminalLightEnglishPreview_Login terminal light English_46e26788_0.png
+│   │   │   │   │   ├── authSignupCompact200DarkSpanishPreview_Signup compact 200 percent dark Spanish_a33ede63_0.png
+│   │   │   │   │   ├── authSignupValidationLightSpanishPreview_Signup validation light Spanish_dff0052e_0.png
+│   │   │   │   │   ├── authWelcomeDarkSpanishPreview_Welcome dark Spanish_bd4badaa_0.png
+│   │   │   │   │   ├── authWelcomeLightEnglishPreview_Welcome light English_31899fe6_0.png
+│   │   │   │   │   └── authWelcomeLightSpanishCompact200Preview_Welcome light Spanish compact 200 percent_f7f19934_0.png
 │   │   │   │   ├── DesignSystemCatalogScreenshotTestKt/
 │   │   │   │   │   ├── designSystemCatalogActionsPreview_Dark English_7b10707e_0.png
 │   │   │   │   │   ├── designSystemCatalogActionsPreview_Light English_73c2f133_0.png
@@ -538,6 +552,62 @@ safecube-android/
 │   │   │               └── SaltGeneratorTest.kt
 │   │   └── build.gradle.kts
 │   ├── network/
+│   │   ├── build/
+│   │   │   ├── generated/
+│   │   │   │   ├── openapi/
+│   │   │   │   │   ├── src/main/kotlin/com/miguelrodriguez19/safecube/core/network/generated/
+│   │   │   │   │   │   ├── api/
+│   │   │   │   │   │   │   ├── AuthControllerApi.kt
+│   │   │   │   │   │   │   ├── UserProfileControllerApi.kt
+│   │   │   │   │   │   │   ├── VaultControllerApi.kt
+│   │   │   │   │   │   │   └── VaultKeyMaterialControllerApi.kt
+│   │   │   │   │   │   ├── auth/
+│   │   │   │   │   │   ├── infrastructure/
+│   │   │   │   │   │   │   ├── AtomicBooleanAdapter.kt
+│   │   │   │   │   │   │   ├── AtomicIntegerAdapter.kt
+│   │   │   │   │   │   │   ├── AtomicLongAdapter.kt
+│   │   │   │   │   │   │   ├── BigDecimalAdapter.kt
+│   │   │   │   │   │   │   ├── BigIntegerAdapter.kt
+│   │   │   │   │   │   │   ├── CollectionFormats.kt
+│   │   │   │   │   │   │   ├── LocalDateAdapter.kt
+│   │   │   │   │   │   │   ├── LocalDateTimeAdapter.kt
+│   │   │   │   │   │   │   ├── OffsetDateTimeAdapter.kt
+│   │   │   │   │   │   │   ├── ResponseExt.kt
+│   │   │   │   │   │   │   ├── Serializer.kt
+│   │   │   │   │   │   │   ├── StringBuilderAdapter.kt
+│   │   │   │   │   │   │   ├── URIAdapter.kt
+│   │   │   │   │   │   │   ├── URLAdapter.kt
+│   │   │   │   │   │   │   └── UUIDAdapter.kt
+│   │   │   │   │   │   └── model/
+│   │   │   │   │   │       ├── AuthenticateAccountRequest.kt
+│   │   │   │   │   │       ├── AuthTokensResponse.kt
+│   │   │   │   │   │       ├── CreateSecureItemRequest.kt
+│   │   │   │   │   │       ├── CreateSecureItemResult.kt
+│   │   │   │   │   │       ├── CreateUserProfileRequest.kt
+│   │   │   │   │   │       ├── DeleteSecureItemResult.kt
+│   │   │   │   │   │       ├── ErrorResponse.kt
+│   │   │   │   │   │       ├── InitVaultKeyMaterialRequest.kt
+│   │   │   │   │   │       ├── ListSecureItemChangesResponse.kt
+│   │   │   │   │   │       ├── ListSecureItemsResponse.kt
+│   │   │   │   │   │       ├── RefreshTokenRequest.kt
+│   │   │   │   │   │       ├── RegisterAccountRequest.kt
+│   │   │   │   │   │       ├── RegisterAccountResult.kt
+│   │   │   │   │   │       ├── SecureItemChangeResponse.kt
+│   │   │   │   │   │       ├── SecureItemResponse.kt
+│   │   │   │   │   │       ├── SecureItemSummaryResponse.kt
+│   │   │   │   │   │       ├── UpdateMasterWrappedKekRequest.kt
+│   │   │   │   │   │       ├── UpdateSecureItemRequest.kt
+│   │   │   │   │   │       ├── UpdateSecureItemResult.kt
+│   │   │   │   │   │       ├── UpdateUserProfileRequest.kt
+│   │   │   │   │   │       ├── UserProfileResponse.kt
+│   │   │   │   │   │       └── VaultKeyMaterialResponse.kt
+│   │   │   │   │   ├── .openapi-generator-ignore
+│   │   │   │   │   ├── build.gradle
+│   │   │   │   │   ├── gradlew
+│   │   │   │   │   ├── gradlew.bat
+│   │   │   │   │   ├── proguard-rules.pro
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   └── settings.gradle
 │   │   ├── openapi/
 │   │   │   └── OpenAPI.json
 │   │   ├── src/
@@ -648,6 +718,8 @@ safecube-android/
 │   │   │   │   │       ├── Tokens.kt
 │   │   │   │   │       └── Typography.kt
 │   │   │   │   ├── res/
+│   │   │   │   │   ├── drawable/
+│   │   │   │   │   │   └── ic_safecube_mark.xml
 │   │   │   │   │   ├── font/
 │   │   │   │   │   │   ├── manrope_bold.ttf
 │   │   │   │   │   │   ├── manrope_medium.ttf
@@ -983,6 +1055,7 @@ safecube-android/
 │   │   │   └── welcome-light.svg
 │   │   ├── tools/
 │   │   │   └── verify-brand-palette.py
+│   │   ├── auth-entry-v1.md
 │   │   ├── brand-guide-v1.md
 │   │   ├── component-catalog-v1.md
 │   │   └── shell-navigation-motion-v1.md
@@ -1031,11 +1104,16 @@ safecube-android/
 ├── feature/
 │   ├── auth/
 │   │   ├── src/
+│   │   │   ├── debug/java/com/miguelrodriguez19/safecube/feature/auth/testsupport/
+│   │   │   │   ├── AuthLoginContent.kt
+│   │   │   │   └── AuthSignupContent.kt
 │   │   │   ├── main/
 │   │   │   │   ├── java/com/miguelrodriguez19/safecube/feature/auth/
 │   │   │   │   │   ├── presentation/
 │   │   │   │   │   │   ├── component/
-│   │   │   │   │   │   │   └── AuthActionLabel.kt
+│   │   │   │   │   │   │   ├── AuthActionLabel.kt
+│   │   │   │   │   │   │   ├── AuthFeedback.kt
+│   │   │   │   │   │   │   └── AuthScreenLayout.kt
 │   │   │   │   │   │   ├── gate/ui/
 │   │   │   │   │   │   │   └── PostLoginGateScreen.kt
 │   │   │   │   │   │   ├── login/
@@ -1068,7 +1146,11 @@ safecube-android/
 │   │   │   │   │   │   │   └── WelcomeScreen.kt
 │   │   │   │   │   │   └── AuthTestTags.kt
 │   │   │   │   │   └── screens/
-│   │   │   │   ├── res/values/
+│   │   │   │   ├── res/
+│   │   │   │   │   ├── values/
+│   │   │   │   │   │   └── strings.xml
+│   │   │   │   │   └── values-es/
+│   │   │   │   │       └── strings.xml
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/feature/auth/
 │   │   │       ├── presentation/

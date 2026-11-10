@@ -1,0 +1,20 @@
+<resources>
+    <string name="auth_brand_wordmark">SafeCube</string>
+    <string name="auth_welcome_title">Your private space, always within reach</string>
+    <string name="auth_welcome_body">Protect passwords and notes with encryption designed around your control.</string>
+    <string name="auth_welcome_reassurance">Encrypted before sync · Your vault stays yours</string>
+    <string name="auth_login_title">Welcome back</string>
+    <string name="auth_login_subtitle">Use your account password. Your vault is unlocked separately with its passphrase.</string>
+    <string name="auth_signup_title">Create your account</string>
+    <string name="auth_signup_subtitle">Create an account to keep your passwords and notes together. Your vault passphrase comes later.</string>
+    <string name="auth_account_password_label">Account password</string>
+    <string name="auth_confirm_account_password_label">Confirm account password</string>
+    <string name="auth_login_action">Log in</string>
+    <string name="auth_signup_action">Create account</string>
+    <string name="auth_switch_to_signup">New to SafeCube? Create an account</string>
+    <string name="auth_switch_to_login">Already have an account? Log in</string>
+    <string name="auth_retry_title">We couldn’t complete that request</string>
+    <string name="auth_retry_message">Check your connection, then try again.</string>
+    <string name="auth_terminal_error_title">We can’t continue with this request</string>
+    <string name="auth_terminal_error_message">Review your account details or contact support.</string>
+</resources>
