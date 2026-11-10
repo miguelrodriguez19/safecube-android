@@ -12,6 +12,7 @@ import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
+import kotlin.text.endsWith
 
 /**
  * Handles `401 Unauthorized` responses by attempting a token refresh and retrying once.
@@ -31,7 +32,7 @@ class TokenRefreshAuthenticator @Inject constructor(
         response: Response,
     ): Request? {
         if (response.code != HTTP_UNAUTHORIZED) return null
-        if (isRefreshRequest(response.request)) return null
+        if (isPublicAuthRequest(response.request)) return null
         if (responseCount(response) >= MAX_AUTH_ATTEMPTS) return null
 
         val failedAccessToken = response.request
@@ -69,8 +70,12 @@ class TokenRefreshAuthenticator @Inject constructor(
         return count
     }
 
-    private fun isRefreshRequest(request: Request): Boolean =
-        request.url.encodedPath.endsWith(REFRESH_PATH_SUFFIX)
+    private fun isPublicAuthRequest(request: Request): Boolean {
+        val path = request.url.encodedPath
+        return path.endsWith(LOGIN_PATH_SUFFIX)
+                || path.endsWith(REGISTER_PATH_SUFFIX)
+                || path.endsWith(REFRESH_PATH_SUFFIX)
+    }
 
     private fun String?.extractBearerToken(): String? = this
         ?.takeIf { it.startsWith(BEARER_PREFIX) }
@@ -83,5 +88,7 @@ class TokenRefreshAuthenticator @Inject constructor(
         const val HEADER_AUTHORIZATION = "Authorization"
         const val BEARER_PREFIX = "Bearer "
         const val REFRESH_PATH_SUFFIX = "/auth/refresh"
+        const val LOGIN_PATH_SUFFIX = "/auth/login"
+        const val REGISTER_PATH_SUFFIX = "/auth/register"
     }
 }

@@ -94,6 +94,14 @@ Release, lint de app y Kover PASS; 791 tests JVM sin fallos/errores/skips.
 `ciVerify` del seguimiento detecta tres goldens de Welcome que difieren respecto al cambio previo
 del logo (`9888b08`); 38/41 referencias coinciden. No se regeneran referencias como parte del fix.
 
+Seguimiento de login rechazado: el owner detecta un aviso de cierre de sesión al usar credenciales
+inválidas. La elegibilidad de refresh debe limitarse a operaciones protegidas (`FR-AUTH-002`):
+un 401 en login/register pertenece al resultado de autenticación y no debe disparar renovación ni
+logout global. El seguimiento conserva el manejo de 401 de endpoints protegidos y de logout.
+Tests de red/auth/formularios/app PASS 208/208 y APK debug instalado. La verificación global de
+cobertura queda pendiente: una edición concurrente de `SafeCubeButton.kt` contiene `size()` sin
+argumento y bloquea compilación de core:ui. Esa edición se preserva sin cambios del agente.
+
 ### Shell, navegación y motion SCDK-M140 — 2026-11-09
 
 Contrato: [shell v1](../design/shell-navigation-motion-v1.md). Resultados de ejecución y estado de

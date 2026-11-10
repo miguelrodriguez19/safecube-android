@@ -5,9 +5,12 @@ import com.miguelrodriguez19.safecube.core.network.domain.model.NetworkConfig
 import com.miguelrodriguez19.safecube.core.network.domain.port.TokenProvider
 import com.miguelrodriguez19.safecube.core.network.domain.port.TokenRefreshHandler
 import com.miguelrodriguez19.safecube.core.network.generated.api.AuthControllerApi
+import com.miguelrodriguez19.safecube.core.network.generated.model.AuthenticateAccountRequest
+import com.miguelrodriguez19.safecube.core.network.generated.model.RegisterAccountRequest
 import com.miguelrodriguez19.safecube.core.network.generated.model.RefreshTokenRequest
 import java.util.Optional
 import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.mockwebserver.Dispatcher
@@ -136,15 +139,101 @@ class TokenRefreshAuthenticatorFlowIntegrationTest {
         assertEquals(2, server.requestCount)
     }
 
+    @Test
+    fun `401 on generated login and register routes with base path prefix does not refresh or terminate session`() = runBlocking {
+        val baseUrlPath = "/api/v1/"
+        val session = MutableSession(
+            accessToken = "stale-access",
+            refreshToken = null,
+        )
+        server.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse =
+                when (request.requestUrl?.encodedPath) {
+                    "/api/v1/auth/login",
+                    "/api/v1/auth/register" -> MockResponse().setResponseCode(401)
+
+                    else -> MockResponse().setResponseCode(404)
+                }
+        }
+        val config = NetworkConfig(baseUrl = server.url(baseUrlPath).toString())
+        val client = createAuthenticatedClient(session, baseUrlPath)
+        val authApi: AuthControllerApi = NetworkClientFactory.createRetrofit(
+            config = config,
+            okHttpClient = client,
+        ).create(AuthControllerApi::class.java)
+
+        val loginResponse = authApi.login(
+            AuthenticateAccountRequest(email = "missing@example.com", password = "wrong-password"),
+        )
+        val registerResponse = authApi.register(
+            RegisterAccountRequest(email = "existing@example.com", password = "password"),
+        )
+
+        assertEquals(401, loginResponse.code())
+        assertEquals(401, registerResponse.code())
+        loginResponse.errorBody()?.close()
+        registerResponse.errorBody()?.close()
+        assertEquals(2, session.accessTokenReads.get())
+        assertEquals(0, session.refreshHandlerCalls.get())
+        assertEquals(0, session.forceLogoutCalls.get())
+        assertEquals(2, server.requestCount)
+
+        val loginRequest = server.takeRequest()
+        assertEquals("/api/v1/auth/login", loginRequest.requestUrl?.encodedPath)
+        assertEquals("Bearer stale-access", loginRequest.getHeader("Authorization"))
+
+        val registerRequest = server.takeRequest()
+        assertEquals("/api/v1/auth/register", registerRequest.requestUrl?.encodedPath)
+        assertEquals("Bearer stale-access", registerRequest.getHeader("Authorization"))
+    }
+
+    @Test
+    fun `401 on protected request without refresh token still terminates session`() {
+        val session = MutableSession(
+            accessToken = "expired-access",
+            refreshToken = null,
+        )
+        server.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse =
+                if (request.requestUrl?.encodedPath == "/protected") {
+                    MockResponse().setResponseCode(401)
+                } else {
+                    MockResponse().setResponseCode(404)
+                }
+        }
+        val client = createAuthenticatedClient(session)
+
+        val response = client.newCall(
+            Request.Builder()
+                .url(server.url("/protected"))
+                .get()
+                .build(),
+        ).execute()
+
+        response.use {
+            assertEquals(401, it.code)
+        }
+        assertEquals(1, session.refreshHandlerCalls.get())
+        assertEquals(1, session.forceLogoutCalls.get())
+        assertNull(session.accessToken)
+        assertNull(session.refreshToken)
+        assertEquals(1, server.requestCount)
+    }
+
     private fun createAuthenticatedClient(
         session: MutableSession,
+        baseUrlPath: String = "/",
     ): OkHttpClient {
         val config = NetworkConfig(
-            baseUrl = server.url("/").toString(),
+            baseUrl = server.url(baseUrlPath).toString(),
         )
         val refreshApi: AuthControllerApi = NetworkClientFactory.createService(config = config)
-        val tokenProvider = TokenProvider { session.accessToken }
+        val tokenProvider = TokenProvider {
+            session.accessTokenReads.incrementAndGet()
+            session.accessToken
+        }
         val refreshHandler = TokenRefreshHandler {
+            session.refreshHandlerCalls.incrementAndGet()
             val currentRefreshToken = session.refreshToken
                 ?.takeIf { token -> token.isNotBlank() }
                 ?: run {
@@ -265,6 +354,8 @@ class TokenRefreshAuthenticatorFlowIntegrationTest {
         @Volatile
         var refreshToken: String? = refreshToken
 
+        val accessTokenReads = AtomicInteger(0)
+        val refreshHandlerCalls = AtomicInteger(0)
         val forceLogoutCalls = AtomicInteger(0)
 
         fun forceLogout() {
