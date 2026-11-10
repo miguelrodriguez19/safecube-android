@@ -79,10 +79,20 @@ Verificación: `ciVerify` PASS con 787 tests JVM y 41 referencias; suite general
 La prioridad del campo elegido al recrear con validación existente se verifica además con 3/3
 regresiones de restauración API 30 y un `ciVerify` final sobre el código definitivo.
 Estado de M141: `PARTIAL` por recorrido manual TalkBack Login y aprobación visual humana pendientes;
-no hay cambios de endpoints, validación de dominio, sesión, crypto, storage ni sync.
+el rediseño inicial no cambia endpoints, validación de dominio, sesión, crypto, storage ni sync.
 Seguimiento del owner: Welcome, Login y Signup declaran además previews anotadas junto a cada
 pantalla (EN claro / ES oscuro), con tema canónico y estado vacío inyectado sin Hilt. No se añaden
 casos golden por esta mejora de descubrimiento en Android Studio.
+
+Corrección de cambio de cuenta solicitada por el owner: reproducido que logout limpiaba claves y
+metadata pero conservaba `VaultState.Unlocked`, permitiendo Home para la siguiente cuenta sin
+Unlock. El seguimiento restaura el invariante de `ADR-0001` y `SPEC-HARDENING-V1`: invalidar la
+sesión de bóveda antes de la limpieza al terminar/iniciar una sesión de cuenta nueva; un refresh
+de tokens conserva el unlock existente. Evidencia y revisión del owner en el informe M141.
+Regresiones de app PASS 86/86 y vault PASS 421/421; APK debug compilado e instalado para revisión.
+Release, lint de app y Kover PASS; 791 tests JVM sin fallos/errores/skips.
+`ciVerify` del seguimiento detecta tres goldens de Welcome que difieren respecto al cambio previo
+del logo (`9888b08`); 38/41 referencias coinciden. No se regeneran referencias como parte del fix.
 
 ### Shell, navegación y motion SCDK-M140 — 2026-11-09
 
