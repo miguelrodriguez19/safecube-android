@@ -83,6 +83,68 @@ class TokenRefreshAuthenticatorTest {
     }
 
     @Test
+    fun `authenticate when unauthorized response comes from public auth endpoint then skips token handling`() {
+        every { tokenProvider.getAccessToken() } returns "current-token"
+        coEvery { refreshHandler.refreshAccessToken(any()) } returns "refreshed-token"
+        val target = TokenRefreshAuthenticator(
+            tokenProvider = tokenProvider,
+            tokenRefreshHandler = Optional.of(refreshHandler),
+        )
+
+        val retriedRequests = listOf(
+            "/auth/login",
+            "/api/v1/auth/login",
+            "/auth/register",
+            "/api/v1/auth/register",
+        ).map { path ->
+            target.authenticate(
+                route = null,
+                response = response(
+                    code = 401,
+                    path = path,
+                    authorizationHeader = "Bearer expired-token",
+                ),
+            )
+        }
+
+        assertEquals(listOf(null, null, null, null), retriedRequests)
+        verify(exactly = 0) { tokenProvider.getAccessToken() }
+        coVerify(exactly = 0) { refreshHandler.refreshAccessToken(any()) }
+        confirmVerified(tokenProvider, refreshHandler)
+    }
+
+    @Test
+    fun `authenticate when unauthorized response comes from similar protected auth paths then keeps refresh behavior`() {
+        every { tokenProvider.getAccessToken() } returns null
+        coEvery { refreshHandler.refreshAccessToken("expired-token") } returns "new-token"
+        val target = TokenRefreshAuthenticator(
+            tokenProvider = tokenProvider,
+            tokenRefreshHandler = Optional.of(refreshHandler),
+        )
+
+        val retriedRequests = listOf(
+            "/api/v1/auth/login/status",
+            "/api/v1/auth/login-history",
+            "/api/v1/auth/register/status",
+            "/api/v1/auth/logout",
+        ).map { path ->
+            target.authenticate(
+                route = null,
+                response = response(
+                    code = 401,
+                    path = path,
+                    authorizationHeader = "Bearer expired-token",
+                ),
+            )
+        }
+
+        assertEquals(4, retriedRequests.count { it?.header("Authorization") == "Bearer new-token" })
+        verify(exactly = 4) { tokenProvider.getAccessToken() }
+        coVerify(exactly = 4) { refreshHandler.refreshAccessToken("expired-token") }
+        confirmVerified(tokenProvider, refreshHandler)
+    }
+
+    @Test
     fun `authenticate when refresh succeeds then retries request with refreshed token`() {
         every { tokenProvider.getAccessToken() } returns "expired-token"
         coEvery { refreshHandler.refreshAccessToken("expired-token") } returns "new-token"

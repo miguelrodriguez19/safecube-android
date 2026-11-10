@@ -57,6 +57,51 @@ solo se ordena después del generador si ambos se solicitan, sin regeneración a
 | SPEC-HARDENING-V1           | NFR-LIFECYCLE-001 | SCDK-M109 / SCDK-M117, SCDK-M125 / SCDK-M131 | `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/gate/NavigationGates.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/gate/viewmodel/PostLoginGateViewModel.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/host/NavigationGraph.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/host/NavigationSessionCoordinator.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/host/NavigationWrapper.kt`, `core/vault/src/main/java/com/miguelrodriguez19/safecube/core/vault/domain/model/initialize/PendingVaultInitializationStatus.kt`, `app/src/debug/java/com/miguelrodriguez19/safecube/app/testsupport/QuickUnlockColdStartProbeService.kt` | `NavigationGatesTest`, `PostLoginGateViewModelTest.live unlocked vault skips destructive refresh and emits home navigation`, `NavigationSessionCoordinatorTest`, `VaultInitializeRecoveryUseCaseTest`, `QuickUnlockDeviceCredentialTest.activityRecreationKeepsLiveSessionAndRemoteProcessStartsLocked`, `./gradlew :core:vault:testDebugUnitTest`, `./gradlew :app:testDebugUnitTest`, `./gradlew :app:pixel2Api30DebugAndroidTest` | VERIFIED | SCDK-M117 evita flashes durante bootstrap; M125 no renderiza rutas restauradas protegidas mientras el proceso nuevo resuelve sesión/vault/registro y prioriza RecoveryKey confirmada. El gate reutiliza una sesión process-local ya desbloqueada sin ejecutar un refresh destructivo ni contactar backend durante la recreación de Activity. M130 acepta el probe multiproceso como evidencia determinista de cold start Locked porque forzar la muerte del paquete principal también mata al runner; la matriz documenta explícitamente esta justificación. |
 | SPEC-HARDENING-V1           | FR-SCOPE-001    | SCDK-M109 / SCDK-M129 | `app/build.gradle.kts`, `app/src/main/java/com/miguelrodriguez19/safecube/app/entrypoint/MainActivity.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/route/Routes.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/route/RouteAccessPolicy.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/host/NavigationGraph.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/host/NavigationBackPolicy.kt`, `feature/vault/src/main/java/com/miguelrodriguez19/safecube/feature/vault/presentation/shared/navigation/NavigationBar.kt`, `feature/vault/src/main/java/com/miguelrodriguez19/safecube/feature/vault/presentation/home/ui/VaultScreen.kt`, `feature/vault/src/main/java/com/miguelrodriguez19/safecube/feature/vault/presentation/settings/ui/SettingsScreen.kt`, `core/ui/src/main/res/values/strings.xml`, `core/ui/src/main/res/values-es/strings.xml` | `V1ScopePolicyTest`, `NavigationBackPolicyTest`, `NavigationSessionCoordinatorTest`, `MainActivitySmokeTest.cleanLaunchDoesNotExposeDeferredV1Features`, `rg` de rutas/textos aplazados, `./gradlew :app:testDebugUnitTest`, `./gradlew :app:lintDebug`, `./gradlew ciVerify` | VERIFIED | Folders, Profile, App y Error no forman parte de las rutas ni de la navegación v1; Settings expone solo acciones funcionales. Por decisión del owner, `feature:profile` permanece registrado como módulo aplazado, pero `app` no depende de él y un test de política impide volver a exponerlo. |
 
+### Account entry SCDK-M141 — 2026-11-10
+
+Contrato de composición: [auth entry v1](../design/auth-entry-v1.md). Evidencia y estado real por
+AC: [agent report M141](agent-reports/SCDK-M141.md).
+
+| Requisito | Implementación M141 | Evidencia |
+| --- | --- | --- |
+| `FR-UI-003` | Welcome/Login/Signup consumen scaffold, campos, botones y feedback canónicos | Contenido real con estado inyectado, pruebas Compose y goldens |
+| `NFR-UI-002/003` | Scroll, IME, foco por error, orden de campos, headings y acciones etiquetadas | `AuthEntrySemanticsTest`, adaptación 200%/landscape; TalkBack manual según informe |
+| `NFR-UI-004` | Recursos auth EN/ES; contraseña de cuenta distinta de passphrase | `DesignSystemContractTest`, previews localizados y revisión de copy |
+| `NFR-UI-005` | Diez goldens seleccionados, separados de previews de desarrollo | `AuthScreenshotTest`, gate visual read-only y revisión PNG |
+| `SEC-UI-001` / `SEC-PRIVACY-001` | Campos secretos canónicos, reveal efímero y fixtures sintéticos | Tests merged/unmerged, política de fuentes y regresiones de Fase 7 |
+| `NFR-RESILIENCE-001/002` / contrato auth | UiState/UiAction/UiEvent y ownership del retry/limpieza preservados | `LoginViewModelTest`, `SignupViewModelTest`, guards Compose y smoke de navegación |
+
+La adopción se limita a Welcome/Login/Signup. M142 mantiene el bootstrap y Unlock; M146/M147
+mantienen auditoría y cierre agregado. No se promueve toda `SPEC-UI-V1` a `VERIFIED` por M141.
+Los resultados pendientes no se consideran evidencia aprobada: prevalece el estado del informe.
+Verificación: `ciVerify` PASS con 787 tests JVM y 41 referencias; suite general API 30 PASS
+66/66 y auth en API 36 PASS 26/26. Se añaden diez goldens y los 31 anteriores conservan sus hashes.
+La prioridad del campo elegido al recrear con validación existente se verifica además con 3/3
+regresiones de restauración API 30 y un `ciVerify` final sobre el código definitivo.
+Estado de M141: `PARTIAL` por recorrido manual TalkBack Login y aprobación visual humana pendientes;
+el rediseño inicial no cambia endpoints, validación de dominio, sesión, crypto, storage ni sync.
+Seguimiento del owner: Welcome, Login y Signup declaran además previews anotadas junto a cada
+pantalla (EN claro / ES oscuro), con tema canónico y estado vacío inyectado sin Hilt. No se añaden
+casos golden por esta mejora de descubrimiento en Android Studio.
+
+Corrección de cambio de cuenta solicitada por el owner: reproducido que logout limpiaba claves y
+metadata pero conservaba `VaultState.Unlocked`, permitiendo Home para la siguiente cuenta sin
+Unlock. El seguimiento restaura el invariante de `ADR-0001` y `SPEC-HARDENING-V1`: invalidar la
+sesión de bóveda antes de la limpieza al terminar/iniciar una sesión de cuenta nueva; un refresh
+de tokens conserva el unlock existente. Evidencia y revisión del owner en el informe M141.
+Regresiones de app PASS 86/86 y vault PASS 421/421; APK debug compilado e instalado para revisión.
+Release, lint de app y Kover PASS; 791 tests JVM sin fallos/errores/skips.
+`ciVerify` del seguimiento detecta tres goldens de Welcome que difieren respecto al cambio previo
+del logo (`9888b08`); 38/41 referencias coinciden. No se regeneran referencias como parte del fix.
+
+Seguimiento de login rechazado: el owner detecta un aviso de cierre de sesión al usar credenciales
+inválidas. La elegibilidad de refresh debe limitarse a operaciones protegidas (`FR-AUTH-002`):
+un 401 en login/register pertenece al resultado de autenticación y no debe disparar renovación ni
+logout global. El seguimiento conserva el manejo de 401 de endpoints protegidos y de logout.
+Tests de red/auth/formularios/app PASS 208/208 y APK debug instalado. La verificación global de
+cobertura queda pendiente: una edición concurrente de `SafeCubeButton.kt` contiene `size()` sin
+argumento y bloquea compilación de core:ui. Esa edición se preserva sin cambios del agente.
+
 ### Shell, navegación y motion SCDK-M140 — 2026-11-09
 
 Contrato: [shell v1](../design/shell-navigation-motion-v1.md). Resultados de ejecución y estado de

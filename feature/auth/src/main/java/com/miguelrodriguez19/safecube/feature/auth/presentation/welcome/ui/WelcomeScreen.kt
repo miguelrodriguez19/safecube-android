@@ -1,69 +1,140 @@
 package com.miguelrodriguez19.safecube.feature.auth.presentation.welcome.ui
 
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeBanner
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeBannerVariant
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeButton
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeButtonVariant
+import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceMode
+import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceSettings
+import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeSpacing
+import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeTheme
+import com.miguelrodriguez19.safecube.feature.auth.R
 import com.miguelrodriguez19.safecube.feature.auth.presentation.AuthTestTags
+import com.miguelrodriguez19.safecube.feature.auth.presentation.component.AuthScreenLayout
+import com.miguelrodriguez19.safecube.core.ui.R as UiR
+
+private val WELCOME_MARK_SIZE = 76.dp
+private const val WELCOME_MARK_SCALE = 1.8f
 
 @Composable
 fun WelcomeScreen(
     onLogin: () -> Unit,
     onSignup: () -> Unit,
 ) {
-    Scaffold(
+    AuthScreenLayout(
+        title = "",
+        subtitle = "",
         modifier = Modifier.testTag(AuthTestTags.WELCOME_SCREEN),
-        topBar = {
-            Surface(shadowElevation = 2.dp) {
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(SafeCubeSpacing.Large),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(WELCOME_MARK_SIZE)
+                        .clipToBounds(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(UiR.drawable.ic_safecube_mark),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(WELCOME_MARK_SIZE)
+                            .scale(WELCOME_MARK_SCALE),
+                    )
+                }
                 Text(
-                    text = "SafeCube",
+                    text = stringResource(R.string.auth_brand_wordmark),
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
             }
-        },
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
-                .fillMaxSize(),
-        ) {
             Text(
-                text = "Welcome",
-                style = MaterialTheme.typography.headlineMedium,
+                text = stringResource(R.string.auth_welcome_title),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.semantics { heading() },
             )
             Text(
-                text = "Store, protect and access your vault securely.",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
+                text = stringResource(R.string.auth_welcome_body),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Button(
+            SafeCubeButton(
+                text = stringResource(R.string.auth_login_action),
                 onClick = onLogin,
+                variant = SafeCubeButtonVariant.Primary,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag(AuthTestTags.WELCOME_LOGIN_ACTION),
-            ) {
-                Text("Login")
-            }
-            OutlinedButton(
+            )
+            SafeCubeButton(
+                text = stringResource(R.string.auth_signup_action),
                 onClick = onSignup,
+                variant = SafeCubeButtonVariant.Secondary,
                 modifier = Modifier
-                    .padding(top = 8.dp)
-                    .fillMaxWidth(),
-            ) {
-                Text("Create account")
-            }
+                    .fillMaxWidth()
+                    .testTag(AuthTestTags.WELCOME_SIGNUP_ACTION),
+            )
+            SafeCubeBanner(
+                message = stringResource(R.string.auth_welcome_reassurance),
+                variant = SafeCubeBannerVariant.Info,
+            )
         }
+    }
+}
+
+@Preview(
+    name = "Welcome · EN light",
+    group = "SafeCube auth",
+    widthDp = 360,
+    heightDp = 640,
+    locale = "en",
+    apiLevel = 36,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+)
+@Preview(
+    name = "Welcome · ES dark",
+    group = "SafeCube auth",
+    widthDp = 360,
+    heightDp = 640,
+    locale = "es",
+    apiLevel = 36,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun WelcomeScreenDevelopmentPreview() {
+    SafeCubeTheme(
+        appearance = AppearanceSettings(
+            mode = AppearanceMode.System,
+            dynamicColorEnabled = false,
+        ),
+    ) {
+        WelcomeScreen(onLogin = {}, onSignup = {})
     }
 }

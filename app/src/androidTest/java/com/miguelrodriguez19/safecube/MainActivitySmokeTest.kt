@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
@@ -42,6 +43,12 @@ class MainActivitySmokeTest {
             .assertIsDisplayed()
         composeRule
             .onNodeWithTag(AuthTestTags.WELCOME_LOGIN_ACTION)
+            .performScrollTo()
+            .assertIsDisplayed()
+            .assertHasClickAction()
+        composeRule
+            .onNodeWithTag(AuthTestTags.WELCOME_SIGNUP_ACTION)
+            .performScrollTo()
             .assertIsDisplayed()
             .assertHasClickAction()
     }
@@ -50,11 +57,40 @@ class MainActivitySmokeTest {
     fun loginActionNavigatesToLoginForm() {
         composeRule
             .onNodeWithTag(AuthTestTags.WELCOME_LOGIN_ACTION)
+            .performScrollTo()
             .performClick()
 
         composeRule
             .onNodeWithTag(AuthTestTags.LOGIN_SCREEN)
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun welcomeSignupActionNavigatesDirectlyToSignup() {
+        composeRule.onNodeWithTag(AuthTestTags.WELCOME_SIGNUP_ACTION)
+            .performScrollTo().performClick()
+
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_SCREEN).assertIsDisplayed()
+    }
+
+    @Test
+    fun loginToSignupBackReturnsToLogin() {
+        composeRule.onNodeWithTag(AuthTestTags.WELCOME_LOGIN_ACTION).performScrollTo().performClick()
+        composeRule.onNodeWithTag(AuthTestTags.LOGIN_SIGNUP_ACTION).performScrollTo().performClick()
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_SCREEN).assertIsDisplayed()
+
+        composeRule.activityRule.scenario.onActivity { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+
+        composeRule.onNodeWithTag(AuthTestTags.LOGIN_SCREEN).assertIsDisplayed()
+    }
+
+    @Test
+    fun loginAndSignupLinksNavigateBetweenAccountForms() {
+        composeRule.onNodeWithTag(AuthTestTags.WELCOME_LOGIN_ACTION).performScrollTo().performClick()
+        composeRule.onNodeWithTag(AuthTestTags.LOGIN_SIGNUP_ACTION).performScrollTo().performClick()
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_SCREEN).assertIsDisplayed()
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_LOGIN_ACTION).performScrollTo().performClick()
+        composeRule.onNodeWithTag(AuthTestTags.LOGIN_SCREEN).assertIsDisplayed()
     }
 
     @Test
@@ -69,9 +105,10 @@ class MainActivitySmokeTest {
     fun loginPasswordIsVisuallyMasked() {
         composeRule
             .onNodeWithTag(AuthTestTags.WELCOME_LOGIN_ACTION)
+            .performScrollTo()
             .performClick()
         composeRule
-            .onNodeWithText("Password")
+            .onNodeWithTag(AuthTestTags.LOGIN_PASSWORD)
             .performTextInput("test-password")
 
         composeRule
@@ -83,15 +120,17 @@ class MainActivitySmokeTest {
     fun signupPasswordsAreVisuallyMasked() {
         composeRule
             .onNodeWithTag(AuthTestTags.WELCOME_LOGIN_ACTION)
+            .performScrollTo()
             .performClick()
         composeRule
-            .onNodeWithText("Go to Signup")
+            .onNodeWithTag(AuthTestTags.LOGIN_SIGNUP_ACTION)
+            .performScrollTo()
             .performClick()
         composeRule
-            .onNodeWithText("Password")
+            .onNodeWithTag(AuthTestTags.SIGNUP_PASSWORD)
             .performTextInput("test-password")
         composeRule
-            .onNodeWithText("Confirm password")
+            .onNodeWithTag(AuthTestTags.SIGNUP_CONFIRM_PASSWORD)
             .performTextInput("test-password")
 
         composeRule
