@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 10-11-2026 12:53:43
+Updated: 10-11-2026 02:09:32
 
 ```
 safecube-android/
@@ -728,9 +728,12 @@ safecube-android/
 │   │   │   │   │   ├── raw/
 │   │   │   │   │   │   └── manrope_ofl.txt
 │   │   │   │   │   ├── values/
+│   │   │   │   │   │   ├── colors.xml
 │   │   │   │   │   │   └── strings.xml
-│   │   │   │   │   └── values-es/
-│   │   │   │   │       └── strings.xml
+│   │   │   │   │   ├── values-es/
+│   │   │   │   │   │   └── strings.xml
+│   │   │   │   │   └── values-night/
+│   │   │   │   │       └── colors.xml
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/core/ui/
 │   │   │       ├── component/

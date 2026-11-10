@@ -1,21 +1,19 @@
 package com.miguelrodriguez19.safecube.feature.auth.presentation.welcome.ui
 
 import android.content.res.Configuration
-import androidx.annotation.FloatRange
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -31,12 +29,13 @@ import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceMode
 import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceSettings
 import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeSpacing
 import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeTheme
-import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.feature.auth.R
 import com.miguelrodriguez19.safecube.feature.auth.presentation.AuthTestTags
 import com.miguelrodriguez19.safecube.feature.auth.presentation.component.AuthScreenLayout
+import com.miguelrodriguez19.safecube.core.ui.R as UiR
 
 private val WELCOME_MARK_SIZE = 76.dp
+private const val WELCOME_MARK_SCALE = 1.8f
 
 @Composable
 fun WelcomeScreen(
@@ -51,19 +50,31 @@ fun WelcomeScreen(
         Column(
             verticalArrangement = Arrangement.spacedBy(SafeCubeSpacing.Large),
         ) {
-            Icon(
-                painter = painterResource(UiR.drawable.ic_safecube_mark),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(WELCOME_MARK_SIZE)
-                    .align(Alignment.CenterHorizontally),
-            )
-            Text(
-                text = stringResource(R.string.auth_brand_wordmark),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(WELCOME_MARK_SIZE)
+                        .clipToBounds(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(UiR.drawable.ic_safecube_mark),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(WELCOME_MARK_SIZE)
+                            .scale(WELCOME_MARK_SCALE),
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.auth_brand_wordmark),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                )
+            }
             Text(
                 text = stringResource(R.string.auth_welcome_title),
                 style = MaterialTheme.typography.headlineSmall,
