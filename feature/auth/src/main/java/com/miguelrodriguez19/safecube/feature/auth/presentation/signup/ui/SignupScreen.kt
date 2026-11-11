@@ -271,6 +271,7 @@ private fun ColumnScope.SignupFields(
             .testTag(AuthTestTags.SIGNUP_PASSWORD),
         enabled = !isLoading,
         isError = uiState.passwordErrorRes != null,
+        errorMessage = uiState.passwordErrorRes?.let { stringResource(it) },
         supportingText = uiState.passwordErrorRes?.let { { Text(stringResource(it)) } },
         allowReveal = true,
         keyboardOptions = KeyboardOptions(
@@ -296,6 +297,7 @@ private fun ColumnScope.SignupFields(
             .testTag(AuthTestTags.SIGNUP_CONFIRM_PASSWORD),
         enabled = !isLoading,
         isError = uiState.confirmPasswordErrorRes != null,
+        errorMessage = uiState.confirmPasswordErrorRes?.let { stringResource(it) },
         supportingText = uiState.confirmPasswordErrorRes?.let { { Text(stringResource(it)) } },
         allowReveal = true,
         keyboardOptions = KeyboardOptions(

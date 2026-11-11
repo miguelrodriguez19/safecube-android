@@ -240,6 +240,7 @@ private fun ColumnScope.LoginFields(
             .semantics { contentType = ContentType.Password },
         enabled = !loading,
         isError = uiState.passwordErrorRes != null,
+        errorMessage = passwordError,
         supportingText = passwordError?.let { error ->
             { androidx.compose.material3.Text(error) }
         },

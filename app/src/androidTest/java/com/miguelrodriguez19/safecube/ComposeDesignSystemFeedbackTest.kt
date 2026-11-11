@@ -115,12 +115,7 @@ class ComposeDesignSystemFeedbackTest {
         }
 
         variants.forEach { (_, label) ->
-            composeRule.onNodeWithText(label)
-                .performScrollTo()
-                .assertIsDisplayed()
-            composeRule.onNodeWithContentDescription(label)
-                .performScrollTo()
-                .assertIsDisplayed()
+            composeRule.onNodeWithContentDescription(label).assertDoesNotExist()
             composeRule.onNode(
                 SemanticsMatcher.expectValue(
                     SemanticsProperties.StateDescription,

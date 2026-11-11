@@ -25,6 +25,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
@@ -32,6 +33,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -40,6 +42,7 @@ import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceMode
 import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceSettings
 import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeTheme
+import com.miguelrodriguez19.safecube.feature.auth.R as AuthR
 import com.miguelrodriguez19.safecube.feature.auth.presentation.AuthTestTags
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.action.LoginUiAction
 import com.miguelrodriguez19.safecube.feature.auth.presentation.login.state.LoginUiState
@@ -248,6 +251,12 @@ class AuthEntrySemanticsTest {
                 SemanticsProperties.StateDescription
             ],
         )
+        assertEquals(
+            targetContext().getString(UiR.string.password_is_required),
+            composeRule.onNodeWithTag(AuthTestTags.LOGIN_PASSWORD).fetchSemanticsNode().config[
+                SemanticsProperties.Error
+            ],
+        )
     }
 
     @Test
@@ -431,6 +440,48 @@ class AuthEntrySemanticsTest {
     }
 
     @Test
+    fun welcomeExposesLogoBeforeDecorativeWordmark() {
+        composeRule.setContent { AuthTestTheme {
+            WelcomeScreen(onLogin = {}, onSignup = {})
+        } }
+
+        composeRule.onNodeWithContentDescription(
+            targetContext().getString(AuthR.string.auth_logo_content_description),
+        )
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("SafeCube").assertDoesNotExist()
+    }
+
+    @Test
+    fun welcomeReassuranceIsStaticReadableContentWithoutStatusAnnouncements() {
+        composeRule.setContent { AuthTestTheme {
+            WelcomeScreen(onLogin = {}, onSignup = {})
+        } }
+
+        composeRule.onNodeWithText(targetContext().getString(AuthR.string.auth_welcome_reassurance))
+            .performScrollTo()
+            .assert(SemanticsMatcher.expectValue(
+                SemanticsProperties.Text,
+                listOf(
+                    AnnotatedString(targetContext().getString(
+                        UiR.string.design_system_feedback_variant_info,
+                    )),
+                    AnnotatedString(targetContext().getString(
+                        AuthR.string.auth_welcome_reassurance,
+                    )),
+                ),
+            ))
+        composeRule.onAllNodes(
+            SemanticsMatcher.keyIsDefined(SemanticsProperties.StateDescription),
+            useUnmergedTree = true,
+        ).assertCountEquals(0)
+        composeRule.onAllNodes(
+            SemanticsMatcher.keyIsDefined(SemanticsProperties.LiveRegion),
+            useUnmergedTree = true,
+        ).assertCountEquals(0)
+    }
+
+    @Test
     fun signupValidationFocusesEmailAndDoesNotStealFocusWhileCorrectingIt() {
         composeRule.setContent { AuthTestTheme {
             var state by remember {
@@ -458,6 +509,18 @@ class AuthEntrySemanticsTest {
         } }
 
         waitForFocus(AuthTestTags.SIGNUP_EMAIL)
+        assertEquals(
+            targetContext().getString(UiR.string.password_is_required),
+            composeRule.onNodeWithTag(AuthTestTags.SIGNUP_PASSWORD).fetchSemanticsNode().config[
+                SemanticsProperties.Error
+            ],
+        )
+        assertEquals(
+            targetContext().getString(UiR.string.confirm_password_is_required),
+            composeRule.onNodeWithTag(AuthTestTags.SIGNUP_CONFIRM_PASSWORD).fetchSemanticsNode().config[
+                SemanticsProperties.Error
+            ],
+        )
         composeRule.onNodeWithTag(AuthTestTags.SIGNUP_EMAIL).performTextInput("person@example.com")
 
         composeRule.onNodeWithTag(AuthTestTags.SIGNUP_EMAIL).assertIsFocused()

@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,7 +63,7 @@ fun WelcomeScreen(
                 ) {
                     Icon(
                         painter = painterResource(UiR.drawable.ic_safecube_mark),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.auth_logo_content_description),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .size(WELCOME_MARK_SIZE)
@@ -72,7 +73,9 @@ fun WelcomeScreen(
                 Text(
                     text = stringResource(R.string.auth_brand_wordmark),
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .clearAndSetSemantics {},
                 )
             }
             Text(
@@ -104,6 +107,8 @@ fun WelcomeScreen(
             SafeCubeBanner(
                 message = stringResource(R.string.auth_welcome_reassurance),
                 variant = SafeCubeBannerVariant.Info,
+                liveRegionMode = null,
+                announceState = false,
             )
         }
     }

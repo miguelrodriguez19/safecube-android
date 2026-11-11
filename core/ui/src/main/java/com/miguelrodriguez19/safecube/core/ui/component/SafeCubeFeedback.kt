@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -49,6 +50,10 @@ enum class SafeCubeBannerVariant {
     Success,
 }
 
+/**
+ * Set [announceState] to false for static explanatory content: label and message are read
+ * together without status-change or live-region announcements.
+ */
 @Composable
 fun SafeCubeBanner(
     message: String,
@@ -58,6 +63,8 @@ fun SafeCubeBanner(
     onAction: (() -> Unit)? = null,
     actionEnabled: Boolean = true,
     actionLoading: Boolean = false,
+    liveRegionMode: LiveRegionMode? = LiveRegionMode.Polite,
+    announceState: Boolean = true,
 ) {
     requireOptionalAction(actionLabel, onAction)
 
@@ -67,9 +74,13 @@ fun SafeCubeBanner(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .semantics {
-                liveRegion = LiveRegionMode.Polite
-                stateDescription = stateLabel
+            .semantics(mergeDescendants = !announceState) {
+                if (announceState && liveRegionMode != null) {
+                    liveRegion = liveRegionMode
+                }
+                if (announceState) {
+                    stateDescription = stateLabel
+                }
             },
         color = palette.container,
         contentColor = palette.content,
@@ -88,7 +99,7 @@ fun SafeCubeBanner(
             ) {
                 Icon(
                     imageVector = variant.icon(),
-                    contentDescription = stateLabel,
+                    contentDescription = null,
                     modifier = Modifier.size(SafeCubeIconSize.Default),
                 )
                 Column(
@@ -98,6 +109,11 @@ fun SafeCubeBanner(
                     Text(
                         text = stateLabel,
                         style = MaterialTheme.typography.labelLarge,
+                        modifier = if (announceState) {
+                            Modifier.clearAndSetSemantics {}
+                        } else {
+                            Modifier
+                        },
                     )
                     Text(
                         text = message,
@@ -344,12 +360,13 @@ private fun SafeCubeStateSurface(
             ) {
                 Icon(
                     imageVector = variant.icon(),
-                    contentDescription = stateLabel,
+                    contentDescription = null,
                     modifier = Modifier.size(SafeCubeIconSize.Default),
                 )
                 Text(
                     text = stateLabel,
                     style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.clearAndSetSemantics {},
                 )
             }
             Text(

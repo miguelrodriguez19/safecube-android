@@ -34,7 +34,7 @@ No component defines a feature-specific palette or domain state machine.
 | `SafeCubeBottomNavigation` | Selected/unselected, focused, pressed, disabled entries | Tab role, labels, selection and callback; no destination resolution |
 | `SafeCubeScaffold` (M140) | Top/bottom bars, snackbar and content slots | Single-owner safe insets and 16dp content margins; state and navigation remain with callers |
 | `SafeCubeCard`, `SafeCubeItemRow` | Static or actionable; enabled/disabled; interaction feedback; optional row status | Static content has no click action; actionable content has 48dp target; row status is textual and announced |
-| `SafeCubeBanner` | Info, warning, error, offline, draft, conflict, success; optional enabled/loading action | Text and icon plus localized state description, polite live region, contextual action |
+| `SafeCubeBanner` | Info, warning, error, offline, draft, conflict, success; optional enabled/loading action | Text and icon plus localized state description, polite live region, contextual action. Static explanatory content uses `announceState = false`: merged label/message without state or live-region announcements |
 | `SafeCubeConfirmationDialog` | Normal/destructive, confirming/loading | Heading, confirm/dismiss callbacks; loading blocks duplicate confirmation and dismissal |
 | `SafeCubeProgress` | Indeterminate or explicitly determined | Message and progress semantics |
 | `SafeCubeEmptyState` | Empty, optional action | Heading, explanation and optional named action |

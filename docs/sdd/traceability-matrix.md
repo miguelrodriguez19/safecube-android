@@ -65,7 +65,7 @@ AC: [agent report M141](agent-reports/SCDK-M141.md).
 | Requisito | Implementación M141 | Evidencia |
 | --- | --- | --- |
 | `FR-UI-003` | Welcome/Login/Signup consumen scaffold, campos, botones y feedback canónicos | Contenido real con estado inyectado, pruebas Compose y goldens |
-| `NFR-UI-002/003` | Scroll, IME, foco por error, orden de campos, headings y acciones etiquetadas | `AuthEntrySemanticsTest`, adaptación 200%/landscape; TalkBack manual según informe |
+| `NFR-UI-002/003` | Scroll, IME, foco por error, orden de campos, headings y acciones etiquetadas; reassurance de Welcome estática, agrupada y sin anuncios de estado | `AuthEntrySemanticsTest` (incluye `welcomeReassuranceIsStaticReadableContentWithoutStatusAnnouncements`), adaptación 200%/landscape; TalkBack manual según informe |
 | `NFR-UI-004` | Recursos auth EN/ES; contraseña de cuenta distinta de passphrase | `DesignSystemContractTest`, previews localizados y revisión de copy |
 | `NFR-UI-005` | Diez goldens seleccionados, separados de previews de desarrollo | `AuthScreenshotTest`, gate visual read-only y revisión PNG |
 | `SEC-UI-001` / `SEC-PRIVACY-001` | Campos secretos canónicos, reveal efímero y fixtures sintéticos | Tests merged/unmerged, política de fuentes y regresiones de Fase 7 |
