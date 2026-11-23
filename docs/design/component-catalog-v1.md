@@ -35,7 +35,7 @@ No component defines a feature-specific palette or domain state machine.
 | `SafeCubeScaffold` (M140) | Top/bottom bars, snackbar and content slots | Single-owner safe insets and 16dp content margins; state and navigation remain with callers |
 | `SafeCubeCard`, `SafeCubeItemRow` | Static or actionable; enabled/disabled; interaction feedback; optional row status | Static content has no click action; actionable content has 48dp target; row status is textual and announced |
 | `SafeCubeBanner` | Info, warning, error, offline, draft, conflict, success; optional enabled/loading action | Localized label and message form one reading unit, without a duplicate state description. Polite live region and independently accessible contextual action. Static content uses `announceState = false` to disable live announcements |
-| `SafeCubeConfirmationDialog` | Normal/destructive, confirming/loading | Heading, confirm/dismiss callbacks; loading blocks duplicate confirmation and dismissal |
+| `SafeCubeConfirmationDialog` | Normal/destructive, confirming/loading; optional acknowledgement-only action | Heading, confirm/dismiss callbacks; loading blocks duplicate confirmation and dismissal. System dismissal may be handled separately from the explicit dismiss button; existing defaults are retained |
 | `SafeCubeProgress` | Indeterminate or explicitly determined | Message and progress semantics |
 | `SafeCubeEmptyState` | Empty, optional action | Heading, explanation and optional named action |
 | `SafeCubeRetryableError` | Retry available or retrying | Context and adjacent retry; retrying blocks duplicates |

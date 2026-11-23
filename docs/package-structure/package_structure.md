@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 23-11-2026 11:32:52
+Updated: 23-11-2026 07:57:51
 
 ```
 safecube-android/
@@ -39,7 +39,9 @@ safecube-android/
 │   │   │   ├── ResilienceInstrumentedTest.kt
 │   │   │   ├── ResilienceUiStateTest.kt
 │   │   │   ├── SafeCubeShellSemanticsTest.kt
-│   │   │   └── ShellSystemBarsTest.kt
+│   │   │   ├── ShellSystemBarsTest.kt
+│   │   │   ├── VaultAccessSemanticsTest.kt
+│   │   │   └── VaultRecoveryPrivacyTest.kt
 │   │   ├── debug/
 │   │   │   ├── java/com/miguelrodriguez19/safecube/app/testsupport/
 │   │   │   │   ├── visual/
@@ -48,6 +50,7 @@ safecube-android/
 │   │   │   │   │   ├── DesignSystemCatalogPreviews.kt
 │   │   │   │   │   ├── SafeCubeMultiPreviews.kt
 │   │   │   │   │   ├── ShellVisualFixtures.kt
+│   │   │   │   │   ├── VaultAccessVisualSurfaces.kt
 │   │   │   │   │   ├── VisualRegressionCanaryFixtures.kt
 │   │   │   │   │   ├── VisualRegressionCanaryPreviews.kt
 │   │   │   │   │   ├── VisualRegressionCanarySurface.kt
@@ -138,6 +141,7 @@ safecube-android/
 │   │   │   ├── AuthScreenshotTest.kt
 │   │   │   ├── DesignSystemCatalogScreenshotTest.kt
 │   │   │   ├── ShellScreenshotTest.kt
+│   │   │   ├── VaultAccessScreenshotTest.kt
 │   │   │   └── VisualRegressionCanaryScreenshotTest.kt
 │   │   ├── screenshotTestDebug/reference/com/miguelrodriguez19/safecube/
 │   │   │   ├── visual/
@@ -182,6 +186,23 @@ safecube-android/
 │   │   │   │   │   ├── shellSplashLightEnglishPreview_Splash light English_9c668469_0.png
 │   │   │   │   │   ├── shellVaultFontScale200DarkSpanishPreview_Shell vault 200 percent dark Spanish_56855144_0.png
 │   │   │   │   │   └── shellVaultSelectedLightEnglishPreview_Vault selected light English_a1061180_0.png
+│   │   │   │   ├── VaultAccessScreenshotTestKt/
+│   │   │   │   │   ├── vaultAccessCreateIdlePreview_Create idle · EN dark compact_ff7947e3_0.png
+│   │   │   │   │   ├── vaultAccessCreateLoadingPreview_Create loading · ES light compact_3d6a7e80_0.png
+│   │   │   │   │   ├── vaultAccessCreateValidationCompact200Preview_Create validation · ES dark compact 200%_9d209ed3_0.png
+│   │   │   │   │   ├── vaultAccessGateLoadingPreview_Gate loading · EN light compact_3c7400ad_0.png
+│   │   │   │   │   ├── vaultAccessGateRetryablePreview_Gate retryable · ES dark medium landscape_24a9a96f_0.png
+│   │   │   │   │   ├── vaultAccessGateTerminalPreview_Gate terminal · EN light compact_44e598dc_0.png
+│   │   │   │   │   ├── vaultAccessPassphraseReconciliationNoticeCompact200Preview_Passphrase reconciliation notice · EN light compact 200%_fa1eb48d_0.png
+│   │   │   │   │   ├── vaultAccessQuickUnlockFallbackPreview_Quick unlock fallback · EN dark compact_91c6bbf4_0.png
+│   │   │   │   │   ├── vaultAccessQuickUnlockOfferPreview_Quick unlock offer · ES dark medium_942e1995_0.png
+│   │   │   │   │   ├── vaultAccessRecoveryConfirmationErrorPreview_Recovery confirmation error · EN light medium landscape_f7b61263_0.png
+│   │   │   │   │   ├── vaultAccessRecoveryConfirmedPreview_Recovery confirmed · ES dark medium_2624896e_0.png
+│   │   │   │   │   ├── vaultAccessRecoveryHiddenPreview_Recovery hidden · EN light compact_f142ffbf_0.png
+│   │   │   │   │   ├── vaultAccessRemotePassphraseNoticePreview_Remote passphrase lock notice · ES dark medium landscape_052ffa19_0.png
+│   │   │   │   │   ├── vaultAccessUnlockErrorMediumLandscapePreview_Unlock error · EN light medium landscape_20786a7b_0.png
+│   │   │   │   │   ├── vaultAccessUnlockIdlePreview_Unlock idle · EN light compact_b741dd0c_0.png
+│   │   │   │   │   └── vaultAccessUnlockLoadingPreview_Unlock loading · ES dark compact_149236ce_0.png
 │   │   │   │   ├── VisualRegressionCanaryScreenshotTestKt/
 │   │   │   │   │   ├── visualRegressionCanaryConfigurationPreview_Compact portrait_47aeb6cc_0.png
 │   │   │   │   │   ├── visualTokenCatalogDarkPreview_Dark tokens_293a429e_0.png
@@ -704,6 +725,7 @@ safecube-android/
 │   │   │   │   │   ├── component/
 │   │   │   │   │   │   ├── SafeCubeButton.kt
 │   │   │   │   │   │   ├── SafeCubeFeedback.kt
+│   │   │   │   │   │   ├── SafeCubeRecoveryKey.kt
 │   │   │   │   │   │   ├── SafeCubeScaffold.kt
 │   │   │   │   │   │   ├── SafeCubeStructure.kt
 │   │   │   │   │   │   ├── SafeCubeTextField.kt
@@ -729,8 +751,10 @@ safecube-android/
 │   │   │   │   │   │   └── manrope_ofl.txt
 │   │   │   │   │   ├── values/
 │   │   │   │   │   │   ├── colors.xml
+│   │   │   │   │   │   ├── recovery_key_m142.xml
 │   │   │   │   │   │   └── strings.xml
 │   │   │   │   │   ├── values-es/
+│   │   │   │   │   │   ├── recovery_key_m142.xml
 │   │   │   │   │   │   └── strings.xml
 │   │   │   │   │   └── values-night/
 │   │   │   │   │       └── colors.xml
@@ -1061,7 +1085,8 @@ safecube-android/
 │   │   ├── auth-entry-v1.md
 │   │   ├── brand-guide-v1.md
 │   │   ├── component-catalog-v1.md
-│   │   └── shell-navigation-motion-v1.md
+│   │   ├── shell-navigation-motion-v1.md
+│   │   └── vault-access-v1.md
 │   ├── package-structure/
 │   │   └── package_structure.md
 │   ├── release/
@@ -1151,9 +1176,11 @@ safecube-android/
 │   │   │   │   │   └── screens/
 │   │   │   │   ├── res/
 │   │   │   │   │   ├── values/
-│   │   │   │   │   │   └── strings.xml
+│   │   │   │   │   │   ├── strings.xml
+│   │   │   │   │   │   └── vault_access_gate.xml
 │   │   │   │   │   └── values-es/
-│   │   │   │   │       └── strings.xml
+│   │   │   │   │       ├── strings.xml
+│   │   │   │   │       └── vault_access_gate.xml
 │   │   │   │   └── AndroidManifest.xml
 │   │   │   └── test/java/com/miguelrodriguez19/safecube/feature/auth/
 │   │   │       ├── presentation/
@@ -1176,10 +1203,16 @@ safecube-android/
 │   │   └── build.gradle.kts
 │   └── vault/
 │       ├── src/
-│       │   ├── debug/java/com/miguelrodriguez19/safecube/feature/vault/testsupport/
-│       │   │   └── ResilienceUiFixtures.kt
+│       │   ├── debug/java/com/miguelrodriguez19/safecube/feature/vault/
+│       │   │   ├── presentation/unlock/ui/
+│       │   │   └── testsupport/
+│       │   │       ├── ResilienceUiFixtures.kt
+│       │   │       ├── VaultAccessContent.kt
+│       │   │       └── VaultUnlockContent.kt
 │       │   ├── main/
 │       │   │   ├── java/com/miguelrodriguez19/safecube/feature/vault/presentation/
+│       │   │   │   ├── component/
+│       │   │   │   │   └── VaultAccessLayout.kt
 │       │   │   │   ├── create/
 │       │   │   │   │   ├── action/
 │       │   │   │   │   │   └── CreateVaultUiAction.kt
@@ -1309,9 +1342,13 @@ safecube-android/
 │       │   │   │           └── UnlockVaultViewModel.kt
 │       │   │   ├── res/
 │       │   │   │   ├── values/
-│       │   │   │   │   └── strings.xml
+│       │   │   │   │   ├── strings.xml
+│       │   │   │   │   ├── vault_access_creation.xml
+│       │   │   │   │   └── vault_access_unlock.xml
 │       │   │   │   └── values-es/
-│       │   │   │       └── strings.xml
+│       │   │   │       ├── strings.xml
+│       │   │   │       ├── vault_access_creation.xml
+│       │   │   │       └── vault_access_unlock.xml
 │       │   │   └── AndroidManifest.xml
 │       │   └── test/java/com/miguelrodriguez19/safecube/feature/vault/
 │       │       ├── presentation/

@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -128,6 +130,10 @@ fun SafeCubeBanner(
     }
 }
 
+/**
+ * [showDismissAction] supports acknowledgement-only notices. [onDismissRequest] can override
+ * back/outside dismissal independently of the explicit dismiss button; defaults are unchanged.
+ */
 @Composable
 fun SafeCubeConfirmationDialog(
     title: String,
@@ -139,6 +145,8 @@ fun SafeCubeConfirmationDialog(
     destructive: Boolean = false,
     loading: Boolean = false,
     dismissLabel: String? = null,
+    showDismissAction: Boolean = true,
+    onDismissRequest: (() -> Unit)? = null,
 ) {
     require(confirmLabel.isNotBlank()) { "confirmLabel must not be blank" }
     require(dismissLabel == null || dismissLabel.isNotBlank()) {
@@ -161,7 +169,7 @@ fun SafeCubeConfirmationDialog(
     }
 
     AlertDialog(
-        onDismissRequest = { if (!loading) onDismiss() },
+        onDismissRequest = { if (!loading) (onDismissRequest ?: onDismiss)() },
         modifier = modifier,
         title = {
             Text(
@@ -169,7 +177,7 @@ fun SafeCubeConfirmationDialog(
                 modifier = Modifier.semantics { heading() },
             )
         },
-        text = { Text(text = message) },
+        text = { Text(text = message, modifier = Modifier.verticalScroll(rememberScrollState())) },
         confirmButton = {
             SafeCubeButton(
                 text = confirmLabel,
@@ -185,7 +193,7 @@ fun SafeCubeConfirmationDialog(
                     .heightIn(min = SafeCubeSpacing.TouchTarget)
             )
         },
-        dismissButton = dismissButton,
+        dismissButton = if (showDismissAction) dismissButton else null,
     )
 }
 
