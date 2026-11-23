@@ -63,6 +63,12 @@ Validate the approved references without modifying them:
 The root task delegates only to `:app:validateDebugScreenshotTest`. It also rejects any GitHub
 Actions workflow containing a screenshot update task. `ciVerify` depends on this read-only gate.
 
+The pinned alpha16 comparator uses the percentage of changed pixels as its threshold. SafeCube
+sets the validation task to `0.001%`, the smallest bounded tolerance needed for the observed
+one-channel rasterization noise in the shared logo between local and Linux hosts. This does not
+permit dimension, layout, text or content changes: larger visual differences still fail and the
+generated diff remains available for review.
+
 Run the semantic test in the canonical instrumented suite:
 
 ```bash
