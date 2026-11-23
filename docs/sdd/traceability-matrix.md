@@ -70,13 +70,20 @@ verification complete; real TalkBack walkthrough and owner visual acceptance pen
 | `NFR-UI-004/005` | EN/ES parity, theme previews, safe visual references and semantic regression tests |
 | `SEC-UI-001` | Hidden recovery by default, explicit ephemeral reveal, immediate lifecycle hiding, no saved secrets or clipboard |
 | Phase 7 behavior | Existing state-machine, navigation, process-death and device-credential tests retained |
+| Recovery interaction guard (owner approval) | Controlled `SafeCubeRecoveryKey` and screen-local interception; `VaultAccessSemanticsTest.recoveryContinueRequiresRevealAndSecondConfirmation`, manual Show/Hide and ES 200-percent polite guidance; `VaultRecoveryPrivacyTest` covers pause, resumed explicit reveal, key replacement, disposal and saved-instance restoration |
 
 Owner decisions: preserve gate retry for existing non-loading failures; recovery is hidden until
-explicit Show, without adding a reveal-before-confirmation requirement. No crypto/storage or
+explicit Show or the owner-approved premature Continue interaction. Confirmation now requires
+actual presentation in this screen instance and renewed checkbox consent after interception. No crypto/storage or
 route-priority change. Evidence: 795 JVM tests, 93 API-30 general instrumented tests and 5
 credential-isolated tests PASS; 16 safe new goldens, 57 total, with all 41 previous hashes
 unchanged. `ciVerify`, version bump and diff checks PASS. Manual TalkBack is not inferred from
 semantic assertions; see the report's remaining acceptance criterion.
+
+Reveal-before-confirmation follow-up: 27 focused API-30 instrumented tests PASS (privacy,
+accessibility and resilience), including restored-instance reset and first reveal after foregrounding.
+`ciVerify` PASS with all 57 goldens; two Recovery references reconciled with existing owner visuals.
+ViewModel cleanup/retry tests remain unchanged and passing. No manual TalkBack result is claimed.
 
 Owner-selected refinement: compact expandable Recovery card, without visible hidden/demo
 captions; one accessible header action, immediate lifecycle hiding, monospaced revealed value

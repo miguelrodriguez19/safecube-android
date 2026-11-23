@@ -33,6 +33,7 @@ import com.miguelrodriguez19.safecube.feature.vault.testsupport.ResilienceVaultH
 import com.miguelrodriguez19.safecube.feature.vault.testsupport.VaultRecoveryContent
 import java.time.Instant
 import java.util.UUID
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,7 +45,7 @@ class ResilienceUiStateTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun pendingRecoveryKeyRemainsVisibleUntilExplicitConfirmation() {
+    fun pendingRecoveryKeyRevealDoesNotConfirmOrContinue() {
         val recoveryKey = "DEMO-NOT-A-RECOVERY-KEY"
         val actions = mutableListOf<RecoveryKeyUiAction>()
 
@@ -76,6 +77,7 @@ class ResilienceUiStateTest {
         composeRule.onNodeWithText(
             context.getString(VaultR.string.vault_access_recovery_continue),
         ).performScrollTo().assertIsDisplayed().assertIsNotEnabled()
+        assertTrue(actions.isEmpty())
     }
 
     @Test

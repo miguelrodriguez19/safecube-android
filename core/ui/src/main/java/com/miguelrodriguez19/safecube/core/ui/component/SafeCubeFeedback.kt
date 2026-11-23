@@ -35,6 +35,9 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.fromHtml
 import com.miguelrodriguez19.safecube.core.ui.R
 import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeElevation
 import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeIconSize
@@ -91,28 +94,32 @@ fun SafeCubeBanner(
                 .padding(SafeCubeSpacing.Large),
             verticalArrangement = Arrangement.spacedBy(SafeCubeSpacing.Small),
         ) {
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(SafeCubeSpacing.Medium),
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(SafeCubeSpacing.ExtraSmall),
             ) {
-                Icon(
-                    imageVector = variant.icon(),
-                    contentDescription = null,
-                    modifier = Modifier.size(SafeCubeIconSize.Default),
-                )
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(SafeCubeSpacing.ExtraSmall),
+                val iconSize = SafeCubeIconSize.Default
+                val spaceBetween = SafeCubeSpacing.Medium
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(spaceBetween),
                 ) {
+                    Icon(
+                        imageVector = variant.icon(),
+                        contentDescription = null,
+                        modifier = Modifier.size(iconSize),
+                    )
                     Text(
                         text = stateLabel,
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                     )
                 }
+                Text(
+                    text = message,
+                    modifier = Modifier.padding(start = iconSize + spaceBetween),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
             if (actionLabel != null && onAction != null) {
                 SafeCubeButton(
@@ -177,7 +184,12 @@ fun SafeCubeConfirmationDialog(
                 modifier = Modifier.semantics { heading() },
             )
         },
-        text = { Text(text = message, modifier = Modifier.verticalScroll(rememberScrollState())) },
+        text = {
+            Text(
+                text = AnnotatedString.fromHtml(message),
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            )
+        },
         confirmButton = {
             SafeCubeButton(
                 text = confirmLabel,
@@ -425,20 +437,24 @@ private fun SafeCubeBannerVariant.palette(): SafeCubeFeedbackPalette {
             container = colors.primaryContainer,
             content = colors.onPrimaryContainer,
         )
+
         SafeCubeBannerVariant.Warning,
         SafeCubeBannerVariant.Draft,
         SafeCubeBannerVariant.Conflict -> SafeCubeFeedbackPalette(
             container = colors.tertiaryContainer,
             content = colors.onTertiaryContainer,
         )
+
         SafeCubeBannerVariant.Error -> SafeCubeFeedbackPalette(
             container = colors.errorContainer,
             content = colors.onErrorContainer,
         )
+
         SafeCubeBannerVariant.Offline -> SafeCubeFeedbackPalette(
             container = colors.surfaceVariant,
             content = colors.onSurfaceVariant,
         )
+
         SafeCubeBannerVariant.Success -> SafeCubeFeedbackPalette(
             container = colors.secondaryContainer,
             content = colors.onSecondaryContainer,

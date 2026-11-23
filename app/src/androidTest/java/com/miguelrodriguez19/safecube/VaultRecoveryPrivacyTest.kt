@@ -14,6 +14,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
@@ -87,12 +88,15 @@ class VaultRecoveryPrivacyTest {
     fun recoveryKeyHidesImmediatelyOnPauseAndStaysHiddenAfterResume() {
         val owner = TestLifecycleOwner()
         moveToResumed(owner)
+        val expanded = mutableStateOf(false)
+        val presentations = mutableListOf<String>()
 
-        setRecoveryKeyContent(owner)
+        setRecoveryKeyContent(owner, expanded, presentations)
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         composeRule.onNodeWithText(context.getString(UiR.string.recovery_key_m142_show))
             .performClick()
         assertRecoveryKeyVisible()
+        assertEquals(listOf(SYNTHETIC_RECOVERY_KEY), presentations)
 
         moveToPaused(owner)
         assertRecoveryKeyHidden()
@@ -106,8 +110,35 @@ class VaultRecoveryPrivacyTest {
 
         moveToResumed(owner)
         assertRecoveryKeyHidden()
+        assertEquals(listOf(SYNTHETIC_RECOVERY_KEY), presentations)
         composeRule.onNodeWithText(context.getString(UiR.string.recovery_key_m142_show))
             .assertIsEnabled()
+    }
+
+    @Test
+    fun recoveryKeyReportsPresentationOnlyAfterExplicitShowWhileResumed() {
+        val owner = TestLifecycleOwner()
+        moveToResumed(owner)
+        moveToPaused(owner)
+        val expanded = mutableStateOf(false)
+        val presentations = mutableListOf<String>()
+
+        setRecoveryKeyContent(owner, expanded, presentations)
+
+        assertRecoveryKeyHidden()
+        assertTrue(presentations.isEmpty())
+
+        moveToResumed(owner)
+        assertRecoveryKeyHidden()
+        assertTrue(presentations.isEmpty())
+
+        composeRule.onNodeWithText(
+            InstrumentationRegistry.getInstrumentation().targetContext
+                .getString(UiR.string.recovery_key_m142_show),
+        ).performClick()
+
+        assertRecoveryKeyVisible()
+        assertEquals(listOf(SYNTHETIC_RECOVERY_KEY), presentations)
     }
 
     @Test
@@ -115,20 +146,192 @@ class VaultRecoveryPrivacyTest {
         val owner = TestLifecycleOwner()
         moveToResumed(owner)
         val compositionVisible = mutableStateOf(true)
-        setRecoveryKeyContent(owner, compositionVisible = compositionVisible)
+        val expanded = mutableStateOf(false)
+        val presentations = mutableListOf<String>()
+        setRecoveryKeyContent(owner, expanded, presentations, compositionVisible)
         val context = InstrumentationRegistry.getInstrumentation().targetContext
 
         composeRule.onNodeWithText(context.getString(UiR.string.recovery_key_m142_show))
             .performClick()
         assertRecoveryKeyVisible()
+        assertEquals(listOf(SYNTHETIC_RECOVERY_KEY), presentations)
 
         composeRule.runOnIdle { compositionVisible.value = false }
         assertRecoveryKeyAbsent()
         composeRule.runOnIdle { compositionVisible.value = true }
 
         assertRecoveryKeyHidden()
+        assertEquals(listOf(SYNTHETIC_RECOVERY_KEY), presentations)
         composeRule.onNodeWithText(context.getString(UiR.string.recovery_key_m142_show))
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun recoveryPresentationHistorySurvivesPauseWithoutReopeningKey() {
+        val owner = TestLifecycleOwner()
+        moveToResumed(owner)
+        val uiState = mutableStateOf(availableRecoveryState())
+        val actions = mutableListOf<RecoveryKeyUiAction>()
+        setVaultRecoveryContent(owner, uiState, actions)
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+        composeRule.onNodeWithText(context.getString(UiR.string.recovery_key_m142_show))
+            .performScrollTo().performClick()
+        assertRecoveryKeyVisible()
+        composeRule.onNode(checkboxMatcher()).performScrollTo().performClick()
+
+        composeRule.runOnIdle {
+            uiState.value = uiState.value.copy(operationState = VaultUiOperationState.Loading)
+        }
+        assertRecoveryKeyAbsent()
+        composeRule.runOnIdle {
+            uiState.value = uiState.value.copy(operationState = VaultUiOperationState.Success)
+        }
+        assertRecoveryKeyHidden()
+
+        moveToPaused(owner)
+        assertRecoveryKeyHidden()
+        moveToResumed(owner)
+        assertRecoveryKeyHidden()
+
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_continue))
+            .performScrollTo().performClick()
+
+        assertEquals(
+            listOf(
+                RecoveryKeyUiAction.ConfirmationChanged(true),
+                RecoveryKeyUiAction.Continue,
+            ),
+            actions,
+        )
+    }
+
+    @Test
+    fun firstRevealStillWorksAfterPauseAndResumeWithoutPriorShow() {
+        val owner = TestLifecycleOwner()
+        moveToResumed(owner)
+        val uiState = mutableStateOf(availableRecoveryState())
+        val actions = mutableListOf<RecoveryKeyUiAction>()
+        setVaultRecoveryContent(owner, uiState, actions)
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+        moveToPaused(owner)
+        moveToResumed(owner)
+        assertRecoveryKeyHidden()
+
+        composeRule.onNode(checkboxMatcher()).performScrollTo().performClick()
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_continue))
+            .performScrollTo().performClick()
+
+        assertEquals(
+            listOf(
+                RecoveryKeyUiAction.ConfirmationChanged(true),
+                RecoveryKeyUiAction.ConfirmationChanged(false),
+            ),
+            actions,
+        )
+        composeRule.onNodeWithText(SYNTHETIC_RECOVERY_KEY).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_reconfirm))
+            .performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun recoveryPresentationHistoryResetsWhenKeyChanges() {
+        val owner = TestLifecycleOwner()
+        moveToResumed(owner)
+        val uiState = mutableStateOf(availableRecoveryState().copy(isConfirmed = true))
+        val actions = mutableListOf<RecoveryKeyUiAction>()
+        setVaultRecoveryContent(owner, uiState, actions)
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+        composeRule.onNodeWithText(context.getString(UiR.string.recovery_key_m142_show))
+            .performScrollTo().performClick()
+        assertRecoveryKeyVisible()
+        composeRule.runOnIdle {
+            uiState.value = uiState.value.copy(
+                recoveryKey = SECOND_SYNTHETIC_RECOVERY_KEY,
+                isConfirmed = true,
+            )
+        }
+        assertRecoveryKeyHidden()
+
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_continue))
+            .performScrollTo().performClick()
+
+        assertEquals(
+            listOf(RecoveryKeyUiAction.ConfirmationChanged(false)),
+            actions,
+        )
+        composeRule.onNodeWithText(SECOND_SYNTHETIC_RECOVERY_KEY)
+            .performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_reconfirm))
+            .performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun recoveryPresentationHistoryResetsAfterCompositionDisposal() {
+        val owner = TestLifecycleOwner()
+        moveToResumed(owner)
+        val uiState = mutableStateOf(availableRecoveryState().copy(isConfirmed = true))
+        val actions = mutableListOf<RecoveryKeyUiAction>()
+        val compositionVisible = mutableStateOf(true)
+        setVaultRecoveryContent(owner, uiState, actions, compositionVisible)
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+        composeRule.onNodeWithText(context.getString(UiR.string.recovery_key_m142_show))
+            .performScrollTo().performClick()
+        assertRecoveryKeyVisible()
+        composeRule.runOnIdle { compositionVisible.value = false }
+        assertRecoveryKeyAbsent()
+        composeRule.runOnIdle { compositionVisible.value = true }
+        assertRecoveryKeyHidden()
+
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_continue))
+            .performScrollTo().performClick()
+
+        assertEquals(
+            listOf(RecoveryKeyUiAction.ConfirmationChanged(false)),
+            actions,
+        )
+        composeRule.onNodeWithText(SYNTHETIC_RECOVERY_KEY).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_reconfirm))
+            .performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun recoveryPresentationHistoryIsNotRestoredWithSavedInstanceState() {
+        val owner = TestLifecycleOwner()
+        moveToResumed(owner)
+        val state = mutableStateOf(availableRecoveryState().copy(isConfirmed = true))
+        val actions = mutableListOf<RecoveryKeyUiAction>()
+        val restoration = StateRestorationTester(composeRule)
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        restoration.setContent {
+            SafeCubeTheme(appearance = lightAppearance()) {
+                CompositionLocalProvider(LocalLifecycleOwner provides owner) {
+                    VaultRecoveryContent(
+                        uiState = state.value,
+                        onAction = { action ->
+                            actions += action
+                            if (action is RecoveryKeyUiAction.ConfirmationChanged) {
+                                state.value = state.value.copy(isConfirmed = action.isConfirmed)
+                            }
+                        },
+                    )
+                }
+            }
+        }
+        composeRule.onNodeWithText(context.getString(UiR.string.recovery_key_m142_show))
+            .performScrollTo().performClick()
+        assertRecoveryKeyVisible()
+
+        restoration.emulateSavedInstanceStateRestore()
+
+        assertRecoveryKeyHidden()
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_continue))
+            .performScrollTo().performClick()
+        assertEquals(listOf(RecoveryKeyUiAction.ConfirmationChanged(false)), actions)
+        assertRecoveryKeyVisible()
     }
 
     @Test
@@ -159,6 +362,9 @@ class VaultRecoveryPrivacyTest {
             context.getString(VaultR.string.vault_access_recovery_confirmation),
         ).performScrollTo().assertIsDisplayed()
         composeRule.onAllNodes(checkboxMatcher()).assertCountEquals(1)
+        composeRule.onNodeWithText(context.getString(UiR.string.recovery_key_m142_show))
+            .performScrollTo().performClick()
+        assertRecoveryKeyVisible()
         composeRule.onNode(checkboxMatcher()).performScrollTo().performClick()
 
         assertEquals(RecoveryKeyUiAction.ConfirmationChanged(true), actions.single())
@@ -178,27 +384,46 @@ class VaultRecoveryPrivacyTest {
 
     private fun setRecoveryKeyContent(
         owner: TestLifecycleOwner,
+        expanded: MutableState<Boolean>,
+        presentations: MutableList<String>,
         compositionVisible: MutableState<Boolean> = mutableStateOf(true),
     ) {
         composeRule.setContent {
             SafeCubeTheme(appearance = lightAppearance()) {
                 CompositionLocalProvider(LocalLifecycleOwner provides owner) {
                     if (compositionVisible.value) {
-                        SafeCubeRecoveryKey(value = SYNTHETIC_RECOVERY_KEY)
+                        SafeCubeRecoveryKey(
+                            value = SYNTHETIC_RECOVERY_KEY,
+                            expanded = expanded.value,
+                            onExpandedChange = { expanded.value = it },
+                            onPresented = { presentations += SYNTHETIC_RECOVERY_KEY },
+                        )
                     }
                 }
             }
         }
     }
 
-    private fun setVaultRecoveryContent(owner: TestLifecycleOwner) {
+    private fun setVaultRecoveryContent(
+        owner: TestLifecycleOwner,
+        uiState: MutableState<RecoveryKeyUiState> = mutableStateOf(availableRecoveryState()),
+        actions: MutableList<RecoveryKeyUiAction> = mutableListOf(),
+        compositionVisible: MutableState<Boolean> = mutableStateOf(true),
+    ) {
         composeRule.setContent {
             SafeCubeTheme(appearance = lightAppearance()) {
                 CompositionLocalProvider(LocalLifecycleOwner provides owner) {
-                    VaultRecoveryContent(
-                        uiState = availableRecoveryState(),
-                        onAction = {},
-                    )
+                    if (compositionVisible.value) {
+                        VaultRecoveryContent(
+                            uiState = uiState.value,
+                            onAction = { action ->
+                                actions += action
+                                if (action is RecoveryKeyUiAction.ConfirmationChanged) {
+                                    uiState.value = uiState.value.copy(isConfirmed = action.isConfirmed)
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -312,5 +537,6 @@ class VaultRecoveryPrivacyTest {
 
     private companion object {
         const val SYNTHETIC_RECOVERY_KEY = "DEMO-NOT-A-RECOVERY-KEY"
+        const val SECOND_SYNTHETIC_RECOVERY_KEY = "DEMO-NOT-A-RECOVERY-KEY-2"
     }
 }

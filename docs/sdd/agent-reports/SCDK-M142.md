@@ -95,14 +95,55 @@ An unavailable standalone emulator was replaced by the repository's managed API-
 No new commit requested or performed for this refinement.
 
 - Domain state machines, actions/events, crypto and persistence remain unchanged.
-- Reveal is presentation-only; no new requirement to reveal before confirmation.
+- Reveal is presentation-only; the subsequent owner-approved interaction guard below requires
+  presentation before dispatching confirmation.
 - Verification will be centralized to avoid concurrent Gradle artifact mutation.
 - Shared dialog adds optional `showDismissAction` and `onDismissRequest` parameters, retaining
   all defaults. This preserves a single-action lock notice and separates explicit decline from
   system back/outside dismissal for the quick-unlock offer. Two regression tests added.
 - Version increment: `0.5.0-rc.7` / `28`, above updated main's rc.6 / 27.
 
+### Owner-approved reveal-before-confirmation follow-up
+
+The owner replaced the earlier optional-reveal decision with a screen-local interaction guard.
+`SafeCubeRecoveryKey` now retains its uncontrolled API and adds a controlled overload reporting
+actual RESUMED presentation. `RecoveryKeyContent` keeps non-saveable expansion, presentation
+history and renewed-confirmation state keyed by the available recovery value. Premature Continue
+dispatches only `ConfirmationChanged(false)`, expands/scrolls to the card and adds a polite
+EN/ES inline live-region instruction. A second tap with stale confirmed state cannot bypass the
+renewed checkbox requirement. No banner, timer, required scrolling or keyboard request was added.
+Manual reveal followed by hide permits confirmation; pause hides without reopening while
+retaining history. Recreation, exit and key replacement reset it. No ViewModel, route, crypto or
+pending-record deletion contract changed. Interaction does not prove reading or safe storage.
+
+Changed files: shared recovery component; Recovery screen; EN/ES creation resources; recovery,
+access and resilience instrumented tests; presentation contract and traceability. Current checks:
+`:core:ui:testDebugUnitTest`, `:feature:vault:testDebugUnitTest` and
+`:app:compileDebugAndroidTestKotlin` PASS. Initial KSP ZIP cache failure resolved by the same
+narrow invocation with `--no-build-cache`; no source workaround or suppression was added.
+`ciVerify` PASS (1m48s), including JVM tests, lint, Kover, release and all 57 visual references.
+Its first invocation found two outdated Recovery references from the owner's existing warning
+banner/padding changes; both were inspected and updated, with plaintext still absent. No other
+reference changed. The first 25-test managed run exposed a lifecycle suppression bug preventing
+explicit Show after foregrounding, plus one legacy test expecting Continue without reveal. Both
+were corrected; regression coverage now also checks automatic first reveal after pause/resume
+and saved-instance restoration. Final managed API-30 rerun PASS: 27 tests, zero failures or skips,
+1m19s (`VaultRecoveryPrivacyTest`, `VaultAccessSemanticsTest`, `ResilienceUiStateTest`).
+Evidence: `app/build/reports/androidTests/managedDevice/debug/allDevices/index.html` and
+`app/build/reports/screenshotTest/preview/debug/index.html`. `git diff --check` PASS.
+No commit was created for this follow-up. Manual TalkBack remains pending for overall M142.
+
 ## Risks
+
+Recovery emphasis follow-up: escaped the EN/ES reconfirmation resource's HTML tags so Android
+does not strip them before the existing `AnnotatedString.fromHtml` rendering in the dialog and
+inline instruction. Wording and emphasized spans are preserved.
+
+Subsequent owner request: premature Continue also opens the shared single-action reminder dialog
+(EN/ES), with the existing reconfirmation instruction. Acknowledgement/back only dismisses the
+reminder; confirmation, cleanup and navigation are unchanged. The prior 27-test/CI results above
+precede this popup refinement; instrumented interactions must now dismiss the reminder before
+accessing the underlying screen. Full instrumented/CI verification has not been repeated for it.
 
 Human TalkBack and visual acceptance must be recorded separately from automated evidence.
 

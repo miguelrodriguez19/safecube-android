@@ -26,8 +26,9 @@ Supporting error slots remain structurally stable while editing to preserve focu
 - Recovery starts hidden; explicit Show/Hide is ephemeral, never restored and limited to RESUMED.
   Pause, exit or recreation hides it without an exit animation. Hidden content is absent from
   merged/unmerged accessibility semantics, not merely visually obscured.
-- Confirmation does not require showing the key first. Existing confirmation and verified deletion
-  remain authoritative; no new clipboard, export, screenshot or persistence capability is added.
+- Confirmation requires the key to have been presented during this screen instance. Existing
+  confirmation and verified deletion remain authoritative; no new clipboard, export, screenshot
+  or persistence capability is added.
 - PostLoginGate preserves Retry for all non-loading errors that currently offer it, including
   terminal-classified failures. Visual classification must not change recovery or route policies.
 - The Android biometric/device-credential dialog remains system-owned. Presentation preserves
@@ -39,9 +40,24 @@ The owner selected the compact expandable proposal. Its outlined header contains
 key icon, the recovery-key title, Show/Hide and a decorative chevron. The entire header is one
 labeled button with a visibility state for assistive technology. No visible "Hidden" status or
 "Demonstration only" subtitle is rendered. Large text moves the action onto a second header row.
-Only explicit reveal inserts the monospaced value panel; hiding or lifecycle removal unmounts it
+Manual reveal or an explicit premature Continue inserts the monospaced value panel; hiding or lifecycle removal unmounts it
 immediately without an exit animation. The concise safety warning appears below the card, followed
 by the existing confirmation and Continue action. Storage/confirmation behavior is unchanged.
+
+If Continue is pressed with the checkbox checked before the key has actually been presented,
+the screen sends only `ConfirmationChanged(false)`, expands and scrolls to the card, and announces
+localized inline guidance beside the confirmation. The owner's subsequent refinement also opens
+a localized reminder dialog, "Important: save your recovery key", with a single "Got it" action.
+Dismissing it never confirms recovery or navigates; the checkbox must still be marked again.
+It sends no `Continue`, so pending-record
+cleanup and navigation cannot start. The user must check the confirmation again before proceeding.
+There is no timer or required scrolling, and this interaction cannot prove reading or secure storage.
+
+Presentation is recorded only when the nonempty value is composed while RESUMED. Manually hiding
+the card does not discard that history. Pause immediately hides the key and does not reopen it
+on resume, but retains the history. Exit, recreation or replacement of the available key resets
+both presentation states; neither is saveable. Loading, retry and verified cleanup keep their
+existing ViewModel contract. Automatic expansion does not request keyboard focus or change routes.
 
 ## Evidence policy
 

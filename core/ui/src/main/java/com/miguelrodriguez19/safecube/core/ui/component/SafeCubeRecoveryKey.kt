@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,13 +54,37 @@ fun SafeCubeRecoveryKey(
     value: String,
     modifier: Modifier = Modifier,
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
     var revealRequested by remember(value) { mutableStateOf(false) }
+    SafeCubeRecoveryKey(value, revealRequested, { revealRequested = it }, {}, modifier)
+}
+
+/** Controlled variant; presentation is reported only while the host is resumed. */
+@Composable
+fun SafeCubeRecoveryKey(
+    value: String,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onPresented: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val changeExpanded by rememberUpdatedState(onExpandedChange)
+    val presented by rememberUpdatedState(onPresented)
+    val requestedExpansion by rememberUpdatedState(expanded)
+    var suppressed by remember(value) { mutableStateOf(false) }
     var lifecycleState by remember(lifecycleOwner) {
         mutableStateOf(lifecycleOwner.lifecycle.currentState)
     }
     val isHostResumed = lifecycleState.isAtLeast(Lifecycle.State.RESUMED)
-    val isRevealed = value.isNotBlank() && revealRequested && isHostResumed
+    val isRevealed = value.isNotBlank() && expanded && isHostResumed && !suppressed
+    LaunchedEffect(expanded, value) {
+        if (!expanded) suppressed = false
+    }
+    LaunchedEffect(isRevealed, value) {
+        if (isRevealed && lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            presented()
+        }
+    }
     val title = stringResource(R.string.recovery_key_m142_title)
     val showLabel = stringResource(R.string.recovery_key_m142_show)
     val hideLabel = stringResource(R.string.recovery_key_m142_hide)
@@ -80,12 +106,16 @@ fun SafeCubeRecoveryKey(
         val observer = LifecycleEventObserver { _, event ->
             lifecycleState = lifecycleOwner.lifecycle.currentState
             if (event == Lifecycle.Event.ON_PAUSE || !lifecycleState.isAtLeast(Lifecycle.State.RESUMED)) {
-                revealRequested = false
+                suppressed = true
+                changeExpanded(false)
+            } else if (!requestedExpansion) {
+                suppressed = false
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
-            revealRequested = false
+            suppressed = true
+            changeExpanded(false)
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
@@ -112,7 +142,10 @@ fun SafeCubeRecoveryKey(
                         role = Role.Button,
                         onClickLabel = toggleLabel,
                     ) {
-                        if (isHostResumed && value.isNotBlank()) revealRequested = !revealRequested
+                        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && value.isNotBlank()) {
+                            suppressed = false
+                            changeExpanded(!isRevealed)
+                        }
                     }
                     .semantics {
                         stateDescription = if (isRevealed) visibleState else hiddenState
@@ -153,7 +186,7 @@ fun SafeCubeRecoveryKey(
                     color = MaterialTheme.colorScheme.surfaceContainer,
                 ) {
                     Box(
-                        modifier = modifier
+                        modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                             .padding(horizontal = 12.dp, vertical = 8.dp)

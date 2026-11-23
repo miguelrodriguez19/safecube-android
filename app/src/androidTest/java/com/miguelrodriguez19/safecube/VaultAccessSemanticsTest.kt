@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
@@ -16,6 +17,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -159,7 +161,7 @@ class VaultAccessSemanticsTest {
     }
 
     @Test
-    fun recoveryKeyRemainsHiddenAcrossConfirmationAndContinue() {
+    fun recoveryContinueRequiresRevealAndSecondConfirmation() {
         val actions = mutableListOf<RecoveryKeyUiAction>()
 
         setThemedContent {
@@ -197,6 +199,81 @@ class VaultAccessSemanticsTest {
         composeRule.onNodeWithText(
             targetContext().getString(VaultR.string.vault_access_recovery_continue),
         ).assertIsEnabled().performClick()
+
+        assertEquals(
+            listOf(
+                RecoveryKeyUiAction.ConfirmationChanged(true),
+                RecoveryKeyUiAction.ConfirmationChanged(false),
+            ),
+            actions,
+        )
+        composeRule.onNodeWithText(DEMO_NOT_A_RECOVERY_KEY).assertIsDisplayed()
+        composeRule.onNodeWithText(
+            targetContext().getString(VaultR.string.vault_access_recovery_reconfirm),
+        ).assertIsDisplayed()
+
+        composeRule.onNodeWithText(targetContext().getString(UiR.string.recovery_key_m142_hide))
+            .performClick()
+        assertSecretHidden(DEMO_NOT_A_RECOVERY_KEY)
+        composeRule.onNode(
+            SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Checkbox),
+        ).performClick()
+        composeRule.onNodeWithText(
+            targetContext().getString(VaultR.string.vault_access_recovery_reconfirm),
+        ).assertDoesNotExist()
+        composeRule.onNodeWithText(
+            targetContext().getString(VaultR.string.vault_access_recovery_continue),
+        ).performClick()
+
+        assertEquals(
+            listOf(
+                RecoveryKeyUiAction.ConfirmationChanged(true),
+                RecoveryKeyUiAction.ConfirmationChanged(false),
+                RecoveryKeyUiAction.ConfirmationChanged(true),
+                RecoveryKeyUiAction.Continue,
+            ),
+            actions,
+        )
+        assertSecretHidden(DEMO_NOT_A_RECOVERY_KEY)
+    }
+
+    @Test
+    fun manualShowThenHideAllowsConfirmedContinue() {
+        val actions = mutableListOf<RecoveryKeyUiAction>()
+
+        setThemedContent {
+            var state by remember {
+                mutableStateOf(
+                    RecoveryKeyUiState(
+                        recoveryKey = DEMO_NOT_A_RECOVERY_KEY,
+                        operationState = VaultUiOperationState.Success,
+                    ),
+                )
+            }
+            VaultRecoveryContent(
+                uiState = state,
+                onAction = { action ->
+                    actions += action
+                    if (action is RecoveryKeyUiAction.ConfirmationChanged) {
+                        state = state.copy(isConfirmed = action.isConfirmed)
+                    }
+                },
+            )
+        }
+
+        composeRule.onNodeWithText(targetContext().getString(UiR.string.recovery_key_m142_show))
+            .performScrollTo().performClick()
+        composeRule.onNodeWithText(DEMO_NOT_A_RECOVERY_KEY).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(targetContext().getString(UiR.string.recovery_key_m142_hide))
+            .performScrollTo().performClick()
+        assertSecretHidden(DEMO_NOT_A_RECOVERY_KEY)
+
+        composeRule.onNode(
+            SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Checkbox),
+        ).performScrollTo().performClick()
+        composeRule.onNodeWithText(
+            targetContext().getString(VaultR.string.vault_access_recovery_continue),
+        ).performScrollTo().performClick()
 
         assertEquals(
             listOf(
@@ -436,6 +513,15 @@ class VaultAccessSemanticsTest {
         val spanishContext = targetContext().createConfigurationContext(configuration)
         val actions = mutableListOf<RecoveryKeyUiAction>()
         composeRule.setContent {
+            var state by remember {
+                mutableStateOf(
+                    RecoveryKeyUiState(
+                        recoveryKey = DEMO_NOT_A_RECOVERY_KEY,
+                        operationState = VaultUiOperationState.Success,
+                        isConfirmed = true,
+                    ),
+                )
+            }
             val density = androidx.compose.ui.platform.LocalDensity.current.density
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.ui.platform.LocalContext provides spanishContext,
@@ -444,12 +530,13 @@ class VaultAccessSemanticsTest {
             ) {
                 SafeCubeTheme(appearance = AppearanceSettings(mode = AppearanceMode.Dark)) {
                     VaultRecoveryContent(
-                        uiState = RecoveryKeyUiState(
-                            recoveryKey = DEMO_NOT_A_RECOVERY_KEY,
-                            operationState = VaultUiOperationState.Success,
-                            isConfirmed = true,
-                        ),
-                        onAction = actions::add,
+                        uiState = state,
+                        onAction = { action ->
+                            actions += action
+                            if (action is RecoveryKeyUiAction.ConfirmationChanged) {
+                                state = state.copy(isConfirmed = action.isConfirmed)
+                            }
+                        },
                     )
                 }
             }
@@ -463,7 +550,18 @@ class VaultAccessSemanticsTest {
             .performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText(spanishContext.getString(VaultR.string.vault_access_recovery_continue))
             .performScrollTo().assertIsEnabled().performClick()
-        assertEquals(listOf(RecoveryKeyUiAction.Continue), actions)
+        assertEquals(listOf(RecoveryKeyUiAction.ConfirmationChanged(false)), actions)
+        composeRule.onNodeWithText(spanishContext.getString(VaultR.string.vault_access_recovery_reconfirm))
+            .performScrollTo().assertIsDisplayed()
+        composeRule.onNode(
+            hasText(spanishContext.getString(VaultR.string.vault_access_recovery_reconfirm)) and
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.LiveRegion,
+                    LiveRegionMode.Polite,
+                ),
+            useUnmergedTree = true,
+        ).assertExists()
+        composeRule.onNodeWithText(DEMO_NOT_A_RECOVERY_KEY).performScrollTo().assertIsDisplayed()
     }
 
     private fun assertSecretField(label: Int, marker: String?) {
