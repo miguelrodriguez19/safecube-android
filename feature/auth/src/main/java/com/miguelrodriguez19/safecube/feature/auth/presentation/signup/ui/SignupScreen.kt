@@ -298,7 +298,9 @@ private fun ColumnScope.SignupFields(
         enabled = !isLoading,
         isError = uiState.confirmPasswordErrorRes != null,
         errorMessage = uiState.confirmPasswordErrorRes?.let { stringResource(it) },
-        supportingText = uiState.confirmPasswordErrorRes?.let { { Text(stringResource(it)) } },
+        supportingText = {
+            uiState.confirmPasswordErrorRes?.let { Text(stringResource(it)) }
+        },
         allowReveal = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Password,

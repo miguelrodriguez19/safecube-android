@@ -482,6 +482,100 @@ class AuthEntrySemanticsTest {
     }
 
     @Test
+    fun signupEntryDeclaresPageAndPrioritizesHeadingWithoutFocusingSubmit() {
+        composeRule.setContent { AuthTestTheme {
+            var signup by remember { mutableStateOf(false) }
+            if (signup) {
+                AuthSignupContent(
+                    uiState = SignupUiState(),
+                    onAction = {},
+                    onLogin = {},
+                    focusEffectsEnabled = true,
+                )
+            } else {
+                WelcomeScreen(onLogin = {}, onSignup = { signup = true })
+            }
+        } }
+
+        composeRule.onNodeWithTag(AuthTestTags.WELCOME_SIGNUP_ACTION)
+            .performScrollTo().performClick()
+
+        val title = targetContext().getString(AuthR.string.auth_signup_title)
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_SCREEN)
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.PaneTitle, title))
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.IsTraversalGroup, true))
+        composeRule.onNodeWithText(title)
+            .assertIsDisplayed()
+            .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.TraversalIndex, -1f))
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_SUBMIT).assertIsNotFocused()
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_EMAIL).assertIsNotFocused()
+    }
+
+    @Test
+    fun signupMismatchCorrectionKeepsKeyboardOpenAfterFirstCharacter() {
+        lateinit var hostView: android.view.View
+        composeRule.setContent { AuthTestTheme {
+            hostView = androidx.compose.ui.platform.LocalView.current
+            var state by remember { mutableStateOf(SignupUiState(
+                email = "person@example.com",
+                operationState = AuthUiOperationState.ValidationError,
+                confirmPasswordErrorRes = UiR.string.passwords_do_not_match,
+            )) }
+            AuthSignupContent(
+                uiState = state,
+                focusEffectsEnabled = true,
+                onAction = { action ->
+                    if (action is SignupUiAction.ConfirmPasswordChanged) {
+                        state = state.copy(
+                            confirmPassword = action.value,
+                            operationState = AuthUiOperationState.Idle,
+                            confirmPasswordErrorRes = null,
+                        )
+                    }
+                },
+                onLogin = {},
+            )
+        } }
+
+        waitForFocus(AuthTestTags.SIGNUP_CONFIRM_PASSWORD)
+        composeRule.waitUntil(5_000) {
+            hostView.rootWindowInsets?.isVisible(android.view.WindowInsets.Type.ime()) == true
+        }
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_CONFIRM_PASSWORD).performTextInput("a")
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_CONFIRM_PASSWORD).assertIsFocused()
+        composeRule.waitUntil(5_000) {
+            hostView.rootWindowInsets?.isVisible(android.view.WindowInsets.Type.ime()) == true
+        }
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_CONFIRM_PASSWORD).performTextInput("b")
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_CONFIRM_PASSWORD).assertIsFocused()
+    }
+
+    @Test
+    fun signupMismatchReturnsToConfirmationWithFieldError() {
+        composeRule.setContent { AuthTestTheme {
+            AuthSignupContent(
+                uiState = SignupUiState(
+                    email = "person@example.com",
+                    operationState = AuthUiOperationState.ValidationError,
+                    confirmPasswordErrorRes = UiR.string.passwords_do_not_match,
+                ),
+                focusEffectsEnabled = true,
+                onAction = {},
+                onLogin = {},
+            )
+        } }
+
+        waitForFocus(AuthTestTags.SIGNUP_CONFIRM_PASSWORD)
+        composeRule.onNodeWithTag(AuthTestTags.SIGNUP_CONFIRM_PASSWORD)
+            .assert(SemanticsMatcher.expectValue(
+                SemanticsProperties.Error,
+                targetContext().getString(UiR.string.passwords_do_not_match),
+            ))
+    }
+
+    @Test
     fun signupValidationFocusesEmailAndDoesNotStealFocusWhileCorrectingIt() {
         composeRule.setContent { AuthTestTheme {
             var state by remember {

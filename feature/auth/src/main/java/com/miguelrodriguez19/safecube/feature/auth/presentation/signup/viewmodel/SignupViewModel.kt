@@ -130,7 +130,9 @@ class SignupViewModel @Inject constructor(
                     passwordErrorRes = passwordErrorRes,
                     confirmPasswordErrorRes = confirmPasswordErrorRes,
                     errorMessageRes = null,
-                    password = "",
+                    password = password.takeIf {
+                        confirmPasswordErrorRes == UiR.string.passwords_do_not_match
+                    }.orEmpty(),
                     confirmPassword = "",
                 )
             }

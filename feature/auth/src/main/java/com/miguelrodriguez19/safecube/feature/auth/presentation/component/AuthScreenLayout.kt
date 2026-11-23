@@ -16,7 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeScaffold
 import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeSpacing
@@ -28,7 +31,10 @@ internal fun AuthScreenLayout(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    SafeCubeScaffold(modifier = modifier) {
+    SafeCubeScaffold(modifier = modifier.semantics {
+        isTraversalGroup = true
+        if (title.isNotBlank()) paneTitle = title
+    }) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -47,7 +53,10 @@ internal fun AuthScreenLayout(
                         Text(
                             text = title,
                             style = MaterialTheme.typography.headlineMedium,
-                            modifier = Modifier.semantics { heading() },
+                            modifier = Modifier.semantics {
+                                heading()
+                                traversalIndex = -1f
+                            },
                         )
                     }
                     if (subtitle.isNotBlank()) {

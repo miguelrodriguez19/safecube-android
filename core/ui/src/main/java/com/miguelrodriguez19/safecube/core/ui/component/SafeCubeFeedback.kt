@@ -29,7 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -74,12 +73,9 @@ fun SafeCubeBanner(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = !announceState) {
+            .semantics(mergeDescendants = true) {
                 if (announceState && liveRegionMode != null) {
                     liveRegion = liveRegionMode
-                }
-                if (announceState) {
-                    stateDescription = stateLabel
                 }
             },
         color = palette.container,
@@ -109,11 +105,6 @@ fun SafeCubeBanner(
                     Text(
                         text = stateLabel,
                         style = MaterialTheme.typography.labelLarge,
-                        modifier = if (announceState) {
-                            Modifier.clearAndSetSemantics {}
-                        } else {
-                            Modifier
-                        },
                     )
                     Text(
                         text = message,
@@ -339,9 +330,8 @@ private fun SafeCubeStateSurface(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .semantics {
+            .semantics(mergeDescendants = true) {
                 liveRegion = LiveRegionMode.Polite
-                stateDescription = stateLabel
             },
         color = palette.container,
         contentColor = palette.content,
@@ -366,7 +356,6 @@ private fun SafeCubeStateSurface(
                 Text(
                     text = stateLabel,
                     style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.clearAndSetSemantics {},
                 )
             }
             Text(

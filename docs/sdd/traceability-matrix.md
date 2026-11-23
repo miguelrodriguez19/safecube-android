@@ -65,7 +65,7 @@ AC: [agent report M141](agent-reports/SCDK-M141.md).
 | Requisito | Implementación M141 | Evidencia |
 | --- | --- | --- |
 | `FR-UI-003` | Welcome/Login/Signup consumen scaffold, campos, botones y feedback canónicos | Contenido real con estado inyectado, pruebas Compose y goldens |
-| `NFR-UI-002/003` | Scroll, IME, foco por error, orden de campos, headings y acciones etiquetadas; reassurance de Welcome estática, agrupada y sin anuncios de estado | `AuthEntrySemanticsTest` (incluye `welcomeReassuranceIsStaticReadableContentWithoutStatusAnnouncements`), adaptación 200%/landscape; TalkBack manual según informe |
+| `NFR-UI-002/003` | Scroll, IME, foco por error, orden de campos, headings y acciones etiquetadas; Welcome estática; panel y encabezado prioritario; mismatch conserva contraseña, limpia solo confirmación y devuelve foco a confirmación, sin banner | `AuthEntrySemanticsTest` (Welcome, entrada Signup y mismatch), adaptación 200%/landscape; `SignupViewModelTest` verifica limpieza de confirmación; TalkBack manual según informe |
 | `NFR-UI-004` | Recursos auth EN/ES; contraseña de cuenta distinta de passphrase | `DesignSystemContractTest`, previews localizados y revisión de copy |
 | `NFR-UI-005` | Diez goldens seleccionados, separados de previews de desarrollo | `AuthScreenshotTest`, gate visual read-only y revisión PNG |
 | `SEC-UI-001` / `SEC-PRIVACY-001` | Campos secretos canónicos, reveal efímero y fixtures sintéticos | Tests merged/unmerged, política de fuentes y regresiones de Fase 7 |
@@ -141,6 +141,15 @@ modificados. Tests de `core:ui` y procesamiento de recursos debug/release PASS; 
 La adopción se limita al shell y splash. Las pantallas conservan sus owners M141–M145; M146/M147
 mantienen auditoría y verificación agregada. No se cambia la política de acceso ni se declara
 verificada toda la spec por esta tarea.
+
+Regresión Signup M141 (2026-11-11): `signupMismatchCorrectionKeepsKeyboardOpenAfterFirstCharacter`
+reproduce la pérdida de foco al quitar el error y verifica su corrección manteniendo estable el
+slot de supporting text de confirmación, sin forzar foco por cada tecla.
+
+Revisión TalkBack M141 (2026-11-23): banners y superficies de estado de `SafeCubeFeedback`
+agrupan etiqueta/título/mensaje y eliminan la descripción de variante redundante. Se mantienen
+live regions dinámicas, opt-out estático de Welcome y acciones independientes. Evidencia:
+`ComposeDesignSystemFeedbackTest`, variantes y cuadros retryable/terminal.
 
 ### Componentes reutilizables SCDK-M139 — 2026-11-03
 

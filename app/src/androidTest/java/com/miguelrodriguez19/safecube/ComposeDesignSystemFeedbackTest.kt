@@ -114,12 +114,15 @@ class ComposeDesignSystemFeedbackTest {
             }
         }
 
-        variants.forEach { (_, label) ->
+        variants.forEach { (variant, label) ->
             composeRule.onNodeWithContentDescription(label).assertDoesNotExist()
             composeRule.onNode(
                 SemanticsMatcher.expectValue(
-                    SemanticsProperties.StateDescription,
-                    label,
+                    SemanticsProperties.Text,
+                    listOf(
+                        androidx.compose.ui.text.AnnotatedString(label),
+                        androidx.compose.ui.text.AnnotatedString("Synthetic ${variant.name} message"),
+                    ),
                 ),
             ).performScrollTo().assertIsDisplayed()
         }
@@ -129,6 +132,10 @@ class ComposeDesignSystemFeedbackTest {
                 LiveRegionMode.Polite,
             ),
         ).assertCountEquals(variants.size)
+        composeRule.onAllNodes(
+            SemanticsMatcher.keyIsDefined(SemanticsProperties.StateDescription),
+            useUnmergedTree = true,
+        ).assertCountEquals(0)
     }
 
     @Test
@@ -311,6 +318,12 @@ class ComposeDesignSystemFeedbackTest {
             .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
         composeRule.onNodeWithText("Synthetic terminal error")
             .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
+        composeRule.onNodeWithText("Synthetic retryable error")
+            .assert(hasText("The synthetic operation can be retried"))
+        composeRule.onAllNodes(
+            SemanticsMatcher.keyIsDefined(SemanticsProperties.StateDescription),
+            useUnmergedTree = true,
+        ).assertCountEquals(0)
 
         composeRule.onNodeWithText("Create item")
             .assertIsEnabled()

@@ -27,6 +27,15 @@ submit path. Errors are associated with their fields; global feedback is reserve
 operation context. Validation returns focus to the first invalid field. Invalid credentials return
 focus to password. Focus effects react to outcomes, not ordinary recomposition.
 
+Account pages declare an accessibility pane title and traversal group, with the page heading
+prioritized before the form. This introduces the new page without requesting input focus or
+opening the keyboard. On password mismatch, Signup preserves the account password, clears only
+confirmation and returns correction focus to confirmation. The confirmation field exposes the
+localized mismatch error. No global banner is shown for this field validation. This behavior
+supersedes the previous cleanup on mismatch by explicit owner instruction on 2026-11-11.
+Confirmation keeps a stable supporting-text slot when its error clears, so typing the first
+correction character does not remove input focus or close the IME.
+
 Only account fields declare credential autofill semantics. Login uses an existing password;
 Signup uses a new password, including confirmation. Secret fields remain masked by default and
 use the canonical opt-in reveal policy. No password, confirmation or reveal value is saved in
