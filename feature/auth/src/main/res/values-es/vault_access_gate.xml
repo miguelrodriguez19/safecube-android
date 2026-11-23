@@ -1,0 +1,5 @@
+<resources>
+    <string name="vault_access_gate_title">Acceso a la bóveda</string>
+    <string name="vault_access_gate_retryable_title">Inténtalo de nuevo</string>
+    <string name="vault_access_gate_terminal_title">Revisa el acceso a la bóveda</string>
+</resources>

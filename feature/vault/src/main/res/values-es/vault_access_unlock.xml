@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vault_access_unlock_title">Desbloquear bóveda</string>
+    <string name="vault_access_unlock_subtitle">Ya has iniciado sesión en tu cuenta. Usa la frase de contraseña de la bóveda para desbloquear tus elementos cifrados. Es distinta de la contraseña de tu cuenta.</string>
+    <string name="vault_access_unlock_field_label">Frase de contraseña de la bóveda</string>
+    <string name="vault_access_unlock_field_supporting">La contraseña de tu cuenta no desbloquea la bóveda.</string>
+    <string name="vault_access_unlock_passphrase_required">Introduce la frase de contraseña de tu bóveda.</string>
+    <string name="vault_access_unlock_action">Desbloquear bóveda</string>
+    <string name="vault_access_unlock_loading">Desbloqueando bóveda…</string>
+    <string name="vault_access_unlock_retry_title">No se ha podido confirmar el desbloqueo</string>
+    <string name="vault_access_unlock_error_title">No se ha podido desbloquear la bóveda</string>
+    <string name="vault_access_unlock_quick_unlock_offer_title">¿Activar el desbloqueo rápido?</string>
+    <string name="vault_access_unlock_quick_unlock_offer_description">Usa biometría fuerte o el PIN, patrón o contraseña de tu dispositivo para desbloquear esta bóveda. No es un PIN de SafeCube.</string>
+    <string name="vault_access_unlock_quick_unlock_enable">Activar</string>
+    <string name="vault_access_unlock_quick_unlock_not_now">Ahora no</string>
+    <string name="vault_access_unlock_quick_unlock_retry">Intentar de nuevo el desbloqueo rápido</string>
+    <string name="vault_access_unlock_understood">Entendido</string>
+</resources>

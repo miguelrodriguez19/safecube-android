@@ -1,38 +1,54 @@
 package com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.miguelrodriguez19.safecube.core.ui.R as UiR
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeBanner
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeBannerVariant
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeButton
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeButtonVariant
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeConfirmationDialog
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeRetryableError
+import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeTerminalError
 import com.miguelrodriguez19.safecube.core.ui.component.SecretOutlinedTextField
+import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceMode
+import com.miguelrodriguez19.safecube.core.ui.theme.AppearanceSettings
+import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeTheme
+import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeSpacing
 import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultLockReason
-import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.action.UnlockVaultUiAction
-import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.event.UnlockVaultUiEvent
+import com.miguelrodriguez19.safecube.feature.vault.R
+import com.miguelrodriguez19.safecube.feature.vault.presentation.component.VaultAccessLayout
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.findFragmentActivity
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.launchQuickUnlockPrompt
 import com.miguelrodriguez19.safecube.feature.vault.presentation.quickunlock.quickUnlockPromptCipherProvider
+import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.action.UnlockVaultUiAction
+import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.event.UnlockVaultUiEvent
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.state.UnlockVaultUiState
 import com.miguelrodriguez19.safecube.feature.vault.presentation.unlock.viewmodel.UnlockVaultViewModel
 import kotlinx.coroutines.awaitCancellation
@@ -112,119 +128,187 @@ fun UnlockVaultScreen(
 }
 
 @Composable
-private fun UnlockVaultContent(
+internal fun UnlockVaultContent(
     uiState: UnlockVaultUiState,
     onAction: (UnlockVaultUiAction) -> Unit,
+    focusEffectsEnabled: Boolean = true,
 ) {
+    val isInvalidPassphrase = uiState.errorMessageRes == UiR.string.vault_error_invalid_passphrase
+    val passphraseErrorMessage = when {
+        uiState.passphraseErrorRes == UiR.string.password_is_required ->
+            stringResource(R.string.vault_access_unlock_passphrase_required)
+
+        uiState.passphraseErrorRes != null -> stringResource(uiState.passphraseErrorRes)
+        isInvalidPassphrase -> stringResource(UiR.string.vault_error_invalid_passphrase)
+        else -> null
+    }
+    val passphraseFocusRequester = remember { FocusRequester() }
+    val passphraseBringIntoViewRequester = remember { BringIntoViewRequester() }
+    val windowFocused = LocalWindowInfo.current.isWindowFocused
+    val isInspectionMode = LocalInspectionMode.current
+
+    LaunchedEffect(
+        focusEffectsEnabled,
+        passphraseErrorMessage,
+        uiState.isLoading,
+        uiState.lockReason,
+        uiState.showQuickUnlockOffer,
+        windowFocused,
+        isInspectionMode,
+    ) {
+        if (
+            !focusEffectsEnabled ||
+            isInspectionMode ||
+            !windowFocused ||
+            passphraseErrorMessage == null ||
+            uiState.isLoading ||
+            uiState.lockReason != null ||
+            uiState.showQuickUnlockOffer
+        ) {
+            return@LaunchedEffect
+        }
+
+        withFrameNanos { }
+        if (windowFocused && uiState.lockReason == null && !uiState.showQuickUnlockOffer) {
+            passphraseFocusRequester.requestFocus()
+            passphraseBringIntoViewRequester.bringIntoView()
+        }
+    }
+
     uiState.lockReason?.let { lockReason ->
-        AlertDialog(
+        SafeCubeConfirmationDialog(
+            title = stringResource(lockReason.titleRes()),
+            message = stringResource(lockReason.messageRes()),
+            confirmLabel = stringResource(R.string.vault_access_unlock_understood),
+            onConfirm = { onAction(UnlockVaultUiAction.DismissLockNotice) },
+            onDismiss = { onAction(UnlockVaultUiAction.DismissLockNotice) },
+            showDismissAction = false,
             onDismissRequest = { onAction(UnlockVaultUiAction.DismissLockNotice) },
-            title = {
-                Text(stringResource(lockReason.titleRes()))
-            },
-            text = {
-                Text(stringResource(lockReason.messageRes()))
-            },
-            confirmButton = {
-                TextButton(onClick = { onAction(UnlockVaultUiAction.DismissLockNotice) }) {
-                    Text(stringResource(UiR.string.action_understood))
-                }
-            },
         )
     }
     if (uiState.lockReason == null && uiState.showQuickUnlockOffer) {
-        AlertDialog(
+        SafeCubeConfirmationDialog(
+            title = stringResource(R.string.vault_access_unlock_quick_unlock_offer_title),
+            message = stringResource(R.string.vault_access_unlock_quick_unlock_offer_description),
+            confirmLabel = stringResource(R.string.vault_access_unlock_quick_unlock_enable),
+            onConfirm = { onAction(UnlockVaultUiAction.EnableQuickUnlock) },
+            onDismiss = { onAction(UnlockVaultUiAction.DeclineQuickUnlock) },
+            dismissLabel = stringResource(R.string.vault_access_unlock_quick_unlock_not_now),
             onDismissRequest = {},
-            title = { Text(stringResource(UiR.string.quick_unlock_offer_title)) },
-            text = { Text(stringResource(UiR.string.quick_unlock_offer_description)) },
-            confirmButton = {
-                TextButton(onClick = { onAction(UnlockVaultUiAction.EnableQuickUnlock) }) {
-                    Text(stringResource(UiR.string.quick_unlock_enable))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { onAction(UnlockVaultUiAction.DeclineQuickUnlock) }) {
-                    Text(stringResource(UiR.string.quick_unlock_not_now))
-                }
-            },
         )
     }
-    Scaffold(
-        topBar = {
-            Surface(
-                shadowElevation = 2.dp,
-                modifier = Modifier.statusBarsPadding(),
-            ) {
-                Text(
-                    text = stringResource(UiR.string.vault_unlock_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                )
-            }
-        },
-    ) { paddingValues ->
-        Column(
+
+    VaultAccessLayout(
+        title = stringResource(R.string.vault_access_unlock_title),
+        subtitle = stringResource(R.string.vault_access_unlock_subtitle),
+    ) {
+        SecretOutlinedTextField(
+            value = uiState.passphrase,
+            onValueChange = {
+                if (!uiState.isLoading) {
+                    onAction(UnlockVaultUiAction.PassphraseChanged(it))
+                }
+            },
+            label = { Text(stringResource(R.string.vault_access_unlock_field_label)) },
             modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(stringResource(UiR.string.vault_unlock_description))
-            SecretOutlinedTextField(
-                value = uiState.passphrase,
-                onValueChange = { onAction(UnlockVaultUiAction.PassphraseChanged(it)) },
-                label = { Text(stringResource(UiR.string.password_label)) },
+                .fillMaxWidth()
+                .bringIntoViewRequester(passphraseBringIntoViewRequester)
+                .focusRequester(passphraseFocusRequester),
+            isError = passphraseErrorMessage != null,
+            errorMessage = passphraseErrorMessage,
+            supportingText = {
+                Text(
+                    passphraseErrorMessage
+                        ?: stringResource(R.string.vault_access_unlock_field_supporting),
+                )
+            },
+            allowReveal = true,
+            enabled = !uiState.isLoading,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done,
+                autoCorrectEnabled = false,
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    if (!uiState.isLoading) {
+                        onAction(
+                            if (uiState.isRetryable) {
+                                UnlockVaultUiAction.Retry
+                            } else {
+                                UnlockVaultUiAction.Submit
+                            },
+                        )
+                    }
+                },
+            ),
+        )
+
+        if (uiState.isRetryable && uiState.errorMessageRes != null) {
+            SafeCubeRetryableError(
+                title = stringResource(R.string.vault_access_unlock_retry_title),
+                message = stringResource(uiState.errorMessageRes),
+                onRetry = {
+                    if (!uiState.isLoading) onAction(UnlockVaultUiAction.Retry)
+                },
+                retrying = uiState.isLoading,
+            )
+        } else {
+            SafeCubeButton(
+                text = stringResource(
+                    if (uiState.isLoading) {
+                        R.string.vault_access_unlock_loading
+                    } else {
+                        R.string.vault_access_unlock_action
+                    },
+                ),
+                onClick = {
+                    if (!uiState.isLoading) {
+                        onAction(
+                            if (uiState.isRetryable) {
+                                UnlockVaultUiAction.Retry
+                            } else {
+                                UnlockVaultUiAction.Submit
+                            },
+                        )
+                    }
+                },
                 modifier = Modifier
-                    .padding(top = 12.dp)
-                    .fillMaxWidth(),
-                isError = uiState.passphraseErrorRes != null,
+                    .fillMaxWidth()
+                    .padding(top = SafeCubeSpacing.Small),
+                enabled = !uiState.isLoading,
+                loading = uiState.isLoading,
+            )
+        }
+
+        if (uiState.canRetryQuickUnlock && uiState.errorMessageRes != null) {
+            SafeCubeBanner(
+                message = stringResource(uiState.errorMessageRes),
+                variant = SafeCubeBannerVariant.Error,
+                liveRegionMode = LiveRegionMode.Polite,
+            )
+        } else if (
+            uiState.errorMessageRes != null &&
+            !uiState.isRetryable &&
+            !uiState.canRetryQuickUnlock &&
+            !isInvalidPassphrase
+        ) {
+            SafeCubeTerminalError(
+                title = stringResource(R.string.vault_access_unlock_error_title),
+                message = stringResource(uiState.errorMessageRes),
+            )
+        }
+
+        if (uiState.hasQuickUnlockEnrollment) {
+            SafeCubeButton(
+                text = stringResource(R.string.vault_access_unlock_quick_unlock_retry),
+                onClick = {
+                    if (!uiState.isLoading) onAction(UnlockVaultUiAction.RetryQuickUnlock)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                variant = SafeCubeButtonVariant.Secondary,
                 enabled = !uiState.isLoading,
             )
-            uiState.passphraseErrorRes?.let { errorRes ->
-                Text(
-                    text = stringResource(errorRes),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-            Button(
-                onClick = {
-                    onAction(
-                        if (uiState.isRetryable) {
-                            UnlockVaultUiAction.Retry
-                        } else {
-                            UnlockVaultUiAction.Submit
-                        },
-                    )
-                },
-                enabled = !uiState.isLoading,
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .fillMaxWidth(),
-            ) {
-                Text(
-                    text = when {
-                        uiState.isLoading -> stringResource(UiR.string.vault_unlock_loading)
-                        uiState.isRetryable -> stringResource(UiR.string.retry)
-                        else -> stringResource(UiR.string.vault_unlock_action)
-                    },
-                )
-            }
-            uiState.errorMessageRes?.let { errorRes ->
-                Text(
-                    text = stringResource(errorRes),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-            if (uiState.hasQuickUnlockEnrollment) {
-                OutlinedButton(
-                    onClick = { onAction(UnlockVaultUiAction.RetryQuickUnlock) },
-                    enabled = !uiState.isLoading,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(UiR.string.quick_unlock_retry))
-                }
-            }
         }
     }
 }
@@ -243,4 +327,52 @@ private fun VaultLockReason.messageRes(): Int = when (this) {
 
     VaultLockReason.PassphraseChangeReconciliationRequired ->
         UiR.string.vault_lock_passphrase_reconciliation_message
+}
+
+@Preview(
+    name = "Unlock · EN light",
+    widthDp = 360,
+    heightDp = 640,
+    locale = "en",
+    apiLevel = 36,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+)
+@Composable
+private fun VaultUnlockEnglishLightPreview() {
+    SafeCubeTheme(
+        appearance = AppearanceSettings(
+            mode = AppearanceMode.Light,
+            dynamicColorEnabled = false,
+        ),
+    ) {
+        UnlockVaultContent(
+            uiState = UnlockVaultUiState(),
+            onAction = {},
+            focusEffectsEnabled = false,
+        )
+    }
+}
+
+@Preview(
+    name = "Unlock · ES dark",
+    widthDp = 360,
+    heightDp = 640,
+    locale = "es",
+    apiLevel = 36,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun VaultUnlockSpanishDarkPreview() {
+    SafeCubeTheme(
+        appearance = AppearanceSettings(
+            mode = AppearanceMode.Dark,
+            dynamicColorEnabled = false,
+        ),
+    ) {
+        UnlockVaultContent(
+            uiState = UnlockVaultUiState(),
+            onAction = {},
+            focusEffectsEnabled = false,
+        )
+    }
 }
