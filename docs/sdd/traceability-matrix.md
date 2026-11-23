@@ -57,6 +57,27 @@ solo se ordena después del generador si ambos se solicitan, sin regeneración a
 | SPEC-HARDENING-V1           | NFR-LIFECYCLE-001 | SCDK-M109 / SCDK-M117, SCDK-M125 / SCDK-M131 | `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/gate/NavigationGates.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/gate/viewmodel/PostLoginGateViewModel.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/host/NavigationGraph.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/host/NavigationSessionCoordinator.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/host/NavigationWrapper.kt`, `core/vault/src/main/java/com/miguelrodriguez19/safecube/core/vault/domain/model/initialize/PendingVaultInitializationStatus.kt`, `app/src/debug/java/com/miguelrodriguez19/safecube/app/testsupport/QuickUnlockColdStartProbeService.kt` | `NavigationGatesTest`, `PostLoginGateViewModelTest.live unlocked vault skips destructive refresh and emits home navigation`, `NavigationSessionCoordinatorTest`, `VaultInitializeRecoveryUseCaseTest`, `QuickUnlockDeviceCredentialTest.activityRecreationKeepsLiveSessionAndRemoteProcessStartsLocked`, `./gradlew :core:vault:testDebugUnitTest`, `./gradlew :app:testDebugUnitTest`, `./gradlew :app:pixel2Api30DebugAndroidTest` | VERIFIED | SCDK-M117 evita flashes durante bootstrap; M125 no renderiza rutas restauradas protegidas mientras el proceso nuevo resuelve sesión/vault/registro y prioriza RecoveryKey confirmada. El gate reutiliza una sesión process-local ya desbloqueada sin ejecutar un refresh destructivo ni contactar backend durante la recreación de Activity. M130 acepta el probe multiproceso como evidencia determinista de cold start Locked porque forzar la muerte del paquete principal también mata al runner; la matriz documenta explícitamente esta justificación. |
 | SPEC-HARDENING-V1           | FR-SCOPE-001    | SCDK-M109 / SCDK-M129 | `app/build.gradle.kts`, `app/src/main/java/com/miguelrodriguez19/safecube/app/entrypoint/MainActivity.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/route/Routes.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/route/RouteAccessPolicy.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/host/NavigationGraph.kt`, `app/src/main/java/com/miguelrodriguez19/safecube/app/presentation/navigation/host/NavigationBackPolicy.kt`, `feature/vault/src/main/java/com/miguelrodriguez19/safecube/feature/vault/presentation/shared/navigation/NavigationBar.kt`, `feature/vault/src/main/java/com/miguelrodriguez19/safecube/feature/vault/presentation/home/ui/VaultScreen.kt`, `feature/vault/src/main/java/com/miguelrodriguez19/safecube/feature/vault/presentation/settings/ui/SettingsScreen.kt`, `core/ui/src/main/res/values/strings.xml`, `core/ui/src/main/res/values-es/strings.xml` | `V1ScopePolicyTest`, `NavigationBackPolicyTest`, `NavigationSessionCoordinatorTest`, `MainActivitySmokeTest.cleanLaunchDoesNotExposeDeferredV1Features`, `rg` de rutas/textos aplazados, `./gradlew :app:testDebugUnitTest`, `./gradlew :app:lintDebug`, `./gradlew ciVerify` | VERIFIED | Folders, Profile, App y Error no forman parte de las rutas ni de la navegación v1; Settings expone solo acciones funcionales. Por decisión del owner, `feature:profile` permanece registrado como módulo aplazado, pero `app` no depende de él y un test de política impide volver a exponerlo. |
 
+### Vault access SCDK-M142 — 2026-11-23
+
+Sources: [presentation contract](../design/vault-access-v1.md),
+[agent report](agent-reports/SCDK-M142.md). Task status `PARTIAL`: code and automated
+verification complete; real TalkBack walkthrough and owner visual acceptance pending.
+
+| Requirement | Implementation and intended evidence |
+| --- | --- |
+| `FR-UI-003` | Canonical gate, create, recovery, unlock and quick-unlock presentation |
+| `NFR-UI-002/003` | Scroll/IME, pane headings, labeled actions, 200 percent adaptation and TalkBack Unlock walkthrough |
+| `NFR-UI-004/005` | EN/ES parity, theme previews, safe visual references and semantic regression tests |
+| `SEC-UI-001` | Hidden recovery by default, explicit ephemeral reveal, immediate lifecycle hiding, no saved secrets or clipboard |
+| Phase 7 behavior | Existing state-machine, navigation, process-death and device-credential tests retained |
+
+Owner decisions: preserve gate retry for existing non-loading failures; recovery is hidden until
+explicit Show, without adding a reveal-before-confirmation requirement. No crypto/storage or
+route-priority change. Evidence: 795 JVM tests, 93 API-30 general instrumented tests and 5
+credential-isolated tests PASS; 16 safe new goldens, 57 total, with all 41 previous hashes
+unchanged. `ciVerify`, version bump and diff checks PASS. Manual TalkBack is not inferred from
+semantic assertions; see the report's remaining acceptance criterion.
+
 ### Account entry SCDK-M141 — 2026-11-10
 
 Contrato de composición: [auth entry v1](../design/auth-entry-v1.md). Evidencia y estado real por
