@@ -81,17 +81,6 @@ internal fun RecoveryKeyContent(
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.secondary,
             )
-            Text(
-                text = stringResource(R.string.vault_access_recovery_warning_title),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            SafeCubeBanner(
-                message = stringResource(R.string.vault_access_recovery_warning_message),
-                variant = SafeCubeBannerVariant.Warning,
-                liveRegionMode = null,
-                announceState = false,
-            )
-
             when {
                 uiState.isLoading -> {
                     SafeCubeProgress(
@@ -124,6 +113,13 @@ internal fun RecoveryKeyContent(
                         )
                     }
                     SafeCubeRecoveryKey(value = uiState.recoveryKey)
+                    //SafeCubeRecoveryWarning(stringResource(R.string.vault_access_recovery_warning_message))
+                    SafeCubeBanner(
+                        message = stringResource(R.string.vault_access_recovery_warning_message),
+                        variant = SafeCubeBannerVariant.Warning,
+                        liveRegionMode = null,
+                        announceState = false,
+                    )
                     RecoveryKeyConfirmation(
                         isConfirmed = uiState.isConfirmed,
                         enabled = uiState.operationState == VaultUiOperationState.Success &&

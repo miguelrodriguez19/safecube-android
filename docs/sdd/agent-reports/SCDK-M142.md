@@ -75,6 +75,25 @@ on emulator-5554 (Success), without changing physical-device data. `git diff --c
 
 ## Decisions and assumptions
 
+### Owner-selected compact recovery refinement
+
+The owner selected proposal 3 and excluded the visible "Hidden" / "Demonstration only" captions.
+Recovery now uses an outlined compact header with key icon, title, Show/Hide and chevron. The
+entire header is a single accessible button; large text moves controls to a second row. Explicit
+reveal inserts a monospaced value panel; lifecycle hiding removes it immediately. Visibility
+remains in semantic state descriptions only. Safety copy is concise and below the card; the
+checkbox and confirmation/deletion contract remain unchanged. No production demonstration text
+is added. A shared inline warning keeps the feature independent of icon-library dependencies.
+
+Focused API-30 access/privacy/resilience suite PASS (20 tests). Added an assertion that hidden
+status is not visible text. Three Recovery references updated; regeneration also reconciles three
+Create references whose field/action spacing differed from current rendering, without modifying
+Create production code. Final privacy repeat PASS (4 tests), including the absence of a visible
+hidden-state caption; `ciVerify` PASS (combined invocation 36s). Full access/privacy/resilience
+subset PASS (20 tests); 57 visual references validated. `git diff --check` PASS.
+An unavailable standalone emulator was replaced by the repository's managed API-30 runner.
+No new commit requested or performed for this refinement.
+
 - Domain state machines, actions/events, crypto and persistence remain unchanged.
 - Reveal is presentation-only; no new requirement to reveal before confirmation.
 - Verification will be centralized to avoid concurrent Gradle artifact mutation.

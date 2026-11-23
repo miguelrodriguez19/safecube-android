@@ -30,6 +30,7 @@ No component defines a feature-specific palette or domain state machine.
 | `SafeCubeIconButton` | Default, pressed, focused, disabled, loading | Required localized accessible label, minimum 48dp |
 | `SafeCubeTextField` | Default, focused, disabled, error; supporting text | Persistent label, editable semantics, keyboard/IME actions, contextual error |
 | `SecretOutlinedTextField` | Masked by default; optional explicit reveal; focused, disabled, error | Localized show/hide action and visibility state; hidden plaintext absent from semantics |
+| `SafeCubeRecoveryKey` | Compact collapsed header; explicitly expanded read-only key | One labeled header action and chevron; visibility state is semantic only. Large-text action wraps to another row. Pause/exit hides immediately; no copying or restored reveal |
 | `SafeCubeTopAppBar` | Title, optional navigation action, action slot | Heading title; named navigation/action controls |
 | `SafeCubeBottomNavigation` | Selected/unselected, focused, pressed, disabled entries | Tab role, labels, selection and callback; no destination resolution |
 | `SafeCubeScaffold` (M140) | Top/bottom bars, snackbar and content slots | Single-owner safe insets and 16dp content margins; state and navigation remain with callers |

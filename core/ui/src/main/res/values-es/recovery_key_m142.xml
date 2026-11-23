@@ -1,7 +1,7 @@
 <resources>
-    <string name="recovery_key_m142_title">Tu clave de recuperación</string>
-    <string name="recovery_key_m142_show">Mostrar clave de recuperación</string>
-    <string name="recovery_key_m142_hide">Ocultar clave de recuperación</string>
+    <string name="recovery_key_m142_title">Clave de recuperación</string>
+    <string name="recovery_key_m142_show">Mostrar</string>
+    <string name="recovery_key_m142_hide">Ocultar</string>
     <string name="recovery_key_m142_visible">Visible</string>
     <string name="recovery_key_m142_hidden">Oculta</string>
 </resources>

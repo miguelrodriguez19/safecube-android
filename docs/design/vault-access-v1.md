@@ -33,6 +33,16 @@ Supporting error slots remain structurally stable while editing to preserve focu
 - The Android biometric/device-credential dialog remains system-owned. Presentation preserves
   lock-notice priority, enrollment offer, cancellation and passphrase fallback.
 
+## Selected recovery presentation
+
+The owner selected the compact expandable proposal. Its outlined header contains a decorative
+key icon, the recovery-key title, Show/Hide and a decorative chevron. The entire header is one
+labeled button with a visibility state for assistive technology. No visible "Hidden" status or
+"Demonstration only" subtitle is rendered. Large text moves the action onto a second header row.
+Only explicit reveal inserts the monospaced value panel; hiding or lifecycle removal unmounts it
+immediately without an exit animation. The concise safety warning appears below the card, followed
+by the existing confirmation and Continue action. Storage/confirmation behavior is unchanged.
+
 ## Evidence policy
 
 Previews and screenshot fixtures inject empty values or unmistakably invalid demo markers.

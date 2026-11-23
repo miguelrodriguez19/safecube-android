@@ -9,10 +9,9 @@
     <string name="vault_access_create_loading">Creating vault…</string>
     <string name="vault_access_create_error_title">Vault creation issue</string>
     <string name="vault_access_recovery_title">Save your recovery key</string>
-    <string name="vault_access_recovery_subtitle">Save this key somewhere secure before you continue.</string>
+    <string name="vault_access_recovery_subtitle">This key lets you recover access if you forget your vault passphrase.</string>
     <string name="vault_access_recovery_step">Step 2 of 2</string>
-    <string name="vault_access_recovery_warning_title">Keep this key safe</string>
-    <string name="vault_access_recovery_warning_message">You’ll need it to unlock your vault if you can’t use your passphrase. Anyone who gets this key can unlock your vault. Store it somewhere private and secure.</string>
+    <string name="vault_access_recovery_warning_message">Anyone with this key can unlock your vault. Store it somewhere private and secure.</string>
     <string name="vault_access_recovery_confirmation">I saved my recovery key somewhere secure</string>
     <string name="vault_access_recovery_loading">Please wait…</string>
     <string name="vault_access_recovery_error_title">Recovery key issue</string>

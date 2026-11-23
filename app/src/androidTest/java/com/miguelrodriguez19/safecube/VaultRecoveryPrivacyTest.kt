@@ -15,6 +15,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.text.TextLayoutResult
@@ -204,6 +205,10 @@ class VaultRecoveryPrivacyTest {
     }
 
     private fun assertRecoveryKeyHidden() {
+        composeRule.onAllNodesWithText(
+            InstrumentationRegistry.getInstrumentation().targetContext
+                .getString(UiR.string.recovery_key_m142_hidden),
+        ).assertCountEquals(0)
         assertRecoveryKeyAbsent()
         assertClipboardActionsAbsent()
         assertHiddenLayoutDoesNotContain(SYNTHETIC_RECOVERY_KEY)

@@ -78,6 +78,12 @@ credential-isolated tests PASS; 16 safe new goldens, 57 total, with all 41 previ
 unchanged. `ciVerify`, version bump and diff checks PASS. Manual TalkBack is not inferred from
 semantic assertions; see the report's remaining acceptance criterion.
 
+Owner-selected refinement: compact expandable Recovery card, without visible hidden/demo
+captions; one accessible header action, immediate lifecycle hiding, monospaced revealed value
+and a concise warning below. Access/privacy/resilience subset PASS (20); final caption/privacy
+regressions PASS (4), `ciVerify` PASS. Three Recovery references updated; three Create references
+reconciled to current rendered spacing without changing Create production code.
+
 ### Account entry SCDK-M141 — 2026-11-10
 
 Contrato de composición: [auth entry v1](../design/auth-entry-v1.md). Evidencia y estado real por
