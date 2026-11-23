@@ -7,7 +7,10 @@ import com.miguelrodriguez19.safecube.core.auth.domain.session.AccountSessionRes
 import com.miguelrodriguez19.safecube.core.auth.domain.session.SessionManager
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultCleanupResult
 import com.miguelrodriguez19.safecube.core.vault.domain.session.LocalVaultDataCleaner
+import com.miguelrodriguez19.safecube.core.vault.domain.session.QuickUnlockPromptMode
+import com.miguelrodriguez19.safecube.core.vault.domain.session.VaultSessionManager
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
@@ -17,15 +20,24 @@ import kotlinx.coroutines.withContext
 class AccountSessionLifecycleImpl @Inject constructor(
     private val sessionManager: SessionManager,
     private val localVaultDataCleaner: LocalVaultDataCleaner,
+    private val vaultSessionManagerProvider: Provider<VaultSessionManager>,
 ) : AccountSessionLifecycle {
     override suspend fun activateFreshSession(tokens: AuthTokens): AccountSessionResult {
-        return when (val cleanupResult = clearLocalVault()) {
-            LocalVaultCleanupResult.Success -> {
+        val vaultLocked = lockVaultForAccountBoundary()
+        val cleanupResult = try {
+            clearLocalVault()
+        } catch (cancellationException: CancellationException) {
+            sessionManager.forceLogout(SessionTerminationReason.LocalIntegrityFailure)
+            throw cancellationException
+        }
+
+        return when {
+            vaultLocked && cleanupResult == LocalVaultCleanupResult.Success -> {
                 sessionManager.onLoginSuccess(tokens)
                 AccountSessionResult.Success
             }
 
-            LocalVaultCleanupResult.Failure -> {
+            else -> {
                 sessionManager.forceLogout(SessionTerminationReason.LocalIntegrityFailure)
                 AccountSessionResult.LocalVaultCleanupFailed
             }
@@ -39,9 +51,16 @@ class AccountSessionLifecycleImpl @Inject constructor(
     override suspend fun terminateSession(
         reason: SessionTerminationReason,
     ): AccountSessionResult = withContext(NonCancellable) {
-        val result = when (val cleanupResult = clearLocalVault()) {
-            LocalVaultCleanupResult.Success -> AccountSessionResult.Success
-            LocalVaultCleanupResult.Failure -> AccountSessionResult.LocalVaultCleanupFailed
+        val vaultLocked = lockVaultForAccountBoundary()
+        val cleanupResult = try {
+            clearLocalVault()
+        } catch (_: CancellationException) {
+            LocalVaultCleanupResult.Failure
+        }
+        val result = if (vaultLocked && cleanupResult == LocalVaultCleanupResult.Success) {
+            AccountSessionResult.Success
+        } else {
+            AccountSessionResult.LocalVaultCleanupFailed
         }
         sessionManager.forceLogout(
             reason = if (result == AccountSessionResult.LocalVaultCleanupFailed) {
@@ -51,6 +70,13 @@ class AccountSessionLifecycleImpl @Inject constructor(
             },
         )
         result
+    }
+
+    private fun lockVaultForAccountBoundary(): Boolean = try {
+        vaultSessionManagerProvider.get().lock(QuickUnlockPromptMode.ManualOnly)
+        true
+    } catch (_: Throwable) {
+        false
     }
 
     private suspend fun clearLocalVault(): LocalVaultCleanupResult =

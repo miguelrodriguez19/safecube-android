@@ -64,6 +64,7 @@ fun SecretOutlinedTextField(
     enabled: Boolean = true,
     isError: Boolean = false,
     supportingText: @Composable (() -> Unit)? = null,
+    errorMessage: String? = null,
     allowReveal: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions(
         keyboardType = KeyboardType.Password,
@@ -147,7 +148,7 @@ fun SecretOutlinedTextField(
                 }
                 stateDescription = secretVisibilityLabel
                 if (isError) {
-                    error(errorLabel)
+                    error(errorMessage ?: errorLabel)
                 }
             },
         enabled = enabled,

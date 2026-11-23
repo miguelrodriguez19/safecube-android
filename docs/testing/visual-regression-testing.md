@@ -63,6 +63,12 @@ Validate the approved references without modifying them:
 The root task delegates only to `:app:validateDebugScreenshotTest`. It also rejects any GitHub
 Actions workflow containing a screenshot update task. `ciVerify` depends on this read-only gate.
 
+The pinned alpha16 comparator uses the percentage of changed pixels as its threshold. SafeCube
+sets the validation task to `0.001%`, the smallest bounded tolerance needed for the observed
+one-channel rasterization noise in the shared logo between local and Linux hosts. This does not
+permit dimension, layout, text or content changes: larger visual differences still fail and the
+generated diff remains available for review.
+
 Run the semantic test in the canonical instrumented suite:
 
 ```bash
@@ -117,6 +123,11 @@ Cartesian theme × locale × window × state matrix or duplicate references mere
 preview exists. Design source may be maintained in an external design tool, but Figma is optional
 and no particular design tool is required. Goldens remain code-versioned repository artifacts and
 still require human visual review.
+
+M141 additionally declares screen-local `@Preview` functions in Welcome, Login and Signup for
+direct Android Studio discovery. These render injected empty state under the canonical theme;
+they do not instantiate Hilt or add screenshot-test cases. Their annotation dependency is available
+to the feature, while the tooling renderer remains a debug dependency.
 
 ## Determinism and privacy rules
 
@@ -214,6 +225,31 @@ Motion scales, back operations and removal of outgoing protected content are tes
 and instrumentally, rather than represented by additional transient PNGs. Updates remain explicit
 local operations with visual inspection; CI only validates. Execution evidence belongs to the
 [M140 report](../sdd/agent-reports/SCDK-M140.md).
+
+## Account entry coverage after SCDK-M141
+
+The [account entry contract](../design/auth-entry-v1.md) adds ten deliberate references to the
+31 existing references. `AuthScreenshotTest` renders the actual production content through
+debug-only bridges, with no ViewModel or production services.
+
+| Target | Configuration | Distinct visual risk |
+|---|---|---|
+| Welcome | Light EN / Dark ES | Brand hierarchy, entry actions and localized dark treatment |
+| Welcome | Light ES, compact 200% | Large-type introduction and scrollable entry actions |
+| Login idle | Light EN, compact | Account credentials versus vault terminology |
+| Login loading | Light EN, compact | Progress, preserved context and disabled controls |
+| Login retryable | Dark ES, compact | Contextual single retry action |
+| Login terminal | Light EN, compact | Terminal context without retry |
+| Login idle | Dark ES, medium landscape | Form width, reflow and localized action placement |
+| Signup validation | Light ES, compact | Error-field association and confirmation |
+| Signup | Dark ES, compact 200% | Long labels and action access through scrolling |
+
+All cases pin API 36, locale, theme, dimensions and font scale, with dynamic color disabled.
+Password fixture values are empty or inert masking glyphs. Focus/IME/autofill and real callbacks
+are verified instrumentally, not inferred from static captures. Broader debug previews remain
+independent of golden selection. Local generation, PNG inspection, human approval and read-only
+verification follow the same workflow above. Execution results, including any pending manual
+TalkBack or visual approval, belong to the [M141 report](../sdd/agent-reports/SCDK-M141.md).
 
 ## Upstream documentation
 

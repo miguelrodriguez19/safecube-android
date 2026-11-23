@@ -1,5 +1,6 @@
 import com.miguelrodriguez19.safecube.buildlogic.AppVersionParser
 import com.miguelrodriguez19.safecube.buildlogic.ReleaseSigningConfig
+import org.gradle.api.tasks.testing.Test
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
 import javax.xml.parsers.DocumentBuilderFactory
@@ -169,6 +170,15 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(project(":core:crypto"))
+}
+
+// Layoutlib can differ by one channel when rasterizing the same vector across CI and local
+// hosts. The alpha16 comparator expresses its threshold as the percentage of changed pixels;
+// this narrowly permits the observed sub-pixel noise without masking layout or content changes.
+tasks.withType<Test>().configureEach {
+    if (name == "validateDebugScreenshotTest") {
+        systemProperty("PreviewScreenshotTestEngineInput.ImageDiffer.threshold", "0.001")
+    }
 }
 
 tasks.register("verifyReleaseSecurityManifest") {

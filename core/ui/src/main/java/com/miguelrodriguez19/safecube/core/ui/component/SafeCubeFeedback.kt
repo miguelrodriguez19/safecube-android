@@ -49,6 +49,10 @@ enum class SafeCubeBannerVariant {
     Success,
 }
 
+/**
+ * Set [announceState] to false for static explanatory content: label and message are read
+ * together without status-change or live-region announcements.
+ */
 @Composable
 fun SafeCubeBanner(
     message: String,
@@ -58,6 +62,8 @@ fun SafeCubeBanner(
     onAction: (() -> Unit)? = null,
     actionEnabled: Boolean = true,
     actionLoading: Boolean = false,
+    liveRegionMode: LiveRegionMode? = LiveRegionMode.Polite,
+    announceState: Boolean = true,
 ) {
     requireOptionalAction(actionLabel, onAction)
 
@@ -67,9 +73,10 @@ fun SafeCubeBanner(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .semantics {
-                liveRegion = LiveRegionMode.Polite
-                stateDescription = stateLabel
+            .semantics(mergeDescendants = true) {
+                if (announceState && liveRegionMode != null) {
+                    liveRegion = liveRegionMode
+                }
             },
         color = palette.container,
         contentColor = palette.content,
@@ -88,7 +95,7 @@ fun SafeCubeBanner(
             ) {
                 Icon(
                     imageVector = variant.icon(),
-                    contentDescription = stateLabel,
+                    contentDescription = null,
                     modifier = Modifier.size(SafeCubeIconSize.Default),
                 )
                 Column(
@@ -323,9 +330,8 @@ private fun SafeCubeStateSurface(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .semantics {
+            .semantics(mergeDescendants = true) {
                 liveRegion = LiveRegionMode.Polite
-                stateDescription = stateLabel
             },
         color = palette.container,
         contentColor = palette.content,
@@ -344,7 +350,7 @@ private fun SafeCubeStateSurface(
             ) {
                 Icon(
                     imageVector = variant.icon(),
-                    contentDescription = stateLabel,
+                    contentDescription = null,
                     modifier = Modifier.size(SafeCubeIconSize.Default),
                 )
                 Text(

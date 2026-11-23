@@ -16,8 +16,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.miguelrodriguez19.safecube.R
+import com.miguelrodriguez19.safecube.core.ui.R as UiR
 import com.miguelrodriguez19.safecube.core.ui.component.SafeCubeProgress
 import com.miguelrodriguez19.safecube.core.ui.theme.SafeCubeSpacing
+
+private val SPLASH_MARK_SIZE = 96.dp
+
 @Composable
 fun SplashGateScreen() {
     Surface(
@@ -36,7 +40,7 @@ fun SplashGateScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_safecube_mark),
+                painter = painterResource(UiR.drawable.ic_safecube_mark),
                 contentDescription = null,
                 modifier = Modifier.size(SPLASH_MARK_SIZE),
                 tint = MaterialTheme.colorScheme.primary,
@@ -45,5 +49,3 @@ fun SplashGateScreen() {
         }
     }
 }
-
-private val SPLASH_MARK_SIZE = 96.dp

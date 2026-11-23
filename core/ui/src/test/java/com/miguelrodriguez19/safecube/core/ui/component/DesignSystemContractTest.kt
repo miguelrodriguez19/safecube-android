@@ -20,6 +20,7 @@ class DesignSystemContractTest {
         assertLocaleParity(repositoryRoot.resolve("app/src/main/res"))
         assertLocaleParity(repositoryRoot.resolve("app/src/debug/res"))
         assertLocaleParity(repositoryRoot.resolve("feature/vault/src/main/res"))
+        assertLocaleParity(repositoryRoot.resolve("feature/auth/src/main/res"))
     }
 
     private fun assertLocaleParity(resources: File) {

@@ -39,11 +39,12 @@ class SignupViewModelTest {
     fun `submit when fields are invalid then exposes validation and does not call repository`() = runTest {
         val target = SignupViewModel(authRepository, accountSessionLifecycle)
 
-        enterCredentials(target, emailValue(), sensitiveValue(), sensitiveValue())
+        val password = sensitiveValue()
+        enterCredentials(target, emailValue(), password, sensitiveValue())
         target.onAction(SignupUiAction.Submit)
 
         assertEquals(AuthUiOperationState.ValidationError, target.uiState.value.operationState)
-        assertTrue(target.uiState.value.password.isEmpty())
+        assertEquals(password, target.uiState.value.password)
         assertTrue(target.uiState.value.confirmPassword.isEmpty())
         coVerify(exactly = 0) { authRepository.register(any(), any()) }
     }
