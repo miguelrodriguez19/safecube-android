@@ -251,6 +251,27 @@ independent of golden selection. Local generation, PNG inspection, human approva
 verification follow the same workflow above. Execution results, including any pending manual
 TalkBack or visual approval, belong to the [M141 report](../sdd/agent-reports/SCDK-M141.md).
 
+## Vault access coverage after SCDK-M142
+
+`VaultAccessScreenshotTest` adds 16 selected references (57 total), rendering production content
+through debug bridges. Empty passphrases and hidden, unmistakably invalid recovery markers are
+used; the adapter supplies a RESUMED synthetic lifecycle without requesting reveal or launching
+Android authentication. Locale/theme/configuration remain pinned by each preview.
+
+| Family | Selected states | Distinct adaptation |
+| --- | --- | --- |
+| Post-login gate | Loading, retryable, terminal with existing retry | Compact and medium landscape; EN/ES, light/dark |
+| Create vault | Idle, loading, field validation | Compact Spanish 200 percent validation |
+| Recovery | Hidden/warning, confirmed, confirmation-cleanup error | Compact and medium/landscape; no revealed key |
+| Unlock | Idle, loading, passphrase error | Compact and medium landscape |
+| Quick unlock and lock notices | Offer, fallback, remote change, reconciliation | Spanish dark offer/remote notice; compact 200 percent reconciliation |
+
+The long-message dialog supports scrolling while keeping acknowledgement available. Actual
+scrolling, secret absence in both semantic trees, lifecycle hiding and callbacks are instrumented;
+static images alone do not establish accessibility or security. Recovery Spanish 200 percent
+scroll reachability is checked separately. Human TalkBack acceptance remains explicit in the
+[M142 report](../sdd/agent-reports/SCDK-M142.md).
+
 ## Upstream documentation
 
 - [Compose Preview Screenshot Testing](https://developer.android.com/studio/preview/compose-screenshot-testing)
