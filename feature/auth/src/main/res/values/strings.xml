@@ -3,7 +3,7 @@
     <string name="auth_logo_content_description">SafeCube logo</string>
     <string name="auth_welcome_title">Your private space, always within reach</string>
     <string name="auth_welcome_body">Protect passwords and notes with encryption designed around your control.</string>
-    <string name="auth_welcome_reassurance">Encrypted before sync · Your vault stays yours</string>
+    <string name="auth_welcome_reassurance">Encrypted before sync.\nYour vault stays yours.</string>
     <string name="auth_login_title">Welcome back</string>
     <string name="auth_login_subtitle">Use your account password. Your vault is unlocked separately with its passphrase.</string>
     <string name="auth_signup_title">Create your account</string>

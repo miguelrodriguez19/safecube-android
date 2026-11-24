@@ -3,7 +3,7 @@
     <string name="auth_logo_content_description">Logotipo de SafeCube</string>
     <string name="auth_welcome_title">Tu espacio privado, siempre a tu alcance</string>
     <string name="auth_welcome_body">Protege contraseñas y notas con un cifrado bajo tu control.</string>
-    <string name="auth_welcome_reassurance">Cifrado antes de sincronizar · Tu bóveda es tuya</string>
+    <string name="auth_welcome_reassurance">Cifrado antes de sincronizar.\nTu bóveda es tuya.</string>
     <string name="auth_login_title">Qué gusto verte</string>
     <string name="auth_login_subtitle">Usa la contraseña de tu cuenta. La bóveda se desbloquea después con su frase de contraseña.</string>
     <string name="auth_signup_title">Crea tu cuenta</string>
