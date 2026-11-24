@@ -1,0 +1,22 @@
+<resources>
+    <string name="vault_access_recovery_save_title">De verdad,\nes importante</string>
+    <string name="vault_access_recovery_save_acknowledge">Entendido</string>
+    <string name="vault_access_recovery_reconfirm">Si no guardas tu clave de recuperación y pierdes la contraseña de tu bóveda, &lt;b&gt;perderás todos tus datos.&lt;/b&gt;</string>
+    <string name="vault_access_create_title">Crea tu bóveda</string>
+    <string name="vault_access_create_subtitle">Define la frase de contraseña que protege tu bóveda.</string>
+    <string name="vault_access_create_step">Paso 1 de 2</string>
+    <string name="vault_access_create_passphrase_label">Frase de contraseña de la bóveda</string>
+    <string name="vault_access_create_passphrase_hint">Usarás esta frase de contraseña cada vez que desbloquees la bóveda.</string>
+    <string name="vault_access_create_passphrase_required">Introduce una frase de contraseña para crear la bóveda.</string>
+    <string name="vault_access_create_action">Crear bóveda</string>
+    <string name="vault_access_create_loading">Creando bóveda…</string>
+    <string name="vault_access_create_error_title">Problema al crear la bóveda</string>
+    <string name="vault_access_recovery_title">Guarda tu clave de recuperación</string>
+    <string name="vault_access_recovery_subtitle">Te permitirá recuperar el acceso si olvidas tu frase de contraseña.</string>
+    <string name="vault_access_recovery_step">Paso 2 de 2</string>
+    <string name="vault_access_recovery_warning_message">Quien tenga esta clave puede desbloquear tu bóveda.\nGuárdala en un lugar privado y seguro.</string>
+    <string name="vault_access_recovery_confirmation">He guardado mi clave de recuperación en un lugar seguro</string>
+    <string name="vault_access_recovery_loading">Espera un momento…</string>
+    <string name="vault_access_recovery_error_title">Problema con la clave de recuperación</string>
+    <string name="vault_access_recovery_continue">Continuar</string>
+</resources>

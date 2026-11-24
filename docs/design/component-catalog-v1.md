@@ -30,12 +30,13 @@ No component defines a feature-specific palette or domain state machine.
 | `SafeCubeIconButton` | Default, pressed, focused, disabled, loading | Required localized accessible label, minimum 48dp |
 | `SafeCubeTextField` | Default, focused, disabled, error; supporting text | Persistent label, editable semantics, keyboard/IME actions, contextual error |
 | `SecretOutlinedTextField` | Masked by default; optional explicit reveal; focused, disabled, error | Localized show/hide action and visibility state; hidden plaintext absent from semantics |
+| `SafeCubeRecoveryKey` | Compact collapsed header; explicitly expanded read-only key | One labeled header action and chevron; visibility state is semantic only. Large-text action wraps to another row. Pause/exit hides immediately; no copying or restored reveal |
 | `SafeCubeTopAppBar` | Title, optional navigation action, action slot | Heading title; named navigation/action controls |
 | `SafeCubeBottomNavigation` | Selected/unselected, focused, pressed, disabled entries | Tab role, labels, selection and callback; no destination resolution |
 | `SafeCubeScaffold` (M140) | Top/bottom bars, snackbar and content slots | Single-owner safe insets and 16dp content margins; state and navigation remain with callers |
 | `SafeCubeCard`, `SafeCubeItemRow` | Static or actionable; enabled/disabled; interaction feedback; optional row status | Static content has no click action; actionable content has 48dp target; row status is textual and announced |
 | `SafeCubeBanner` | Info, warning, error, offline, draft, conflict, success; optional enabled/loading action | Localized label and message form one reading unit, without a duplicate state description. Polite live region and independently accessible contextual action. Static content uses `announceState = false` to disable live announcements |
-| `SafeCubeConfirmationDialog` | Normal/destructive, confirming/loading | Heading, confirm/dismiss callbacks; loading blocks duplicate confirmation and dismissal |
+| `SafeCubeConfirmationDialog` | Normal/destructive, confirming/loading; optional acknowledgement-only action | Heading, confirm/dismiss callbacks; loading blocks duplicate confirmation and dismissal. System dismissal may be handled separately from the explicit dismiss button; existing defaults are retained |
 | `SafeCubeProgress` | Indeterminate or explicitly determined | Message and progress semantics |
 | `SafeCubeEmptyState` | Empty, optional action | Heading, explanation and optional named action |
 | `SafeCubeRetryableError` | Retry available or retrying | Context and adjacent retry; retrying blocks duplicates |

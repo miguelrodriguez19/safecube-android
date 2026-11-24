@@ -1,0 +1,7 @@
+<resources>
+    <string name="recovery_key_m142_title">Recovery key</string>
+    <string name="recovery_key_m142_show">Show</string>
+    <string name="recovery_key_m142_hide">Hide</string>
+    <string name="recovery_key_m142_visible">Visible</string>
+    <string name="recovery_key_m142_hidden">Hidden</string>
+</resources>

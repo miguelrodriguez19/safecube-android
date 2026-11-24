@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vault_access_unlock_title">Unlock your vault</string>
+    <string name="vault_access_unlock_subtitle">Your account is already signed in. Use your vault passphrase to unlock your encrypted items. This is different from your account password.</string>
+    <string name="vault_access_unlock_field_label">Vault passphrase</string>
+    <string name="vault_access_unlock_field_supporting">Your account password does not unlock the vault.</string>
+    <string name="vault_access_unlock_passphrase_required">Enter your vault passphrase.</string>
+    <string name="vault_access_unlock_action">Unlock vault</string>
+    <string name="vault_access_unlock_loading">Unlocking vault…</string>
+    <string name="vault_access_unlock_retry_title">Unlock could not be confirmed</string>
+    <string name="vault_access_unlock_error_title">Could not unlock your vault</string>
+    <string name="vault_access_unlock_quick_unlock_offer_title">Enable quick unlock?</string>
+    <string name="vault_access_unlock_quick_unlock_offer_description">Use strong biometrics or your device PIN, pattern, or password to unlock this vault. This is not a SafeCube PIN.</string>
+    <string name="vault_access_unlock_quick_unlock_enable">Enable</string>
+    <string name="vault_access_unlock_quick_unlock_not_now">Not now</string>
+    <string name="vault_access_unlock_quick_unlock_retry">Try quick unlock again</string>
+    <string name="vault_access_unlock_understood">Understood</string>
+</resources>

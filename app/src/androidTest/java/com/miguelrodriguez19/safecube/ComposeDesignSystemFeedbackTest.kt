@@ -1,6 +1,7 @@
 package com.miguelrodriguez19.safecube
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -372,6 +373,88 @@ class ComposeDesignSystemFeedbackTest {
             ),
         ).assertIsDisplayed()
         assertEquals(0, retryCount)
+    }
+
+    @Test
+    fun acknowledgementDialogDoesNotAddACancelAction() {
+        var confirmations = 0
+        setFeedbackContent {
+            SafeCubeConfirmationDialog(
+                title = "Demo notice",
+                message = "Synthetic notice content",
+                confirmLabel = "Understood",
+                onConfirm = { confirmations++ },
+                onDismiss = {},
+                showDismissAction = false,
+            )
+        }
+        composeRule.onAllNodes(hasText("Cancel")).assertCountEquals(0)
+        composeRule.onNodeWithText("Understood").performClick()
+        assertEquals(1, confirmations)
+    }
+
+    @Test
+    fun offerDialogSeparatesSystemDismissFromExplicitDecline() {
+        var declines = 0
+        setFeedbackContent {
+            SafeCubeConfirmationDialog(
+                title = "Demo offer",
+                message = "Synthetic offer content",
+                confirmLabel = "Enable",
+                dismissLabel = "Not now",
+                onConfirm = {},
+                onDismiss = { declines++ },
+                onDismissRequest = {},
+            )
+        }
+        androidx.test.uiautomator.UiDevice.getInstance(
+            InstrumentationRegistry.getInstrumentation(),
+        ).pressBack()
+        composeRule.onNodeWithText("Not now").assertIsDisplayed().performClick()
+        assertEquals(1, declines)
+    }
+
+    @Test
+    fun longNoticeTextScrollsAtTwoHundredPercentWithoutMovingAcknowledgement() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        // Ensure overflow even on tall phones; the production notice supplies the safe fixture.
+        val message = List(4) {
+            context.getString(R.string.vault_lock_passphrase_reconciliation_message)
+        }.joinToString("\n\n")
+        var confirmations = 0
+        setFeedbackContent {
+            val density = androidx.compose.ui.platform.LocalDensity.current.density
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density, 2f),
+            ) {
+                SafeCubeConfirmationDialog(
+                    title = context.getString(R.string.vault_lock_passphrase_reconciliation_title),
+                    message = message,
+                    confirmLabel = "Understood",
+                    onConfirm = { confirmations++ },
+                    onDismiss = {},
+                    showDismissAction = false,
+                    modifier = Modifier.heightIn(max = 500.dp),
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        val ranges = composeRule.onAllNodes(
+            SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange),
+            useUnmergedTree = true,
+        ).fetchSemanticsNodes()
+        assertTrue(
+            "Expected overflow scroll range: ${ranges.map { it.config.toString() }}",
+            ranges.any { it.config[SemanticsProperties.VerticalScrollAxisRange].maxValue() > 0f },
+        )
+        val renderedMessage = android.text.Html.fromHtml(
+            message,
+            android.text.Html.FROM_HTML_MODE_LEGACY,
+        ).toString()
+        composeRule.onNodeWithText(renderedMessage)
+            .performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, 10_000f) }
+        composeRule.onNodeWithText("Understood").assertIsDisplayed().performClick()
+        assertEquals(1, confirmations)
     }
 
     private fun setFeedbackContent(content: @Composable () -> Unit) {
