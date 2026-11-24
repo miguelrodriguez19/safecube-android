@@ -59,6 +59,11 @@ solo se ordena después del generador si ambos se solicitan, sin regeneración a
 
 ### Vault access SCDK-M142 — 2026-11-23
 
+Long-notice follow-up (2026-11-24): `ComposeDesignSystemFeedbackTest` matches HTML-rendered
+notice text rather than its pre-render newline representation. The 200-percent overflow range,
+scroll action, visible acknowledgement and single confirmation checks remain intact.
+Focused API-30 feedback class PASS (12 tests, zero failures/skips); full hosted rerun pending.
+
 Runner follow-up (2026-11-24): localized HTML assertions match rendered text and acknowledge
 the reminder modal before accessing the underlying screen. Focused API-30 Recovery/privacy and
 accessibility suite PASS (25 tests, zero skipped/failures). CI diagnostics bound each adb call

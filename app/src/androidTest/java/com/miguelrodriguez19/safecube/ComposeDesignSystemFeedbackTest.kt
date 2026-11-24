@@ -447,7 +447,11 @@ class ComposeDesignSystemFeedbackTest {
             "Expected overflow scroll range: ${ranges.map { it.config.toString() }}",
             ranges.any { it.config[SemanticsProperties.VerticalScrollAxisRange].maxValue() > 0f },
         )
-        composeRule.onNodeWithText(message)
+        val renderedMessage = android.text.Html.fromHtml(
+            message,
+            android.text.Html.FROM_HTML_MODE_LEGACY,
+        ).toString()
+        composeRule.onNodeWithText(renderedMessage)
             .performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, 10_000f) }
         composeRule.onNodeWithText("Understood").assertIsDisplayed().performClick()
         assertEquals(1, confirmations)
