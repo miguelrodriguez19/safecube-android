@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 24-11-2026 05:18:43
+Updated: 24-11-2026 11:18:07
 
 ```
 safecube-android/
@@ -1384,7 +1384,6 @@ safecube-android/
 │   ├── create-immutable-release-tag.sh
 │   ├── generate-changelog.sh
 │   ├── run-folder-tree.sh
-│   ├── update-goldens.sh
 │   ├── verify-changelog-test.sh
 │   ├── verify-create-immutable-release-tag.sh
 │   ├── verify-gitleaks-fixture.sh

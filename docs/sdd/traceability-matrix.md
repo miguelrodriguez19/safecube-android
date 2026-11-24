@@ -59,6 +59,12 @@ solo se ordena después del generador si ambos se solicitan, sin regeneración a
 
 ### Vault access SCDK-M142 — 2026-11-23
 
+Runner follow-up (2026-11-24): localized HTML assertions match rendered text and acknowledge
+the reminder modal before accessing the underlying screen. Focused API-30 Recovery/privacy and
+accessibility suite PASS (25 tests, zero skipped/failures). CI diagnostics bound each adb call
+and the entire collection step; shell syntax and a simulated unresponsive-adb run PASS.
+GitHub-hosted re-execution remains pending; production state machines are unchanged.
+
 Sources: [presentation contract](../design/vault-access-v1.md),
 [agent report](agent-reports/SCDK-M142.md). Task status `PARTIAL`: code and automated
 verification complete; real TalkBack walkthrough and owner visual acceptance pending.

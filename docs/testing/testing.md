@@ -203,6 +203,12 @@ permissions. If the outer job deadline itself is reached first, GitHub may still
 before later steps can run, so the internal deadline remains the primary path for collecting
 evidence.
 
+Managed-device diagnostics have a separate two-minute step deadline. Each `adb` invocation is
+bounded (10 seconds for discovery, 20 for logcat, 15 for screencap, plus at most five seconds
+before forced termination). Only an online emulator is selected. Failed screenshots are removed
+and replaced by a diagnostic message, so device shutdown cannot leave artifact collection waiting
+indefinitely for a device.
+
 ### Required protection for `main`
 
 Configure a branch ruleset or branch protection rule targeting `main`, and make it active with:

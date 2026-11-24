@@ -231,7 +231,9 @@ class VaultRecoveryPrivacyTest {
             actions,
         )
         composeRule.onNodeWithText(SYNTHETIC_RECOVERY_KEY).performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_reconfirm))
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_save_acknowledge))
+            .performClick()
+        composeRule.onNodeWithText(android.text.Html.fromHtml(context.getString(VaultR.string.vault_access_recovery_reconfirm), android.text.Html.FROM_HTML_MODE_LEGACY).toString())
             .performScrollTo().assertIsDisplayed()
     }
 
@@ -264,7 +266,9 @@ class VaultRecoveryPrivacyTest {
         )
         composeRule.onNodeWithText(SECOND_SYNTHETIC_RECOVERY_KEY)
             .performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_reconfirm))
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_save_acknowledge))
+            .performClick()
+        composeRule.onNodeWithText(android.text.Html.fromHtml(context.getString(VaultR.string.vault_access_recovery_reconfirm), android.text.Html.FROM_HTML_MODE_LEGACY).toString())
             .performScrollTo().assertIsDisplayed()
     }
 
@@ -294,7 +298,9 @@ class VaultRecoveryPrivacyTest {
             actions,
         )
         composeRule.onNodeWithText(SYNTHETIC_RECOVERY_KEY).performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_reconfirm))
+        composeRule.onNodeWithText(context.getString(VaultR.string.vault_access_recovery_save_acknowledge))
+            .performClick()
+        composeRule.onNodeWithText(android.text.Html.fromHtml(context.getString(VaultR.string.vault_access_recovery_reconfirm), android.text.Html.FROM_HTML_MODE_LEGACY).toString())
             .performScrollTo().assertIsDisplayed()
     }
 

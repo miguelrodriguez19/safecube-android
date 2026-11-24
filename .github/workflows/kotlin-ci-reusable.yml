@@ -133,6 +133,7 @@ jobs:
 
       - name: Collect managed-device diagnostics
         if: ${{ failure() || cancelled() }}
+        timeout-minutes: 2
         run: |
           mkdir -p app/build/ci-artifacts
           android_sdk_path="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
@@ -143,11 +144,14 @@ jobs:
             printf 'Managed-device screenshot unavailable because adb was not found.\n' > app/build/ci-artifacts/screenshot-unavailable.txt
             exit 0
           fi
-          "$adb_path" devices -l > app/build/ci-artifacts/adb-devices.txt || true
-          device_serial="$("$adb_path" devices 2>/dev/null | awk 'NR > 1 && $2 == "device" { print $1; exit }' || true)"
+          timeout --signal=TERM --kill-after=5s 10s "$adb_path" devices -l > app/build/ci-artifacts/adb-devices.txt || true
+          device_serial="$(timeout --signal=TERM --kill-after=5s 10s "$adb_path" devices 2>/dev/null | awk 'NR > 1 && $2 == "device" && $1 ~ /^emulator-/ { print $1; exit }' || true)"
           if [ -n "$device_serial" ]; then
-            "$adb_path" -s "$device_serial" logcat -d -v threadtime > app/build/ci-artifacts/logcat.txt || true
-            "$adb_path" -s "$device_serial" exec-out screencap -p > app/build/ci-artifacts/failure.png || true
+            timeout --signal=TERM --kill-after=5s 20s "$adb_path" -s "$device_serial" logcat -d -v threadtime > app/build/ci-artifacts/logcat.txt 2>&1 || true
+            if ! timeout --signal=TERM --kill-after=5s 15s "$adb_path" -s "$device_serial" exec-out screencap -p > app/build/ci-artifacts/failure.png 2> app/build/ci-artifacts/screenshot-unavailable.txt; then
+              rm -f app/build/ci-artifacts/failure.png
+              printf '%s\n' 'Screenshot failed or timed out.' >> app/build/ci-artifacts/screenshot-unavailable.txt
+            fi
           else
             printf '%s\n' 'No managed device was available after the failed Gradle task.' > app/build/ci-artifacts/logcat.txt
             printf '%s\n' 'No managed device was available after the failed Gradle task.' > app/build/ci-artifacts/screenshot-unavailable.txt

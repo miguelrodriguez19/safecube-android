@@ -207,9 +207,11 @@ class VaultAccessSemanticsTest {
             ),
             actions,
         )
+        composeRule.onNodeWithText(targetContext().getString(VaultR.string.vault_access_recovery_save_acknowledge))
+            .performClick()
         composeRule.onNodeWithText(DEMO_NOT_A_RECOVERY_KEY).assertIsDisplayed()
         composeRule.onNodeWithText(
-            targetContext().getString(VaultR.string.vault_access_recovery_reconfirm),
+            android.text.Html.fromHtml(targetContext().getString(VaultR.string.vault_access_recovery_reconfirm), android.text.Html.FROM_HTML_MODE_LEGACY).toString(),
         ).assertIsDisplayed()
 
         composeRule.onNodeWithText(targetContext().getString(UiR.string.recovery_key_m142_hide))
@@ -219,7 +221,7 @@ class VaultAccessSemanticsTest {
             SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Checkbox),
         ).performClick()
         composeRule.onNodeWithText(
-            targetContext().getString(VaultR.string.vault_access_recovery_reconfirm),
+            android.text.Html.fromHtml(targetContext().getString(VaultR.string.vault_access_recovery_reconfirm), android.text.Html.FROM_HTML_MODE_LEGACY).toString(),
         ).assertDoesNotExist()
         composeRule.onNodeWithText(
             targetContext().getString(VaultR.string.vault_access_recovery_continue),
@@ -551,10 +553,12 @@ class VaultAccessSemanticsTest {
         composeRule.onNodeWithText(spanishContext.getString(VaultR.string.vault_access_recovery_continue))
             .performScrollTo().assertIsEnabled().performClick()
         assertEquals(listOf(RecoveryKeyUiAction.ConfirmationChanged(false)), actions)
-        composeRule.onNodeWithText(spanishContext.getString(VaultR.string.vault_access_recovery_reconfirm))
+        composeRule.onNodeWithText(spanishContext.getString(VaultR.string.vault_access_recovery_save_acknowledge))
+            .performClick()
+        composeRule.onNodeWithText(android.text.Html.fromHtml(spanishContext.getString(VaultR.string.vault_access_recovery_reconfirm), android.text.Html.FROM_HTML_MODE_LEGACY).toString())
             .performScrollTo().assertIsDisplayed()
         composeRule.onNode(
-            hasText(spanishContext.getString(VaultR.string.vault_access_recovery_reconfirm)) and
+            hasText(android.text.Html.fromHtml(spanishContext.getString(VaultR.string.vault_access_recovery_reconfirm), android.text.Html.FROM_HTML_MODE_LEGACY).toString()) and
                 SemanticsMatcher.expectValue(
                     SemanticsProperties.LiveRegion,
                     LiveRegionMode.Polite,
